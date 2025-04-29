@@ -38,6 +38,7 @@ func New(log *slog.Logger, db DB, iam IAM) *SESC {
 func (s *SESC) CreateDepartment(ctx context.Context, name, description string) (Department, error) {
 	id, err := uuid.NewV7()
 	if err != nil {
+		s.log.ErrorContext(ctx, "couldn't create uuid", slog.Any("error", err))
 		return Department{}, fmt.Errorf("couldn't create uuid: %w", err)
 	}
 
