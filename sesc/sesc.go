@@ -34,8 +34,25 @@ func New(log *slog.Logger, db DB, iam IAM) *SESC {
 	}
 }
 
+// Return a sesc.DepartmentAlreadyExists if the department already exists
 func (s *SESC) CreateDepartment(ctx context.Context, name, description string) (Department, error) {
-	panic("not implemented")
+	id, err := uuid.NewV7()
+	if err != nil {
+		s.log.ErrorContext(ctx, "couldn't create uuid", slog.Any("error", err))
+		return Department{}, fmt.Errorf("couldn't create uuid: %w", err)
+	}
+
+	d, err := s.db.CreateDepartment(ctx, id, name, description)
+	if errors.Is(err, db.ErrAlreadyExists) {
+		s.log.DebugContext(ctx, "department already exists", slog.Any("department", id))
+		return Department{}, errors.Join(err, ErrDepartmentAlreadyExists)
+	} else if err != nil {
+		s.log.ErrorContext(ctx, "got a db error when saving department", slog.Any("error", err))
+		return Department{}, fmt.Errorf("couldn't save department: %w", err)
+	}
+
+	s.log.InfoContext(ctx, "created department", slog.Any("department", d))
+	return d, nil
 }
 
 type UserOptions struct {
@@ -131,7 +148,7 @@ func (s *SESC) CreateUser(ctx context.Context, opt UserOptions, role Role) (User
 // User returns a User by ID. If the user does not exist, returns a sesc.ErrUserNotFound.
 func (s *SESC) User(ctx context.Context, id UUID) (User, error) {
 	u, err := s.db.UserByID(ctx, id)
-	if errors.Is(err, db.ErrNotFound) {
+	if errors.Is(err, db.ErrUserNotFound) {
 		s.log.DebugContext(ctx, "user id not found", slog.Any("id", id))
 		return u, errors.Join(err, ErrUserNotFound)
 	} else if err != nil {

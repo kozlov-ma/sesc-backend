@@ -3,5 +3,7 @@ package db
 import "errors"
 
 var (
-	ErrNotFound = errors.New("not found")
+	ErrUserNotFound       = errors.New("user not found")
+	ErrDepartmentNotFound = errors.New("department not found")
+	ErrAlreadyExists      = errors.New("already exists")
 )

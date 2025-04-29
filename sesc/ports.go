@@ -10,8 +10,14 @@ type (
 	DB interface {
 		SaveUser(context.Context, User) error
 
-		// Return a db.ErrNotFound if user does not exist.
+		// Return a db.ErrUserNotFound if user does not exist.
 		UserByID(context.Context, UUID) (User, error)
+
+		// Return a db.ErrAlreadyExists if department already exists.
+		CreateDepartment(ctx context.Context, id UUID, name, description string) (Department, error)
+
+		// Return a db.ErrUserNotFound if department or user does not exist.
+		AssignHeadOfDepartment(ctx context.Context, departmentID UUID, userID UUID) error
 	}
 
 	IAM interface {
