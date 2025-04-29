@@ -14,7 +14,6 @@ import (
 	reflect "reflect"
 
 	auth "github.com/kozlov-ma/sesc-backend/auth"
-	sesc "github.com/kozlov-ma/sesc-backend/sesc"
 	gomock "go.uber.org/mock/gomock"
 )
 
@@ -55,19 +54,4 @@ func (m *MockIAM) Register(arg0 context.Context, arg1 auth.Credentials) (auth.ID
 func (mr *MockIAMMockRecorder) Register(arg0, arg1 any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Register", reflect.TypeOf((*MockIAM)(nil).Register), arg0, arg1)
-}
-
-// UserByID mocks base method.
-func (m *MockIAM) UserByID(ctx context.Context, id sesc.UUID) (sesc.User, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UserByID", ctx, id)
-	ret0, _ := ret[0].(sesc.User)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// UserByID indicates an expected call of UserByID.
-func (mr *MockIAMMockRecorder) UserByID(ctx, id any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UserByID", reflect.TypeOf((*MockIAM)(nil).UserByID), ctx, id)
 }

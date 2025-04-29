@@ -248,7 +248,9 @@ func TestSESC_CreateDepartment(t *testing.T) {
 
 	t.Run("error department already exists", func(t *testing.T) {
 		mockdb := mock_sesc.NewMockDB(ctrl)
-		mockdb.EXPECT().CreateDepartment(gomock.Any(), gomock.Any(), dep.Name, dep.Description).Return(sesc.NoDepartment, db.ErrAlreadyExists)
+		mockdb.EXPECT().
+			CreateDepartment(gomock.Any(), gomock.Any(), dep.Name, dep.Description).
+			Return(sesc.NoDepartment, db.ErrAlreadyExists)
 
 		s := sesc.New(log, mockdb, nil)
 
@@ -261,7 +263,9 @@ func TestSESC_CreateDepartment(t *testing.T) {
 
 	t.Run("strange error", func(t *testing.T) {
 		mockdb := mock_sesc.NewMockDB(ctrl)
-		mockdb.EXPECT().CreateDepartment(gomock.Any(), gomock.Any(), dep.Name, dep.Description).Return(sesc.NoDepartment, fmt.Errorf("dinahu"))
+		mockdb.EXPECT().
+			CreateDepartment(gomock.Any(), gomock.Any(), dep.Name, dep.Description).
+			Return(sesc.NoDepartment, fmt.Errorf("dinahu"))
 
 		s := sesc.New(log, mockdb, nil)
 
@@ -271,3 +275,9 @@ func TestSESC_CreateDepartment(t *testing.T) {
 		assert.Equal(t, sesc.NoDepartment, d)
 	})
 }
+
+func TestSESC_GrantExtraPermissions(t *testing.T) {
+
+}
+
+func TestSESC_RevokeExtraPermissions(t *testing.T) {}

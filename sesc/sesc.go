@@ -163,8 +163,30 @@ func (s *SESC) User(ctx context.Context, id UUID) (User, error) {
 // GrantExtraPermissions grants extra permissions to a user.
 // If the user does not exist, returns a sesc.ErrUserNotFound.
 // If one of the permissions is invalid, returns a sesc.ErrInvalidPermission.
+//
+// THIS IS NOT THREAD SAFE FOR THE SAME USER.
 func (s *SESC) GrantExtraPermissions(ctx context.Context, user User, permission ...Permission) (User, error) {
-	panic("not implemented")
+	u, err := s.db.GrantExtraPermissions(ctx, user, permission...)
+	if errors.Is(err, db.ErrUserNotFound) {
+		s.log.DebugContext(
+			ctx,
+			"tried to add extra permissions to a non-existent user",
+			"user_id",
+			user.ID,
+			"permissions",
+			permission,
+		)
+		return u, errors.Join(err, ErrUserNotFound)
+	} else if errors.Is(err, db.ErrInvalidPermission) {
+		s.log.DebugContext(ctx, "tried to add an invalid permission to a non-existent user", "user_id", user.ID, "permissions", permission)
+		return u, errors.Join(err, ErrInvalidPermission)
+	} else if err != nil {
+		s.log.ErrorContext(ctx, "couldn't grant extra permissions because of a db error", "user_id", user.ID, "permissions", permission, "error", err)
+		return u, fmt.Errorf("couldn't grant extra permissions: %w", err)
+	}
+
+	s.log.InfoContext(ctx, "granted extra permissions", "user_id", user.ID, "permissions", permission)
+	return u, nil
 }
 
 // RevokeExtraPermissions revokes extra permissions from a user.
@@ -172,7 +194,27 @@ func (s *SESC) GrantExtraPermissions(ctx context.Context, user User, permission 
 // If the user does not exist, returns a sesc.ErrUserNotFound.
 // If one of the permissions is invalid, or the User does not have it, returns a sesc.ErrInvalidPermission.
 func (s *SESC) RevokeExtraPermissions(ctx context.Context, user User, permission ...Permission) (User, error) {
-	panic("not implemented")
+	u, err := s.db.RevokeExtraPermissions(ctx, user, permission...)
+	if errors.Is(err, db.ErrUserNotFound) {
+		s.log.DebugContext(
+			ctx,
+			"tried to revoke extra permissions from a non-existent user",
+			"user_id",
+			user.ID,
+			"permissions",
+			permission,
+		)
+		return u, errors.Join(err, ErrUserNotFound)
+	} else if errors.Is(err, db.ErrInvalidPermission) {
+		s.log.DebugContext(ctx, "tried to revoke an invalid permission from a non-existent user", "user_id", user.ID, "permissions", permission)
+		return u, errors.Join(err, ErrInvalidPermission)
+	} else if err != nil {
+		s.log.ErrorContext(ctx, "couldn't revoke extra permissions because of a db error", "user_id", user.ID, "permissions", permission, "error", err)
+		return u, fmt.Errorf("couldn't revoke extra permissions: %w", err)
+	}
+
+	s.log.InfoContext(ctx, "revoked extra permissions", "user_id", user.ID, "permissions", permission)
+	return u, nil
 }
 
 // SetRole sets the role of a user.

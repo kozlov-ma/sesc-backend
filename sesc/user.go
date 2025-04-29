@@ -29,3 +29,15 @@ type User struct {
 
 	AuthID auth.ID
 }
+
+func (u User) HasPermission(permission Permission) bool {
+	if u.Role.HasPermission(permission) {
+		return true
+	}
+	for _, p := range u.ExtraPermissions {
+		if p.ID == permission.ID {
+			return true
+		}
+	}
+	return false
+}

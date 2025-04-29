@@ -7,4 +7,5 @@ var (
 	ErrUserNotFound            = errors.New("user not found")
 	ErrUsernameTaken           = errors.New("auth username already taken")
 	ErrDepartmentAlreadyExists = errors.New("department already exists")
+	ErrInvalidPermission       = errors.New("invalid permission")
 )

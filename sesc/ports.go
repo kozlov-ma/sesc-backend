@@ -10,6 +10,18 @@ type (
 	DB interface {
 		SaveUser(context.Context, User) error
 
+		// If the user already has the extra permission, or it is granted by a role, it is a no-op.
+		// If the user does not exist, it returns a db.ErrUserNotFound.
+		// If the permission is not valid, it returns a db.ErrInvalidPermission.
+		GrantExtraPermissions(context.Context, User, ...Permission) (User, error)
+
+		// If the user does not have the permission, it is a no-op.
+		// If the user does not exist, it returns a db.ErrUserNotFound.
+		// If the permission is not valid, it returns a db.ErrInvalidPermission.
+		//
+		// Permissions granted by roles are not affected by this operation.
+		RevokeExtraPermissions(context.Context, User, ...Permission) (User, error)
+
 		// Return a db.ErrUserNotFound if user does not exist.
 		UserByID(context.Context, UUID) (User, error)
 

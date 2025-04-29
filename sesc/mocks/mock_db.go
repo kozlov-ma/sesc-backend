@@ -13,6 +13,7 @@ import (
 	context "context"
 	reflect "reflect"
 
+	auth "github.com/kozlov-ma/sesc-backend/auth"
 	sesc "github.com/kozlov-ma/sesc-backend/sesc"
 	gomock "go.uber.org/mock/gomock"
 )
@@ -42,7 +43,7 @@ func (m *MockDB) EXPECT() *MockDBMockRecorder {
 }
 
 // AssignHeadOfDepartment mocks base method.
-func (m *MockDB) AssignHeadOfDepartment(ctx context.Context, departmentID, userID sesc.UUID) error {
+func (m *MockDB) AssignHeadOfDepartment(ctx context.Context, departmentID, userID auth.ID) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "AssignHeadOfDepartment", ctx, departmentID, userID)
 	ret0, _ := ret[0].(error)
@@ -56,7 +57,7 @@ func (mr *MockDBMockRecorder) AssignHeadOfDepartment(ctx, departmentID, userID a
 }
 
 // CreateDepartment mocks base method.
-func (m *MockDB) CreateDepartment(ctx context.Context, id sesc.UUID, name, description string) (sesc.Department, error) {
+func (m *MockDB) CreateDepartment(ctx context.Context, id auth.ID, name, description string) (sesc.Department, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateDepartment", ctx, id, name, description)
 	ret0, _ := ret[0].(sesc.Department)
@@ -68,6 +69,46 @@ func (m *MockDB) CreateDepartment(ctx context.Context, id sesc.UUID, name, descr
 func (mr *MockDBMockRecorder) CreateDepartment(ctx, id, name, description any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateDepartment", reflect.TypeOf((*MockDB)(nil).CreateDepartment), ctx, id, name, description)
+}
+
+// GrantExtraPermissions mocks base method.
+func (m *MockDB) GrantExtraPermissions(arg0 context.Context, arg1 sesc.User, arg2 ...sesc.Permission) (sesc.User, error) {
+	m.ctrl.T.Helper()
+	varargs := []any{arg0, arg1}
+	for _, a := range arg2 {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "GrantExtraPermissions", varargs...)
+	ret0, _ := ret[0].(sesc.User)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GrantExtraPermissions indicates an expected call of GrantExtraPermissions.
+func (mr *MockDBMockRecorder) GrantExtraPermissions(arg0, arg1 any, arg2 ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{arg0, arg1}, arg2...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GrantExtraPermissions", reflect.TypeOf((*MockDB)(nil).GrantExtraPermissions), varargs...)
+}
+
+// RevokeExtraPermissions mocks base method.
+func (m *MockDB) RevokeExtraPermissions(arg0 context.Context, arg1 sesc.User, arg2 ...sesc.Permission) (sesc.User, error) {
+	m.ctrl.T.Helper()
+	varargs := []any{arg0, arg1}
+	for _, a := range arg2 {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "RevokeExtraPermissions", varargs...)
+	ret0, _ := ret[0].(sesc.User)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// RevokeExtraPermissions indicates an expected call of RevokeExtraPermissions.
+func (mr *MockDBMockRecorder) RevokeExtraPermissions(arg0, arg1 any, arg2 ...any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]any{arg0, arg1}, arg2...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RevokeExtraPermissions", reflect.TypeOf((*MockDB)(nil).RevokeExtraPermissions), varargs...)
 }
 
 // SaveUser mocks base method.
@@ -85,7 +126,7 @@ func (mr *MockDBMockRecorder) SaveUser(arg0, arg1 any) *gomock.Call {
 }
 
 // UserByID mocks base method.
-func (m *MockDB) UserByID(arg0 context.Context, arg1 sesc.UUID) (sesc.User, error) {
+func (m *MockDB) UserByID(arg0 context.Context, arg1 auth.ID) (sesc.User, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UserByID", arg0, arg1)
 	ret0, _ := ret[0].(sesc.User)
