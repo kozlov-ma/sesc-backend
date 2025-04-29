@@ -23,7 +23,5 @@ type (
 	IAM interface {
 		// Returns auth.DuplicateUsername if username is already taken.
 		Register(context.Context, auth.Credentials) (auth.ID, error)
-
-		UserByID(ctx context.Context, id UUID) (User, error)
 	}
 )
