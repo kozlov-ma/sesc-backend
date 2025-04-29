@@ -35,7 +35,7 @@ func New(log *slog.Logger, db DB, iam IAM) *SESC {
 }
 
 // Return a sesc.DepartmentAlreadyExists if the department already exists
-func (s *SESC) CreateDepartment(ctx context.Context, id UUID, name, description string) (Department, error) {
+func (s *SESC) CreateDepartment(ctx context.Context, name, description string) (Department, error) {
 	id, err := uuid.NewV7()
 	if err != nil {
 		return Department{}, fmt.Errorf("couldn't create uuid: %w", err)
@@ -147,7 +147,7 @@ func (s *SESC) CreateUser(ctx context.Context, opt UserOptions, role Role) (User
 // User returns a User by ID. If the user does not exist, returns a sesc.ErrUserNotFound.
 func (s *SESC) User(ctx context.Context, id UUID) (User, error) {
 	u, err := s.db.UserByID(ctx, id)
-	if errors.Is(err, db.ErrNotFound) {
+	if errors.Is(err, db.ErrUserNotFound) {
 		s.log.DebugContext(ctx, "user id not found", slog.Any("id", id))
 		return u, errors.Join(err, ErrUserNotFound)
 	}
