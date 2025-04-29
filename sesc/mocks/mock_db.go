@@ -13,7 +13,6 @@ import (
 	context "context"
 	reflect "reflect"
 
-	auth "github.com/kozlov-ma/sesc-backend/auth"
 	sesc "github.com/kozlov-ma/sesc-backend/sesc"
 	gomock "go.uber.org/mock/gomock"
 )
@@ -42,6 +41,35 @@ func (m *MockDB) EXPECT() *MockDBMockRecorder {
 	return m.recorder
 }
 
+// AssignHeadOfDepartment mocks base method.
+func (m *MockDB) AssignHeadOfDepartment(ctx context.Context, departmentID, userID sesc.UUID) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "AssignHeadOfDepartment", ctx, departmentID, userID)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// AssignHeadOfDepartment indicates an expected call of AssignHeadOfDepartment.
+func (mr *MockDBMockRecorder) AssignHeadOfDepartment(ctx, departmentID, userID any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AssignHeadOfDepartment", reflect.TypeOf((*MockDB)(nil).AssignHeadOfDepartment), ctx, departmentID, userID)
+}
+
+// CreateDepartment mocks base method.
+func (m *MockDB) CreateDepartment(ctx context.Context, id sesc.UUID, name, description string) (sesc.Department, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateDepartment", ctx, id, name, description)
+	ret0, _ := ret[0].(sesc.Department)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateDepartment indicates an expected call of CreateDepartment.
+func (mr *MockDBMockRecorder) CreateDepartment(ctx, id, name, description any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateDepartment", reflect.TypeOf((*MockDB)(nil).CreateDepartment), ctx, id, name, description)
+}
+
 // SaveUser mocks base method.
 func (m *MockDB) SaveUser(arg0 context.Context, arg1 sesc.User) error {
 	m.ctrl.T.Helper()
@@ -57,7 +85,7 @@ func (mr *MockDBMockRecorder) SaveUser(arg0, arg1 any) *gomock.Call {
 }
 
 // UserByID mocks base method.
-func (m *MockDB) UserByID(arg0 context.Context, arg1 auth.ID) (sesc.User, error) {
+func (m *MockDB) UserByID(arg0 context.Context, arg1 sesc.UUID) (sesc.User, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UserByID", arg0, arg1)
 	ret0, _ := ret[0].(sesc.User)

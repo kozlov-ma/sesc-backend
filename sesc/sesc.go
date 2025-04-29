@@ -34,8 +34,24 @@ func New(log *slog.Logger, db DB, iam IAM) *SESC {
 	}
 }
 
-func (s *SESC) CreateDepartment(ctx context.Context, name, description string) (Department, error) {
-	panic("not implemented")
+// Return a sesc.DepartmentAlreadyExists if the department already exists
+func (s *SESC) CreateDepartment(ctx context.Context, id UUID, name, description string) (Department, error) {
+	id, err := uuid.NewV7()
+	if err != nil {
+		return Department{}, fmt.Errorf("couldn't create uuid: %w", err)
+	}
+
+	d, err := s.db.CreateDepartment(ctx, id, name, description)
+	if errors.Is(err, db.ErrAlreadyExists) {
+		s.log.DebugContext(ctx, "department already exists", slog.Any("department", id))
+		return Department{}, errors.Join(err, ErrDepartmentAlreadyExists)
+	} else if err != nil {
+		s.log.ErrorContext(ctx, "got a db error when saving department", slog.Any("error", err))
+		return Department{}, fmt.Errorf("couldn't save department: %w", err)
+	}
+
+	s.log.InfoContext(ctx, "created department", slog.Any("department", d))
+	return d, nil
 }
 
 type UserOptions struct {
