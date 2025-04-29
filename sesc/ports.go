@@ -1,12 +1,21 @@
 package sesc
 
-import "context"
+import (
+	"context"
+
+	"github.com/kozlov-ma/sesc-backend/auth"
+)
 
 type (
 	DB interface {
-		SaveUser(ctx context.Context, user User) error
+		SaveUser(context.Context, User) error
 
 		// Return a db.ErrNotFound if user does not exist.
-		UserByID(ctx context.Context, id UUID) (User, error)
+		UserByID(context.Context, UUID) (User, error)
+	}
+
+	IAM interface {
+		// Returns auth.DuplicateUsername if username is already taken.
+		Register(context.Context, auth.Credentials) (auth.ID, error)
 	}
 )
