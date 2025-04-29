@@ -134,6 +134,9 @@ func (s *SESC) User(ctx context.Context, id UUID) (User, error) {
 	if errors.Is(err, db.ErrNotFound) {
 		s.log.DebugContext(ctx, "user id not found", slog.Any("id", id))
 		return u, errors.Join(err, ErrUserNotFound)
+	} else if err != nil {
+		s.log.ErrorContext(ctx, "couldn't get user because of db error", slog.Any("user_id", id), slog.Any("error", err))
+		return u, fmt.Errorf("couldn't get user: %w", err)
 	}
 
 	s.log.DebugContext(ctx, "user id found", slog.Any("id", id))
