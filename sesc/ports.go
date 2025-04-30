@@ -22,14 +22,19 @@ type (
 		// Permissions granted by roles are not affected by this operation.
 		RevokeExtraPermissions(context.Context, User, ...Permission) (User, error)
 
-		// Return a db.ErrUserNotFound if user does not exist.
+		// Returns a db.ErrUserNotFound if user does not exist.
 		UserByID(context.Context, UUID) (User, error)
 
-		// Return a db.ErrAlreadyExists if department already exists.
+		// Returns a db.ErrAlreadyExists if department already exists.
 		CreateDepartment(ctx context.Context, id UUID, name, description string) (Department, error)
 
-		// Return a db.ErrUserNotFound if department or user does not exist.
+		// Assigns a head to an existing department
+		// Returns a db.ErrUserNotFound if user does not exist.
+		// Returns a db.ErrDepartmentNotFound if department does not exist.
 		AssignHeadOfDepartment(ctx context.Context, departmentID UUID, userID UUID) error
+
+		// Returns all currenlty registered departments.
+		Departments(ctx context.Context) ([]Department, error)
 	}
 
 	IAM interface {

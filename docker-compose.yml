@@ -17,8 +17,15 @@ services:
       timeout: 10s
 
   pgsetup:
-    image: pgsetup
+    build:
+      dockerfile: ./cmd/pgsetup/Dockerfile
+      context: .
     container_name: pgsetup
+    restart: no
+    depends_on:
+      - postgres
+    environment:
+      - POSTGRES_ADDRESS=postgres://postgres:password@postgres:5432/postgres
 
 volumes:
   postgres:

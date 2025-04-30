@@ -1,0 +1,109 @@
+definitions:
+  api.CreateDepartmentError:
+    properties:
+      message:
+        type: string
+      ru_message:
+        type: string
+      status:
+        type: integer
+    type: object
+  api.CreateDepartmentRequest:
+    properties:
+      description:
+        type: string
+      name:
+        type: string
+    type: object
+  api.CreateDepartmentResponse:
+    properties:
+      description:
+        type: string
+      error:
+        $ref: '#/definitions/api.CreateDepartmentError'
+      id:
+        type: string
+      name:
+        type: string
+    type: object
+  api.Department:
+    properties:
+      description:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+    type: object
+  api.DepartmentsError:
+    properties:
+      message:
+        type: string
+      ru_message:
+        type: string
+      status:
+        type: integer
+    type: object
+  api.DepartmentsResponse:
+    properties:
+      departments:
+        items:
+          $ref: '#/definitions/api.Department'
+        type: array
+      error:
+        $ref: '#/definitions/api.DepartmentsError'
+    type: object
+info:
+  contact: {}
+paths:
+  /api/departments:
+    get:
+      description: Retrieves a list of all departments
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Response containing created departments or error details
+          schema:
+            $ref: '#/definitions/api.DepartmentsResponse'
+        "500":
+          description: Internal Server Error - Failed to process request
+          schema:
+            type: string
+      summary: List all departments
+      tags:
+      - departments
+    post:
+      consumes:
+      - application/json
+      description: Creates a new department with the provided name and description
+      parameters:
+      - description: Department information
+        in: body
+        name: department
+        required: true
+        schema:
+          $ref: '#/definitions/api.CreateDepartmentRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Response containing created department or error details
+          schema:
+            $ref: '#/definitions/api.CreateDepartmentResponse'
+        "400":
+          description: Bad Request - Invalid input format
+          schema:
+            type: string
+        "409":
+          description: Conflict - Department with this name already exists
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error - Failed to process request
+          schema:
+            type: string
+      summary: Create a new department
+      tags:
+      - departments
+swagger: "2.0"

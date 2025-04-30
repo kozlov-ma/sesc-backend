@@ -1,5 +1,4 @@
-//go:generate mockgen -destination=mocks/mock_db.go . DB
-//go:generate mockgen -destination=mocks/mock_iam.go . IAM
+//go:generate mockgen -destination=mocks/mock_db.go . DB,IAM
 package sesc_test
 
 import (
@@ -257,7 +256,7 @@ func TestSESC_CreateDepartment(t *testing.T) {
 		d, err := s.CreateDepartment(context.Background(), dep.Name, dep.Description)
 
 		require.Error(t, err)
-		assert.ErrorIs(t, err, sesc.ErrDepartmentAlreadyExists)
+		assert.ErrorIs(t, err, sesc.ErrInvalidDepartment)
 		assert.Equal(t, sesc.NoDepartment, d)
 	})
 

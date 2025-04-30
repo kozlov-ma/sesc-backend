@@ -45,7 +45,7 @@ func (s *SESC) CreateDepartment(ctx context.Context, name, description string) (
 	d, err := s.db.CreateDepartment(ctx, id, name, description)
 	if errors.Is(err, db.ErrAlreadyExists) {
 		s.log.DebugContext(ctx, "department already exists", slog.Any("department", id))
-		return Department{}, errors.Join(err, ErrDepartmentAlreadyExists)
+		return Department{}, errors.Join(err, ErrInvalidDepartment)
 	} else if err != nil {
 		s.log.ErrorContext(ctx, "got a db error when saving department", slog.Any("error", err))
 		return Department{}, fmt.Errorf("couldn't save department: %w", err)
@@ -228,7 +228,49 @@ func (s *SESC) RevokeExtraPermissions(ctx context.Context, user User, permission
 // If the user does not exist, returns a sesc.ErrUserNotFound.
 // If the role is invalid, returns a sesc.ErrInvalidRole.
 func (s *SESC) SetRole(ctx context.Context, user User, role Role) (User, error) {
-	panic("not implemented")
+	// Validate role against predefined roles
+	validRoles := []Role{Teacher, Dephead, ContestDeputy, ScientificDeputy, DevelopmentDeputy}
+	validRole := false
+	for _, r := range validRoles {
+		if role.ID == r.ID {
+			validRole = true
+			break
+		}
+	}
+	if !validRole {
+		s.log.DebugContext(ctx, "invalid role provided", slog.Any("role", role))
+		return User{}, ErrInvalidRole
+	}
+
+	currentUser, err := s.User(ctx, user.ID)
+	if err != nil {
+		return User{}, err
+	}
+
+	// Check Teacher role requirements
+	if role.ID == Teacher.ID && currentUser.Department == NoDepartment {
+		s.log.DebugContext(ctx, "cannot assign Teacher role without department",
+			slog.Any("user", currentUser.ID))
+		return User{}, ErrInvalidRoleChange
+	}
+
+	// Check if role is unchanged
+	if currentUser.Role.ID == role.ID {
+		s.log.DebugContext(ctx, "role already set",
+			slog.Any("user", currentUser.ID), slog.Any("role", role))
+		return currentUser, nil
+	}
+
+	currentUser.Role = role
+	if err := s.db.SaveUser(ctx, currentUser); err != nil {
+		s.log.ErrorContext(ctx, "failed to save user role",
+			slog.Any("error", err), slog.Any("user", currentUser.ID))
+		return User{}, fmt.Errorf("failed to save user role: %w", err)
+	}
+
+	s.log.InfoContext(ctx, "user role updated",
+		slog.Any("user", currentUser.ID), slog.Any("new_role", role))
+	return currentUser, nil
 }
 
 // SetDepartment sets the department for Teacher or a Dephead,
@@ -237,7 +279,35 @@ func (s *SESC) SetRole(ctx context.Context, user User, role Role) (User, error) 
 // If the user does not exist, returns a sesc.ErrUserNotFound.
 // If the department is invalid, returns a sesc.ErrInvalidDepartment.
 func (s *SESC) SetDepartment(ctx context.Context, user User, department Department) (User, error) {
-	panic("not implemented")
+	currentUser, err := s.User(ctx, user.ID)
+	if err != nil {
+		return User{}, err
+	}
+
+	// Validate allowed roles
+	if currentUser.Role.ID != Teacher.ID && currentUser.Role.ID != Dephead.ID {
+		s.log.DebugContext(ctx, "invalid role for department assignment",
+			slog.Any("user", currentUser.ID), slog.Any("role", currentUser.Role))
+		return User{}, ErrInvalidDepartment
+	}
+
+	// Check if department is unchanged
+	if currentUser.Department.ID == department.ID {
+		s.log.DebugContext(ctx, "department already set",
+			slog.Any("user", currentUser.ID), slog.Any("department", department))
+		return currentUser, nil
+	}
+
+	currentUser.Department = department
+	if err := s.db.SaveUser(ctx, currentUser); err != nil {
+		s.log.ErrorContext(ctx, "failed to set department",
+			slog.Any("error", err), slog.Any("department", department.ID))
+		return User{}, ErrInvalidDepartment
+	}
+
+	s.log.InfoContext(ctx, "department updated",
+		slog.Any("user", currentUser.ID), slog.Any("department", department))
+	return currentUser, nil
 }
 
 // SetUserInfo changes the user's options.
@@ -254,4 +324,22 @@ func (s *SESC) SetUserInfo(ctx context.Context, user User, opt UserOptions) (Use
 // If the user does not exist, returns a sesc.ErrUserNotFound.
 func (s *SESC) SetProfilePic(ctx context.Context, user User, pictureURL string) (User, error) {
 	panic("not implemented")
+}
+
+// Departments returns all the departments currently registered within the system.
+func (s *SESC) Departments(ctx context.Context) ([]Department, error) {
+	return s.db.Departments(ctx)
+}
+
+// Roles returns all the roles currently registered within the system.
+//
+// As it is not possible to register new roles at the moment, it returns all the pre-defined roles.
+func (s *SESC) Roles(ctx context.Context) ([]Role, error) {
+	return []Role{
+		Teacher,
+		Dephead,
+		ContestDeputy,
+		ScientificDeputy,
+		DevelopmentDeputy,
+	}, nil
 }

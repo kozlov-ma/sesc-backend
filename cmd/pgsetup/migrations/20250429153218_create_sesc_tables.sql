@@ -18,7 +18,7 @@ CREATE TABLE departments (
     id UUID PRIMARY KEY,
     name VARCHAR(255) UNIQUE NOT NULL,
     description TEXT,
-    head_user_id UUID NOT NULL
+    head_user_id UUID
 );
 
 CREATE TABLE users (

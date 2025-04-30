@@ -16,7 +16,7 @@ var (
 	PermissionDraftAchievementList = Permission{
 		ID:          uuid.Must(uuid.NewV7()),
 		Name:        "draft_achievement_list",
-		Description: "Создание и заполнение листа достижений, отправка на проверку",
+		Description: "Создание и заполнение листа достижений, отправка на проверку, просмотр результатов проверки",
 	}
 	PermissionDepheadReview = Permission{
 		ID:          uuid.Must(uuid.NewV7()),
@@ -39,3 +39,11 @@ var (
 		Description: "Проверка достижений, связанных с научной деятельностью",
 	}
 )
+
+var Permissions []Permission = []Permission{
+	PermissionDraftAchievementList,
+	PermissionDepheadReview,
+	PermissionContestReview,
+	PermissionDevelopmentReview,
+	PermissionScientificReview,
+}
