@@ -1,7 +1,5 @@
 package sesc
 
-import "github.com/kozlov-ma/sesc-backend/auth"
-
 // User represents a SESC employee that participates in the achievement list
 // filling and review processes.
 //
@@ -27,7 +25,7 @@ type User struct {
 	Role             Role
 	ExtraPermissions []Permission
 
-	AuthID auth.ID
+	AuthID UUID
 }
 
 func (u User) HasPermission(permission Permission) bool {

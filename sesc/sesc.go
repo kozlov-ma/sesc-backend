@@ -8,8 +8,6 @@ import (
 	"log/slog"
 
 	"github.com/gofrs/uuid/v5"
-	"github.com/kozlov-ma/sesc-backend/auth"
-	"github.com/kozlov-ma/sesc-backend/db"
 )
 
 type UUID = uuid.UUID
@@ -18,19 +16,12 @@ type UUID = uuid.UUID
 type SESC struct {
 	log *slog.Logger
 	db  DB
-	iam IAM
-	// Notes on the implementation.
-	//
-	// 1. Create the necessary interfaces in sesc/ports.go.
-	// 2. Use the *slog.Logger.
-	// 3. Add logging in every method.
 }
 
-func New(log *slog.Logger, db DB, iam IAM) *SESC {
+func New(log *slog.Logger, db DB) *SESC {
 	return &SESC{
 		log: log,
 		db:  db,
-		iam: iam,
 	}
 }
 
@@ -43,9 +34,9 @@ func (s *SESC) CreateDepartment(ctx context.Context, name, description string) (
 	}
 
 	d, err := s.db.CreateDepartment(ctx, id, name, description)
-	if errors.Is(err, db.ErrAlreadyExists) {
+	if errors.Is(err, ErrInvalidDepartment) {
 		s.log.DebugContext(ctx, "department already exists", slog.Any("department", id))
-		return Department{}, errors.Join(err, ErrInvalidDepartment)
+		return Department{}, err
 	} else if err != nil {
 		s.log.ErrorContext(ctx, "got a db error when saving department", slog.Any("error", err))
 		return Department{}, fmt.Errorf("couldn't save department: %w", err)
@@ -60,8 +51,6 @@ type UserOptions struct {
 	LastName   string
 	MiddleName string
 	PictureURL string
-
-	AuthCredentials auth.Credentials
 }
 
 // CreateTeacher creates a new teacher.
@@ -75,14 +64,6 @@ func (s *SESC) CreateTeacher(ctx context.Context, opt UserOptions, department De
 		return User{}, fmt.Errorf("couldn't create uuid: %w", err)
 	}
 
-	aid, err := s.iam.Register(ctx, opt.AuthCredentials)
-	if errors.Is(err, auth.ErrDuplicateUsername) {
-		return User{}, errors.Join(err, ErrUsernameTaken)
-	} else if err != nil {
-		s.log.ErrorContext(ctx, "couldn't register user because of IAM error", slog.Any("error", err))
-		return User{}, fmt.Errorf("couldn't register user: %w", err)
-	}
-
 	u := User{
 		ID:         id,
 		FirstName:  opt.FirstName,
@@ -90,7 +71,6 @@ func (s *SESC) CreateTeacher(ctx context.Context, opt UserOptions, department De
 		MiddleName: opt.MiddleName,
 		PictureURL: opt.PictureURL,
 		Role:       Teacher,
-		AuthID:     aid,
 		Department: department,
 	}
 
@@ -118,14 +98,6 @@ func (s *SESC) CreateUser(ctx context.Context, opt UserOptions, role Role) (User
 		return User{}, fmt.Errorf("couldn't create user ID: %w", err)
 	}
 
-	aid, err := s.iam.Register(ctx, opt.AuthCredentials)
-	if errors.Is(err, auth.ErrDuplicateUsername) {
-		return User{}, errors.Join(err, ErrUsernameTaken)
-	} else if err != nil {
-		s.log.ErrorContext(ctx, "couldn't register user because of IAM error", slog.Any("error", err))
-		return User{}, fmt.Errorf("couldn't register user: %w", err)
-	}
-
 	u := User{
 		ID:         id,
 		PictureURL: opt.PictureURL,
@@ -133,7 +105,6 @@ func (s *SESC) CreateUser(ctx context.Context, opt UserOptions, role Role) (User
 		FirstName:  opt.FirstName,
 		LastName:   opt.LastName,
 		MiddleName: opt.MiddleName,
-		AuthID:     aid,
 	}
 
 	if err := s.db.SaveUser(ctx, u); err != nil {
@@ -148,9 +119,9 @@ func (s *SESC) CreateUser(ctx context.Context, opt UserOptions, role Role) (User
 // User returns a User by ID. If the user does not exist, returns a sesc.ErrUserNotFound.
 func (s *SESC) User(ctx context.Context, id UUID) (User, error) {
 	u, err := s.db.UserByID(ctx, id)
-	if errors.Is(err, db.ErrUserNotFound) {
+	if errors.Is(err, ErrUserNotFound) {
 		s.log.DebugContext(ctx, "user id not found", slog.Any("id", id))
-		return u, errors.Join(err, ErrUserNotFound)
+		return u, err
 	} else if err != nil {
 		s.log.ErrorContext(ctx, "couldn't get user because of db error", slog.Any("user_id", id), slog.Any("error", err))
 		return u, fmt.Errorf("couldn't get user: %w", err)
@@ -167,7 +138,7 @@ func (s *SESC) User(ctx context.Context, id UUID) (User, error) {
 // THIS IS NOT THREAD SAFE FOR THE SAME USER.
 func (s *SESC) GrantExtraPermissions(ctx context.Context, user User, permission ...Permission) (User, error) {
 	u, err := s.db.GrantExtraPermissions(ctx, user, permission...)
-	if errors.Is(err, db.ErrUserNotFound) {
+	if errors.Is(err, ErrUserNotFound) {
 		s.log.DebugContext(
 			ctx,
 			"tried to add extra permissions to a non-existent user",
@@ -176,10 +147,10 @@ func (s *SESC) GrantExtraPermissions(ctx context.Context, user User, permission 
 			"permissions",
 			permission,
 		)
-		return u, errors.Join(err, ErrUserNotFound)
-	} else if errors.Is(err, db.ErrInvalidPermission) {
+		return u, err
+	} else if errors.Is(err, ErrInvalidPermission) {
 		s.log.DebugContext(ctx, "tried to add an invalid permission to a non-existent user", "user_id", user.ID, "permissions", permission)
-		return u, errors.Join(err, ErrInvalidPermission)
+		return u, err
 	} else if err != nil {
 		s.log.ErrorContext(ctx, "couldn't grant extra permissions because of a db error", "user_id", user.ID, "permissions", permission, "error", err)
 		return u, fmt.Errorf("couldn't grant extra permissions: %w", err)
@@ -195,7 +166,7 @@ func (s *SESC) GrantExtraPermissions(ctx context.Context, user User, permission 
 // If one of the permissions is invalid, or the User does not have it, returns a sesc.ErrInvalidPermission.
 func (s *SESC) RevokeExtraPermissions(ctx context.Context, user User, permission ...Permission) (User, error) {
 	u, err := s.db.RevokeExtraPermissions(ctx, user, permission...)
-	if errors.Is(err, db.ErrUserNotFound) {
+	if errors.Is(err, ErrUserNotFound) {
 		s.log.DebugContext(
 			ctx,
 			"tried to revoke extra permissions from a non-existent user",
@@ -204,10 +175,10 @@ func (s *SESC) RevokeExtraPermissions(ctx context.Context, user User, permission
 			"permissions",
 			permission,
 		)
-		return u, errors.Join(err, ErrUserNotFound)
-	} else if errors.Is(err, db.ErrInvalidPermission) {
+		return u, ErrUserNotFound
+	} else if errors.Is(err, ErrInvalidPermission) {
 		s.log.DebugContext(ctx, "tried to revoke an invalid permission from a non-existent user", "user_id", user.ID, "permissions", permission)
-		return u, errors.Join(err, ErrInvalidPermission)
+		return u, ErrInvalidPermission
 	} else if err != nil {
 		s.log.ErrorContext(ctx, "couldn't revoke extra permissions because of a db error", "user_id", user.ID, "permissions", permission, "error", err)
 		return u, fmt.Errorf("couldn't revoke extra permissions: %w", err)

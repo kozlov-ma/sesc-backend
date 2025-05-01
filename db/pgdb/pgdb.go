@@ -3,13 +3,13 @@ package pgdb
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"log/slog"
 
 	"github.com/gofrs/uuid/v5"
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/jmoiron/sqlx"
-	"github.com/kozlov-ma/sesc-backend/db"
 	"github.com/kozlov-ma/sesc-backend/sesc"
 	"github.com/lib/pq"
 )
@@ -43,14 +43,18 @@ func (d *DB) Close() error {
 
 // AssignHeadOfDepartment implements sesc.DB.
 //
-// Returns a db.ErrUserNotFound if user does not exist.
-// Returns a db.ErrDepartmentNotFound if department does not exist.
-func (d *DB) AssignHeadOfDepartment(ctx context.Context, departmentID sesc.UUID, userID sesc.UUID) error {
+// Returns a sesc.ErrUserNotFound if user does not exist.
+// Returns a sesc.ErrInvalidDepartment if department does not exist.
+func (d *DB) AssignHeadOfDepartment(ctx context.Context, departmentID sesc.UUID, userID sesc.UUID) (rerr error) {
 	tx, err := d.db.BeginTxx(ctx, &sql.TxOptions{Isolation: sql.LevelSerializable})
 	if err != nil {
 		return fmt.Errorf("could not begin transaction: %w", err)
 	}
-	defer tx.Rollback()
+	defer func() {
+		if err := tx.Rollback(); !errors.Is(err, sql.ErrTxDone) {
+			rerr = errors.Join(rerr, tx.Rollback())
+		}
+	}()
 
 	var deptExists bool
 	err = tx.GetContext(ctx, &deptExists, "SELECT EXISTS(SELECT 1 FROM departments WHERE id = $1)", departmentID)
@@ -58,7 +62,7 @@ func (d *DB) AssignHeadOfDepartment(ctx context.Context, departmentID sesc.UUID,
 		return fmt.Errorf("check department exists: %w", err)
 	}
 	if !deptExists {
-		return db.ErrDepartmentNotFound
+		return sesc.ErrInvalidDepartment
 	}
 
 	// Check if user exists
@@ -68,7 +72,7 @@ func (d *DB) AssignHeadOfDepartment(ctx context.Context, departmentID sesc.UUID,
 		return fmt.Errorf("check user exists: %w", err)
 	}
 	if !userExists {
-		return db.ErrUserNotFound
+		return sesc.ErrUserNotFound
 	}
 
 	// Update department's head
@@ -85,7 +89,7 @@ func (d *DB) AssignHeadOfDepartment(ctx context.Context, departmentID sesc.UUID,
 
 // CreateDepartment implements sesc.DB.
 //
-// Returns a db.ErrAlreadyExists if department with this name already exists.
+// Returns a sesc.ErrInvalidDepartment if department with this name already exists.
 func (d *DB) CreateDepartment(
 	ctx context.Context,
 	id sesc.UUID,
@@ -100,7 +104,7 @@ func (d *DB) CreateDepartment(
 		return sesc.Department{}, fmt.Errorf("department existence check failed: %w", err)
 	}
 	if exists {
-		return sesc.Department{}, db.ErrAlreadyExists
+		return sesc.Department{}, sesc.ErrInvalidDepartment
 	}
 
 	// Insert new department without head user
@@ -113,7 +117,7 @@ func (d *DB) CreateDepartment(
 
 	if err != nil {
 		if pqerr, ok := err.(*pq.Error); ok && pqerr.Code == "23505" {
-			return sesc.Department{}, db.ErrAlreadyExists
+			return sesc.Department{}, sesc.ErrInvalidDepartment
 		}
 		return sesc.Department{}, fmt.Errorf("department creation failed: %w", err)
 	}
@@ -129,13 +133,13 @@ func (d *DB) CreateDepartment(
 // GrantExtraPermissions implements sesc.DB.
 //
 // If the user already has the extra permission, or it is granted by a role, it is a no-op.
-// If the user does not exist, it returns a db.ErrUserNotFound.
-// If the permission is not valid, it returns a db.ErrInvalidPermission.
+// If the user does not exist, it returns a sesc.ErrUserNotFound.
+// If the permission is not valid, it returns a sesc.ErrInvalidPermission.
 func (d *DB) GrantExtraPermissions(
 	ctx context.Context,
 	user sesc.User,
 	permissions ...sesc.Permission,
-) (sesc.User, error) {
+) (ruser sesc.User, rerr error) {
 	// Check user exists
 	var exists bool
 	err := d.db.GetContext(ctx, &exists, "SELECT EXISTS(SELECT 1 FROM users WHERE id = $1)", user.ID)
@@ -143,11 +147,11 @@ func (d *DB) GrantExtraPermissions(
 		return sesc.User{}, fmt.Errorf("couldn't check user exists: %w", err)
 	}
 	if !exists {
-		return sesc.User{}, db.ErrUserNotFound
+		return sesc.User{}, sesc.ErrUserNotFound
 	}
 
 	// Check permissions exist
-	permIDs := make([]sesc.UUID, len(permissions))
+	permIDs := make([]int32, len(permissions))
 	for i, p := range permissions {
 		permIDs[i] = p.ID
 	}
@@ -162,14 +166,18 @@ func (d *DB) GrantExtraPermissions(
 		return sesc.User{}, fmt.Errorf("check permissions exist: %w", err)
 	}
 	if count != len(permIDs) {
-		return sesc.User{}, db.ErrInvalidPermission
+		return sesc.User{}, sesc.ErrInvalidPermission
 	}
 
 	tx, err := d.db.BeginTxx(ctx, &sql.TxOptions{Isolation: sql.LevelSerializable})
 	if err != nil {
 		return sesc.User{}, fmt.Errorf("begin transaction: %w", err)
 	}
-	defer tx.Rollback()
+	defer func() {
+		if err := tx.Rollback(); !errors.Is(err, sql.ErrTxDone) {
+			rerr = errors.Join(rerr, tx.Rollback())
+		}
+	}()
 
 	var roleID *sesc.UUID
 	err = tx.GetContext(ctx, &roleID, "SELECT role_id FROM users WHERE id = $1", user.ID)
@@ -226,15 +234,15 @@ func (d *DB) GrantExtraPermissions(
 // RevokeExtraPermissions implements sesc.DB.
 //
 // If the user does not have the permission, it is a no-op.
-// If the user does not exist, it returns a db.ErrUserNotFound.
-// If the permission is not valid, it returns a db.ErrInvalidPermission.
+// If the user does not exist, it returns a sesc.ErrUserNotFound.
+// If the permission is not valid, it returns a sesc.ErrInvalidPermission.
 //
 // Permissions granted by roles are not affected by this operation.
 func (d *DB) RevokeExtraPermissions(
 	ctx context.Context,
 	user sesc.User,
 	permissions ...sesc.Permission,
-) (sesc.User, error) {
+) (ruser sesc.User, rerr error) {
 	// Check user exists
 	var exists bool
 	err := d.db.GetContext(ctx, &exists, "SELECT EXISTS(SELECT 1 FROM users WHERE id = $1)", user.ID)
@@ -242,11 +250,11 @@ func (d *DB) RevokeExtraPermissions(
 		return sesc.User{}, fmt.Errorf("check user exists: %w", err)
 	}
 	if !exists {
-		return sesc.User{}, db.ErrUserNotFound
+		return sesc.User{}, sesc.ErrUserNotFound
 	}
 
 	// Check permissions exist
-	permIDs := make([]sesc.UUID, len(permissions))
+	permIDs := make([]int32, len(permissions))
 	for i, p := range permissions {
 		permIDs[i] = p.ID
 	}
@@ -261,14 +269,18 @@ func (d *DB) RevokeExtraPermissions(
 		return sesc.User{}, fmt.Errorf("check permissions exist: %w", err)
 	}
 	if count != len(permIDs) {
-		return sesc.User{}, db.ErrInvalidPermission
+		return sesc.User{}, sesc.ErrInvalidPermission
 	}
 
 	tx, err := d.db.BeginTxx(ctx, &sql.TxOptions{Isolation: sql.LevelSerializable})
 	if err != nil {
 		return sesc.User{}, fmt.Errorf("begin transaction: %w", err)
 	}
-	defer tx.Rollback()
+	defer func() {
+		if err := tx.Rollback(); !errors.Is(err, sql.ErrTxDone) {
+			rerr = errors.Join(rerr, tx.Rollback())
+		}
+	}()
 
 	var roleID *sesc.UUID
 	err = tx.GetContext(ctx, &roleID, "SELECT role_id FROM users WHERE id = $1", user.ID)
@@ -309,12 +321,16 @@ func (d *DB) RevokeExtraPermissions(
 }
 
 // SaveUser implements sesc.DB.
-func (d *DB) SaveUser(ctx context.Context, user sesc.User) error {
+func (d *DB) SaveUser(ctx context.Context, user sesc.User) (rerr error) {
 	tx, err := d.db.BeginTxx(ctx, nil)
 	if err != nil {
 		return fmt.Errorf("failed to begin transaction: %w", err)
 	}
-	defer tx.Rollback()
+	defer func() {
+		if err := tx.Rollback(); !errors.Is(err, sql.ErrTxDone) {
+			rerr = errors.Join(rerr, tx.Rollback())
+		}
+	}()
 
 	// Check existence within transaction
 	var exists bool
@@ -329,8 +345,8 @@ func (d *DB) SaveUser(ctx context.Context, user sesc.User) error {
 		deptID = &user.Department.ID
 	}
 
-	var roleID *sesc.UUID
-	if user.Role.ID != uuid.Nil {
+	var roleID *int32
+	if user.Role.ID != 0 {
 		roleID = &user.Role.ID
 	}
 
@@ -399,7 +415,7 @@ func (d *DB) UserByID(ctx context.Context, id sesc.UUID) (sesc.User, error) {
 		PictureURL   string     `db:"picture_url"`
 		Suspended    bool       `db:"suspended"`
 		DepartmentID *sesc.UUID `db:"department_id"`
-		RoleID       *sesc.UUID `db:"role_id"`
+		RoleID       *int32     `db:"role_id"`
 		AuthID       sesc.UUID  `db:"auth_id"`
 		DeptName     *string    `db:"dept_name"`
 		DeptDesc     *string    `db:"dept_desc"`
@@ -417,7 +433,7 @@ func (d *DB) UserByID(ctx context.Context, id sesc.UUID) (sesc.User, error) {
 	err := d.db.GetContext(ctx, &userRow, query, id)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return sesc.User{}, db.ErrUserNotFound
+			return sesc.User{}, sesc.ErrUserNotFound
 		}
 		return sesc.User{}, fmt.Errorf("query user: %w", err)
 	}
@@ -523,7 +539,7 @@ func (d *DB) Departments(ctx context.Context) ([]sesc.Department, error) {
 		PictureURL   string     `db:"picture_url"`
 		Suspended    bool       `db:"suspended"`
 		DepartmentID *uuid.UUID `db:"department_id"`
-		RoleID       *uuid.UUID `db:"role_id"`
+		RoleID       *int32     `db:"role_id"`
 		AuthID       uuid.UUID  `db:"auth_id"`
 	}
 

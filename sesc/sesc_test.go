@@ -1,4 +1,4 @@
-//go:generate mockgen -destination=mocks/mock_db.go . DB,IAM
+//go:generate mockgen -destination=mocks/mocks.go . DB
 package sesc_test
 
 import (
@@ -9,8 +9,6 @@ import (
 	"testing"
 
 	"github.com/gofrs/uuid/v5"
-	"github.com/kozlov-ma/sesc-backend/auth"
-	"github.com/kozlov-ma/sesc-backend/db"
 	"github.com/kozlov-ma/sesc-backend/sesc"
 	mock_sesc "github.com/kozlov-ma/sesc-backend/sesc/mocks"
 	"github.com/stretchr/testify/assert"
@@ -29,10 +27,6 @@ func TestSESC_CreateTeacher(t *testing.T) {
 		LastName:   "Ivanov",
 		MiddleName: "Ivanovich",
 		PictureURL: "https://example.com/avatar.jpg",
-		AuthCredentials: auth.Credentials{
-			Username: "ivanovi",
-			Password: "password",
-		},
 	}
 
 	dep := sesc.Department{
@@ -40,49 +34,29 @@ func TestSESC_CreateTeacher(t *testing.T) {
 		Name: "Кафедра математики",
 	}
 
-	aid := uuid.Must(uuid.NewV7())
-
 	t.Run("simple", func(t *testing.T) {
-		iam := mock_sesc.NewMockIAM(ctrl)
 		mockdb := mock_sesc.NewMockDB(ctrl)
 
-		iam.EXPECT().Register(gomock.Any(), gomock.Eq(uopt.AuthCredentials)).Return(aid, nil)
 		mockdb.EXPECT().SaveUser(gomock.Any(), gomock.Any()).Return(nil)
 
-		s := sesc.New(log, mockdb, iam)
+		s := sesc.New(log, mockdb)
 
 		u, err := s.CreateTeacher(context.Background(), uopt, dep)
 
 		require.NoError(t, err)
-		assert.Equal(t, aid, u.AuthID)
 		assert.Equal(t, false, u.Suspended)
 		assert.Equal(t, dep, u.Department)
 		assert.Equal(t, sesc.Teacher, u.Role)
 	})
 
-	t.Run("duplicate_username", func(t *testing.T) {
-		iam := mock_sesc.NewMockIAM(ctrl)
-		db := mock_sesc.NewMockDB(ctrl)
-
-		iam.EXPECT().Register(gomock.Any(), gomock.Eq(uopt.AuthCredentials)).Return(aid, auth.ErrDuplicateUsername)
-		db.EXPECT().SaveUser(gomock.Any(), gomock.Any()).MaxTimes(0)
-
-		s := sesc.New(log, db, iam)
-
-		_, err := s.CreateTeacher(context.Background(), uopt, dep)
-		assert.ErrorIs(t, err, auth.ErrDuplicateUsername)
-	})
-
 	t.Run("db_error", func(t *testing.T) {
-		iam := mock_sesc.NewMockIAM(ctrl)
 		db := mock_sesc.NewMockDB(ctrl)
 
 		e := errors.New("ahh db error")
 
-		iam.EXPECT().Register(gomock.Any(), gomock.Eq(uopt.AuthCredentials)).Return(aid, nil)
 		db.EXPECT().SaveUser(gomock.Any(), gomock.Any()).Return(e)
 
-		s := sesc.New(log, db, iam)
+		s := sesc.New(log, db)
 
 		_, err := s.CreateTeacher(context.Background(), uopt, dep)
 		assert.ErrorIs(t, err, e)
@@ -100,69 +74,44 @@ func TestSESC_CreateUser(t *testing.T) {
 		LastName:   "Ivanov",
 		MiddleName: "Ivanovich",
 		PictureURL: "https://example.com/avatar.jpg",
-		AuthCredentials: auth.Credentials{
-			Username: "ivanovi",
-			Password: "password",
-		},
 	}
 
-	aid := uuid.Must(uuid.NewV7())
-
 	t.Run("simple", func(t *testing.T) {
-		iam := mock_sesc.NewMockIAM(ctrl)
 		db := mock_sesc.NewMockDB(ctrl)
 
-		iam.EXPECT().Register(gomock.Any(), gomock.Eq(uopt.AuthCredentials)).Return(aid, nil)
 		db.EXPECT().SaveUser(gomock.Any(), gomock.Any()).Return(nil)
 
-		s := sesc.New(log, db, iam)
+		s := sesc.New(log, db)
 
 		u, err := s.CreateUser(t.Context(), uopt, sesc.Dephead)
 
 		require.NoError(t, err)
 
 		assert.Equal(t, sesc.Dephead, u.Role)
-		assert.Equal(t, aid, u.AuthID)
 		assert.Equal(t, false, u.Suspended)
 		assert.Equal(t, "Ivan", u.FirstName)
 	})
 
 	t.Run("teacher_role", func(t *testing.T) {
-		iam := mock_sesc.NewMockIAM(ctrl)
 		db := mock_sesc.NewMockDB(ctrl)
 
-		s := sesc.New(log, db, iam)
+		s := sesc.New(log, db)
 
 		_, err := s.CreateUser(t.Context(), uopt, sesc.Teacher)
 		assert.ErrorIs(t, err, sesc.ErrInvalidRole)
 	})
 
 	t.Run("db_error", func(t *testing.T) {
-		iam := mock_sesc.NewMockIAM(ctrl)
 		db := mock_sesc.NewMockDB(ctrl)
 
 		e := errors.New("ahh db error")
 
-		iam.EXPECT().Register(gomock.Any(), gomock.Eq(uopt.AuthCredentials)).Return(aid, nil)
 		db.EXPECT().SaveUser(gomock.Any(), gomock.Any()).Return(e)
 
-		s := sesc.New(log, db, iam)
+		s := sesc.New(log, db)
 
 		_, err := s.CreateUser(context.Background(), uopt, sesc.Dephead)
 		assert.ErrorIs(t, err, e)
-	})
-
-	t.Run("duplicate_username", func(t *testing.T) {
-		iam := mock_sesc.NewMockIAM(ctrl)
-		db := mock_sesc.NewMockDB(ctrl)
-
-		iam.EXPECT().Register(gomock.Any(), gomock.Eq(uopt.AuthCredentials)).Return(aid, auth.ErrDuplicateUsername)
-		db.EXPECT().SaveUser(gomock.Any(), gomock.Any()).MaxTimes(0)
-
-		s := sesc.New(log, db, iam)
-
-		_, err := s.CreateUser(context.Background(), uopt, sesc.Dephead)
-		assert.ErrorIs(t, err, auth.ErrDuplicateUsername)
 	})
 }
 
@@ -180,12 +129,11 @@ func TestSESC_User(t *testing.T) {
 	}
 
 	t.Run("simple", func(t *testing.T) {
-		iam := mock_sesc.NewMockIAM(ctrl)
 		db := mock_sesc.NewMockDB(ctrl)
 
 		db.EXPECT().UserByID(gomock.Any(), gomock.Eq(userId)).Return(user, nil)
 
-		s := sesc.New(log, db, iam)
+		s := sesc.New(log, db)
 
 		u, err := s.User(t.Context(), userId)
 
@@ -194,12 +142,11 @@ func TestSESC_User(t *testing.T) {
 	})
 
 	t.Run("not_found", func(t *testing.T) {
-		iam := mock_sesc.NewMockIAM(ctrl)
 		mdb := mock_sesc.NewMockDB(ctrl)
 
-		mdb.EXPECT().UserByID(gomock.Any(), gomock.Eq(userId)).Return(sesc.User{}, db.ErrUserNotFound)
+		mdb.EXPECT().UserByID(gomock.Any(), gomock.Eq(userId)).Return(sesc.User{}, sesc.ErrUserNotFound)
 
-		s := sesc.New(log, mdb, iam)
+		s := sesc.New(log, mdb)
 
 		_, err := s.User(t.Context(), userId)
 
@@ -207,13 +154,12 @@ func TestSESC_User(t *testing.T) {
 	})
 
 	t.Run("db_error", func(t *testing.T) {
-		iam := mock_sesc.NewMockIAM(ctrl)
 		mdb := mock_sesc.NewMockDB(ctrl)
 
 		e := errors.New("db error")
 		mdb.EXPECT().UserByID(gomock.Any(), gomock.Eq(userId)).Return(sesc.User{}, e)
 
-		s := sesc.New(log, mdb, iam)
+		s := sesc.New(log, mdb)
 
 		_, err := s.User(t.Context(), userId)
 
@@ -237,7 +183,7 @@ func TestSESC_CreateDepartment(t *testing.T) {
 		db := mock_sesc.NewMockDB(ctrl)
 		db.EXPECT().CreateDepartment(gomock.Any(), gomock.Any(), dep.Name, dep.Description).Return(dep, nil)
 
-		s := sesc.New(log, db, nil)
+		s := sesc.New(log, db)
 
 		d, err := s.CreateDepartment(context.Background(), dep.Name, dep.Description)
 
@@ -249,9 +195,9 @@ func TestSESC_CreateDepartment(t *testing.T) {
 		mockdb := mock_sesc.NewMockDB(ctrl)
 		mockdb.EXPECT().
 			CreateDepartment(gomock.Any(), gomock.Any(), dep.Name, dep.Description).
-			Return(sesc.NoDepartment, db.ErrAlreadyExists)
+			Return(sesc.NoDepartment, sesc.ErrInvalidDepartment)
 
-		s := sesc.New(log, mockdb, nil)
+		s := sesc.New(log, mockdb)
 
 		d, err := s.CreateDepartment(context.Background(), dep.Name, dep.Description)
 
@@ -266,7 +212,7 @@ func TestSESC_CreateDepartment(t *testing.T) {
 			CreateDepartment(gomock.Any(), gomock.Any(), dep.Name, dep.Description).
 			Return(sesc.NoDepartment, fmt.Errorf("dinahu"))
 
-		s := sesc.New(log, mockdb, nil)
+		s := sesc.New(log, mockdb)
 
 		d, err := s.CreateDepartment(context.Background(), dep.Name, dep.Description)
 
@@ -285,20 +231,11 @@ func TestSESC_GrantExtraPermissions(t *testing.T) {
 		ID: uuid.Must(uuid.NewV7()),
 	}
 
-	perm1 := sesc.Permission{
-		ID:          uuid.Must(uuid.NewV7()),
-		Name:        "perm1",
-		Description: "Test Permission 1",
-	}
-	perm2 := sesc.Permission{
-		ID:          uuid.Must(uuid.NewV7()),
-		Name:        "perm2",
-		Description: "Test Permission 2",
-	}
+	perm1 := sesc.Permissions[0]
+	perm2 := sesc.Permissions[1]
 
 	t.Run("simple", func(t *testing.T) {
 		dbMock := mock_sesc.NewMockDB(ctrl)
-		iam := mock_sesc.NewMockIAM(ctrl)
 
 		updatedUser := user
 		updatedUser.ExtraPermissions = []sesc.Permission{perm1, perm2}
@@ -307,7 +244,7 @@ func TestSESC_GrantExtraPermissions(t *testing.T) {
 			GrantExtraPermissions(gomock.Any(), user, perm1, perm2).
 			Return(updatedUser, nil)
 
-		s := sesc.New(log, dbMock, iam)
+		s := sesc.New(log, dbMock)
 
 		u, err := s.GrantExtraPermissions(context.Background(), user, perm1, perm2)
 		require.NoError(t, err)
@@ -316,13 +253,12 @@ func TestSESC_GrantExtraPermissions(t *testing.T) {
 
 	t.Run("user_not_found", func(t *testing.T) {
 		dbMock := mock_sesc.NewMockDB(ctrl)
-		iam := mock_sesc.NewMockIAM(ctrl)
 
 		dbMock.EXPECT().
 			GrantExtraPermissions(gomock.Any(), user, perm1).
-			Return(sesc.User{}, db.ErrUserNotFound)
+			Return(sesc.User{}, sesc.ErrUserNotFound)
 
-		s := sesc.New(log, dbMock, iam)
+		s := sesc.New(log, dbMock)
 
 		_, err := s.GrantExtraPermissions(context.Background(), user, perm1)
 		assert.ErrorIs(t, err, sesc.ErrUserNotFound)
@@ -330,13 +266,12 @@ func TestSESC_GrantExtraPermissions(t *testing.T) {
 
 	t.Run("invalid_permission", func(t *testing.T) {
 		dbMock := mock_sesc.NewMockDB(ctrl)
-		iam := mock_sesc.NewMockIAM(ctrl)
 
 		dbMock.EXPECT().
 			GrantExtraPermissions(gomock.Any(), user, perm1).
-			Return(sesc.User{}, db.ErrInvalidPermission)
+			Return(sesc.User{}, sesc.ErrInvalidPermission)
 
-		s := sesc.New(log, dbMock, iam)
+		s := sesc.New(log, dbMock)
 
 		_, err := s.GrantExtraPermissions(context.Background(), user, perm1)
 		assert.ErrorIs(t, err, sesc.ErrInvalidPermission)
@@ -344,7 +279,6 @@ func TestSESC_GrantExtraPermissions(t *testing.T) {
 
 	t.Run("db_error", func(t *testing.T) {
 		dbMock := mock_sesc.NewMockDB(ctrl)
-		iam := mock_sesc.NewMockIAM(ctrl)
 
 		e := errors.New("some db error")
 
@@ -352,7 +286,7 @@ func TestSESC_GrantExtraPermissions(t *testing.T) {
 			GrantExtraPermissions(gomock.Any(), user, perm1).
 			Return(sesc.User{}, e)
 
-		s := sesc.New(log, dbMock, iam)
+		s := sesc.New(log, dbMock)
 
 		_, err := s.GrantExtraPermissions(context.Background(), user, perm1)
 		assert.ErrorIs(t, err, e)
@@ -368,28 +302,14 @@ func TestSESC_RevokeExtraPermissions(t *testing.T) {
 	user := sesc.User{
 		ID: uuid.Must(uuid.NewV7()),
 		ExtraPermissions: []sesc.Permission{
-			{
-				ID:          uuid.Must(uuid.NewV7()),
-				Name:        "perm1",
-				Description: "Test Permission 1",
-			},
+			sesc.Permissions[0],
 		},
 	}
 
-	perm1 := sesc.Permission{
-		ID:          user.ExtraPermissions[0].ID,
-		Name:        "perm1",
-		Description: "Test Permission 1",
-	}
-	perm2 := sesc.Permission{
-		ID:          uuid.Must(uuid.NewV7()),
-		Name:        "perm2",
-		Description: "Test Permission 2",
-	}
-
+	perm1 := sesc.Permissions[0]
+	perm2 := sesc.Permissions[1]
 	t.Run("simple", func(t *testing.T) {
 		dbMock := mock_sesc.NewMockDB(ctrl)
-		iam := mock_sesc.NewMockIAM(ctrl)
 
 		updatedUser := user
 		updatedUser.ExtraPermissions = nil
@@ -398,7 +318,7 @@ func TestSESC_RevokeExtraPermissions(t *testing.T) {
 			RevokeExtraPermissions(gomock.Any(), user, perm1).
 			Return(updatedUser, nil)
 
-		s := sesc.New(log, dbMock, iam)
+		s := sesc.New(log, dbMock)
 
 		u, err := s.RevokeExtraPermissions(context.Background(), user, perm1)
 		require.NoError(t, err)
@@ -407,13 +327,12 @@ func TestSESC_RevokeExtraPermissions(t *testing.T) {
 
 	t.Run("user_not_found", func(t *testing.T) {
 		dbMock := mock_sesc.NewMockDB(ctrl)
-		iam := mock_sesc.NewMockIAM(ctrl)
 
 		dbMock.EXPECT().
 			RevokeExtraPermissions(gomock.Any(), user, perm2).
-			Return(sesc.User{}, db.ErrUserNotFound)
+			Return(sesc.User{}, sesc.ErrUserNotFound)
 
-		s := sesc.New(log, dbMock, iam)
+		s := sesc.New(log, dbMock)
 
 		_, err := s.RevokeExtraPermissions(context.Background(), user, perm2)
 		assert.ErrorIs(t, err, sesc.ErrUserNotFound)
@@ -421,13 +340,12 @@ func TestSESC_RevokeExtraPermissions(t *testing.T) {
 
 	t.Run("invalid_permission", func(t *testing.T) {
 		dbMock := mock_sesc.NewMockDB(ctrl)
-		iam := mock_sesc.NewMockIAM(ctrl)
 
 		dbMock.EXPECT().
 			RevokeExtraPermissions(gomock.Any(), user, perm2).
-			Return(sesc.User{}, db.ErrInvalidPermission)
+			Return(sesc.User{}, sesc.ErrInvalidPermission)
 
-		s := sesc.New(log, dbMock, iam)
+		s := sesc.New(log, dbMock)
 
 		_, err := s.RevokeExtraPermissions(context.Background(), user, perm2)
 		assert.ErrorIs(t, err, sesc.ErrInvalidPermission)
@@ -435,7 +353,6 @@ func TestSESC_RevokeExtraPermissions(t *testing.T) {
 
 	t.Run("db_error", func(t *testing.T) {
 		dbMock := mock_sesc.NewMockDB(ctrl)
-		iam := mock_sesc.NewMockIAM(ctrl)
 
 		e := errors.New("some db error")
 
@@ -443,7 +360,7 @@ func TestSESC_RevokeExtraPermissions(t *testing.T) {
 			RevokeExtraPermissions(gomock.Any(), user, perm1).
 			Return(sesc.User{}, e)
 
-		s := sesc.New(log, dbMock, iam)
+		s := sesc.New(log, dbMock)
 
 		_, err := s.RevokeExtraPermissions(context.Background(), user, perm1)
 		assert.ErrorIs(t, err, e)

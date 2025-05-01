@@ -23,9 +23,13 @@ func main() {
 		return
 	}
 
-	defer db.Close()
+	defer func() {
+		if err := db.Close(); err != nil {
+			log.Error("couldn't close db", "error", err)
+		}
+	}()
 
-	sesc := sesc.New(log, db, nil)
+	sesc := sesc.New(log, db)
 
 	api := api.New(log, sesc)
 
@@ -39,7 +43,9 @@ func main() {
 
 	go func() {
 		<-ctx.Done()
-		srv.Shutdown(ctx)
+		if err := srv.Shutdown(ctx); err != nil {
+			log.Error("couldn't shut down server", "error", err)
+		}
 	}()
 
 	log.InfoContext(ctx, "starting server")

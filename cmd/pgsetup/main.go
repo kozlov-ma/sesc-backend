@@ -24,14 +24,18 @@ func main() {
 		log.Error("couldn't open postgres", "error", err)
 		return
 	}
-	defer db.Close()
+	defer func() {
+		if err := db.Close(); err != nil {
+			log.Error("couldn't close db", "error", err)
+		}
+	}()
 
 	if err := db.Ping(); err != nil {
 		log.Error("no access to db", "error", err)
 		return
 	}
 
-	goose.SetDialect("postgresql")
+	_ = goose.SetDialect("postgresql")
 	goose.SetBaseFS(embedMigrations)
 
 	if err := goose.Up(db, "migrations"); err != nil {

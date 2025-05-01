@@ -2,8 +2,6 @@ package sesc
 
 import (
 	"context"
-
-	"github.com/kozlov-ma/sesc-backend/auth"
 )
 
 type (
@@ -35,10 +33,5 @@ type (
 
 		// Returns all currenlty registered departments.
 		Departments(ctx context.Context) ([]Department, error)
-	}
-
-	IAM interface {
-		// Returns auth.DuplicateUsername if username is already taken.
-		Register(context.Context, auth.Credentials) (auth.ID, error)
 	}
 )
