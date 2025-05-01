@@ -53,6 +53,51 @@ definitions:
       error:
         $ref: '#/definitions/api.DepartmentsError'
     type: object
+  api.Permission:
+    properties:
+      description:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+    type: object
+  api.PermissionsResponse:
+    properties:
+      permissions:
+        items:
+          $ref: '#/definitions/api.Permission'
+        type: array
+    type: object
+  api.Role:
+    properties:
+      id:
+        type: integer
+      name:
+        type: string
+      permissions:
+        items:
+          $ref: '#/definitions/api.Permission'
+        type: array
+    type: object
+  api.RolesError:
+    properties:
+      message:
+        type: string
+      ru_message:
+        type: string
+      status:
+        type: integer
+    type: object
+  api.RolesResponse:
+    properties:
+      error:
+        $ref: '#/definitions/api.RolesError'
+      roles:
+        items:
+          $ref: '#/definitions/api.Role'
+        type: array
+    type: object
 info:
   contact: {}
 paths:
@@ -106,4 +151,35 @@ paths:
       summary: Create a new department
       tags:
       - departments
+  /api/permissions:
+    get:
+      description: Permissions cannot be changed other than from the code. This lists
+        all the permissions a user may have.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Response containing all possible permissions
+          schema:
+            $ref: '#/definitions/api.PermissionsResponse'
+      summary: List all permissions
+      tags:
+      - permissions
+  /api/roles:
+    get:
+      description: Retrieves a list of all roles
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Response containing registered roles or error details
+          schema:
+            $ref: '#/definitions/api.RolesResponse'
+        "500":
+          description: Internal Server Error - Failed to process request
+          schema:
+            type: string
+      summary: List all roles
+      tags:
+      - roles
 swagger: "2.0"

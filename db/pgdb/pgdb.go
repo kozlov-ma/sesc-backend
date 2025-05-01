@@ -615,3 +615,89 @@ func (d *DB) Departments(ctx context.Context) ([]sesc.Department, error) {
 
 	return departments, nil
 }
+
+// InsertDefaultPermissions implements sesc.DB.
+func (d *DB) InsertDefaultPermissions(ctx context.Context, permissions []sesc.Permission) error {
+	query := `
+        INSERT INTO permissions (id, name, description)
+        VALUES (:id, :name, :description)
+        ON CONFLICT (id) DO NOTHING`
+
+	permMaps := make([]map[string]any, 0, len(permissions))
+	for _, p := range permissions {
+		permMaps = append(permMaps, map[string]any{
+			"id":          p.ID,
+			"name":        p.Name,
+			"description": p.Description,
+		})
+	}
+
+	_, err := d.db.NamedExecContext(ctx, query, permMaps)
+	if err != nil {
+		return fmt.Errorf("failed to bulk insert permissions: %w", err)
+	}
+	return nil
+}
+
+// InsertDefaultRoles implements sesc.DB.
+func (d *DB) InsertDefaultRoles(ctx context.Context, roles []sesc.Role) (rerr error) {
+	tx, err := d.db.BeginTxx(ctx, &sql.TxOptions{Isolation: sql.LevelSerializable})
+	if err != nil {
+		return fmt.Errorf("failed to start transaction: %w", err)
+	}
+	defer func() {
+		if err := tx.Rollback(); !errors.Is(err, sql.ErrTxDone) {
+			rerr = errors.Join(rerr, tx.Rollback())
+		}
+	}()
+
+	roleQuery := `
+        INSERT INTO roles (id, name)
+        VALUES (:id, :name)
+        ON CONFLICT (id) DO NOTHING`
+
+	roleMaps := make([]map[string]any, 0, len(roles))
+	for _, r := range roles {
+		roleMaps = append(roleMaps, map[string]any{
+			"id":   r.ID,
+			"name": r.Name,
+		})
+	}
+
+	_, err = tx.NamedExecContext(ctx, roleQuery, roleMaps)
+	if err != nil {
+		return fmt.Errorf("failed to bulk insert roles: %w", err)
+	}
+
+	// Prepare permission-role relationships
+	type permRole struct {
+		PermissionID int32 `db:"permission_id"`
+		RoleID       int32 `db:"role_id"`
+	}
+
+	var relationships []permRole
+	for _, role := range roles {
+		for _, perm := range role.Permissions {
+			relationships = append(relationships, permRole{
+				PermissionID: perm.ID,
+				RoleID:       role.ID,
+			})
+		}
+	}
+
+	relQuery := `
+        INSERT INTO permissions_roles (permission_id, role_id)
+        VALUES (:permission_id, :role_id)
+        ON CONFLICT (permission_id, role_id) DO NOTHING`
+
+	_, err = tx.NamedExecContext(ctx, relQuery, relationships)
+	if err != nil {
+		return fmt.Errorf("failed to bulk insert role permissions: %w", err)
+	}
+
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("failed to commit transaction: %w", err)
+	}
+
+	return nil
+}

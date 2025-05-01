@@ -105,6 +105,34 @@ func (mr *MockDBMockRecorder) GrantExtraPermissions(arg0, arg1 any, arg2 ...any)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GrantExtraPermissions", reflect.TypeOf((*MockDB)(nil).GrantExtraPermissions), varargs...)
 }
 
+// InsertDefaultPermissions mocks base method.
+func (m *MockDB) InsertDefaultPermissions(ctx context.Context, permissions []sesc.Permission) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "InsertDefaultPermissions", ctx, permissions)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// InsertDefaultPermissions indicates an expected call of InsertDefaultPermissions.
+func (mr *MockDBMockRecorder) InsertDefaultPermissions(ctx, permissions any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InsertDefaultPermissions", reflect.TypeOf((*MockDB)(nil).InsertDefaultPermissions), ctx, permissions)
+}
+
+// InsertDefaultRoles mocks base method.
+func (m *MockDB) InsertDefaultRoles(ctx context.Context, roles []sesc.Role) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "InsertDefaultRoles", ctx, roles)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// InsertDefaultRoles indicates an expected call of InsertDefaultRoles.
+func (mr *MockDBMockRecorder) InsertDefaultRoles(ctx, roles any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InsertDefaultRoles", reflect.TypeOf((*MockDB)(nil).InsertDefaultRoles), ctx, roles)
+}
+
 // RevokeExtraPermissions mocks base method.
 func (m *MockDB) RevokeExtraPermissions(arg0 context.Context, arg1 sesc.User, arg2 ...sesc.Permission) (sesc.User, error) {
 	m.ctrl.T.Helper()

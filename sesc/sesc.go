@@ -25,6 +25,19 @@ func New(log *slog.Logger, db DB) *SESC {
 	}
 }
 
+func (s *SESC) Init(ctx context.Context) error {
+	errr := s.db.InsertDefaultPermissions(ctx, Permissions)
+	errp := s.db.InsertDefaultRoles(ctx, []Role{
+		Teacher,
+		Dephead,
+		ScientificDeputy,
+		DevelopmentDeputy,
+		ContestDeputy,
+	})
+
+	return errors.Join(errr, errp)
+}
+
 // Return a sesc.DepartmentAlreadyExists if the department already exists
 func (s *SESC) CreateDepartment(ctx context.Context, name, description string) (Department, error) {
 	id, err := uuid.NewV7()

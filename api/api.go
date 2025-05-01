@@ -120,9 +120,91 @@ func (a *API) Departments(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// Departments list all currently registered roles.
+// @Summary List all roles
+// @Description Retrieves a list of all roles
+// @Tags roles
+// @Produce  json
+// @Success 200 {object} RolesResponse "Response containing registered roles or error details"
+// @Failure 500 {string} string "Internal Server Error - Failed to process request"
+// @Router /api/roles [get]
+func (a *API) Roles(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	var rolerr RolesError
+	roles, err := a.sesc.Roles(ctx)
+	if err != nil {
+		a.log.ErrorContext(ctx, "couldn't get roles because of server error", "error", err)
+		rolerr = RolesError{
+			APIError: InternalServerError,
+		}
+	}
+
+	resRoles := make([]Role, len(roles))
+	for i, role := range roles {
+		resRoles[i] = Role{
+			ID:   role.ID,
+			Name: role.Name,
+		}
+
+		for _, p := range role.Permissions {
+			resRoles[i].Permissions = append(resRoles[i].Permissions, Permission{
+				ID:          p.ID,
+				Name:        p.Name,
+				Description: p.Description,
+			})
+		}
+	}
+
+	rolesResponse := RolesResponse{
+		Error: rolerr,
+		Roles: resRoles,
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(rolesResponse); err != nil {
+		a.log.ErrorContext(ctx, "failed to encode response", "error", err)
+		http.Error(w, "failed to encode response", http.StatusInternalServerError)
+		return
+	}
+}
+
+// Departments list all available permissions.
+// @Summary List all permissions
+// @Description Permissions cannot be changed other than from the code. This lists all the permissions a user may have.
+// @Tags permissions
+// @Produce  json
+// @Success 200 {object} PermissionsResponse "Response containing all possible permissions"
+// @Router /api/permissions [get]
+func (a *API) Permissions(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	resPermissions := make([]Permission, len(sesc.Permissions))
+	for i, permission := range sesc.Permissions {
+		resPermissions[i] = Permission{
+			ID:          permission.ID,
+			Name:        permission.Name,
+			Description: permission.Description,
+		}
+	}
+
+	permissionsResponse := PermissionsResponse{
+		Permissions: resPermissions,
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(permissionsResponse); err != nil {
+		a.log.ErrorContext(ctx, "failed to encode response", "error", err)
+		http.Error(w, "failed to encode response", http.StatusInternalServerError)
+		return
+	}
+}
+
 func (a *API) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /api/departments", a.Departments)
 	mux.HandleFunc("POST /api/departments", a.CreateDepartment)
+	mux.HandleFunc("GET /api/roles", a.Roles)
+	mux.HandleFunc("GET /api/permissions", a.Permissions)
 
 	mux.HandleFunc("/api/swagger/", httpSwagger.WrapHandler)
 }

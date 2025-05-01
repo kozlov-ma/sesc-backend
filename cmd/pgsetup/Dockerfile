@@ -4,7 +4,7 @@ COPY go.mod go.sum ./
 RUN go mod download
 
 COPY cmd/pgsetup/main.go .
-ADD cmd/pgsetup/migrations ./migrations
+COPY cmd/pgsetup/migrations ./migrations
 RUN go build -o pgsetup ./main.go
 
 ENTRYPOINT [ "./pgsetup" ]

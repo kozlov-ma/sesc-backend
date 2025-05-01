@@ -57,3 +57,33 @@ type Department struct {
 	Name        string `json:"name"`
 	Description string `json:"description"`
 }
+
+// swagger:model
+type Permission struct {
+	ID          int32  `json:"id"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
+}
+
+// swagger:model
+type PermissionsResponse struct {
+	Permissions []Permission `json:"permissions"`
+}
+
+// swagger:model
+type Role struct {
+	ID          int32        `json:"id"`
+	Name        string       `json:"name"`
+	Permissions []Permission `json:"permissions"`
+}
+
+// swagger:model
+type RolesResponse struct {
+	Error RolesError `json:"error,omitzero"`
+	Roles []Role     `json:"roles"`
+}
+
+// swagger:model
+type RolesError struct {
+	APIError
+}

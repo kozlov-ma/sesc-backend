@@ -33,5 +33,9 @@ type (
 
 		// Returns all currenlty registered departments.
 		Departments(ctx context.Context) ([]Department, error)
+
+		InsertDefaultPermissions(ctx context.Context, permissions []Permission) error
+
+		InsertDefaultRoles(ctx context.Context, roles []Role) error
 	}
 )

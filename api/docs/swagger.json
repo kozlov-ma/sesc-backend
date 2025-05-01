@@ -79,6 +79,52 @@
                     }
                 }
             }
+        },
+        "/api/permissions": {
+            "get": {
+                "description": "Permissions cannot be changed other than from the code. This lists all the permissions a user may have.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "permissions"
+                ],
+                "summary": "List all permissions",
+                "responses": {
+                    "200": {
+                        "description": "Response containing all possible permissions",
+                        "schema": {
+                            "$ref": "#/definitions/api.PermissionsResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/roles": {
+            "get": {
+                "description": "Retrieves a list of all roles",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "roles"
+                ],
+                "summary": "List all roles",
+                "responses": {
+                    "200": {
+                        "description": "Response containing registered roles or error details",
+                        "schema": {
+                            "$ref": "#/definitions/api.RolesResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error - Failed to process request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -163,6 +209,76 @@
                 },
                 "error": {
                     "$ref": "#/definitions/api.DepartmentsError"
+                }
+            }
+        },
+        "api.Permission": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "api.PermissionsResponse": {
+            "type": "object",
+            "properties": {
+                "permissions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/api.Permission"
+                    }
+                }
+            }
+        },
+        "api.Role": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "permissions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/api.Permission"
+                    }
+                }
+            }
+        },
+        "api.RolesError": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
+                },
+                "ru_message": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "integer"
+                }
+            }
+        },
+        "api.RolesResponse": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "$ref": "#/definitions/api.RolesError"
+                },
+                "roles": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/api.Role"
+                    }
                 }
             }
         }

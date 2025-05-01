@@ -23,7 +23,8 @@ services:
     container_name: pgsetup
     restart: no
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     environment:
       - POSTGRES_ADDRESS=postgres://postgres:password@postgres:5432/postgres
 
