@@ -334,7 +334,7 @@ func (d *DB) SaveUser(ctx context.Context, user sesc.User) (rerr error) {
 
 	// Check existence within transaction
 	var exists bool
-	err = tx.GetContext(ctx, &exists, "SELECT EXISTS(SELECT 1 FROM users WHERE id = $1", user.ID)
+	err = tx.GetContext(ctx, &exists, "SELECT EXISTS(SELECT 1 FROM users WHERE id = $1)", user.ID)
 	if err != nil {
 		return fmt.Errorf("check user existence: %w", err)
 	}
@@ -700,4 +700,50 @@ func (d *DB) InsertDefaultRoles(ctx context.Context, roles []sesc.Role) (rerr er
 	}
 
 	return nil
+}
+
+func (d *DB) DepartmentByID(ctx context.Context, id sesc.UUID) (sesc.Department, error) {
+	var row struct {
+		ID          uuid.UUID  `db:"id"`
+		Name        string     `db:"name"`
+		Description string     `db:"description"`
+		HeadUserID  *uuid.UUID `db:"head_user_id"`
+	}
+
+	err := d.db.GetContext(ctx, &row, `
+        SELECT id, name, description, head_user_id
+        FROM departments
+        WHERE id = $1
+    `, id)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			d.log.DebugContext(ctx, "department not found", "department_id", id)
+			return sesc.Department{}, sesc.ErrInvalidDepartment
+		}
+		return sesc.Department{}, fmt.Errorf("failed to query department: %w", err)
+	}
+
+	department := sesc.Department{
+		ID:          row.ID,
+		Name:        row.Name,
+		Description: row.Description,
+	}
+
+	if row.HeadUserID != nil {
+		headUser, err := d.UserByID(ctx, *row.HeadUserID)
+		switch {
+		case errors.Is(err, sesc.ErrUserNotFound):
+			d.log.WarnContext(ctx,
+				"department head user not found",
+				"department_id", id,
+				"head_user_id", *row.HeadUserID,
+			)
+		case err != nil:
+			return sesc.Department{}, fmt.Errorf("failed to resolve head user: %w", err)
+		default:
+			department.Head = &headUser
+		}
+	}
+
+	return department, nil
 }

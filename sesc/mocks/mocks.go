@@ -70,6 +70,21 @@ func (mr *MockDBMockRecorder) CreateDepartment(ctx, id, name, description any) *
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateDepartment", reflect.TypeOf((*MockDB)(nil).CreateDepartment), ctx, id, name, description)
 }
 
+// DepartmentByID mocks base method.
+func (m *MockDB) DepartmentByID(ctx context.Context, id sesc.UUID) (sesc.Department, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DepartmentByID", ctx, id)
+	ret0, _ := ret[0].(sesc.Department)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// DepartmentByID indicates an expected call of DepartmentByID.
+func (mr *MockDBMockRecorder) DepartmentByID(ctx, id any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DepartmentByID", reflect.TypeOf((*MockDB)(nil).DepartmentByID), ctx, id)
+}
+
 // Departments mocks base method.
 func (m *MockDB) Departments(ctx context.Context) ([]sesc.Department, error) {
 	m.ctrl.T.Helper()

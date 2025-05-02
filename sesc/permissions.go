@@ -45,3 +45,12 @@ var Permissions []Permission = []Permission{
 	PermissionDevelopmentReview,
 	PermissionScientificReview,
 }
+
+func PermissionByID(id int32) (Permission, bool) {
+	for _, p := range Permissions {
+		if p.ID == id {
+			return p, true
+		}
+	}
+	return Permission{}, false
+}

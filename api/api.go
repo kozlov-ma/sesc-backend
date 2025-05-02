@@ -6,11 +6,16 @@ import (
 	"log/slog"
 	"net/http"
 
+	"github.com/gofrs/uuid/v5"
 	"github.com/kozlov-ma/sesc-backend/sesc"
 	httpSwagger "github.com/swaggo/http-swagger"
 
 	_ "github.com/kozlov-ma/sesc-backend/api/docs"
 )
+
+// @title SESC Management API
+// @version 1.0
+// @description API for managing SESC departments, users and permissions
 
 type API struct {
 	log  *slog.Logger
@@ -18,193 +23,774 @@ type API struct {
 }
 
 func New(log *slog.Logger, sesc SESC) *API {
-	return &API{
-		log:  log,
-		sesc: sesc,
-	}
+	return &API{log: log, sesc: sesc}
 }
 
-// CreateDepartment handles the creation of a new department.
-// @Summary Create a new department
-// @Description Creates a new department with the provided name and description
+var (
+	ErrInvalidDepartment = APIError{
+		Code:      "INVALID_DEPARTMENT",
+		Message:   "Invalid department data",
+		RuMessage: "Некорректные данные кафедры",
+	}
+
+	ErrDepartmentExists = APIError{
+		Code:      "DEPARTMENT_EXISTS",
+		Message:   "Department with this name already exists",
+		RuMessage: "Кафедра с таким названием уже существует",
+	}
+)
+
+// CreateDepartment godoc
+// @Summary Create new department
+// @Description Creates a new department with provided name and description
 // @Tags departments
-// @Accept  json
-// @Produce  json
-// @Param   department body CreateDepartmentRequest true "Department information"
-// @Success 200 {object} CreateDepartmentResponse "Response containing created department or error details"
-// @Failure 400 {string} string "Bad Request - Invalid input format"
-// @Failure 409 {string} string "Conflict - Department with this name already exists"
-// @Failure 500 {string} string "Internal Server Error - Failed to process request"
-// @Router /api/departments [post]
+// @Accept json
+// @Produce json
+// @Param request body CreateDepartmentRequest true "Department creation data"
+// @Success 201 {object} CreateDepartmentResponse
+// @Failure 400 {object} APIError "Invalid request format"
+// @Failure 409 {object} APIError "Department with this name already exists"
+// @Failure 500 {object} APIError "Internal server error"
+// @Router /departments [post]
 func (a *API) CreateDepartment(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-
-	a.log.DebugContext(ctx, "got a new CreateDepartment request")
-
 	var req CreateDepartmentRequest
+
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "wrong serialization", http.StatusBadRequest)
+		a.writeError(w, APIError{
+			Code:      "INVALID_REQUEST",
+			Message:   "Invalid request body",
+			RuMessage: "Некорректный формат запроса",
+		}, http.StatusBadRequest)
 		return
 	}
 
-	var cde CreateDepartmentError
 	dep, err := a.sesc.CreateDepartment(ctx, req.Name, req.Description)
 	if errors.Is(err, sesc.ErrInvalidDepartment) {
-		cde = CreateDepartmentError{
-			APIError: APIError{
-				Status:    http.StatusConflict,
-				Message:   "department already exists",
-				RuMessage: "кафедра с таким названием уже существует",
-			},
-		}
-	} else if err != nil {
-		cde = CreateDepartmentError{
-			APIError: InternalServerError,
-		}
+		a.writeError(w, ErrDepartmentExists, http.StatusConflict)
+		return
+	}
+	if err != nil {
+		a.writeError(w, APIError{
+			Code:      "SERVER_ERROR",
+			Message:   "Failed to create department",
+			RuMessage: "Ошибка создания кафедры",
+		}, http.StatusInternalServerError)
+		return
 	}
 
-	res := CreateDepartmentResponse{
-		Error:       cde,
+	a.writeJSON(w, CreateDepartmentResponse{
 		ID:          dep.ID,
 		Name:        dep.Name,
 		Description: dep.Description,
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(res); err != nil {
-		a.log.ErrorContext(ctx, "failed to encode response", "error", err)
-		http.Error(w, "failed to encode response", http.StatusInternalServerError)
-		return
-	}
+	}, http.StatusCreated)
 }
 
-// Departments list all currently registered departments.
+// Departments godoc
 // @Summary List all departments
-// @Description Retrieves a list of all departments
+// @Description Retrieves list of all registered departments
 // @Tags departments
-// @Produce  json
-// @Success 200 {object} DepartmentsResponse "Response containing created departments or error details"
-// @Failure 500 {string} string "Internal Server Error - Failed to process request"
-// @Router /api/departments [get]
+// @Produce json
+// @Success 200 {object} DepartmentsResponse
+// @Failure 500 {object} APIError "Internal server error"
+// @Router /departments [get]
 func (a *API) Departments(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	var cde DepartmentsError
 	deps, err := a.sesc.Departments(ctx)
 	if err != nil {
-		a.log.ErrorContext(ctx, "couldn't get departments because of server error", "error", err)
-		cde = DepartmentsError{
-			APIError: InternalServerError,
-		}
-	}
-
-	departments := make([]Department, len(deps))
-	for i, dep := range deps {
-		departments[i] = Department{
-			ID:          dep.ID,
-			Name:        dep.Name,
-			Description: dep.Description,
-		}
-	}
-
-	res := DepartmentsResponse{
-		Error:       cde,
-		Departments: departments,
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(res); err != nil {
-		a.log.ErrorContext(ctx, "failed to encode response", "error", err)
-		http.Error(w, "failed to encode response", http.StatusInternalServerError)
+		a.writeError(w, APIError{
+			Code:      "SERVER_ERROR",
+			Message:   "Failed to fetch departments",
+			RuMessage: "Ошибка получения списка кафедр",
+		}, http.StatusInternalServerError)
 		return
+	}
+
+	response := DepartmentsResponse{
+		Departments: make([]Department, len(deps)),
+	}
+	for i, d := range deps {
+		response.Departments[i] = Department{
+			ID:          d.ID,
+			Name:        d.Name,
+			Description: d.Description,
+		}
+	}
+
+	a.writeJSON(w, response, http.StatusOK)
+}
+
+// CreateTeacher godoc
+// @Summary Create new teacher
+// @Description Creates a new teacher profile with department assignment
+// @Tags users
+// @Accept json
+// @Produce json
+// @Param request body CreateTeacherRequest true "Teacher details"
+// @Success 201 {object} UserResponse
+// @Failure 400 {object} APIError "Invalid request format"
+// @Failure 404 {object} APIError "Department not found"
+// @Failure 409 {object} APIError "Username already taken"
+// @Failure 500 {object} APIError "Internal server error"
+// @Router /teachers [post]
+func (a *API) CreateTeacher(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	var req CreateTeacherRequest
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		a.writeError(w, APIError{
+			Code:      "INVALID_REQUEST",
+			Message:   "Invalid request body",
+			RuMessage: "Некорректный формат запроса",
+		}, http.StatusBadRequest)
+		return
+	}
+
+	department, err := a.sesc.DepartmentByID(ctx, req.DepartmentID)
+	if err != nil || department.ID == uuid.Nil {
+		a.writeError(w, APIError{
+			Code:      "DEPARTMENT_NOT_FOUND",
+			Message:   "Specified department not found",
+			RuMessage: "Указанная кафедра не найдена",
+		}, http.StatusNotFound)
+		return
+	}
+
+	teacher, err := a.sesc.CreateTeacher(ctx, sesc.UserOptions{
+		FirstName:  req.FirstName,
+		LastName:   req.LastName,
+		MiddleName: req.MiddleName,
+		PictureURL: req.PictureURL,
+	}, department)
+	if errors.Is(err, sesc.ErrUsernameTaken) {
+		a.writeError(w, APIError{
+			Code:      "USERNAME_TAKEN",
+			Message:   "Username already registered",
+			RuMessage: "Логин уже занят",
+		}, http.StatusConflict)
+		return
+	}
+	if err != nil {
+		a.writeError(w, APIError{
+			Code:      "SERVER_ERROR",
+			Message:   "Failed to create teacher",
+			RuMessage: "Ошибка создания преподавателя",
+		}, http.StatusInternalServerError)
+		return
+	}
+
+	a.writeJSON(w, UserResponse{
+		ID:         teacher.ID,
+		FirstName:  teacher.FirstName,
+		LastName:   teacher.LastName,
+		MiddleName: teacher.MiddleName,
+		PictureURL: teacher.PictureURL,
+		Role:       convertRole(teacher.Role),
+		Department: convertDepartment(department),
+	}, http.StatusCreated)
+}
+
+// GetUser godoc
+// @Summary Get user details
+// @Description Retrieves detailed information about a user
+// @Tags users
+// @Produce json
+// @Param id path string true "User UUID"
+// @Success 200 {object} UserResponse
+// @Failure 400 {object} APIError "Invalid UUID format"
+// @Failure 404 {object} APIError "User not found"
+// @Failure 500 {object} APIError "Internal server error"
+// @Router /users/{id} [get]
+func (a *API) GetUser(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	idStr := r.PathValue("id")
+
+	userID, err := uuid.FromString(idStr)
+	if err != nil {
+		a.writeError(w, APIError{
+			Code:      "INVALID_UUID",
+			Message:   "Invalid user ID format",
+			RuMessage: "Некорректный формат ID пользователя",
+		}, http.StatusBadRequest)
+		return
+	}
+
+	user, err := a.sesc.User(ctx, userID)
+	if errors.Is(err, sesc.ErrUserNotFound) {
+		a.writeError(w, APIError{
+			Code:      "USER_NOT_FOUND",
+			Message:   "User not found",
+			RuMessage: "Пользователь не найден",
+		}, http.StatusNotFound)
+		return
+	}
+	if err != nil {
+		a.writeError(w, APIError{
+			Code:      "SERVER_ERROR",
+			Message:   "Failed to fetch user",
+			RuMessage: "Ошибка получения данных пользователя",
+		}, http.StatusInternalServerError)
+		return
+	}
+
+	a.writeJSON(w, UserResponse{
+		ID:         user.ID,
+		FirstName:  user.FirstName,
+		LastName:   user.LastName,
+		MiddleName: user.MiddleName,
+		PictureURL: user.PictureURL,
+		Role:       convertRole(user.Role),
+		Department: convertDepartment(user.Department),
+	}, http.StatusOK)
+}
+
+// GrantPermissions godoc
+// @Summary Grant permissions to user
+// @Description Adds extra permissions to a user's account
+// @Tags permissions
+// @Accept json
+// @Produce json
+// @Param id path string true "User UUID"
+// @Param request body GrantPermissionsRequest true "List of permission IDs"
+// @Success 200 {object} UserResponse
+// @Failure 400 {object} APIError "Invalid UUID or permission ID"
+// @Failure 404 {object} APIError "User not found"
+// @Failure 500 {object} APIError "Internal server error"
+// @Router /users/{id}/permissions [post]
+func (a *API) GrantPermissions(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	idStr := r.PathValue("id")
+
+	userID, err := uuid.FromString(idStr)
+	if err != nil {
+		a.writeError(w, APIError{
+			Code:      "INVALID_UUID",
+			Message:   "Invalid user ID format",
+			RuMessage: "Некорректный формат ID пользователя",
+		}, http.StatusBadRequest)
+		return
+	}
+
+	var req GrantPermissionsRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		a.writeError(w, APIError{
+			Code:      "INVALID_REQUEST",
+			Message:   "Invalid request body",
+			RuMessage: "Некорректный формат запроса",
+		}, http.StatusBadRequest)
+		return
+	}
+
+	user, err := a.sesc.User(ctx, userID)
+	if errors.Is(err, sesc.ErrUserNotFound) {
+		a.writeError(w, APIError{
+			Code:      "USER_NOT_FOUND",
+			Message:   "User not found",
+			RuMessage: "Пользователь не найден",
+		}, http.StatusNotFound)
+		return
+	}
+
+	permissions := make([]sesc.Permission, 0, len(req.Permissions))
+	for _, pid := range req.Permissions {
+		p, exists := sesc.PermissionByID(pid)
+		if !exists {
+			a.writeError(w, APIError{
+				Code:      "INVALID_PERMISSION",
+				Message:   "Invalid permission ID",
+				RuMessage: "Некорректный ID разрешения",
+			}, http.StatusBadRequest)
+			return
+		}
+		permissions = append(permissions, p)
+	}
+
+	updatedUser, err := a.sesc.GrantExtraPermissions(ctx, user, permissions...)
+	if err != nil {
+		a.writeError(w, APIError{
+			Code:      "SERVER_ERROR",
+			Message:   "Failed to grant permissions",
+			RuMessage: "Ошибка назначения разрешений",
+		}, http.StatusInternalServerError)
+		return
+	}
+
+	a.writeJSON(w, UserResponse{
+		ID:         updatedUser.ID,
+		FirstName:  updatedUser.FirstName,
+		LastName:   updatedUser.LastName,
+		MiddleName: updatedUser.MiddleName,
+		PictureURL: updatedUser.PictureURL,
+		Role:       convertRole(updatedUser.Role),
+		Department: convertDepartment(updatedUser.Department),
+	}, http.StatusOK)
+}
+
+// Helper functions
+func (a *API) writeJSON(w http.ResponseWriter, data any, statusCode int) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(statusCode)
+	if err := json.NewEncoder(w).Encode(data); err != nil {
+		a.log.Error("couldn't write json", "error", err)
 	}
 }
 
-// Departments list all currently registered roles.
+func (a *API) writeError(w http.ResponseWriter, apiError APIError, statusCode int) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(statusCode)
+	err := json.NewEncoder(w).Encode(struct {
+		Error APIError `json:"error"`
+	}{Error: apiError})
+
+	if err != nil {
+		a.log.Error("couldn't write json", "error", err)
+	}
+}
+
+func convertRole(r sesc.Role) Role {
+	return Role{
+		ID:          r.ID,
+		Name:        r.Name,
+		Permissions: convertPermissions(r.Permissions),
+	}
+}
+
+func convertPermissions(perms []sesc.Permission) []Permission {
+	res := make([]Permission, len(perms))
+	for i, p := range perms {
+		res[i] = Permission{
+			ID:          p.ID,
+			Name:        p.Name,
+			Description: p.Description,
+		}
+	}
+	return res
+}
+
+func convertDepartment(d sesc.Department) Department {
+	return Department{
+		ID:          d.ID,
+		Name:        d.Name,
+		Description: d.Description,
+	}
+}
+
+// Roles godoc
 // @Summary List all roles
-// @Description Retrieves a list of all roles
+// @Description Retrieves all system roles with their permissions
 // @Tags roles
-// @Produce  json
-// @Success 200 {object} RolesResponse "Response containing registered roles or error details"
-// @Failure 500 {string} string "Internal Server Error - Failed to process request"
-// @Router /api/roles [get]
+// @Produce json
+// @Success 200 {object} RolesResponse
+// @Failure 500 {object} APIError "Internal server error"
+// @Router /roles [get]
 func (a *API) Roles(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	var rolerr RolesError
 	roles, err := a.sesc.Roles(ctx)
 	if err != nil {
-		a.log.ErrorContext(ctx, "couldn't get roles because of server error", "error", err)
-		rolerr = RolesError{
-			APIError: InternalServerError,
-		}
-	}
-
-	resRoles := make([]Role, len(roles))
-	for i, role := range roles {
-		resRoles[i] = Role{
-			ID:   role.ID,
-			Name: role.Name,
-		}
-
-		for _, p := range role.Permissions {
-			resRoles[i].Permissions = append(resRoles[i].Permissions, Permission{
-				ID:          p.ID,
-				Name:        p.Name,
-				Description: p.Description,
-			})
-		}
-	}
-
-	rolesResponse := RolesResponse{
-		Error: rolerr,
-		Roles: resRoles,
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(rolesResponse); err != nil {
-		a.log.ErrorContext(ctx, "failed to encode response", "error", err)
-		http.Error(w, "failed to encode response", http.StatusInternalServerError)
+		a.writeError(w, APIError{
+			Code:      "SERVER_ERROR",
+			Message:   "Failed to fetch roles",
+			RuMessage: "Ошибка получения списка ролей",
+		}, http.StatusInternalServerError)
 		return
 	}
+
+	response := RolesResponse{
+		Roles: make([]Role, len(roles)),
+	}
+	for i, role := range roles {
+		response.Roles[i] = convertRole(role)
+	}
+
+	a.writeJSON(w, response, http.StatusOK)
 }
 
-// Departments list all available permissions.
+// Permissions godoc
 // @Summary List all permissions
-// @Description Permissions cannot be changed other than from the code. This lists all the permissions a user may have.
+// @Description Retrieves all available system permissions
 // @Tags permissions
-// @Produce  json
-// @Success 200 {object} PermissionsResponse "Response containing all possible permissions"
-// @Router /api/permissions [get]
+// @Produce json
+// @Success 200 {object} PermissionsResponse
+// @Router /permissions [get]
 func (a *API) Permissions(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
+	perms := sesc.Permissions
+	response := PermissionsResponse{
+		Permissions: make([]Permission, len(perms)),
+	}
 
-	resPermissions := make([]Permission, len(sesc.Permissions))
-	for i, permission := range sesc.Permissions {
-		resPermissions[i] = Permission{
-			ID:          permission.ID,
-			Name:        permission.Name,
-			Description: permission.Description,
+	for i, p := range perms {
+		response.Permissions[i] = Permission{
+			ID:          p.ID,
+			Name:        p.Name,
+			Description: p.Description,
 		}
 	}
 
-	permissionsResponse := PermissionsResponse{
-		Permissions: resPermissions,
-	}
+	a.writeJSON(w, response, http.StatusOK)
+}
 
-	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(permissionsResponse); err != nil {
-		a.log.ErrorContext(ctx, "failed to encode response", "error", err)
-		http.Error(w, "failed to encode response", http.StatusInternalServerError)
+// CreateUser godoc
+// @Summary Create new user
+// @Description Creates a new user with specified role (non-teacher)
+// @Tags users
+// @Accept json
+// @Produce json
+// @Param request body CreateUserRequest true "User details"
+// @Success 201 {object} UserResponse
+// @Failure 400 {object} APIError "Invalid role or request format"
+// @Failure 500 {object} APIError "Internal server error"
+// @Router /users [post]
+func (a *API) CreateUser(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	var req CreateUserRequest
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		a.writeError(w, APIError{
+			Code:      "INVALID_REQUEST",
+			Message:   "Invalid request body",
+			RuMessage: "Некорректный формат запроса",
+		}, http.StatusBadRequest)
 		return
 	}
+
+	roles, err := a.sesc.Roles(ctx)
+	if err != nil {
+		a.writeError(w, APIError{
+			Code:      "SERVER_ERROR",
+			Message:   "Failed to fetch roles",
+			RuMessage: "Ошибка получения списка ролей",
+		}, http.StatusInternalServerError)
+		return
+	}
+
+	var selectedRole sesc.Role
+	for _, r := range roles {
+		if r.ID == req.RoleID && r.ID != sesc.Teacher.ID {
+			selectedRole = r
+			break
+		}
+	}
+
+	if selectedRole.ID == 0 {
+		a.writeError(w, APIError{
+			Code:      "INVALID_ROLE",
+			Message:   "Invalid role ID specified",
+			RuMessage: "Указана некорректная роль",
+		}, http.StatusBadRequest)
+		return
+	}
+
+	user, err := a.sesc.CreateUser(ctx, sesc.UserOptions{
+		FirstName:  req.FirstName,
+		LastName:   req.LastName,
+		MiddleName: req.MiddleName,
+		PictureURL: req.PictureURL,
+	}, selectedRole)
+
+	if err != nil {
+		a.writeError(w, APIError{
+			Code:      "SERVER_ERROR",
+			Message:   "Failed to create user",
+			RuMessage: "Ошибка создания пользователя",
+		}, http.StatusInternalServerError)
+		return
+	}
+
+	a.writeJSON(w, UserResponse{
+		ID:         user.ID,
+		FirstName:  user.FirstName,
+		LastName:   user.LastName,
+		MiddleName: user.MiddleName,
+		PictureURL: user.PictureURL,
+		Role:       convertRole(user.Role),
+	}, http.StatusCreated)
+}
+
+// RevokePermissions godoc
+// @Summary Revoke permissions
+// @Description Removes extra permissions from a user
+// @Tags permissions
+// @Accept json
+// @Produce json
+// @Param id path string true "User UUID"
+// @Param request body RevokePermissionsRequest true "Permission IDs to revoke"
+// @Success 200 {object} UserResponse
+// @Failure 400 {object} APIError "Invalid UUID or permission ID"
+// @Failure 404 {object} APIError "User not found"
+// @Failure 500 {object} APIError "Internal server error"
+// @Router /users/{id}/permissions [delete]
+func (a *API) RevokePermissions(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	idStr := r.PathValue("id")
+
+	userID, err := uuid.FromString(idStr)
+	if err != nil {
+		a.writeError(w, APIError{
+			Code:      "INVALID_UUID",
+			Message:   "Invalid user ID format",
+			RuMessage: "Некорректный формат ID пользователя",
+		}, http.StatusBadRequest)
+		return
+	}
+
+	var req RevokePermissionsRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		a.writeError(w, APIError{
+			Code:      "INVALID_REQUEST",
+			Message:   "Invalid request body",
+			RuMessage: "Некорректный формат запроса",
+		}, http.StatusBadRequest)
+		return
+	}
+
+	user, err := a.sesc.User(ctx, userID)
+	if errors.Is(err, sesc.ErrUserNotFound) {
+		a.writeError(w, APIError{
+			Code:      "USER_NOT_FOUND",
+			Message:   "User not found",
+			RuMessage: "Пользователь не найден",
+		}, http.StatusNotFound)
+		return
+	}
+
+	permissions := make([]sesc.Permission, 0, len(req.Permissions))
+	for _, pid := range req.Permissions {
+		p, exists := sesc.PermissionByID(pid)
+		if !exists {
+			a.writeError(w, APIError{
+				Code:      "INVALID_PERMISSION",
+				Message:   "Invalid permission ID",
+				RuMessage: "Некорректный ID разрешения",
+			}, http.StatusBadRequest)
+			return
+		}
+		permissions = append(permissions, p)
+	}
+
+	updatedUser, err := a.sesc.RevokeExtraPermissions(ctx, user, permissions...)
+	if err != nil {
+		a.writeError(w, APIError{
+			Code:      "SERVER_ERROR",
+			Message:   "Failed to revoke permissions",
+			RuMessage: "Ошибка отзыва разрешений",
+		}, http.StatusInternalServerError)
+		return
+	}
+
+	a.writeJSON(w, UserResponse{
+		ID:         updatedUser.ID,
+		FirstName:  updatedUser.FirstName,
+		LastName:   updatedUser.LastName,
+		MiddleName: updatedUser.MiddleName,
+		PictureURL: updatedUser.PictureURL,
+		Role:       convertRole(updatedUser.Role),
+		Department: convertDepartment(updatedUser.Department),
+	}, http.StatusOK)
+}
+
+// SetRole godoc
+// @Summary Update user role
+// @Description Changes the user's system role
+// @Tags users
+// @Accept json
+// @Produce json
+// @Param id path string true "User UUID"
+// @Param request body SetRoleRequest true "New role ID"
+// @Success 200 {object} UserResponse
+// @Failure 400 {object} APIError "Invalid role or UUID"
+// @Failure 404 {object} APIError "User not found"
+// @Failure 500 {object} APIError "Internal server error"
+// @Router /users/{id}/role [put]
+func (a *API) SetRole(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	idStr := r.PathValue("id")
+
+	userID, err := uuid.FromString(idStr)
+	if err != nil {
+		a.writeError(w, APIError{
+			Code:      "INVALID_UUID",
+			Message:   "Invalid user ID format",
+			RuMessage: "Некорректный формат ID пользователя",
+		}, http.StatusBadRequest)
+		return
+	}
+
+	var req SetRoleRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		a.writeError(w, APIError{
+			Code:      "INVALID_REQUEST",
+			Message:   "Invalid request body",
+			RuMessage: "Некорректный формат запроса",
+		}, http.StatusBadRequest)
+		return
+	}
+
+	user, err := a.sesc.User(ctx, userID)
+	if errors.Is(err, sesc.ErrUserNotFound) {
+		a.writeError(w, APIError{
+			Code:      "USER_NOT_FOUND",
+			Message:   "User not found",
+			RuMessage: "Пользователь не найден",
+		}, http.StatusNotFound)
+		return
+	}
+
+	roles, err := a.sesc.Roles(ctx)
+	if err != nil {
+		a.writeError(w, APIError{
+			Code:      "SERVER_ERROR",
+			Message:   "Failed to fetch roles",
+			RuMessage: "Ошибка получения списка ролей",
+		}, http.StatusInternalServerError)
+		return
+	}
+
+	var newRole sesc.Role
+	for _, r := range roles {
+		if r.ID == req.RoleID {
+			newRole = r
+			break
+		}
+	}
+
+	if newRole.ID == 0 {
+		a.writeError(w, APIError{
+			Code:      "INVALID_ROLE",
+			Message:   "Invalid role ID",
+			RuMessage: "Некорректный ID роли",
+		}, http.StatusBadRequest)
+		return
+	}
+
+	updatedUser, err := a.sesc.SetRole(ctx, user, newRole)
+	if errors.Is(err, sesc.ErrInvalidRoleChange) {
+		a.writeError(w, APIError{
+			Code:      "INVALID_ROLE_CHANGE",
+			Message:   "Cannot assign teacher role without department",
+			RuMessage: "Невозможно назначить роль преподавателя без кафедры",
+		}, http.StatusBadRequest)
+		return
+	}
+	if err != nil {
+		a.writeError(w, APIError{
+			Code:      "SERVER_ERROR",
+			Message:   "Failed to update role",
+			RuMessage: "Ошибка обновления роли",
+		}, http.StatusInternalServerError)
+		return
+	}
+
+	a.writeJSON(w, UserResponse{
+		ID:         updatedUser.ID,
+		FirstName:  updatedUser.FirstName,
+		LastName:   updatedUser.LastName,
+		MiddleName: updatedUser.MiddleName,
+		PictureURL: updatedUser.PictureURL,
+		Role:       convertRole(updatedUser.Role),
+		Department: convertDepartment(updatedUser.Department),
+	}, http.StatusOK)
+}
+
+// SetDepartment godoc
+// @Summary Update department
+// @Description Updates the user's department assignment
+// @Tags users
+// @Accept json
+// @Produce json
+// @Param id path string true "User UUID"
+// @Param request body SetDepartmentRequest true "Department ID"
+// @Success 200 {object} UserResponse
+// @Failure 400 {object} APIError "Invalid department or UUID"
+// @Failure 404 {object} APIError "User/department not found"
+// @Failure 500 {object} APIError "Internal server error"
+// @Router /users/{id}/department [put]
+func (a *API) SetDepartment(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	idStr := r.PathValue("id")
+
+	userID, err := uuid.FromString(idStr)
+	if err != nil {
+		a.writeError(w, APIError{
+			Code:      "INVALID_UUID",
+			Message:   "Invalid user ID format",
+			RuMessage: "Некорректный формат ID пользователя",
+		}, http.StatusBadRequest)
+		return
+	}
+
+	var req SetDepartmentRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		a.writeError(w, APIError{
+			Code:      "INVALID_REQUEST",
+			Message:   "Invalid request body",
+			RuMessage: "Некорректный формат запроса",
+		}, http.StatusBadRequest)
+		return
+	}
+
+	user, err := a.sesc.User(ctx, userID)
+	if errors.Is(err, sesc.ErrUserNotFound) {
+		a.writeError(w, APIError{
+			Code:      "USER_NOT_FOUND",
+			Message:   "User not found",
+			RuMessage: "Пользователь не найден",
+		}, http.StatusNotFound)
+		return
+	}
+
+	department, err := a.sesc.DepartmentByID(ctx, req.DepartmentID)
+	if err != nil || department.ID == uuid.Nil {
+		a.writeError(w, APIError{
+			Code:      "DEPARTMENT_NOT_FOUND",
+			Message:   "Department not found",
+			RuMessage: "Кафедра не найдена",
+		}, http.StatusNotFound)
+		return
+	}
+
+	updatedUser, err := a.sesc.SetDepartment(ctx, user, department)
+	if errors.Is(err, sesc.ErrInvalidDepartment) {
+		a.writeError(w, APIError{
+			Code:      "INVALID_DEPARTMENT",
+			Message:   "Invalid department for user role",
+			RuMessage: "Некорректная кафедра для текущей роли пользователя",
+		}, http.StatusBadRequest)
+		return
+	}
+	if err != nil {
+		a.writeError(w, APIError{
+			Code:      "SERVER_ERROR",
+			Message:   "Failed to update department",
+			RuMessage: "Ошибка обновления кафедры",
+		}, http.StatusInternalServerError)
+		return
+	}
+
+	a.writeJSON(w, UserResponse{
+		ID:         updatedUser.ID,
+		FirstName:  updatedUser.FirstName,
+		LastName:   updatedUser.LastName,
+		MiddleName: updatedUser.MiddleName,
+		PictureURL: updatedUser.PictureURL,
+		Role:       convertRole(updatedUser.Role),
+		Department: convertDepartment(department),
+	}, http.StatusOK)
 }
 
 func (a *API) RegisterRoutes(mux *http.ServeMux) {
-	mux.HandleFunc("GET /api/departments", a.Departments)
-	mux.HandleFunc("POST /api/departments", a.CreateDepartment)
-	mux.HandleFunc("GET /api/roles", a.Roles)
-	mux.HandleFunc("GET /api/permissions", a.Permissions)
+	mux.HandleFunc("POST /departments", a.CreateDepartment)
+	mux.HandleFunc("GET /departments", a.Departments)
+	mux.HandleFunc("GET /roles", a.Roles)
+	mux.HandleFunc("GET /permissions", a.Permissions)
+	mux.HandleFunc("POST /teachers", a.CreateTeacher)
+	mux.HandleFunc("POST /users", a.CreateUser)
+	mux.HandleFunc("GET /users/{id}", a.GetUser)
+	mux.HandleFunc("PUT /users/{id}/role", a.SetRole)
+	mux.HandleFunc("PUT /users/{id}/department", a.SetDepartment)
+	mux.HandleFunc("POST /users/{id}/permissions", a.GrantPermissions)
+	mux.HandleFunc("DELETE /users/{id}/permissions", a.RevokePermissions)
 
-	mux.HandleFunc("/api/swagger/", httpSwagger.WrapHandler)
+	mux.HandleFunc("/swagger/", httpSwagger.WrapHandler)
 }

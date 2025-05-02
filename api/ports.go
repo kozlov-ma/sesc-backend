@@ -18,5 +18,8 @@ type (
 		SetProfilePic(ctx context.Context, user sesc.User, pictureURL string) (sesc.User, error)
 		Roles(ctx context.Context) ([]sesc.Role, error)
 		Departments(ctx context.Context) ([]sesc.Department, error)
+		DepartmentByID(ctx context.Context, id sesc.UUID) (sesc.Department, error)
+		GrantExtraPermissions(ctx context.Context, user sesc.User, permissions ...sesc.Permission) (sesc.User, error)
+		RevokeExtraPermissions(ctx context.Context, user sesc.User, permissions ...sesc.Permission) (sesc.User, error)
 	}
 )

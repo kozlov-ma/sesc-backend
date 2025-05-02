@@ -315,6 +315,10 @@ func (s *SESC) Departments(ctx context.Context) ([]Department, error) {
 	return s.db.Departments(ctx)
 }
 
+func (s *SESC) DepartmentByID(ctx context.Context, id UUID) (Department, error) {
+	return s.db.DepartmentByID(ctx, id)
+}
+
 // Roles returns all the roles currently registered within the system.
 //
 // As it is not possible to register new roles at the moment, it returns all the pre-defined roles.
