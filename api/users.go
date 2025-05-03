@@ -172,6 +172,17 @@ func (a *API) PatchUser(w http.ResponseWriter, r *http.Request) {
 		upd.Suspended = *req.Suspended
 	}
 	if req.DepartmentID != nil {
+		newRoleIsBad := (req.RoleId != nil && *req.RoleId != sesc.Teacher.ID && *req.RoleId != sesc.Dephead.ID)
+		noNewRoleAndOldIsBad := (req.RoleId == nil && existing.Role.ID != sesc.Teacher.ID && existing.Role.ID != sesc.Dephead.ID)
+		if newRoleIsBad || noNewRoleAndOldIsBad {
+			a.writeError(w, APIError{
+				Code:      "INVALID_ROLE",
+				Message:   "Unable to assign department to selected role",
+				RuMessage: "Нельзя указать департамент для выбранной роли",
+			}, http.StatusBadRequest)
+			return
+		}
+
 		upd.DepartmentID = *req.DepartmentID
 	}
 	if req.RoleId != nil {
