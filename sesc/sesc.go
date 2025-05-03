@@ -64,45 +64,15 @@ type UserOptions struct {
 	LastName   string
 	MiddleName string
 	PictureURL string
-}
 
-// CreateTeacher creates a new teacher.
-//
-// Returns sesc.ErrUsernameTaken if the username in AuthCredentials is already taken.
-//
-// TODO: think of a solution for multiple teachers with the same name.
-func (s *SESC) CreateTeacher(ctx context.Context, opt UserOptions, department Department) (User, error) {
-	id, err := uuid.NewV7()
-	if err != nil {
-		return User{}, fmt.Errorf("couldn't create uuid: %w", err)
-	}
-
-	u := User{
-		ID:         id,
-		FirstName:  opt.FirstName,
-		LastName:   opt.LastName,
-		MiddleName: opt.MiddleName,
-		PictureURL: opt.PictureURL,
-		Role:       Teacher,
-		Department: department,
-	}
-
-	if err := s.db.SaveUser(ctx, u); err != nil {
-		s.log.ErrorContext(ctx, "got a db error when saving user", slog.Any("error", err))
-		return User{}, fmt.Errorf("couldn't save user: %w", err)
-	}
-
-	s.log.InfoContext(ctx, "created teacher", slog.Any("user", u))
-	return u, nil
+	Department *Department
 }
 
 // CreateUser creates a new User with a specified role.
-//
-// To create a Teacher, use CreateTeacher. If role is Teacher, returns sesc.ErrInvalidRole.
+// It may be used to create a new teacher
 func (s *SESC) CreateUser(ctx context.Context, opt UserOptions, role Role) (User, error) {
 	if role.ID == Teacher.ID {
-		s.log.DebugContext(ctx, "tried to create a user with Teacher role", slog.Any("user", opt))
-		return User{}, ErrInvalidRole
+		return s.сreateTeacher(ctx, opt)
 	}
 
 	id, err := uuid.NewV7()
@@ -110,7 +80,6 @@ func (s *SESC) CreateUser(ctx context.Context, opt UserOptions, role Role) (User
 		s.log.ErrorContext(ctx, "couldn't create uuid", slog.Any("error", err))
 		return User{}, fmt.Errorf("couldn't create user ID: %w", err)
 	}
-
 	u := User{
 		ID:         id,
 		PictureURL: opt.PictureURL,
@@ -119,13 +88,28 @@ func (s *SESC) CreateUser(ctx context.Context, opt UserOptions, role Role) (User
 		LastName:   opt.LastName,
 		MiddleName: opt.MiddleName,
 	}
+	return u, nil
+}
 
-	if err := s.db.SaveUser(ctx, u); err != nil {
-		s.log.ErrorContext(ctx, "got a db error when saving user", slog.Any("error", err))
-		return User{}, fmt.Errorf("couldn't save user: %w", err)
+func (s *SESC) сreateTeacher(ctx context.Context, opt UserOptions) (User, error) {
+	id, err := uuid.NewV7()
+	if err != nil {
+		s.log.ErrorContext(ctx, "couldn't create uuid", slog.Any("error", err))
+		return User{}, fmt.Errorf("couldn't create user ID: %w", err)
 	}
-
-	s.log.InfoContext(ctx, "created user", slog.Any("user", u))
+	if opt.Department == nil {
+		s.log.DebugContext(ctx, "no department provided for create teacher", slog.Any("error", err))
+		return User{}, fmt.Errorf("department is required")
+	}
+	u := User{
+		ID:         id,
+		PictureURL: opt.PictureURL,
+		Role:       Teacher,
+		FirstName:  opt.FirstName,
+		LastName:   opt.LastName,
+		MiddleName: opt.MiddleName,
+		Department: *opt.Department,
+	}
 	return u, nil
 }
 
@@ -294,20 +278,19 @@ func (s *SESC) SetDepartment(ctx context.Context, user User, department Departme
 	return currentUser, nil
 }
 
-// SetUserInfo changes the user's options.
-//
-// If the user does not exist, returns a sesc.ErrUserNotFound.
-func (s *SESC) SetUserInfo(ctx context.Context, user User, opt UserOptions) (User, error) {
-	panic("not implemented")
-}
-
-// SetProfilePic sets the profile picture for a user.
-// This method is an addition to SetUserInfo, because the SetUserInfo is supposed to only
-// be used by the system administrator, while SetProfilePic should be available to users.
-//
-// If the user does not exist, returns a sesc.ErrUserNotFound.
-func (s *SESC) SetProfilePic(ctx context.Context, user User, pictureURL string) (User, error) {
-	panic("not implemented")
+// UpdateUser saves any arbitrary changes made on the User struct.
+// It is a thin wrapper around db.SaveUser to keep logging and error wrapping consistent.
+func (s *SESC) UpdateUser(ctx context.Context, user User) (User, error) {
+	if err := s.db.SaveUser(ctx, user); err != nil {
+		s.log.ErrorContext(ctx,
+			"failed to save user",
+			slog.Any("user_id", user.ID),
+			slog.Any("error", err),
+		)
+		return User{}, fmt.Errorf("failed to save user: %w", err)
+	}
+	s.log.InfoContext(ctx, "user updated", slog.Any("user_id", user.ID))
+	return user, nil
 }
 
 // Departments returns all the departments currently registered within the system.

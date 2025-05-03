@@ -16,53 +16,6 @@ import (
 	"go.uber.org/mock/gomock"
 )
 
-func TestSESC_CreateTeacher(t *testing.T) {
-	t.Parallel()
-	ctrl := gomock.NewController(t)
-
-	log := slog.New(slog.DiscardHandler)
-
-	uopt := sesc.UserOptions{
-		FirstName:  "Ivan",
-		LastName:   "Ivanov",
-		MiddleName: "Ivanovich",
-		PictureURL: "https://example.com/avatar.jpg",
-	}
-
-	dep := sesc.Department{
-		ID:   uuid.Must(uuid.NewV7()),
-		Name: "Кафедра математики",
-	}
-
-	t.Run("simple", func(t *testing.T) {
-		mockdb := mock_sesc.NewMockDB(ctrl)
-
-		mockdb.EXPECT().SaveUser(gomock.Any(), gomock.Any()).Return(nil)
-
-		s := sesc.New(log, mockdb)
-
-		u, err := s.CreateTeacher(context.Background(), uopt, dep)
-
-		require.NoError(t, err)
-		assert.Equal(t, false, u.Suspended)
-		assert.Equal(t, dep, u.Department)
-		assert.Equal(t, sesc.Teacher, u.Role)
-	})
-
-	t.Run("db_error", func(t *testing.T) {
-		db := mock_sesc.NewMockDB(ctrl)
-
-		e := errors.New("ahh db error")
-
-		db.EXPECT().SaveUser(gomock.Any(), gomock.Any()).Return(e)
-
-		s := sesc.New(log, db)
-
-		_, err := s.CreateTeacher(context.Background(), uopt, dep)
-		assert.ErrorIs(t, err, e)
-	})
-}
-
 func TestSESC_CreateUser(t *testing.T) {
 	t.Parallel()
 	ctrl := gomock.NewController(t)

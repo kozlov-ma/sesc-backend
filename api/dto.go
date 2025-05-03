@@ -53,14 +53,6 @@ type Permission struct {
 }
 
 // User Management
-type CreateTeacherRequest struct {
-	FirstName    string    `json:"firstName"    example:"Ivan"`
-	LastName     string    `json:"lastName"     example:"Petrov"`
-	MiddleName   string    `json:"middleName"   example:"Sergeevich"`
-	PictureURL   string    `json:"pictureUrl"   example:"/images/users/ivan.jpg"`
-	DepartmentID uuid.UUID `json:"departmentId" example:"550e8400-e29b-41d4-a716-446655440000"`
-}
-
 type UserResponse struct {
 	ID         uuid.UUID  `json:"id"                  example:"550e8400-e29b-41d4-a716-446655440000"`
 	FirstName  string     `json:"firstName"           example:"Ivan"`
@@ -104,4 +96,17 @@ type UpdateUserInfoRequest struct {
 
 type SetProfilePicRequest struct {
 	PictureURL string `json:"pictureUrl" example:"/images/users/new-ivan.jpg"`
+}
+
+// PatchUserRequest defines the fields that can be updated on a User.
+// Fields are pointers so that only non‑nil values are applied to the user record.
+// DepartmentID is only allowed to be set if the user’s role is Teacher or Dephead.
+type PatchUserRequest struct {
+	FirstName  *string `json:"firstName" example:"Ivan"`
+	LastName   *string `json:"lastName" example:"Petrov"`
+	MiddleName *string `json:"middleName" example:"Sergeevich"`
+	PictureURL *string `json:"pictureUrl" example:"/images/users/ivan.jpg"`
+	Suspended  *bool   `json:"suspended" example:"false"`
+
+	DepartmentID *uuid.UUID `json:"departmentId" example:"550e8400-e29b-41d4-a716-446655440000"`
 }
