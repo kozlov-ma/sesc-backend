@@ -110,13 +110,21 @@ func convertDepartment(d sesc.Department) Department {
 }
 
 func (a *API) RegisterRoutes(mux *http.ServeMux) {
+	// departments
 	mux.HandleFunc("POST /departments", a.CreateDepartment)
 	mux.HandleFunc("GET /departments", a.Departments)
+	mux.HandleFunc("PUT /departments/{id}", a.UpdateDepartment)
+	mux.HandleFunc("DELETE /departments/{id}", a.DeleteDepartment)
+
+	// roles & permissions
 	mux.HandleFunc("GET /roles", a.Roles)
 	mux.HandleFunc("GET /permissions", a.Permissions)
+
+	// users
 	mux.HandleFunc("POST /users", a.CreateUser)
 	mux.HandleFunc("PATCH /users/{id}", a.PatchUser)
 	mux.HandleFunc("GET /users/{id}", a.GetUser)
 
+	// swagger UI
 	mux.HandleFunc("/swagger/", httpSwagger.WrapHandler)
 }
