@@ -22,20 +22,24 @@ type User struct {
 
 	Department Department
 
-	Role             Role
-	ExtraPermissions []Permission
+	Role Role
 
 	AuthID UUID
 }
 
 func (u User) HasPermission(permission Permission) bool {
-	if u.Role.HasPermission(permission) {
-		return true
+	return u.Role.HasPermission(permission)
+}
+
+func (u User) UpdateOptions() UserUpdateOptions {
+	return UserUpdateOptions{
+		FirstName:    u.FirstName,
+		LastName:     u.LastName,
+		MiddleName:   u.MiddleName,
+		PictureURL:   u.PictureURL,
+		Suspended:    u.Suspended,
+		DepartmentID: u.Department.ID,
+		NewRoleID:    u.Role.ID,
+		AuthID:       u.AuthID,
 	}
-	for _, p := range u.ExtraPermissions {
-		if p.ID == permission.ID {
-			return true
-		}
-	}
-	return false
 }

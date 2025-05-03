@@ -6,39 +6,36 @@ import (
 
 type (
 	DB interface {
+		// SaveUser saves a new user to the database.
 		SaveUser(context.Context, User) error
 
-		// If the user already has the extra permission, or it is granted by a role, it is a no-op.
-		// If the user does not exist, it returns an ErrUserNotFound.
-		// If the permission is not valid, it returns an ErrInvalidPermission.
-		GrantExtraPermissions(context.Context, User, ...Permission) (User, error)
+		// UpdateUser updates an existing user in the database.
+		// Returns an ErrUserNotFound if the user does not exist.
+		UpdateUser(context.Context, UUID, UserUpdateOptions) (User, error)
 
-		// If the user does not have the permission, it is a no-op.
-		// If the user does not exist, it returns an ErrUserNotFound.
-		// If the permission is not valid, it returns an ErrInvalidPermission.
-		//
-		// Permissions granted by roles are not affected by this operation.
-		RevokeExtraPermissions(context.Context, User, ...Permission) (User, error)
+		// UpdateProfilePicture updates the profile picture of a user in the database.
+		// Returns an ErrUserNotFound if the user does not exist.
+		UpdateProfilePicture(context.Context, UUID, string) error
 
 		// Returns an ErrUserNotFound if user does not exist.
 		UserByID(context.Context, UUID) (User, error)
 
+		Users(context.Context) ([]User, error)
+
 		// Returns an ErrInvalidDepartment if department already exists.
 		CreateDepartment(ctx context.Context, id UUID, name, description string) (Department, error)
 
-		// Assigns a head to an existing department
-		// Returns an ErrUserNotFound if user does not exist.
-		// Returns an ErrInvalidDepartment if department does not exist.
-		AssignHeadOfDepartment(ctx context.Context, departmentID UUID, userID UUID) error
+		// Modifies the Department. Returns an ErrInvalidDepartment if the department at this id does not exist.
+		UpdateDepartment(ctx context.Context, id UUID, name, description string) error
+
+		// Deletes the Department. Returns an ErrInvalidDepartment if the department at this id does not exist.
+		// Returns an ErrCannotRemoveDepartment if the department is currently assigned to a user.
+		DeleteDepartment(ctx context.Context, id UUID) error
 
 		// Returns all currenlty registered departments.
 		Departments(ctx context.Context) ([]Department, error)
 
 		// Returns ErrInvalidDepartment if not exist
 		DepartmentByID(ctx context.Context, id UUID) (Department, error)
-
-		InsertDefaultPermissions(ctx context.Context, permissions []Permission) error
-
-		InsertDefaultRoles(ctx context.Context, roles []Role) error
 	}
 )

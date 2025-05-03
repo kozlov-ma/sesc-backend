@@ -60,3 +60,20 @@ var (
 		},
 	}
 )
+
+var Roles = []Role{
+	Teacher,
+	Dephead,
+	ContestDeputy,
+	ScientificDeputy,
+	DevelopmentDeputy,
+}
+
+func RoleByID(id int32) (Role, bool) {
+	for _, r := range Roles {
+		if r.ID == id {
+			return r, true
+		}
+	}
+	return Role{}, false
+}

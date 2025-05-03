@@ -9,7 +9,6 @@ type Department struct {
 	ID          UUID
 	Name        string
 	Description string
-	Head        *User
 }
 
 var (

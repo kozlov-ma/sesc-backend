@@ -30,11 +30,6 @@ func main() {
 	}()
 
 	sesc := sesc.New(log, db)
-	if err := sesc.Init(ctx); err != nil {
-		log.ErrorContext(ctx, "couldn't init sesc", "error", err)
-		return
-	}
-
 	api := api.New(log, sesc)
 
 	mux := http.NewServeMux()

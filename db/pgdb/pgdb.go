@@ -7,11 +7,9 @@ import (
 	"fmt"
 	"log/slog"
 
-	"github.com/gofrs/uuid/v5"
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/jmoiron/sqlx"
 	"github.com/kozlov-ma/sesc-backend/sesc"
-	"github.com/lib/pq"
 )
 
 type DB struct {
@@ -41,709 +39,271 @@ func (d *DB) Close() error {
 	return nil
 }
 
-// AssignHeadOfDepartment implements sesc.DB.
-//
-// Returns a sesc.ErrUserNotFound if user does not exist.
-// Returns a sesc.ErrInvalidDepartment if department does not exist.
-func (d *DB) AssignHeadOfDepartment(ctx context.Context, departmentID sesc.UUID, userID sesc.UUID) (rerr error) {
-	tx, err := d.db.BeginTxx(ctx, &sql.TxOptions{Isolation: sql.LevelSerializable})
-	if err != nil {
-		return fmt.Errorf("could not begin transaction: %w", err)
-	}
-	defer func() {
-		if err := tx.Rollback(); !errors.Is(err, sql.ErrTxDone) {
-			rerr = errors.Join(rerr, tx.Rollback())
-		}
-	}()
-
-	var deptExists bool
-	err = tx.GetContext(ctx, &deptExists, "SELECT EXISTS(SELECT 1 FROM departments WHERE id = $1)", departmentID)
-	if err != nil {
-		return fmt.Errorf("check department exists: %w", err)
-	}
-	if !deptExists {
-		return sesc.ErrInvalidDepartment
-	}
-
-	// Check if user exists
-	var userExists bool
-	err = tx.GetContext(ctx, &userExists, "SELECT EXISTS(SELECT 1 FROM users WHERE id = $1)", userID)
-	if err != nil {
-		return fmt.Errorf("check user exists: %w", err)
-	}
-	if !userExists {
-		return sesc.ErrUserNotFound
-	}
-
-	// Update department's head
-	_, err = tx.ExecContext(ctx, "UPDATE departments SET head_user_id = $1 WHERE id = $2", userID, departmentID)
-	if err != nil {
-		return fmt.Errorf("update department head: %w", err)
-	}
-
-	if err := tx.Commit(); err != nil {
-		return fmt.Errorf("commit transaction: %w", err)
-	}
-	return nil
-}
-
 // CreateDepartment implements sesc.DB.
-//
-// Returns a sesc.ErrInvalidDepartment if department with this name already exists.
 func (d *DB) CreateDepartment(
 	ctx context.Context,
 	id sesc.UUID,
 	name string,
 	description string,
 ) (sesc.Department, error) {
-	// Check for existing department with same name
-	var exists bool
-	err := d.db.GetContext(ctx, &exists,
-		"SELECT EXISTS(SELECT 1 FROM departments WHERE name = $1)", name)
+	query := `INSERT INTO departments (id, name, description) VALUES ($1, $2, $3)`
+	_, err := d.db.ExecContext(ctx, query, id, name, description)
 	if err != nil {
-		return sesc.Department{}, fmt.Errorf("department existence check failed: %w", err)
+		d.log.DebugContext(ctx, "CreateDepartment: failed to insert", "error", err, "id", id, "name", name)
+		return sesc.Department{}, fmt.Errorf("create department: %w", err)
 	}
-	if exists {
-		return sesc.Department{}, sesc.ErrInvalidDepartment
-	}
-
-	// Insert new department without head user
-	_, err = d.db.ExecContext(ctx, `
-        INSERT INTO departments
-            (id, name, description, head_user_id)
-        VALUES
-            ($1, $2, $3, NULL)
-    `, id, name, description)
-
-	if err != nil {
-		if pqerr, ok := err.(*pq.Error); ok && pqerr.Code == "23505" {
-			return sesc.Department{}, sesc.ErrInvalidDepartment
-		}
-		return sesc.Department{}, fmt.Errorf("department creation failed: %w", err)
-	}
-
-	return sesc.Department{
-		ID:          id,
-		Name:        name,
-		Description: description,
-		Head:        nil,
-	}, nil
+	return sesc.Department{ID: id, Name: name, Description: description}, nil
 }
 
-// GrantExtraPermissions implements sesc.DB.
-//
-// If the user already has the extra permission, or it is granted by a role, it is a no-op.
-// If the user does not exist, it returns a sesc.ErrUserNotFound.
-// If the permission is not valid, it returns a sesc.ErrInvalidPermission.
-func (d *DB) GrantExtraPermissions(
-	ctx context.Context,
-	user sesc.User,
-	permissions ...sesc.Permission,
-) (ruser sesc.User, rerr error) {
-	// Check user exists
-	var exists bool
-	err := d.db.GetContext(ctx, &exists, "SELECT EXISTS(SELECT 1 FROM users WHERE id = $1)", user.ID)
+// DeleteDepartment implements sesc.DB.
+func (d *DB) DeleteDepartment(ctx context.Context, id sesc.UUID) error {
+	query := `DELETE FROM departments WHERE id = $1`
+	result, err := d.db.ExecContext(ctx, query, id)
 	if err != nil {
-		return sesc.User{}, fmt.Errorf("couldn't check user exists: %w", err)
+		d.log.DebugContext(ctx, "DeleteDepartment: failed to delete", "error", err, "id", id)
+		return fmt.Errorf("delete department: %w", err)
 	}
-	if !exists {
-		return sesc.User{}, sesc.ErrUserNotFound
-	}
-
-	// Check permissions exist
-	permIDs := make([]int32, len(permissions))
-	for i, p := range permissions {
-		permIDs[i] = p.ID
-	}
-	query, args, err := sqlx.In("SELECT COUNT(*) FROM permissions WHERE id IN (?)", permIDs)
+	rowsAffected, err := result.RowsAffected()
 	if err != nil {
-		return sesc.User{}, fmt.Errorf("build permission check query: %w", err)
+		return fmt.Errorf("get rows affected: %w", err)
 	}
-	query = d.db.Rebind(query)
-	var count int
-	err = d.db.GetContext(ctx, &count, query, args...)
-	if err != nil {
-		return sesc.User{}, fmt.Errorf("check permissions exist: %w", err)
+	if rowsAffected == 0 {
+		d.log.DebugContext(ctx, "DeleteDepartment: no rows affected", "id", id)
+		return fmt.Errorf("department not found")
 	}
-	if count != len(permIDs) {
-		return sesc.User{}, sesc.ErrInvalidPermission
-	}
-
-	tx, err := d.db.BeginTxx(ctx, &sql.TxOptions{Isolation: sql.LevelSerializable})
-	if err != nil {
-		return sesc.User{}, fmt.Errorf("begin transaction: %w", err)
-	}
-	defer func() {
-		if err := tx.Rollback(); !errors.Is(err, sql.ErrTxDone) {
-			rerr = errors.Join(rerr, tx.Rollback())
-		}
-	}()
-
-	var roleID *sesc.UUID
-	err = tx.GetContext(ctx, &roleID, "SELECT role_id FROM users WHERE id = $1", user.ID)
-	if err != nil {
-		return sesc.User{}, fmt.Errorf("get user role: %w", err)
-	}
-
-	for _, perm := range permissions {
-		// Check if role grants permission
-		var roleHasPerm bool
-		if roleID != nil {
-			err = tx.GetContext(ctx, &roleHasPerm,
-				"SELECT EXISTS(SELECT 1 FROM permissions_roles WHERE role_id = $1 AND permission_id = $2)",
-				roleID, perm.ID,
-			)
-			if err != nil {
-				return sesc.User{}, fmt.Errorf("check role permission: %w", err)
-			}
-		}
-		if roleHasPerm {
-			continue
-		}
-
-		// Check if already has extra permission
-		var hasExtra bool
-		err = tx.GetContext(ctx, &hasExtra,
-			"SELECT EXISTS(SELECT 1 FROM users_extra_permissions WHERE user_id = $1 AND permission_id = $2)",
-			user.ID, perm.ID,
-		)
-		if err != nil {
-			return sesc.User{}, fmt.Errorf("check extra permission: %w", err)
-		}
-		if hasExtra {
-			continue
-		}
-
-		// Grant permission
-		_, err = tx.ExecContext(ctx,
-			"INSERT INTO users_extra_permissions (user_id, permission_id) VALUES ($1, $2)",
-			user.ID, perm.ID,
-		)
-		if err != nil {
-			return sesc.User{}, fmt.Errorf("grant extra permission: %w", err)
-		}
-	}
-
-	if err = tx.Commit(); err != nil {
-		return sesc.User{}, fmt.Errorf("commit transaction: %w", err)
-	}
-
-	return d.UserByID(ctx, user.ID)
-}
-
-// RevokeExtraPermissions implements sesc.DB.
-//
-// If the user does not have the permission, it is a no-op.
-// If the user does not exist, it returns a sesc.ErrUserNotFound.
-// If the permission is not valid, it returns a sesc.ErrInvalidPermission.
-//
-// Permissions granted by roles are not affected by this operation.
-func (d *DB) RevokeExtraPermissions(
-	ctx context.Context,
-	user sesc.User,
-	permissions ...sesc.Permission,
-) (ruser sesc.User, rerr error) {
-	// Check user exists
-	var exists bool
-	err := d.db.GetContext(ctx, &exists, "SELECT EXISTS(SELECT 1 FROM users WHERE id = $1)", user.ID)
-	if err != nil {
-		return sesc.User{}, fmt.Errorf("check user exists: %w", err)
-	}
-	if !exists {
-		return sesc.User{}, sesc.ErrUserNotFound
-	}
-
-	// Check permissions exist
-	permIDs := make([]int32, len(permissions))
-	for i, p := range permissions {
-		permIDs[i] = p.ID
-	}
-	query, args, err := sqlx.In("SELECT COUNT(*) FROM permissions WHERE id IN (?)", permIDs)
-	if err != nil {
-		return sesc.User{}, fmt.Errorf("build permission check query: %w", err)
-	}
-	query = d.db.Rebind(query)
-	var count int
-	err = d.db.GetContext(ctx, &count, query, args...)
-	if err != nil {
-		return sesc.User{}, fmt.Errorf("check permissions exist: %w", err)
-	}
-	if count != len(permIDs) {
-		return sesc.User{}, sesc.ErrInvalidPermission
-	}
-
-	tx, err := d.db.BeginTxx(ctx, &sql.TxOptions{Isolation: sql.LevelSerializable})
-	if err != nil {
-		return sesc.User{}, fmt.Errorf("begin transaction: %w", err)
-	}
-	defer func() {
-		if err := tx.Rollback(); !errors.Is(err, sql.ErrTxDone) {
-			rerr = errors.Join(rerr, tx.Rollback())
-		}
-	}()
-
-	var roleID *sesc.UUID
-	err = tx.GetContext(ctx, &roleID, "SELECT role_id FROM users WHERE id = $1", user.ID)
-	if err != nil {
-		return sesc.User{}, fmt.Errorf("get user role: %w", err)
-	}
-
-	for _, perm := range permissions {
-		// Check if role grants permission
-		var roleHasPerm bool
-		if roleID != nil {
-			err = tx.GetContext(ctx, &roleHasPerm,
-				"SELECT EXISTS(SELECT 1 FROM permissions_roles WHERE role_id = $1 AND permission_id = $2)",
-				roleID, perm.ID,
-			)
-			if err != nil {
-				return sesc.User{}, fmt.Errorf("check role permission: %w", err)
-			}
-		}
-		if roleHasPerm {
-			continue
-		}
-
-		_, err = tx.ExecContext(ctx,
-			"DELETE FROM users_extra_permissions WHERE user_id = $1 AND permission_id = $2",
-			user.ID, perm.ID,
-		)
-		if err != nil {
-			return sesc.User{}, fmt.Errorf("revoke extra permission: %w", err)
-		}
-	}
-
-	if err = tx.Commit(); err != nil {
-		return sesc.User{}, fmt.Errorf("commit transaction: %w", err)
-	}
-
-	return d.UserByID(ctx, user.ID)
-}
-
-// SaveUser implements sesc.DB.
-func (d *DB) SaveUser(ctx context.Context, user sesc.User) (rerr error) {
-	tx, err := d.db.BeginTxx(ctx, nil)
-	if err != nil {
-		return fmt.Errorf("failed to begin transaction: %w", err)
-	}
-	defer func() {
-		if err := tx.Rollback(); !errors.Is(err, sql.ErrTxDone) {
-			rerr = errors.Join(rerr, tx.Rollback())
-		}
-	}()
-
-	// Check existence within transaction
-	var exists bool
-	err = tx.GetContext(ctx, &exists, "SELECT EXISTS(SELECT 1 FROM users WHERE id = $1)", user.ID)
-	if err != nil {
-		return fmt.Errorf("check user existence: %w", err)
-	}
-
-	// Prepare nullable department/role IDs
-	var deptID *sesc.UUID
-	if user.Department != sesc.NoDepartment {
-		deptID = &user.Department.ID
-	}
-
-	var roleID *int32
-	if user.Role.ID != 0 {
-		roleID = &user.Role.ID
-	}
-
-	// Execute appropriate operation
-	if exists {
-		_, err = tx.ExecContext(ctx, `
-            UPDATE users SET
-                first_name = $1,
-                last_name = $2,
-                middle_name = $3,
-                picture_url = $4,
-                suspended = $5,
-                department_id = $6,
-                role_id = $7,
-                auth_id = $8
-            WHERE id = $9`,
-			user.FirstName,
-			user.LastName,
-			user.MiddleName,
-			user.PictureURL,
-			user.Suspended,
-			deptID,
-			roleID,
-			user.AuthID,
-			user.ID,
-		)
-	} else {
-		_, err = tx.ExecContext(ctx, `
-            INSERT INTO users (
-                id, first_name, last_name, middle_name,
-                picture_url, suspended, department_id,
-                role_id, auth_id
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
-			user.ID,
-			user.FirstName,
-			user.LastName,
-			user.MiddleName,
-			user.PictureURL,
-			user.Suspended,
-			deptID,
-			roleID,
-			user.AuthID,
-		)
-	}
-
-	if err != nil {
-		return fmt.Errorf("save operation failed: %w", err)
-	}
-
-	if err := tx.Commit(); err != nil {
-		return fmt.Errorf("commit failed: %w", err)
-	}
-
 	return nil
 }
 
-// UserByID implements sesc.DB.
-//
-// Returns a db.ErrUserNotFound if user does not exist.
-func (d *DB) UserByID(ctx context.Context, id sesc.UUID) (sesc.User, error) {
-	var userRow struct {
-		ID           sesc.UUID  `db:"id"`
-		FirstName    string     `db:"first_name"`
-		LastName     string     `db:"last_name"`
-		MiddleName   string     `db:"middle_name"`
-		PictureURL   string     `db:"picture_url"`
-		Suspended    bool       `db:"suspended"`
-		DepartmentID *sesc.UUID `db:"department_id"`
-		RoleID       *int32     `db:"role_id"`
-		AuthID       sesc.UUID  `db:"auth_id"`
-		DeptName     *string    `db:"dept_name"`
-		DeptDesc     *string    `db:"dept_desc"`
-		DeptHeadID   *sesc.UUID `db:"dept_head_id"`
-		RoleName     *string    `db:"role_name"`
-	}
-
-	query := `
-        SELECT u.*, d.name AS dept_name, d.description AS dept_desc, d.head_user_id AS dept_head_id, r.name AS role_name
-        FROM users u
-        LEFT JOIN departments d ON u.department_id = d.id
-        LEFT JOIN roles r ON u.role_id = r.id
-        WHERE u.id = $1
-    `
-	err := d.db.GetContext(ctx, &userRow, query, id)
+// DepartmentByID implements sesc.DB.
+func (d *DB) DepartmentByID(ctx context.Context, id sesc.UUID) (sesc.Department, error) {
+	var department sesc.Department
+	query := `SELECT id, name, description FROM departments WHERE id = $1`
+	err := d.db.GetContext(ctx, &department, query, id)
 	if err != nil {
-		if err == sql.ErrNoRows {
-			return sesc.User{}, sesc.ErrUserNotFound
+		if errors.Is(err, sql.ErrNoRows) {
+			d.log.DebugContext(ctx, "DepartmentByID: not found", "id", id)
+			return sesc.Department{}, fmt.Errorf("department not found: %w", err)
 		}
-		return sesc.User{}, fmt.Errorf("query user: %w", err)
+		d.log.DebugContext(ctx, "DepartmentByID: failed to get", "error", err, "id", id)
+		return sesc.Department{}, fmt.Errorf("get department: %w", err)
 	}
-
-	user := sesc.User{
-		ID:         userRow.ID,
-		FirstName:  userRow.FirstName,
-		LastName:   userRow.LastName,
-		MiddleName: userRow.MiddleName,
-		PictureURL: userRow.PictureURL,
-		Suspended:  userRow.Suspended,
-		AuthID:     userRow.AuthID,
-	}
-
-	// Populate department
-	if userRow.DepartmentID != nil {
-		dept := sesc.Department{
-			ID:          *userRow.DepartmentID,
-			Name:        *userRow.DeptName,
-			Description: *userRow.DeptDesc,
-		}
-		if userRow.DeptHeadID != nil {
-			headUser, err := d.UserByID(ctx, *userRow.DeptHeadID)
-			if err != nil {
-				d.log.Error("failed to fetch department head", "error", err)
-			} else {
-				dept.Head = &headUser
-			}
-		}
-		user.Department = dept
-	}
-
-	// Populate role
-	if userRow.RoleID != nil {
-		role := sesc.Role{
-			ID:   *userRow.RoleID,
-			Name: *userRow.RoleName,
-		}
-		var perms []sesc.Permission
-		query = `
-            SELECT p.id, p.name, p.description
-            FROM permissions_roles pr
-            JOIN permissions p ON pr.permission_id = p.id
-            WHERE pr.role_id = $1
-        `
-		err = d.db.SelectContext(ctx, &perms, query, role.ID)
-		if err != nil {
-			return sesc.User{}, fmt.Errorf("fetch role permissions: %w", err)
-		}
-		role.Permissions = perms
-		user.Role = role
-	}
-
-	// Populate extra permissions
-	var extraPerms []sesc.Permission
-	query = `
-        SELECT p.id, p.name, p.description
-        FROM users_extra_permissions uep
-        JOIN permissions p ON uep.permission_id = p.id
-        WHERE uep.user_id = $1
-    `
-	err = d.db.SelectContext(ctx, &extraPerms, query, id)
-	if err != nil {
-		return sesc.User{}, fmt.Errorf("fetch extra permissions: %w", err)
-	}
-	user.ExtraPermissions = extraPerms
-
-	return user, nil
+	return department, nil
 }
 
 // Departments implements sesc.DB.
 func (d *DB) Departments(ctx context.Context) ([]sesc.Department, error) {
-	var deptRows []struct {
-		ID          uuid.UUID  `db:"id"`
-		Name        string     `db:"name"`
-		Description string     `db:"description"`
-		HeadUserID  *uuid.UUID `db:"head_user_id"`
-	}
-
-	err := d.db.SelectContext(ctx, &deptRows,
-		`SELECT id, name, description, head_user_id FROM departments`)
+	var departments []sesc.Department
+	query := `SELECT id, name, description FROM departments`
+	err := d.db.SelectContext(ctx, &departments, query)
 	if err != nil {
-		return nil, fmt.Errorf("failed to fetch departments: %w", err)
+		d.log.DebugContext(ctx, "Departments: failed to list", "error", err)
+		return nil, fmt.Errorf("list departments: %w", err)
 	}
-	if len(deptRows) == 0 {
-		return []sesc.Department{}, nil
-	}
-
-	// Collect head user IDs
-	headUserIDs := make([]uuid.UUID, len(deptRows))
-	for i, row := range deptRows {
-		if row.HeadUserID != nil {
-			headUserIDs[i] = *row.HeadUserID
-		}
-	}
-
-	// Second query: batch fetch head users with basic info
-	var userRows []struct {
-		ID           uuid.UUID  `db:"id"`
-		FirstName    string     `db:"first_name"`
-		LastName     string     `db:"last_name"`
-		MiddleName   string     `db:"middle_name"`
-		PictureURL   string     `db:"picture_url"`
-		Suspended    bool       `db:"suspended"`
-		DepartmentID *uuid.UUID `db:"department_id"`
-		RoleID       *int32     `db:"role_id"`
-		AuthID       uuid.UUID  `db:"auth_id"`
-	}
-
-	query, args, err := sqlx.In(
-		`SELECT
-            id, first_name, last_name, middle_name,
-            picture_url, suspended, department_id,
-            role_id, auth_id
-         FROM users
-         WHERE id IN (?)`,
-		headUserIDs,
-	)
-	if err != nil {
-		return nil, fmt.Errorf("failed to build user query: %w", err)
-	}
-
-	err = d.db.SelectContext(ctx, &userRows, d.db.Rebind(query), args...)
-	if err != nil {
-		return nil, fmt.Errorf("failed to fetch head users: %w", err)
-	}
-
-	userMap := make(map[uuid.UUID]sesc.User)
-	for _, ur := range userRows {
-		user := sesc.User{
-			ID:         ur.ID,
-			FirstName:  ur.FirstName,
-			LastName:   ur.LastName,
-			MiddleName: ur.MiddleName,
-			PictureURL: ur.PictureURL,
-			Suspended:  ur.Suspended,
-			AuthID:     ur.AuthID,
-		}
-
-		if ur.DepartmentID != nil {
-			user.Department = sesc.Department{ID: *ur.DepartmentID}
-		}
-
-		if ur.RoleID != nil {
-			user.Role = sesc.Role{ID: *ur.RoleID}
-		}
-
-		userMap[ur.ID] = user
-	}
-
-	departments := make([]sesc.Department, 0, len(deptRows))
-	for _, row := range deptRows {
-		if row.HeadUserID == nil {
-			departments = append(departments, sesc.Department{
-				ID:          row.ID,
-				Name:        row.Name,
-				Description: row.Description,
-			})
-			continue
-		}
-
-		headUser, exists := userMap[*row.HeadUserID]
-		if !exists {
-			d.log.ErrorContext(ctx,
-				"department head user not found",
-				"department_id", row.ID,
-				"head_user_id", row.HeadUserID,
-			)
-			continue
-		}
-
-		departments = append(departments, sesc.Department{
-			ID:          row.ID,
-			Name:        row.Name,
-			Description: row.Description,
-			Head:        &headUser,
-		})
-	}
-
 	return departments, nil
 }
 
-// InsertDefaultPermissions implements sesc.DB.
-func (d *DB) InsertDefaultPermissions(ctx context.Context, permissions []sesc.Permission) error {
+// UpdateDepartment implements sesc.DB.
+func (d *DB) UpdateDepartment(ctx context.Context, id sesc.UUID, name string, description string) error {
+	query := `UPDATE departments SET name = $1, description = $2 WHERE id = $3`
+	result, err := d.db.ExecContext(ctx, query, name, description, id)
+	if err != nil {
+		d.log.DebugContext(ctx, "UpdateDepartment: failed to update", "error", err, "id", id)
+		return fmt.Errorf("update department: %w", err)
+	}
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("get rows affected: %w", err)
+	}
+	if rowsAffected == 0 {
+		d.log.DebugContext(ctx, "UpdateDepartment: no rows affected", "id", id)
+		return fmt.Errorf("department not found")
+	}
+	return nil
+}
+
+// SaveUser implements sesc.DB.
+func (d *DB) SaveUser(ctx context.Context, user sesc.User) error {
+	var departmentID *sesc.UUID
+	if user.Department != sesc.NoDepartment {
+		departmentID = &user.Department.ID
+	}
 	query := `
-        INSERT INTO permissions (id, name, description)
-        VALUES (:id, :name, :description)
-        ON CONFLICT (id) DO NOTHING`
-
-	permMaps := make([]map[string]any, 0, len(permissions))
-	for _, p := range permissions {
-		permMaps = append(permMaps, map[string]any{
-			"id":          p.ID,
-			"name":        p.Name,
-			"description": p.Description,
-		})
+        INSERT INTO users (
+            id, first_name, last_name, middle_name, picture_url, suspended,
+            department_id, role_id, auth_id
+        ) VALUES (
+            :id, :first_name, :last_name, :middle_name, :picture_url, :suspended,
+            :department_id, :role_id, :auth_id
+        )`
+	args := map[string]interface{}{
+		"id":            user.ID,
+		"first_name":    user.FirstName,
+		"last_name":     user.LastName,
+		"middle_name":   user.MiddleName,
+		"picture_url":   user.PictureURL,
+		"suspended":     user.Suspended,
+		"department_id": departmentID,
+		"role_id":       user.Role.ID,
+		"auth_id":       user.AuthID,
 	}
-
-	_, err := d.db.NamedExecContext(ctx, query, permMaps)
+	_, err := d.db.NamedExecContext(ctx, query, args)
 	if err != nil {
-		return fmt.Errorf("failed to bulk insert permissions: %w", err)
+		d.log.DebugContext(ctx, "SaveUser: failed to insert", "error", err, "user_id", user.ID)
+		return fmt.Errorf("save user: %w", err)
 	}
 	return nil
 }
 
-// InsertDefaultRoles implements sesc.DB.
-func (d *DB) InsertDefaultRoles(ctx context.Context, roles []sesc.Role) (rerr error) {
-	tx, err := d.db.BeginTxx(ctx, &sql.TxOptions{Isolation: sql.LevelSerializable})
+// UpdateProfilePicture implements sesc.DB.
+func (d *DB) UpdateProfilePicture(ctx context.Context, userID sesc.UUID, url string) error {
+	query := `UPDATE users SET picture_url = $1 WHERE id = $2`
+	result, err := d.db.ExecContext(ctx, query, url, userID)
 	if err != nil {
-		return fmt.Errorf("failed to start transaction: %w", err)
+		d.log.DebugContext(ctx, "UpdateProfilePicture: failed", "error", err, "user_id", userID)
+		return fmt.Errorf("update profile picture: %w", err)
 	}
-	defer func() {
-		if err := tx.Rollback(); !errors.Is(err, sql.ErrTxDone) {
-			rerr = errors.Join(rerr, tx.Rollback())
-		}
-	}()
-
-	roleQuery := `
-        INSERT INTO roles (id, name)
-        VALUES (:id, :name)
-        ON CONFLICT (id) DO NOTHING`
-
-	roleMaps := make([]map[string]any, 0, len(roles))
-	for _, r := range roles {
-		roleMaps = append(roleMaps, map[string]any{
-			"id":   r.ID,
-			"name": r.Name,
-		})
-	}
-
-	_, err = tx.NamedExecContext(ctx, roleQuery, roleMaps)
+	rowsAffected, err := result.RowsAffected()
 	if err != nil {
-		return fmt.Errorf("failed to bulk insert roles: %w", err)
+		return fmt.Errorf("get rows affected: %w", err)
 	}
-
-	// Prepare permission-role relationships
-	type permRole struct {
-		PermissionID int32 `db:"permission_id"`
-		RoleID       int32 `db:"role_id"`
+	if rowsAffected == 0 {
+		d.log.DebugContext(ctx, "UpdateProfilePicture: no rows affected", "user_id", userID)
+		return fmt.Errorf("user not found")
 	}
-
-	var relationships []permRole
-	for _, role := range roles {
-		for _, perm := range role.Permissions {
-			relationships = append(relationships, permRole{
-				PermissionID: perm.ID,
-				RoleID:       role.ID,
-			})
-		}
-	}
-
-	relQuery := `
-        INSERT INTO permissions_roles (permission_id, role_id)
-        VALUES (:permission_id, :role_id)
-        ON CONFLICT (permission_id, role_id) DO NOTHING`
-
-	_, err = tx.NamedExecContext(ctx, relQuery, relationships)
-	if err != nil {
-		return fmt.Errorf("failed to bulk insert role permissions: %w", err)
-	}
-
-	if err := tx.Commit(); err != nil {
-		return fmt.Errorf("failed to commit transaction: %w", err)
-	}
-
 	return nil
 }
 
-func (d *DB) DepartmentByID(ctx context.Context, id sesc.UUID) (sesc.Department, error) {
-	var row struct {
-		ID          uuid.UUID  `db:"id"`
-		Name        string     `db:"name"`
-		Description string     `db:"description"`
-		HeadUserID  *uuid.UUID `db:"head_user_id"`
+// UpdateUser implements sesc.DB.
+func (d *DB) UpdateUser(ctx context.Context, id sesc.UUID, opts sesc.UserUpdateOptions) (sesc.User, error) {
+	if _, ok := sesc.RoleByID(opts.NewRoleID); !ok {
+		d.log.DebugContext(ctx, "UpdateUser: invalid role", "role_id", opts.NewRoleID)
+		return sesc.User{}, fmt.Errorf("invalid role ID %d", opts.NewRoleID)
 	}
-
-	err := d.db.GetContext(ctx, &row, `
-        SELECT id, name, description, head_user_id
-        FROM departments
-        WHERE id = $1
-    `, id)
+	var departmentID *sesc.UUID
+	if opts.DepartmentID != (sesc.UUID{}) {
+		departmentID = &opts.DepartmentID
+	}
+	query := `
+        UPDATE users SET
+            first_name = :first_name,
+            last_name = :last_name,
+            middle_name = :middle_name,
+            picture_url = :picture_url,
+            suspended = :suspended,
+            department_id = :department_id,
+            role_id = :role_id,
+            auth_id = :auth_id
+        WHERE id = :id`
+	args := map[string]any{
+		"first_name":    opts.FirstName,
+		"last_name":     opts.LastName,
+		"middle_name":   opts.MiddleName,
+		"picture_url":   opts.PictureURL,
+		"suspended":     opts.Suspended,
+		"department_id": departmentID,
+		"role_id":       opts.NewRoleID,
+		"auth_id":       opts.AuthID,
+		"id":            id,
+	}
+	_, err := d.db.NamedExecContext(ctx, query, args)
 	if err != nil {
-		if err == sql.ErrNoRows {
-			d.log.DebugContext(ctx, "department not found", "department_id", id)
-			return sesc.Department{}, sesc.ErrInvalidDepartment
+		d.log.DebugContext(ctx, "UpdateUser: failed to update", "error", err, "user_id", id)
+		return sesc.User{}, fmt.Errorf("update user: %w", err)
+	}
+	return d.UserByID(ctx, id)
+}
+
+// UserByID implements sesc.DB.
+func (d *DB) UserByID(ctx context.Context, id sesc.UUID) (sesc.User, error) {
+	var user struct {
+		ID         sesc.UUID `db:"id"`
+		FirstName  string    `db:"first_name"`
+		LastName   string    `db:"last_name"`
+		MiddleName string    `db:"middle_name"`
+		PictureURL string    `db:"picture_url"`
+		Suspended  bool      `db:"suspended"`
+		RoleID     int32     `db:"role_id"`
+		AuthID     sesc.UUID `db:"auth_id"`
+		Department sesc.Department
+	}
+	query := `
+        SELECT
+            u.id, u.first_name, u.last_name, u.middle_name, u.picture_url, u.suspended,
+            u.role_id, u.auth_id,
+            d.id AS "department.id", d.name AS "department.name", d.description AS "department.description"
+        FROM users u
+        LEFT JOIN departments d ON u.department_id = d.id
+        WHERE u.id = $1`
+	err := d.db.GetContext(ctx, &user, query, id)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			d.log.DebugContext(ctx, "UserByID: not found", "id", id)
+			return sesc.User{}, fmt.Errorf("user not found: %w", err)
 		}
-		return sesc.Department{}, fmt.Errorf("failed to query department: %w", err)
+		d.log.DebugContext(ctx, "UserByID: failed to get", "error", err, "id", id)
+		return sesc.User{}, fmt.Errorf("get user: %w", err)
 	}
-
-	department := sesc.Department{
-		ID:          row.ID,
-		Name:        row.Name,
-		Description: row.Description,
+	role, ok := sesc.RoleByID(user.RoleID)
+	if !ok {
+		d.log.ErrorContext(ctx, "got an invalid role in the database", "user_id", id, "role_id", user.RoleID)
+		return sesc.User{}, fmt.Errorf("invalid role ID %d", user.RoleID)
 	}
+	return sesc.User{
+		ID:         user.ID,
+		FirstName:  user.FirstName,
+		LastName:   user.LastName,
+		MiddleName: user.MiddleName,
+		PictureURL: user.PictureURL,
+		Suspended:  user.Suspended,
+		Department: user.Department,
+		Role:       role,
+		AuthID:     user.AuthID,
+	}, nil
+}
 
-	if row.HeadUserID != nil {
-		headUser, err := d.UserByID(ctx, *row.HeadUserID)
-		switch {
-		case errors.Is(err, sesc.ErrUserNotFound):
-			d.log.WarnContext(ctx,
-				"department head user not found",
-				"department_id", id,
-				"head_user_id", *row.HeadUserID,
-			)
-		case err != nil:
-			return sesc.Department{}, fmt.Errorf("failed to resolve head user: %w", err)
-		default:
-			department.Head = &headUser
+// Users implements sesc.DB.
+func (d *DB) Users(ctx context.Context) ([]sesc.User, error) {
+	var users []struct {
+		ID         sesc.UUID `db:"id"`
+		FirstName  string    `db:"first_name"`
+		LastName   string    `db:"last_name"`
+		MiddleName string    `db:"middle_name"`
+		PictureURL string    `db:"picture_url"`
+		Suspended  bool      `db:"suspended"`
+		RoleID     int32     `db:"role_id"`
+		AuthID     sesc.UUID `db:"auth_id"`
+		Department sesc.Department
+	}
+	query := `
+        SELECT
+            u.id, u.first_name, u.last_name, u.middle_name, u.picture_url, u.suspended,
+            u.role_id, u.auth_id,
+            d.id AS "department.id", d.name AS "department.name", d.description AS "department.description"
+        FROM users u
+        LEFT JOIN departments d ON u.department_id = d.id`
+	err := d.db.SelectContext(ctx, &users, query)
+	if err != nil {
+		d.log.DebugContext(ctx, "Users: failed to list", "error", err)
+		return nil, fmt.Errorf("list users: %w", err)
+	}
+	result := make([]sesc.User, 0, len(users))
+	for _, u := range users {
+		role, ok := sesc.RoleByID(u.RoleID)
+		if !ok {
+			d.log.ErrorContext(ctx, "got an invalid role in the database", "user_id", u.ID, "role_id", u.RoleID)
+			return nil, fmt.Errorf("invalid role ID %d for user %s", u.RoleID, u.ID)
 		}
+		result = append(result, sesc.User{
+			ID:         u.ID,
+			FirstName:  u.FirstName,
+			LastName:   u.LastName,
+			MiddleName: u.MiddleName,
+			PictureURL: u.PictureURL,
+			Suspended:  u.Suspended,
+			Department: u.Department,
+			Role:       role,
+			AuthID:     u.AuthID,
+		})
 	}
-
-	return department, nil
+	return result, nil
 }
