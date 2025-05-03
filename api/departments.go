@@ -34,11 +34,31 @@ type UpdateDepartmentRequest struct {
 type UpdateDepartmentResponse = Department
 
 var (
-	ErrDepartmentNotFound     = APIError{Code: "DEPARTMENT_NOT_FOUND", Message: "Department not found", RuMessage: "Кафедра не найдена"}
-	ErrInvalidDepartmentID    = APIError{Code: "INVALID_DEPARTMENT_ID", Message: "Invalid department ID", RuMessage: "Некорректный идентификатор кафедры"}
-	ErrInvalidDepartment      = APIError{Code: "INVALID_DEPARTMENT", Message: "Invalid department data", RuMessage: "Некорректные данные кафедры"}
-	ErrDepartmentExists       = APIError{Code: "DEPARTMENT_EXISTS", Message: "Department with this name already exists", RuMessage: "Кафедра с таким названием уже существует"}
-	ErrCannotRemoveDepartment = APIError{Code: "CANNOT_REMOVE_DEPARTMENT", Message: "Cannot remove department, it still has some users", RuMessage: "Невозможно удалить кафедру, так как она содержит пользователей"}
+	ErrDepartmentNotFound = APIError{
+		Code:      "DEPARTMENT_NOT_FOUND",
+		Message:   "Department not found",
+		RuMessage: "Кафедра не найдена",
+	}
+	ErrInvalidDepartmentID = APIError{
+		Code:      "INVALID_DEPARTMENT_ID",
+		Message:   "Invalid department ID",
+		RuMessage: "Некорректный идентификатор кафедры",
+	}
+	ErrInvalidDepartment = APIError{
+		Code:      "INVALID_DEPARTMENT",
+		Message:   "Invalid department data",
+		RuMessage: "Некорректные данные кафедры",
+	}
+	ErrDepartmentExists = APIError{
+		Code:      "DEPARTMENT_EXISTS",
+		Message:   "Department with this name already exists",
+		RuMessage: "Кафедра с таким названием уже существует",
+	}
+	ErrCannotRemoveDepartment = APIError{
+		Code:      "CANNOT_REMOVE_DEPARTMENT",
+		Message:   "Cannot remove department, it still has some users",
+		RuMessage: "Невозможно удалить кафедру, так как она содержит пользователей",
+	}
 )
 
 // CreateDepartment godoc
@@ -54,7 +74,33 @@ var (
 // @Failure 500 {object} APIError "Internal server error"
 // @Router /departments [post]
 func (a *API) CreateDepartment(w http.ResponseWriter, r *http.Request) {
-	// … unchanged …
+	ctx := r.Context()
+	var req CreateDepartmentRequest
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		a.writeError(w, ErrInvalidRequest, http.StatusBadRequest)
+		return
+	}
+
+	dep, err := a.sesc.CreateDepartment(ctx, req.Name, req.Description)
+	if errors.Is(err, sesc.ErrInvalidDepartment) {
+		a.writeError(w, ErrDepartmentExists, http.StatusConflict)
+		return
+	}
+	if err != nil {
+		a.writeError(w, APIError{
+			Code:      "SERVER_ERROR",
+			Message:   "Failed to create department",
+			RuMessage: "Ошибка создания кафедры",
+		}, http.StatusInternalServerError)
+		return
+	}
+
+	a.writeJSON(w, CreateDepartmentResponse{
+		ID:          dep.ID,
+		Name:        dep.Name,
+		Description: dep.Description,
+	}, http.StatusCreated)
 }
 
 // Departments godoc
@@ -66,7 +112,30 @@ func (a *API) CreateDepartment(w http.ResponseWriter, r *http.Request) {
 // @Failure 500 {object} APIError "Internal server error"
 // @Router /departments [get]
 func (a *API) Departments(w http.ResponseWriter, r *http.Request) {
-	// … unchanged …
+	ctx := r.Context()
+
+	deps, err := a.sesc.Departments(ctx)
+	if err != nil {
+		a.writeError(w, APIError{
+			Code:      "SERVER_ERROR",
+			Message:   "Failed to fetch departments",
+			RuMessage: "Ошибка получения списка кафедр",
+		}, http.StatusInternalServerError)
+		return
+	}
+
+	response := DepartmentsResponse{
+		Departments: make([]Department, len(deps)),
+	}
+	for i, d := range deps {
+		response.Departments[i] = Department{
+			ID:          d.ID,
+			Name:        d.Name,
+			Description: d.Description,
+		}
+	}
+
+	a.writeJSON(w, response, http.StatusOK)
 }
 
 // UpdateDepartment godoc

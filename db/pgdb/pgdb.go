@@ -215,26 +215,38 @@ func (d *DB) UpdateUser(ctx context.Context, id sesc.UUID, opts sesc.UserUpdateO
 
 // UserByID implements sesc.DB.
 func (d *DB) UserByID(ctx context.Context, id sesc.UUID) (sesc.User, error) {
-	var user struct {
-		ID         sesc.UUID `db:"id"`
-		FirstName  string    `db:"first_name"`
-		LastName   string    `db:"last_name"`
-		MiddleName string    `db:"middle_name"`
-		PictureURL string    `db:"picture_url"`
-		Suspended  bool      `db:"suspended"`
-		RoleID     int32     `db:"role_id"`
-		AuthID     sesc.UUID `db:"auth_id"`
-		Department sesc.Department
+	var row struct {
+		ID         sesc.UUID  `db:"id"`
+		FirstName  string     `db:"first_name"`
+		LastName   string     `db:"last_name"`
+		MiddleName string     `db:"middle_name"`
+		PictureURL string     `db:"picture_url"`
+		Suspended  bool       `db:"suspended"`
+		RoleID     int32      `db:"role_id"`
+		AuthID     sesc.UUID  `db:"auth_id"`
+		DepID      *sesc.UUID `db:"dep_id"`
+		DepName    *string    `db:"dep_name"`
+		DepDesc    *string    `db:"dep_description"`
 	}
+
 	query := `
         SELECT
-            u.id, u.first_name, u.last_name, u.middle_name, u.picture_url, u.suspended,
-            u.role_id, u.auth_id,
-            d.id AS "department.id", d.name AS "department.name", d.description AS "department.description"
+            u.id,
+            u.first_name,
+            u.last_name,
+            u.middle_name,
+            u.picture_url,
+            u.suspended,
+            u.role_id,
+            u.auth_id,
+            d.id AS dep_id,
+            d.name AS dep_name,
+            d.description AS dep_description
         FROM users u
         LEFT JOIN departments d ON u.department_id = d.id
         WHERE u.id = $1`
-	err := d.db.GetContext(ctx, &user, query, id)
+
+	err := d.db.GetContext(ctx, &row, query, id)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			d.log.DebugContext(ctx, "UserByID: not found", "id", id)
@@ -243,21 +255,36 @@ func (d *DB) UserByID(ctx context.Context, id sesc.UUID) (sesc.User, error) {
 		d.log.DebugContext(ctx, "UserByID: failed to get", "error", err, "id", id)
 		return sesc.User{}, fmt.Errorf("get user: %w", err)
 	}
-	role, ok := sesc.RoleByID(user.RoleID)
-	if !ok {
-		d.log.ErrorContext(ctx, "got an invalid role in the database", "user_id", id, "role_id", user.RoleID)
-		return sesc.User{}, fmt.Errorf("invalid role ID %d", user.RoleID)
+
+	// Handle department data
+	var department sesc.Department
+	if row.DepID != nil {
+		department = sesc.Department{
+			ID:          *row.DepID,
+			Name:        *row.DepName,
+			Description: *row.DepDesc,
+		}
+	} else {
+		department = sesc.NoDepartment
 	}
+
+	role, ok := sesc.RoleByID(row.RoleID)
+	if !ok {
+		d.log.ErrorContext(ctx, "UserByID: invalid role",
+			"user_id", id, "role_id", row.RoleID)
+		return sesc.User{}, fmt.Errorf("invalid role ID %d", row.RoleID)
+	}
+
 	return sesc.User{
-		ID:         user.ID,
-		FirstName:  user.FirstName,
-		LastName:   user.LastName,
-		MiddleName: user.MiddleName,
-		PictureURL: user.PictureURL,
-		Suspended:  user.Suspended,
-		Department: user.Department,
+		ID:         row.ID,
+		FirstName:  row.FirstName,
+		LastName:   row.LastName,
+		MiddleName: row.MiddleName,
+		PictureURL: row.PictureURL,
+		Suspended:  row.Suspended,
+		Department: department,
 		Role:       role,
-		AuthID:     user.AuthID,
+		AuthID:     row.AuthID,
 	}, nil
 }
 
