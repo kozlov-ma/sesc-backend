@@ -91,6 +91,113 @@ const docTemplate = `{
                 }
             }
         },
+        "/departments/{id}": {
+            "put": {
+                "description": "Updates the department's name and description by ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "departments"
+                ],
+                "summary": "Update department",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Department UUID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Department update data",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/api.UpdateDepartmentRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api.UpdateDepartmentResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid department ID or request format",
+                        "schema": {
+                            "$ref": "#/definitions/api.APIError"
+                        }
+                    },
+                    "409": {
+                        "description": "Department with this name already exists",
+                        "schema": {
+                            "$ref": "#/definitions/api.APIError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/api.APIError"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Removes the department by ID",
+                "tags": [
+                    "departments"
+                ],
+                "summary": "Delete department",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Department UUID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid department ID",
+                        "schema": {
+                            "$ref": "#/definitions/api.APIError"
+                        }
+                    },
+                    "404": {
+                        "description": "Department not found",
+                        "schema": {
+                            "$ref": "#/definitions/api.APIError"
+                        }
+                    },
+                    "409": {
+                        "description": "Cannot remove department, it still has some users",
+                        "schema": {
+                            "$ref": "#/definitions/api.APIError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/api.APIError"
+                        }
+                    }
+                }
+            }
+        },
         "/permissions": {
             "get": {
                 "description": "Retrieves all available system permissions",
@@ -126,64 +233,6 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/api.RolesResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "$ref": "#/definitions/api.APIError"
-                        }
-                    }
-                }
-            }
-        },
-        "/teachers": {
-            "post": {
-                "description": "Creates a new teacher profile with department assignment",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "users"
-                ],
-                "summary": "Create new teacher",
-                "parameters": [
-                    {
-                        "description": "Teacher details",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/api.CreateTeacherRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "Created",
-                        "schema": {
-                            "$ref": "#/definitions/api.UserResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request format",
-                        "schema": {
-                            "$ref": "#/definitions/api.APIError"
-                        }
-                    },
-                    "404": {
-                        "description": "Department not found",
-                        "schema": {
-                            "$ref": "#/definitions/api.APIError"
-                        }
-                    },
-                    "409": {
-                        "description": "Username already taken",
-                        "schema": {
-                            "$ref": "#/definitions/api.APIError"
                         }
                     },
                     "500": {
@@ -286,186 +335,9 @@ const docTemplate = `{
                         }
                     }
                 }
-            }
-        },
-        "/users/{id}/department": {
-            "put": {
-                "description": "Updates the user's department assignment",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "users"
-                ],
-                "summary": "Update department",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "User UUID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "Department ID",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/api.SetDepartmentRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/api.UserResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid department or UUID",
-                        "schema": {
-                            "$ref": "#/definitions/api.APIError"
-                        }
-                    },
-                    "404": {
-                        "description": "User/department not found",
-                        "schema": {
-                            "$ref": "#/definitions/api.APIError"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "$ref": "#/definitions/api.APIError"
-                        }
-                    }
-                }
-            }
-        },
-        "/users/{id}/permissions": {
-            "post": {
-                "description": "Adds extra permissions to a user's account",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "permissions"
-                ],
-                "summary": "Grant permissions to user",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "User UUID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "List of permission IDs",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/api.GrantPermissionsRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/api.UserResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid UUID or permission ID",
-                        "schema": {
-                            "$ref": "#/definitions/api.APIError"
-                        }
-                    },
-                    "404": {
-                        "description": "User not found",
-                        "schema": {
-                            "$ref": "#/definitions/api.APIError"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "$ref": "#/definitions/api.APIError"
-                        }
-                    }
-                }
             },
-            "delete": {
-                "description": "Removes extra permissions from a user",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "permissions"
-                ],
-                "summary": "Revoke permissions",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "User UUID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "Permission IDs to revoke",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/api.RevokePermissionsRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/api.UserResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid UUID or permission ID",
-                        "schema": {
-                            "$ref": "#/definitions/api.APIError"
-                        }
-                    },
-                    "404": {
-                        "description": "User not found",
-                        "schema": {
-                            "$ref": "#/definitions/api.APIError"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "$ref": "#/definitions/api.APIError"
-                        }
-                    }
-                }
-            }
-        },
-        "/users/{id}/role": {
-            "put": {
-                "description": "Changes the user's system role",
+            "patch": {
+                "description": "Applies a partial update to the user identified by {id}. Only non-nil fields in the request are applied. Department can only be set for Teacher or Department-Head roles.",
                 "consumes": [
                     "application/json"
                 ],
@@ -475,7 +347,7 @@ const docTemplate = `{
                 "tags": [
                     "users"
                 ],
-                "summary": "Update user role",
+                "summary": "Partially update user",
                 "parameters": [
                     {
                         "type": "string",
@@ -485,12 +357,12 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "description": "New role ID",
+                        "description": "User fields to update",
                         "name": "request",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/api.SetRoleRequest"
+                            "$ref": "#/definitions/api.PatchUserRequest"
                         }
                     }
                 ],
@@ -502,7 +374,7 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "Invalid role or UUID",
+                        "description": "Invalid request format or invalid field value",
                         "schema": {
                             "$ref": "#/definitions/api.APIError"
                         }
@@ -529,19 +401,19 @@ const docTemplate = `{
             "properties": {
                 "code": {
                     "type": "string",
-                    "example": "DEPARTMENT_NOT_FOUND"
+                    "example": "INVALID_REQUEST"
                 },
                 "details": {
                     "type": "string",
-                    "example": "ID: abc123"
+                    "example": "field X is required"
                 },
                 "message": {
                     "type": "string",
-                    "example": "Department not found"
+                    "example": "Invalid request body"
                 },
                 "ruMessage": {
                     "type": "string",
-                    "example": "Кафедра не найдена"
+                    "example": "Некорректный формат запроса"
                 }
             }
         },
@@ -572,31 +444,6 @@ const docTemplate = `{
                 "name": {
                     "type": "string",
                     "example": "Mathematics"
-                }
-            }
-        },
-        "api.CreateTeacherRequest": {
-            "type": "object",
-            "properties": {
-                "departmentId": {
-                    "type": "string",
-                    "example": "550e8400-e29b-41d4-a716-446655440000"
-                },
-                "firstName": {
-                    "type": "string",
-                    "example": "Ivan"
-                },
-                "lastName": {
-                    "type": "string",
-                    "example": "Petrov"
-                },
-                "middleName": {
-                    "type": "string",
-                    "example": "Sergeevich"
-                },
-                "pictureUrl": {
-                    "type": "string",
-                    "example": "/images/users/ivan.jpg"
                 }
             }
         },
@@ -653,8 +500,38 @@ const docTemplate = `{
                 }
             }
         },
-        "api.GrantPermissionsRequest": {
-            "type": "object"
+        "api.PatchUserRequest": {
+            "type": "object",
+            "properties": {
+                "departmentId": {
+                    "type": "string",
+                    "example": "550e8400-e29b-41d4-a716-446655440000"
+                },
+                "firstName": {
+                    "type": "string",
+                    "example": "Ivan"
+                },
+                "lastName": {
+                    "type": "string",
+                    "example": "Petrov"
+                },
+                "middleName": {
+                    "type": "string",
+                    "example": "Sergeevich"
+                },
+                "pictureUrl": {
+                    "type": "string",
+                    "example": "/images/users/ivan.jpg"
+                },
+                "roleId": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "suspended": {
+                    "type": "boolean",
+                    "example": false
+                }
+            }
         },
         "api.Permission": {
             "type": "object",
@@ -683,9 +560,6 @@ const docTemplate = `{
                     }
                 }
             }
-        },
-        "api.RevokePermissionsRequest": {
-            "type": "object"
         },
         "api.Role": {
             "type": "object",
@@ -717,21 +591,33 @@ const docTemplate = `{
                 }
             }
         },
-        "api.SetDepartmentRequest": {
+        "api.UpdateDepartmentRequest": {
             "type": "object",
             "properties": {
-                "departmentId": {
+                "description": {
                     "type": "string",
-                    "example": "550e8400-e29b-41d4-a716-446655440000"
+                    "example": "Math department"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "Mathematics"
                 }
             }
         },
-        "api.SetRoleRequest": {
+        "api.UpdateDepartmentResponse": {
             "type": "object",
             "properties": {
-                "roleId": {
-                    "type": "integer",
-                    "example": 3
+                "description": {
+                    "type": "string",
+                    "example": "Math department"
+                },
+                "id": {
+                    "type": "string",
+                    "example": "550e8400-e29b-41d4-a716-446655440000"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "Mathematics"
                 }
             }
         },

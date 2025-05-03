@@ -18,13 +18,13 @@ type (
 		// Returns an ErrInvalidName if the first or last name is missing.z
 		CreateUser(ctx context.Context, opt sesc.UserOptions, role sesc.Role) (sesc.User, error)
 		// Return a sesc.DepartmentAlreadyExists if the department already exists
-		CreateDepartment(ctx context.Context, name, description string) (Department, error)
+		CreateDepartment(ctx context.Context, name, description string) (sesc.Department, error)
 		UpdateDepartment(ctx context.Context, id sesc.UUID, name, description string) error
 		// User returns a User by ID. If the user does not exist, returns a sesc.ErrUserNotFound.
 		User(ctx context.Context, id sesc.UUID) (sesc.User, error)
 		// Departments returns all the departments currently registered within the system.
-		Departments(ctx context.Context) ([]Department, error)
-		DepartmentByID(ctx context.Context, id sesc.UUID) (Department, error)
+		Departments(ctx context.Context) ([]sesc.Department, error)
+		DepartmentByID(ctx context.Context, id sesc.UUID) (sesc.Department, error)
 		DeleteDepartment(ctx context.Context, id sesc.UUID) error
 		UpdateProfilePicture(ctx context.Context, id sesc.UUID, pictureURL string) error
 	}

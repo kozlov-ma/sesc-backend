@@ -2,16 +2,16 @@ definitions:
   api.APIError:
     properties:
       code:
-        example: DEPARTMENT_NOT_FOUND
+        example: INVALID_REQUEST
         type: string
       details:
-        example: 'ID: abc123'
+        example: field X is required
         type: string
       message:
-        example: Department not found
+        example: Invalid request body
         type: string
       ruMessage:
-        example: Кафедра не найдена
+        example: Некорректный формат запроса
         type: string
     type: object
   api.CreateDepartmentRequest:
@@ -33,24 +33,6 @@ definitions:
         type: string
       name:
         example: Mathematics
-        type: string
-    type: object
-  api.CreateTeacherRequest:
-    properties:
-      departmentId:
-        example: 550e8400-e29b-41d4-a716-446655440000
-        type: string
-      firstName:
-        example: Ivan
-        type: string
-      lastName:
-        example: Petrov
-        type: string
-      middleName:
-        example: Sergeevich
-        type: string
-      pictureUrl:
-        example: /images/users/ivan.jpg
         type: string
     type: object
   api.CreateUserRequest:
@@ -90,7 +72,29 @@ definitions:
           $ref: '#/definitions/api.Department'
         type: array
     type: object
-  api.GrantPermissionsRequest:
+  api.PatchUserRequest:
+    properties:
+      departmentId:
+        example: 550e8400-e29b-41d4-a716-446655440000
+        type: string
+      firstName:
+        example: Ivan
+        type: string
+      lastName:
+        example: Petrov
+        type: string
+      middleName:
+        example: Sergeevich
+        type: string
+      pictureUrl:
+        example: /images/users/ivan.jpg
+        type: string
+      roleId:
+        example: 1
+        type: integer
+      suspended:
+        example: false
+        type: boolean
     type: object
   api.Permission:
     properties:
@@ -110,8 +114,6 @@ definitions:
         items:
           $ref: '#/definitions/api.Permission'
         type: array
-    type: object
-  api.RevokePermissionsRequest:
     type: object
   api.Role:
     properties:
@@ -133,17 +135,26 @@ definitions:
           $ref: '#/definitions/api.Role'
         type: array
     type: object
-  api.SetDepartmentRequest:
+  api.UpdateDepartmentRequest:
     properties:
-      departmentId:
-        example: 550e8400-e29b-41d4-a716-446655440000
+      description:
+        example: Math department
+        type: string
+      name:
+        example: Mathematics
         type: string
     type: object
-  api.SetRoleRequest:
+  api.UpdateDepartmentResponse:
     properties:
-      roleId:
-        example: 3
-        type: integer
+      description:
+        example: Math department
+        type: string
+      id:
+        example: 550e8400-e29b-41d4-a716-446655440000
+        type: string
+      name:
+        example: Mathematics
+        type: string
     type: object
   api.UserResponse:
     properties:
@@ -220,6 +231,77 @@ paths:
       summary: Create new department
       tags:
       - departments
+  /departments/{id}:
+    delete:
+      description: Removes the department by ID
+      parameters:
+      - description: Department UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: Invalid department ID
+          schema:
+            $ref: '#/definitions/api.APIError'
+        "404":
+          description: Department not found
+          schema:
+            $ref: '#/definitions/api.APIError'
+        "409":
+          description: Cannot remove department, it still has some users
+          schema:
+            $ref: '#/definitions/api.APIError'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/api.APIError'
+      summary: Delete department
+      tags:
+      - departments
+    put:
+      consumes:
+      - application/json
+      description: Updates the department's name and description by ID
+      parameters:
+      - description: Department UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Department update data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/api.UpdateDepartmentRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.UpdateDepartmentResponse'
+        "400":
+          description: Invalid department ID or request format
+          schema:
+            $ref: '#/definitions/api.APIError'
+        "409":
+          description: Department with this name already exists
+          schema:
+            $ref: '#/definitions/api.APIError'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/api.APIError'
+      summary: Update department
+      tags:
+      - departments
   /permissions:
     get:
       description: Retrieves all available system permissions
@@ -250,44 +332,6 @@ paths:
       summary: List all roles
       tags:
       - roles
-  /teachers:
-    post:
-      consumes:
-      - application/json
-      description: Creates a new teacher profile with department assignment
-      parameters:
-      - description: Teacher details
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/api.CreateTeacherRequest'
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
-          schema:
-            $ref: '#/definitions/api.UserResponse'
-        "400":
-          description: Invalid request format
-          schema:
-            $ref: '#/definitions/api.APIError'
-        "404":
-          description: Department not found
-          schema:
-            $ref: '#/definitions/api.APIError'
-        "409":
-          description: Username already taken
-          schema:
-            $ref: '#/definitions/api.APIError'
-        "500":
-          description: Internal server error
-          schema:
-            $ref: '#/definitions/api.APIError'
-      summary: Create new teacher
-      tags:
-      - users
   /users:
     post:
       consumes:
@@ -349,23 +393,24 @@ paths:
       summary: Get user details
       tags:
       - users
-  /users/{id}/department:
-    put:
+    patch:
       consumes:
       - application/json
-      description: Updates the user's department assignment
+      description: Applies a partial update to the user identified by {id}. Only non-nil
+        fields in the request are applied. Department can only be set for Teacher
+        or Department-Head roles.
       parameters:
       - description: User UUID
         in: path
         name: id
         required: true
         type: string
-      - description: Department ID
+      - description: User fields to update
         in: body
         name: request
         required: true
         schema:
-          $ref: '#/definitions/api.SetDepartmentRequest'
+          $ref: '#/definitions/api.PatchUserRequest'
       produces:
       - application/json
       responses:
@@ -374,46 +419,7 @@ paths:
           schema:
             $ref: '#/definitions/api.UserResponse'
         "400":
-          description: Invalid department or UUID
-          schema:
-            $ref: '#/definitions/api.APIError'
-        "404":
-          description: User/department not found
-          schema:
-            $ref: '#/definitions/api.APIError'
-        "500":
-          description: Internal server error
-          schema:
-            $ref: '#/definitions/api.APIError'
-      summary: Update department
-      tags:
-      - users
-  /users/{id}/permissions:
-    delete:
-      consumes:
-      - application/json
-      description: Removes extra permissions from a user
-      parameters:
-      - description: User UUID
-        in: path
-        name: id
-        required: true
-        type: string
-      - description: Permission IDs to revoke
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/api.RevokePermissionsRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/api.UserResponse'
-        "400":
-          description: Invalid UUID or permission ID
+          description: Invalid request format or invalid field value
           schema:
             $ref: '#/definitions/api.APIError'
         "404":
@@ -424,84 +430,7 @@ paths:
           description: Internal server error
           schema:
             $ref: '#/definitions/api.APIError'
-      summary: Revoke permissions
-      tags:
-      - permissions
-    post:
-      consumes:
-      - application/json
-      description: Adds extra permissions to a user's account
-      parameters:
-      - description: User UUID
-        in: path
-        name: id
-        required: true
-        type: string
-      - description: List of permission IDs
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/api.GrantPermissionsRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/api.UserResponse'
-        "400":
-          description: Invalid UUID or permission ID
-          schema:
-            $ref: '#/definitions/api.APIError'
-        "404":
-          description: User not found
-          schema:
-            $ref: '#/definitions/api.APIError'
-        "500":
-          description: Internal server error
-          schema:
-            $ref: '#/definitions/api.APIError'
-      summary: Grant permissions to user
-      tags:
-      - permissions
-  /users/{id}/role:
-    put:
-      consumes:
-      - application/json
-      description: Changes the user's system role
-      parameters:
-      - description: User UUID
-        in: path
-        name: id
-        required: true
-        type: string
-      - description: New role ID
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/api.SetRoleRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/api.UserResponse'
-        "400":
-          description: Invalid role or UUID
-          schema:
-            $ref: '#/definitions/api.APIError'
-        "404":
-          description: User not found
-          schema:
-            $ref: '#/definitions/api.APIError'
-        "500":
-          description: Internal server error
-          schema:
-            $ref: '#/definitions/api.APIError'
-      summary: Update user role
+      summary: Partially update user
       tags:
       - users
 swagger: "2.0"
