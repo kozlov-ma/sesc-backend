@@ -10,25 +10,25 @@ import (
 )
 
 type Department struct {
-	ID          uuid.UUID `json:"id"          example:"550e8400-e29b-41d4-a716-446655440000"`
-	Name        string    `json:"name"        example:"Mathematics"`
-	Description string    `json:"description" example:"Math department"`
+	ID          uuid.UUID `json:"id"          example:"550e8400-e29b-41d4-a716-446655440000" validate:"required"`
+	Name        string    `json:"name"        example:"Mathematics"                          validate:"required"`
+	Description string    `json:"description" example:"Math department"                      validate:"required"`
 }
 
 type CreateDepartmentRequest struct {
-	Name        string `json:"name"        example:"Mathematics"`
-	Description string `json:"description" example:"Math department"`
+	Name        string `json:"name"        example:"Mathematics"     validate:"required"`
+	Description string `json:"description" example:"Math department" validate:"required"`
 }
 
 type CreateDepartmentResponse = Department
 
 type DepartmentsResponse struct {
-	Departments []Department `json:"departments"`
+	Departments []Department `json:"departments" validate:"required"`
 }
 
 type UpdateDepartmentRequest struct {
-	Name        string `json:"name"        example:"Mathematics"`
-	Description string `json:"description" example:"Math department"`
+	Name        string `json:"name"        example:"Mathematics"     validate:"required"`
+	Description string `json:"description" example:"Math department" validate:"required"`
 }
 
 type UpdateDepartmentResponse = Department

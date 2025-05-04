@@ -13,6 +13,10 @@ definitions:
       ruMessage:
         example: Некорректный формат запроса
         type: string
+    required:
+    - code
+    - message
+    - ruMessage
     type: object
   api.CreateDepartmentRequest:
     properties:
@@ -22,6 +26,9 @@ definitions:
       name:
         example: Mathematics
         type: string
+    required:
+    - description
+    - name
     type: object
   api.CreateDepartmentResponse:
     properties:
@@ -34,6 +41,10 @@ definitions:
       name:
         example: Mathematics
         type: string
+    required:
+    - description
+    - id
+    - name
     type: object
   api.CreateUserRequest:
     properties:
@@ -52,6 +63,10 @@ definitions:
       roleId:
         example: 2
         type: integer
+    required:
+    - firstName
+    - lastName
+    - roleId
     type: object
   api.Department:
     properties:
@@ -64,6 +79,10 @@ definitions:
       name:
         example: Mathematics
         type: string
+    required:
+    - description
+    - id
+    - name
     type: object
   api.DepartmentsResponse:
     properties:
@@ -71,6 +90,8 @@ definitions:
         items:
           $ref: '#/definitions/api.Department'
         type: array
+    required:
+    - departments
     type: object
   api.PatchUserRequest:
     properties:
@@ -95,6 +116,11 @@ definitions:
       suspended:
         example: false
         type: boolean
+    required:
+    - firstName
+    - lastName
+    - roleId
+    - suspended
     type: object
   api.Permission:
     properties:
@@ -107,6 +133,10 @@ definitions:
       name:
         example: draft_achievement_list
         type: string
+    required:
+    - description
+    - id
+    - name
     type: object
   api.PermissionsResponse:
     properties:
@@ -114,6 +144,8 @@ definitions:
         items:
           $ref: '#/definitions/api.Permission'
         type: array
+    required:
+    - permissions
     type: object
   api.Role:
     properties:
@@ -127,6 +159,10 @@ definitions:
         items:
           $ref: '#/definitions/api.Permission'
         type: array
+    required:
+    - id
+    - name
+    - permissions
     type: object
   api.RolesResponse:
     properties:
@@ -143,6 +179,9 @@ definitions:
       name:
         example: Mathematics
         type: string
+    required:
+    - description
+    - name
     type: object
   api.UpdateDepartmentResponse:
     properties:
@@ -155,6 +194,10 @@ definitions:
       name:
         example: Mathematics
         type: string
+    required:
+    - description
+    - id
+    - name
     type: object
   api.UserResponse:
     properties:
@@ -177,6 +220,15 @@ definitions:
         type: string
       role:
         $ref: '#/definitions/api.Role'
+      suspended:
+        type: boolean
+    required:
+    - firstName
+    - id
+    - lastName
+    - pictureUrl
+    - role
+    - suspended
     type: object
 info:
   contact: {}
@@ -397,8 +449,7 @@ paths:
       consumes:
       - application/json
       description: Applies a partial update to the user identified by {id}. Only non-nil
-        fields in the request are applied. Department can only be set for Teacher
-        or Department-Head roles.
+        fields in the request are applied.
       parameters:
       - description: User UUID
         in: path

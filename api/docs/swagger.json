@@ -326,7 +326,7 @@
                 }
             },
             "patch": {
-                "description": "Applies a partial update to the user identified by {id}. Only non-nil fields in the request are applied. Department can only be set for Teacher or Department-Head roles.",
+                "description": "Applies a partial update to the user identified by {id}. Only non-nil fields in the request are applied.",
                 "consumes": [
                     "application/json"
                 ],
@@ -387,6 +387,11 @@
     "definitions": {
         "api.APIError": {
             "type": "object",
+            "required": [
+                "code",
+                "message",
+                "ruMessage"
+            ],
             "properties": {
                 "code": {
                     "type": "string",
@@ -408,6 +413,10 @@
         },
         "api.CreateDepartmentRequest": {
             "type": "object",
+            "required": [
+                "description",
+                "name"
+            ],
             "properties": {
                 "description": {
                     "type": "string",
@@ -421,6 +430,11 @@
         },
         "api.CreateDepartmentResponse": {
             "type": "object",
+            "required": [
+                "description",
+                "id",
+                "name"
+            ],
             "properties": {
                 "description": {
                     "type": "string",
@@ -438,6 +452,11 @@
         },
         "api.CreateUserRequest": {
             "type": "object",
+            "required": [
+                "firstName",
+                "lastName",
+                "roleId"
+            ],
             "properties": {
                 "firstName": {
                     "type": "string",
@@ -463,6 +482,11 @@
         },
         "api.Department": {
             "type": "object",
+            "required": [
+                "description",
+                "id",
+                "name"
+            ],
             "properties": {
                 "description": {
                     "type": "string",
@@ -480,6 +504,9 @@
         },
         "api.DepartmentsResponse": {
             "type": "object",
+            "required": [
+                "departments"
+            ],
             "properties": {
                 "departments": {
                     "type": "array",
@@ -491,6 +518,12 @@
         },
         "api.PatchUserRequest": {
             "type": "object",
+            "required": [
+                "firstName",
+                "lastName",
+                "roleId",
+                "suspended"
+            ],
             "properties": {
                 "departmentId": {
                     "type": "string",
@@ -524,6 +557,11 @@
         },
         "api.Permission": {
             "type": "object",
+            "required": [
+                "description",
+                "id",
+                "name"
+            ],
             "properties": {
                 "description": {
                     "type": "string",
@@ -541,6 +579,9 @@
         },
         "api.PermissionsResponse": {
             "type": "object",
+            "required": [
+                "permissions"
+            ],
             "properties": {
                 "permissions": {
                     "type": "array",
@@ -552,6 +593,11 @@
         },
         "api.Role": {
             "type": "object",
+            "required": [
+                "id",
+                "name",
+                "permissions"
+            ],
             "properties": {
                 "id": {
                     "type": "integer",
@@ -582,6 +628,10 @@
         },
         "api.UpdateDepartmentRequest": {
             "type": "object",
+            "required": [
+                "description",
+                "name"
+            ],
             "properties": {
                 "description": {
                     "type": "string",
@@ -595,6 +645,11 @@
         },
         "api.UpdateDepartmentResponse": {
             "type": "object",
+            "required": [
+                "description",
+                "id",
+                "name"
+            ],
             "properties": {
                 "description": {
                     "type": "string",
@@ -612,6 +667,14 @@
         },
         "api.UserResponse": {
             "type": "object",
+            "required": [
+                "firstName",
+                "id",
+                "lastName",
+                "pictureUrl",
+                "role",
+                "suspended"
+            ],
             "properties": {
                 "department": {
                     "$ref": "#/definitions/api.Department"
@@ -638,6 +701,9 @@
                 },
                 "role": {
                     "$ref": "#/definitions/api.Role"
+                },
+                "suspended": {
+                    "type": "boolean"
                 }
             }
         }

@@ -11,19 +11,19 @@ type RolesResponse struct {
 }
 
 type Role struct {
-	ID          int32        `json:"id"          example:"1"`
-	Name        string       `json:"name"        example:"Преподаватель"`
-	Permissions []Permission `json:"permissions"`
+	ID          int32        `json:"id"          example:"1"             validate:"required"`
+	Name        string       `json:"name"        example:"Преподаватель" validate:"required"`
+	Permissions []Permission `json:"permissions"                         validate:"required"`
 }
 
 type PermissionsResponse struct {
-	Permissions []Permission `json:"permissions"`
+	Permissions []Permission `json:"permissions" validate:"required"`
 }
 
 type Permission struct {
-	ID          int32  `json:"id"          example:"1"`
-	Name        string `json:"name"        example:"draft_achievement_list"`
-	Description string `json:"description" example:"Создание и заполнение листа достижений"`
+	ID          int32  `json:"id"          example:"1"                                      validate:"required"`
+	Name        string `json:"name"        example:"draft_achievement_list"                 validate:"required"`
+	Description string `json:"description" example:"Создание и заполнение листа достижений" validate:"required"`
 }
 
 // Roles godoc

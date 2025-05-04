@@ -10,21 +10,77 @@ import (
 )
 
 type UserResponse struct {
-	ID         uuid.UUID  `json:"id"                  example:"550e8400-e29b-41d4-a716-446655440000"`
-	FirstName  string     `json:"firstName"           example:"Ivan"`
-	LastName   string     `json:"lastName"            example:"Petrov"`
+	ID         uuid.UUID  `json:"id"                  example:"550e8400-e29b-41d4-a716-446655440000" validate:"required"`
+	FirstName  string     `json:"firstName"           example:"Ivan"                                 validate:"required"`
+	LastName   string     `json:"lastName"            example:"Petrov"                               validate:"required"`
 	MiddleName string     `json:"middleName"          example:"Sergeevich"`
-	PictureURL string     `json:"pictureUrl"          example:"/images/users/ivan.jpg"`
-	Role       Role       `json:"role"`
+	PictureURL string     `json:"pictureUrl"          example:"/images/users/ivan.jpg"               validate:"required"`
+	Role       Role       `json:"role"                                                               validate:"required"`
+	Suspended  bool       `json:"suspended"                                                          validate:"required"`
 	Department Department `json:"department,omitzero"`
 }
 
 type CreateUserRequest struct {
-	FirstName  string `json:"firstName"  example:"Anna"`
-	LastName   string `json:"lastName"   example:"Smirnova"`
+	FirstName  string `json:"firstName"  example:"Anna"                   validate:"required"`
+	LastName   string `json:"lastName"   example:"Smirnova"               validate:"required"`
 	MiddleName string `json:"middleName" example:"Olegovna"`
 	PictureURL string `json:"pictureUrl" example:"/images/users/anna.jpg"`
-	RoleID     int32  `json:"roleId"     example:"2"`
+	RoleID     int32  `json:"roleId"     example:"2"                      validate:"required"`
+}
+
+// GetUser godoc
+// @Summary Get user details
+// @Description Retrieves detailed information about a user
+// @Tags users
+// @Produce json
+// @Param id path string true "User UUID"
+// @Success 200 {object} UserResponse
+// @Failure 400 {object} APIError "Invalid UUID format"
+// @Failure 404 {object} APIError "User not found"
+// @Failure 500 {object} APIError "Internal server error"
+// @Router /users/{id} [get]
+func (a *API) GetUser(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	idStr := r.PathValue("id")
+
+	userID, err := uuid.FromString(idStr)
+	if err != nil {
+		a.writeError(w, APIError{
+			Code:      "INVALID_UUID",
+			Message:   "Invalid user ID format",
+			RuMessage: "Некорректный формат ID пользователя",
+		}, http.StatusBadRequest)
+		return
+	}
+
+	user, err := a.sesc.User(ctx, userID)
+	if errors.Is(err, sesc.ErrUserNotFound) {
+		a.writeError(w, APIError{
+			Code:      "USER_NOT_FOUND",
+			Message:   "User not found",
+			RuMessage: "Пользователь не найден",
+		}, http.StatusNotFound)
+		return
+	}
+	if err != nil {
+		a.writeError(w, APIError{
+			Code:      "SERVER_ERROR",
+			Message:   "Failed to fetch user",
+			RuMessage: "Ошибка получения данных пользователя",
+		}, http.StatusInternalServerError)
+		return
+	}
+
+	a.writeJSON(w, UserResponse{
+		ID:         user.ID,
+		FirstName:  user.FirstName,
+		LastName:   user.LastName,
+		MiddleName: user.MiddleName,
+		PictureURL: user.PictureURL,
+		Role:       convertRole(user.Role),
+		Department: convertDepartment(user.Department),
+		Suspended:  user.Suspended,
+	}, http.StatusOK)
 }
 
 // CreateUser godoc
@@ -95,18 +151,19 @@ func (a *API) CreateUser(w http.ResponseWriter, r *http.Request) {
 // Fields are pointers so that only non‑nil values are applied to the user record.
 // DepartmentID is only allowed to be set if the user’s role is Teacher or Dephead.
 type PatchUserRequest struct {
-	FirstName    *string    `json:"firstName" example:"Ivan"`
-	LastName     *string    `json:"lastName" example:"Petrov"`
-	MiddleName   *string    `json:"middleName" example:"Sergeevich"`
-	PictureURL   *string    `json:"pictureUrl" example:"/images/users/ivan.jpg"`
-	Suspended    *bool      `json:"suspended" example:"false"`
-	DepartmentID *uuid.UUID `json:"departmentId" example:"550e8400-e29b-41d4-a716-446655440000"`
-	RoleId       *int32     `json:"roleId" example:"1"`
+	FirstName    *string    `json:"firstName"             example:"Ivan"                                 validate:"required"`
+	LastName     *string    `json:"lastName"              example:"Petrov"                               validate:"required"`
+	MiddleName   *string    `json:"middleName,omitzero"   example:"Sergeevich"`
+	PictureURL   *string    `json:"pictureUrl,omitzero"   example:"/images/users/ivan.jpg"`
+	Suspended    *bool      `json:"suspended,omitzero"    example:"false"                                validate:"required"`
+	DepartmentID *uuid.UUID `json:"departmentId,omitzero" example:"550e8400-e29b-41d4-a716-446655440000"`
+	RoleId       *int32     `json:"roleId,omitzero"       example:"1"                                    validate:"required"`
 }
 
 // PatchUser godoc
 // @Summary Partially update user
-// @Description Applies a partial update to the user identified by {id}. Only non-nil fields in the request are applied. Department can only be set for Teacher or Department-Head roles.
+// @Description Applies a partial update to the user identified by {id}. Only non-nil fields in the request are applied.
+// Department can only be set for Teacher or Department-Head roles.
 // @Tags users
 // @Accept json
 // @Produce json
@@ -232,5 +289,6 @@ func (a *API) PatchUser(w http.ResponseWriter, r *http.Request) {
 		PictureURL: updated.PictureURL,
 		Role:       convertRole(updated.Role),
 		Department: convertDepartment(updated.Department),
+		Suspended:  updated.Suspended,
 	}, http.StatusOK)
 }

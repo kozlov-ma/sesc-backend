@@ -337,7 +337,7 @@ const docTemplate = `{
                 }
             },
             "patch": {
-                "description": "Applies a partial update to the user identified by {id}. Only non-nil fields in the request are applied. Department can only be set for Teacher or Department-Head roles.",
+                "description": "Applies a partial update to the user identified by {id}. Only non-nil fields in the request are applied.",
                 "consumes": [
                     "application/json"
                 ],
@@ -398,6 +398,11 @@ const docTemplate = `{
     "definitions": {
         "api.APIError": {
             "type": "object",
+            "required": [
+                "code",
+                "message",
+                "ruMessage"
+            ],
             "properties": {
                 "code": {
                     "type": "string",
@@ -419,6 +424,10 @@ const docTemplate = `{
         },
         "api.CreateDepartmentRequest": {
             "type": "object",
+            "required": [
+                "description",
+                "name"
+            ],
             "properties": {
                 "description": {
                     "type": "string",
@@ -432,6 +441,11 @@ const docTemplate = `{
         },
         "api.CreateDepartmentResponse": {
             "type": "object",
+            "required": [
+                "description",
+                "id",
+                "name"
+            ],
             "properties": {
                 "description": {
                     "type": "string",
@@ -449,6 +463,11 @@ const docTemplate = `{
         },
         "api.CreateUserRequest": {
             "type": "object",
+            "required": [
+                "firstName",
+                "lastName",
+                "roleId"
+            ],
             "properties": {
                 "firstName": {
                     "type": "string",
@@ -474,6 +493,11 @@ const docTemplate = `{
         },
         "api.Department": {
             "type": "object",
+            "required": [
+                "description",
+                "id",
+                "name"
+            ],
             "properties": {
                 "description": {
                     "type": "string",
@@ -491,6 +515,9 @@ const docTemplate = `{
         },
         "api.DepartmentsResponse": {
             "type": "object",
+            "required": [
+                "departments"
+            ],
             "properties": {
                 "departments": {
                     "type": "array",
@@ -502,6 +529,12 @@ const docTemplate = `{
         },
         "api.PatchUserRequest": {
             "type": "object",
+            "required": [
+                "firstName",
+                "lastName",
+                "roleId",
+                "suspended"
+            ],
             "properties": {
                 "departmentId": {
                     "type": "string",
@@ -535,6 +568,11 @@ const docTemplate = `{
         },
         "api.Permission": {
             "type": "object",
+            "required": [
+                "description",
+                "id",
+                "name"
+            ],
             "properties": {
                 "description": {
                     "type": "string",
@@ -552,6 +590,9 @@ const docTemplate = `{
         },
         "api.PermissionsResponse": {
             "type": "object",
+            "required": [
+                "permissions"
+            ],
             "properties": {
                 "permissions": {
                     "type": "array",
@@ -563,6 +604,11 @@ const docTemplate = `{
         },
         "api.Role": {
             "type": "object",
+            "required": [
+                "id",
+                "name",
+                "permissions"
+            ],
             "properties": {
                 "id": {
                     "type": "integer",
@@ -593,6 +639,10 @@ const docTemplate = `{
         },
         "api.UpdateDepartmentRequest": {
             "type": "object",
+            "required": [
+                "description",
+                "name"
+            ],
             "properties": {
                 "description": {
                     "type": "string",
@@ -606,6 +656,11 @@ const docTemplate = `{
         },
         "api.UpdateDepartmentResponse": {
             "type": "object",
+            "required": [
+                "description",
+                "id",
+                "name"
+            ],
             "properties": {
                 "description": {
                     "type": "string",
@@ -623,6 +678,14 @@ const docTemplate = `{
         },
         "api.UserResponse": {
             "type": "object",
+            "required": [
+                "firstName",
+                "id",
+                "lastName",
+                "pictureUrl",
+                "role",
+                "suspended"
+            ],
             "properties": {
                 "department": {
                     "$ref": "#/definitions/api.Department"
@@ -649,6 +712,9 @@ const docTemplate = `{
                 },
                 "role": {
                     "$ref": "#/definitions/api.Role"
+                },
+                "suspended": {
+                    "type": "boolean"
                 }
             }
         }
