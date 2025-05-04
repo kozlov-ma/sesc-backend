@@ -100,3 +100,7 @@ func (s *SESC) UpdateProfilePicture(ctx context.Context, id UUID, pictureURL str
 	s.log.InfoContext(ctx, "updated profile picture", slog.Any("user", id))
 	return nil
 }
+
+func (s *SESC) Users(ctx context.Context) ([]User, error) {
+	return s.db.Users(ctx)
+}

@@ -22,6 +22,10 @@ type (
 		UpdateDepartment(ctx context.Context, id sesc.UUID, name, description string) error
 		// User returns a User by ID. If the user does not exist, returns a sesc.ErrUserNotFound.
 		User(ctx context.Context, id sesc.UUID) (sesc.User, error)
+
+		// Users returns all the users currently registered within the system.
+		Users(ctx context.Context) ([]sesc.User, error)
+
 		// Departments returns all the departments currently registered within the system.
 		Departments(ctx context.Context) ([]sesc.Department, error)
 		DepartmentByID(ctx context.Context, id sesc.UUID) (sesc.Department, error)

@@ -230,6 +230,15 @@ definitions:
     - role
     - suspended
     type: object
+  api.UsersResponse:
+    properties:
+      users:
+        items:
+          $ref: '#/definitions/api.UserResponse'
+        type: array
+    required:
+    - users
+    type: object
 info:
   contact: {}
 paths:
@@ -385,6 +394,22 @@ paths:
       tags:
       - roles
   /users:
+    get:
+      description: Retrieves detailed information about all users
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.UsersResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/api.APIError'
+      summary: Get all users registered in the system
+      tags:
+      - users
     post:
       consumes:
       - application/json

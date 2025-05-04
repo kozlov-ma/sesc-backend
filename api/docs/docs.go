@@ -245,6 +245,30 @@ const docTemplate = `{
             }
         },
         "/users": {
+            "get": {
+                "description": "Retrieves detailed information about all users",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Get all users registered in the system",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api.UsersResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/api.APIError"
+                        }
+                    }
+                }
+            },
             "post": {
                 "description": "Creates a new user with specified role (non-teacher)",
                 "consumes": [
@@ -715,6 +739,20 @@ const docTemplate = `{
                 },
                 "suspended": {
                     "type": "boolean"
+                }
+            }
+        },
+        "api.UsersResponse": {
+            "type": "object",
+            "required": [
+                "users"
+            ],
+            "properties": {
+                "users": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/api.UserResponse"
+                    }
                 }
             }
         }

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log/slog"
 	"net/http"
+	"net/url"
 
 	"github.com/kozlov-ma/sesc-backend/sesc"
 	httpSwagger "github.com/swaggo/http-swagger"
@@ -53,7 +54,43 @@ func convertDepartment(d sesc.Department) Department {
 	}
 }
 
-func (a *API) RegisterRoutes(mux *http.ServeMux) {
+func corsMiddleware(next http.Handler) http.HandlerFunc {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Add("Vary", "Origin")
+
+		origin := r.Header.Get("Origin")
+		if isOriginAllowed(origin) {
+			w.Header().Set("Access-Control-Allow-Origin", origin)
+			w.Header().Set("Access-Control-Allow-Credentials", "true")
+		}
+
+		if r.Method == "OPTIONS" {
+			w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS")
+			requestedHeaders := r.Header.Get("Access-Control-Request-Headers")
+			w.Header().Set("Access-Control-Allow-Headers", requestedHeaders)
+			w.WriteHeader(http.StatusOK)
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
+}
+
+func isOriginAllowed(origin string) bool {
+	if origin == "" {
+		return false
+	}
+	u, err := url.Parse(origin)
+	if err != nil {
+		return false
+	}
+	hostname := u.Hostname()
+	return hostname == "localhost"
+}
+
+func (a *API) RegisterRoutes(m *http.ServeMux) {
+	mux := http.NewServeMux()
+
 	// departments
 	mux.HandleFunc("POST /departments", a.CreateDepartment)
 	mux.HandleFunc("GET /departments", a.Departments)
@@ -68,7 +105,11 @@ func (a *API) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("POST /users", a.CreateUser)
 	mux.HandleFunc("PATCH /users/{id}", a.PatchUser)
 	mux.HandleFunc("GET /users/{id}", a.GetUser)
+	mux.HandleFunc("GET /users", a.GetUsers)
 
 	// swagger UI
 	mux.HandleFunc("/swagger/", httpSwagger.WrapHandler)
+
+	// middlewares
+	m.Handle("/", corsMiddleware(mux))
 }

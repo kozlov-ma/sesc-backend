@@ -57,20 +57,41 @@ func (d *DB) CreateDepartment(
 
 // DeleteDepartment implements sesc.DB.
 func (d *DB) DeleteDepartment(ctx context.Context, id sesc.UUID) error {
+	// First check if any users are assigned to this department
+	var userCount int
+	err := d.db.GetContext(ctx, &userCount,
+		"SELECT COUNT(*) FROM users WHERE department_id = $1", id)
+	if err != nil {
+		d.log.DebugContext(ctx, "DeleteDepartment: failed to check users",
+			"error", err, "department_id", id)
+		return fmt.Errorf("check department users: %w", err)
+	}
+
+	if userCount > 0 {
+		d.log.DebugContext(ctx, "DeleteDepartment: department has users",
+			"department_id", id, "user_count", userCount)
+		return sesc.ErrCannotRemoveDepartment
+	}
+
 	query := `DELETE FROM departments WHERE id = $1`
 	result, err := d.db.ExecContext(ctx, query, id)
 	if err != nil {
-		d.log.DebugContext(ctx, "DeleteDepartment: failed to delete", "error", err, "id", id)
+		d.log.DebugContext(ctx, "DeleteDepartment: failed to delete",
+			"error", err, "department_id", id)
 		return fmt.Errorf("delete department: %w", err)
 	}
+
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
 		return fmt.Errorf("get rows affected: %w", err)
 	}
+
 	if rowsAffected == 0 {
-		d.log.DebugContext(ctx, "DeleteDepartment: no rows affected", "id", id)
+		d.log.DebugContext(ctx, "DeleteDepartment: department not found",
+			"department_id", id)
 		return fmt.Errorf("department not found")
 	}
+
 	return nil
 }
 
@@ -290,47 +311,78 @@ func (d *DB) UserByID(ctx context.Context, id sesc.UUID) (sesc.User, error) {
 
 // Users implements sesc.DB.
 func (d *DB) Users(ctx context.Context) ([]sesc.User, error) {
-	var users []struct {
-		ID         sesc.UUID `db:"id"`
-		FirstName  string    `db:"first_name"`
-		LastName   string    `db:"last_name"`
-		MiddleName string    `db:"middle_name"`
-		PictureURL string    `db:"picture_url"`
-		Suspended  bool      `db:"suspended"`
-		RoleID     int32     `db:"role_id"`
-		AuthID     sesc.UUID `db:"auth_id"`
-		Department sesc.Department
+	type userRow struct {
+		ID         sesc.UUID  `db:"id"`
+		FirstName  string     `db:"first_name"`
+		LastName   string     `db:"last_name"`
+		MiddleName string     `db:"middle_name"`
+		PictureURL string     `db:"picture_url"`
+		Suspended  bool       `db:"suspended"`
+		RoleID     int32      `db:"role_id"`
+		AuthID     sesc.UUID  `db:"auth_id"`
+		DepID      *sesc.UUID `db:"dep_id"`
+		DepName    *string    `db:"dep_name"`
+		DepDesc    *string    `db:"dep_description"`
 	}
+
 	query := `
         SELECT
-            u.id, u.first_name, u.last_name, u.middle_name, u.picture_url, u.suspended,
-            u.role_id, u.auth_id,
-            d.id AS "department.id", d.name AS "department.name", d.description AS "department.description"
+            u.id,
+            u.first_name,
+            u.last_name,
+            u.middle_name,
+            u.picture_url,
+            u.suspended,
+            u.role_id,
+            u.auth_id,
+            d.id AS dep_id,
+            d.name AS dep_name,
+            d.description AS dep_description
         FROM users u
         LEFT JOIN departments d ON u.department_id = d.id`
-	err := d.db.SelectContext(ctx, &users, query)
+
+	var rows []userRow
+	err := d.db.SelectContext(ctx, &rows, query)
 	if err != nil {
 		d.log.DebugContext(ctx, "Users: failed to list", "error", err)
 		return nil, fmt.Errorf("list users: %w", err)
 	}
-	result := make([]sesc.User, 0, len(users))
-	for _, u := range users {
-		role, ok := sesc.RoleByID(u.RoleID)
-		if !ok {
-			d.log.ErrorContext(ctx, "got an invalid role in the database", "user_id", u.ID, "role_id", u.RoleID)
-			return nil, fmt.Errorf("invalid role ID %d for user %s", u.RoleID, u.ID)
+
+	users := make([]sesc.User, 0, len(rows))
+	for _, row := range rows {
+		// Handle department data
+		var department sesc.Department
+		if row.DepID != nil {
+			department = sesc.Department{
+				ID:          *row.DepID,
+				Name:        *row.DepName,
+				Description: *row.DepDesc,
+			}
+		} else {
+			department = sesc.NoDepartment
 		}
-		result = append(result, sesc.User{
-			ID:         u.ID,
-			FirstName:  u.FirstName,
-			LastName:   u.LastName,
-			MiddleName: u.MiddleName,
-			PictureURL: u.PictureURL,
-			Suspended:  u.Suspended,
-			Department: u.Department,
+
+		// Validate role
+		role, ok := sesc.RoleByID(row.RoleID)
+		if !ok {
+			d.log.ErrorContext(ctx, "Users: invalid role",
+				"user_id", row.ID, "role_id", row.RoleID)
+			return nil, fmt.Errorf("invalid role ID %d for user %s",
+				row.RoleID, row.ID)
+		}
+
+		users = append(users, sesc.User{
+			ID:         row.ID,
+			FirstName:  row.FirstName,
+			LastName:   row.LastName,
+			MiddleName: row.MiddleName,
+			PictureURL: row.PictureURL,
+			Suspended:  row.Suspended,
+			Department: department,
 			Role:       role,
-			AuthID:     u.AuthID,
+			AuthID:     row.AuthID,
 		})
 	}
-	return result, nil
+
+	return users, nil
 }

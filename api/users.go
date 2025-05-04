@@ -83,6 +83,35 @@ func (a *API) GetUser(w http.ResponseWriter, r *http.Request) {
 	}, http.StatusOK)
 }
 
+type UsersResponse struct {
+	Users []UserResponse `json:"users" validate:"required"`
+}
+
+// GetUsers godoc
+// @Summary Get all users registered in the system
+// @Description Retrieves detailed information about all users
+// @Tags users
+// @Produce json
+// @Success 200 {object} UsersResponse
+// @Failure 500 {object} APIError "Internal server error"
+// @Router /users [get]
+func (a *API) GetUsers(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	users, err := a.sesc.Users(ctx)
+	if err != nil {
+		a.writeError(w, APIError{
+			Code:      "SERVER_ERROR",
+			Message:   "Failed to fetch users",
+			RuMessage: "Ошибка получения данных пользователей",
+		}, http.StatusInternalServerError)
+		return
+	}
+
+	a.writeJSON(w, UsersResponse{
+		Users: convertUsers(users),
+	}, http.StatusOK)
+}
+
 // CreateUser godoc
 // @Summary Create new user
 // @Description Creates a new user with specified role (non-teacher)
@@ -291,4 +320,25 @@ func (a *API) PatchUser(w http.ResponseWriter, r *http.Request) {
 		Department: convertDepartment(updated.Department),
 		Suspended:  updated.Suspended,
 	}, http.StatusOK)
+}
+
+func convertUser(user sesc.User) UserResponse {
+	return UserResponse{
+		ID:         user.ID,
+		FirstName:  user.FirstName,
+		LastName:   user.LastName,
+		MiddleName: user.MiddleName,
+		PictureURL: user.PictureURL,
+		Role:       convertRole(user.Role),
+		Department: convertDepartment(user.Department),
+		Suspended:  user.Suspended,
+	}
+}
+
+func convertUsers(users []sesc.User) []UserResponse {
+	var convertedUsers []UserResponse
+	for _, user := range users {
+		convertedUsers = append(convertedUsers, convertUser(user))
+	}
+	return convertedUsers
 }
