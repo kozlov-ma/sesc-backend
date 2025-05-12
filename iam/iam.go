@@ -46,26 +46,36 @@ type IAM struct {
 
 type UUID uuid.UUID
 
-func (i *IAM) Login(ctx context.Context, creds Credentials) (jwt.Token, error)
+func (i *IAM) Login(ctx context.Context, creds Credentials) (jwt.Token, error) {
+	panic("Not implemented")
+}
 
 // RegisterCredentials assigns credentials to a user and returns their auth UUID.
 //
 // If the user already exists, ErrUserAlreadyExists is returned.
 // If the credentials are invalid, like username or password being empty, ErrInvalidCredentials is returned.
-func (i *IAM) RegisterCredentials(ctx context.Context, userID UUID, creds Credentials) (UUID, error)
+func (i *IAM) RegisterCredentials(ctx context.Context, userID UUID, creds Credentials) (UUID, error) {
+	panic("Not implemented")
+}
 
 // ImWatermelon validates a JWT token and returns the identity of the user.
 //
 // If the token is invalid, ErrInvalidToken is returned.
-func (i *IAM) ImWatermelon(ctx context.Context, token jwt.Token) (Identity, error)
+func (i *IAM) ImWatermelon(ctx context.Context, token jwt.Token) (Identity, error) {
+	panic("Not implemented")
+}
 
 // DropCredentials deletes the credentials associated with the given auth ID,
 // and deletes the association of the user with the auth ID.
 //
 // Returns ErrUserNotFound if the user is not found.
-func (i *IAM) DropCredentials(ctx context.Context, authID UUID) error
+func (i *IAM) DropCredentials(ctx context.Context, authID UUID) error {
+	panic("Not implemented")
+}
 
-// Logout invalidates the given token. If the token is alredy invalidated, it's a no-op.
+// Logout invalidates the given token. If the token is already invalidated, it's a no-op.
 //
 // If the token itself is invalid, ErrInvalidToken is returned.
-func (i *IAM) Logout(ctx context.Context, token jwt.Token) error
+func (i *IAM) Logout(ctx context.Context, token jwt.Token) error {
+	panic("Not implemented")
+}
