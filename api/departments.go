@@ -62,15 +62,18 @@ var (
 )
 
 // CreateDepartment godoc
-// @Summary Create new department
-// @Description Creates a new department with provided name and description
+// @Summary Create a new department
+// @Description Creates a new department with the given details
 // @Tags departments
-// @Accept  json
+// @Accept json
 // @Produce json
-// @Param request body CreateDepartmentRequest true "Department creation data"
-// @Success 201 {object} CreateDepartmentResponse
+// @Security BearerAuth
+// @Param Authorization header string false "Bearer JWT token"
+// @Param request body CreateDepartmentRequest true "Department details"
+// @Success 201 {object} Department
 // @Failure 400 {object} APIError "Invalid request format"
-// @Failure 409 {object} APIError "Department with this name already exists"
+// @Failure 401 {object} APIError "Unauthorized"
+// @Failure 403 {object} APIError "Forbidden - admin role required"
 // @Failure 500 {object} APIError "Internal server error"
 // @Router /departments [post]
 func (a *API) CreateDepartment(w http.ResponseWriter, r *http.Request) {
@@ -139,16 +142,20 @@ func (a *API) Departments(w http.ResponseWriter, r *http.Request) {
 }
 
 // UpdateDepartment godoc
-// @Summary Update department
-// @Description Updates the department's name and description by ID
+// @Summary Update department details
+// @Description Updates an existing department with new details
 // @Tags departments
-// @Accept  json
+// @Accept json
 // @Produce json
+// @Security BearerAuth
+// @Param Authorization header string false "Bearer JWT token"
 // @Param id path string true "Department UUID"
-// @Param request body UpdateDepartmentRequest true "Department update data"
-// @Success 200 {object} UpdateDepartmentResponse
-// @Failure 400 {object} APIError "Invalid department ID or request format"
-// @Failure 409 {object} APIError "Department with this name already exists"
+// @Param request body UpdateDepartmentRequest true "Updated department details"
+// @Success 200 {object} Department
+// @Failure 400 {object} APIError "Invalid UUID format or request format"
+// @Failure 401 {object} APIError "Unauthorized"
+// @Failure 403 {object} APIError "Forbidden - admin role required"
+// @Failure 404 {object} APIError "Department not found"
 // @Failure 500 {object} APIError "Internal server error"
 // @Router /departments/{id} [put]
 func (a *API) UpdateDepartment(w http.ResponseWriter, r *http.Request) {
@@ -188,12 +195,16 @@ func (a *API) UpdateDepartment(w http.ResponseWriter, r *http.Request) {
 }
 
 // DeleteDepartment godoc
-// @Summary Delete department
-// @Description Removes the department by ID
+// @Summary Delete a department
+// @Description Deletes a department by its ID
 // @Tags departments
+// @Security BearerAuth
+// @Param Authorization header string false "Bearer JWT token"
 // @Param id path string true "Department UUID"
-// @Success 200 {string} string "OK"
-// @Failure 400 {object} APIError "Invalid department ID"
+// @Success 204 "No content"
+// @Failure 400 {object} APIError "Invalid UUID format"
+// @Failure 401 {object} APIError "Unauthorized"
+// @Failure 403 {object} APIError "Forbidden - admin role required"
 // @Failure 404 {object} APIError "Department not found"
 // @Failure 409 {object} APIError "Cannot remove department, it still has some users"
 // @Failure 500 {object} APIError "Internal server error"
@@ -224,5 +235,5 @@ func (a *API) DeleteDepartment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
+	w.WriteHeader(http.StatusNoContent)
 }

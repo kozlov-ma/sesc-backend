@@ -19,7 +19,8 @@ func (AuthUser) Fields() []ent.Field {
 			Unique().
 			NotEmpty(),
 		field.String("password").
-			NotEmpty(),
+			NotEmpty().
+			Sensitive(),
 		field.UUID("auth_id", uuid.UUID{}).
 			Unique(),
 		field.UUID("user_id", uuid.UUID{}).

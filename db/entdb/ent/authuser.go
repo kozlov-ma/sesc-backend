@@ -21,7 +21,7 @@ type AuthUser struct {
 	// Username holds the value of the "username" field.
 	Username string `json:"username,omitempty"`
 	// Password holds the value of the "password" field.
-	Password string `json:"password,omitempty"`
+	Password string `json:"-"`
 	// AuthID holds the value of the "auth_id" field.
 	AuthID uuid.UUID `json:"auth_id,omitempty"`
 	// UserID holds the value of the "user_id" field.
@@ -152,8 +152,7 @@ func (au *AuthUser) String() string {
 	builder.WriteString("username=")
 	builder.WriteString(au.Username)
 	builder.WriteString(", ")
-	builder.WriteString("password=")
-	builder.WriteString(au.Password)
+	builder.WriteString("password=<sensitive>")
 	builder.WriteString(", ")
 	builder.WriteString("auth_id=")
 	builder.WriteString(fmt.Sprintf("%v", au.AuthID))

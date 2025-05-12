@@ -18,7 +18,7 @@ func setupDB(t *testing.T) *DB {
 	t.Helper()
 	client := enttest.Open(t, "sqlite3", "file:ent?mode=memory&cache=shared&_fk=1")
 	t.Cleanup(func() {
-		client.Close()
+		_ = client.Close()
 	})
 	return New(slog.New(slog.DiscardHandler), client)
 }

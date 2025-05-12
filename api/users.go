@@ -33,9 +33,12 @@ type CreateUserRequest struct {
 // @Description Retrieves detailed information about a user
 // @Tags users
 // @Produce json
+// @Security BearerAuth
+// @Param Authorization header string false "Bearer JWT token"
 // @Param id path string true "User UUID"
 // @Success 200 {object} UserResponse
 // @Failure 400 {object} APIError "Invalid UUID format"
+// @Failure 401 {object} APIError "Unauthorized"
 // @Failure 404 {object} APIError "User not found"
 // @Failure 500 {object} APIError "Internal server error"
 // @Router /users/{id} [get]
@@ -92,7 +95,10 @@ type UsersResponse struct {
 // @Description Retrieves detailed information about all users
 // @Tags users
 // @Produce json
+// @Security BearerAuth
+// @Param Authorization header string false "Bearer JWT token"
 // @Success 200 {object} UsersResponse
+// @Failure 401 {object} APIError "Unauthorized"
 // @Failure 500 {object} APIError "Internal server error"
 // @Router /users [get]
 func (a *API) GetUsers(w http.ResponseWriter, r *http.Request) {
@@ -118,9 +124,13 @@ func (a *API) GetUsers(w http.ResponseWriter, r *http.Request) {
 // @Tags users
 // @Accept json
 // @Produce json
+// @Security BearerAuth
+// @Param Authorization header string false "Bearer JWT token"
 // @Param request body CreateUserRequest true "User details"
 // @Success 201 {object} UserResponse
 // @Failure 400 {object} APIError "Invalid role or request format"
+// @Failure 401 {object} APIError "Unauthorized"
+// @Failure 403 {object} APIError "Forbidden - admin role required"
 // @Failure 500 {object} APIError "Internal server error"
 // @Router /users [post]
 func (a *API) CreateUser(w http.ResponseWriter, r *http.Request) {
@@ -178,7 +188,7 @@ func (a *API) CreateUser(w http.ResponseWriter, r *http.Request) {
 
 // PatchUserRequest defines the fields that can be updated on a User.
 // Fields are pointers so that only non‑nil values are applied to the user record.
-// DepartmentID is only allowed to be set if the user’s role is Teacher or Dephead.
+// DepartmentID is only allowed to be set if the user's role is Teacher or Dephead.
 type PatchUserRequest struct {
 	FirstName    *string    `json:"firstName"             example:"Ivan"                                 validate:"required"`
 	LastName     *string    `json:"lastName"              example:"Petrov"                               validate:"required"`
@@ -196,10 +206,14 @@ type PatchUserRequest struct {
 // @Tags users
 // @Accept json
 // @Produce json
+// @Security BearerAuth
+// @Param Authorization header string false "Bearer JWT token"
 // @Param id path string true "User UUID"
 // @Param request body PatchUserRequest true "User fields to update"
 // @Success 200 {object} UserResponse
-// @Failure 400 {object} APIError "Invalid request format or invalid field value"
+// @Failure 400 {object} APIError "Invalid UUID format, role or request format"
+// @Failure 401 {object} APIError "Unauthorized"
+// @Failure 403 {object} APIError "Forbidden - admin role required"
 // @Failure 404 {object} APIError "User not found"
 // @Failure 500 {object} APIError "Internal server error"
 // @Router /users/{id} [patch]
@@ -341,4 +355,62 @@ func convertUsers(users []sesc.User) []UserResponse {
 		convertedUsers = append(convertedUsers, convertUser(user))
 	}
 	return convertedUsers
+}
+
+// GetCurrentUser godoc
+// @Summary Get current user information
+// @Description Returns information about the current authenticated user
+// @Tags users
+// @Produce json
+// @Security BearerAuth
+// @Param Authorization header string false "Bearer JWT token"
+// @Success 200 {object} UserResponse
+// @Failure 401 {object} APIError "Unauthorized or invalid token"
+// @Failure 404 {object} APIError "User not found"
+// @Failure 500 {object} APIError "Internal server error"
+// @Router /users/me [get]
+func (a *API) GetCurrentUser(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	// Get identity from context
+	identity, ok := GetIdentityFromContext(ctx)
+	if !ok {
+		a.writeError(w, APIError{
+			Code:      "UNAUTHORIZED",
+			Message:   "Authentication required",
+			RuMessage: "Требуется авторизация",
+		}, http.StatusUnauthorized)
+		return
+	}
+
+	// Get user from sesc
+	user, err := a.sesc.User(ctx, identity.ID)
+	if errors.Is(err, sesc.ErrUserNotFound) {
+		a.writeError(w, APIError{
+			Code:      "USER_NOT_FOUND",
+			Message:   "User not found",
+			RuMessage: "Пользователь не найден",
+		}, http.StatusNotFound)
+		return
+	}
+	if err != nil {
+		a.writeError(w, APIError{
+			Code:      "SERVER_ERROR",
+			Message:   "Failed to fetch user data",
+			RuMessage: "Ошибка получения данных пользователя",
+		}, http.StatusInternalServerError)
+		return
+	}
+
+	// Return user data
+	a.writeJSON(w, UserResponse{
+		ID:         user.ID,
+		FirstName:  user.FirstName,
+		LastName:   user.LastName,
+		MiddleName: user.MiddleName,
+		PictureURL: user.PictureURL,
+		Role:       convertRole(user.Role),
+		Department: convertDepartment(user.Department),
+		Suspended:  user.Suspended,
+	}, http.StatusOK)
 }

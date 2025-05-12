@@ -3,10 +3,31 @@ package api
 import (
 	"context"
 
+	"github.com/gofrs/uuid/v5"
+	"github.com/kozlov-ma/sesc-backend/iam"
 	"github.com/kozlov-ma/sesc-backend/sesc"
 )
 
 type (
+
+	// IAMService defines the authentication interface required by the API
+	IAMService interface {
+		// RegisterCredentials assigns username/password to an existing userID, returns authID.
+		// Returns ErrUserDoesNotExist if user does not exist, ErrUserAlreadyExists if username exists,
+		// or ErrInvalidCredentials if credentials are invalid.
+		RegisterCredentials(ctx context.Context, userID uuid.UUID, creds iam.Credentials) (uuid.UUID, error)
+		// Login verifies credentials and returns signed JWT token string
+		Login(ctx context.Context, creds iam.Credentials) (string, error)
+		// LoginAdmin checks token for being an admin token
+		LoginAdmin(ctx context.Context, token string) (string, error)
+		// ImWatermelon parses tokenString, returns Identity or error
+		ImWatermelon(ctx context.Context, tokenString string) (iam.Identity, error)
+		// DropCredentials deletes credentials by userID
+		DropCredentials(ctx context.Context, userID uuid.UUID) error
+		// Credentials returns username/password for a userID
+		Credentials(ctx context.Context, userID uuid.UUID) (iam.Credentials, error)
+	}
+
 	SESC interface {
 		// UpdateUser updates user with the new fields.
 		//

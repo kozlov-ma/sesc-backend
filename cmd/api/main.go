@@ -6,11 +6,14 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"time"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/kozlov-ma/sesc-backend/api"
 	"github.com/kozlov-ma/sesc-backend/db/entdb"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/migrate"
+	"github.com/kozlov-ma/sesc-backend/iam"
 	"github.com/kozlov-ma/sesc-backend/sesc"
 
 	_ "github.com/lib/pq"
@@ -40,15 +43,18 @@ func main() {
 
 	db := entdb.New(log, client)
 
-	sesc := sesc.New(log, db)
-	api := api.New(log, sesc)
+	iam := iam.New(log, client, 7*24*time.Hour, []string{"dummy"})
 
-	mux := http.NewServeMux()
-	api.RegisterRoutes(mux)
+	sesc := sesc.New(log, db)
+	api := api.New(log, sesc, iam)
+
+	router := chi.NewRouter()
+
+	api.RegisterRoutes(router)
 
 	srv := &http.Server{
 		Addr:    ":8080",
-		Handler: mux,
+		Handler: router,
 	}
 
 	go func() {

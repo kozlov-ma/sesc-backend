@@ -16,17 +16,5 @@ services:
       start_period: 30s
       timeout: 10s
 
-  pgsetup:
-    build:
-      dockerfile: ./cmd/pgsetup/Dockerfile
-      context: .
-    container_name: pgsetup
-    restart: no
-    depends_on:
-      postgres:
-        condition: service_healthy
-    environment:
-      - POSTGRES_ADDRESS=postgres://postgres:password@postgres:5432/postgres
-
 volumes:
   postgres:
