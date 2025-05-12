@@ -55,7 +55,7 @@ func (a *API) AuthMiddleware(next http.Handler) http.Handler {
 		token := authHeader[7:]
 		identity, err := a.iam.ImWatermelon(ctx, token)
 		if err != nil {
-			if errors.Is(err, ErrInvalidToken) {
+			if errors.Is(err, iam.ErrInvalidToken) {
 				a.writeError(w, APIError{
 					Code:      "INVALID_TOKEN",
 					Message:   "Invalid or expired token",

@@ -82,6 +82,8 @@ func (i *IAM) RegisterCredentials(ctx context.Context, userID UUID, creds Creden
 		return UUID{}, err
 	}
 
+	// TODO ЗДЕСЬ ОЧЕНЬ НУЖНА ТРАНЗАКЦИЯ!!!!!!!
+
 	// Check if the user exists first
 	userExists, err := i.client.User.Query().
 		Where(user.ID(userID)).
@@ -137,7 +139,7 @@ func (i *IAM) Login(ctx context.Context, creds Credentials) (string, error) {
 
 	authRec, err := i.client.AuthUser.
 		Query().
-		Where(authuser.UsernameEQ(creds.Username)).
+		Where(authuser.Username(creds.Username), authuser.Password(creds.Password)).
 		Only(ctx)
 	if ent.IsNotFound(err) {
 		logger.ErrorContext(ctx, "User not found during login attempt")

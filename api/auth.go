@@ -3,7 +3,6 @@ package api
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"net/http"
 
 	"github.com/gofrs/uuid/v5"
@@ -11,7 +10,7 @@ import (
 )
 
 type CredentialsRequest struct {
-	Username string `json:"username" example:"johndoe" validate:"required"`
+	Username string `json:"username" example:"johndoe"   validate:"required"`
 	Password string `json:"password" example:"secret123" validate:"required"`
 }
 
@@ -24,18 +23,9 @@ type AdminLoginRequest struct {
 }
 
 type IdentityResponse struct {
-	ID   uuid.UUID `json:"id" example:"550e8400-e29b-41d4-a716-446655440000" validate:"required"`
-	Role string    `json:"role" example:"user" validate:"required"`
+	ID   uuid.UUID `json:"id"   example:"550e8400-e29b-41d4-a716-446655440000" validate:"required"`
+	Role string    `json:"role" example:"user"                                 validate:"required"`
 }
-
-// Error types for authentication
-var (
-	ErrInvalidCredentials = fmt.Errorf("invalid credentials")
-	ErrUserAlreadyExists  = fmt.Errorf("user already exists")
-	ErrInvalidToken       = fmt.Errorf("invalid token")
-	ErrUserNotFound       = fmt.Errorf("user not found")
-	ErrUserDoesNotExist   = fmt.Errorf("user does not exist")
-)
 
 // RegisterUser godoc
 // @Summary Register user credentials
@@ -145,7 +135,7 @@ func (a *API) Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	token, err := a.iam.Login(ctx, creds)
-	if errors.Is(err, ErrInvalidCredentials) {
+	if errors.Is(err, iam.ErrInvalidCredentials) {
 		a.writeError(w, APIError{
 			Code:      "INVALID_CREDENTIALS",
 			Message:   "Invalid username or password",
@@ -187,7 +177,7 @@ func (a *API) LoginAdmin(w http.ResponseWriter, r *http.Request) {
 	}
 
 	token, err := a.iam.LoginAdmin(ctx, req.Token)
-	if errors.Is(err, ErrInvalidCredentials) {
+	if errors.Is(err, iam.ErrInvalidCredentials) {
 		a.writeError(w, APIError{
 			Code:      "INVALID_ADMIN_TOKEN",
 			Message:   "Invalid admin token",
@@ -350,7 +340,7 @@ func (a *API) ValidateToken(w http.ResponseWriter, r *http.Request) {
 
 	tokenString := authHeader[7:]
 	identity, err := a.iam.ImWatermelon(ctx, tokenString)
-	if errors.Is(err, ErrInvalidToken) {
+	if errors.Is(err, iam.ErrInvalidToken) {
 		a.writeError(w, APIError{
 			Code:      "INVALID_TOKEN",
 			Message:   "Invalid or expired token",
