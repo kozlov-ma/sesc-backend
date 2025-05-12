@@ -97,15 +97,17 @@ func (d *DB) Departments(ctx context.Context) ([]sesc.Department, error) {
 
 // SaveUser implements sesc.DB.
 func (d *DB) SaveUser(ctx context.Context, u sesc.User) error {
-	_, err := d.c.User.Create().
+	cr := d.c.User.Create().
 		SetID(u.ID).
 		SetFirstName(u.FirstName).
 		SetLastName(u.LastName).
 		SetMiddleName(u.MiddleName).
 		SetPictureURL(u.PictureURL).
-		SetDepartmentID(u.Department.ID).
-		SetRoleID(u.Role.ID).
-		Save(ctx)
+		SetRoleID(u.Role.ID)
+	if u.Department != sesc.NoDepartment {
+		cr = cr.SetDepartmentID(u.Department.ID)
+	}
+	_, err := cr.Save(ctx)
 
 	switch {
 	case ent.IsNotFound(err):
