@@ -10,6 +10,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	uuid "github.com/gofrs/uuid/v5"
+	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/authuser"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/department"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/user"
 )
@@ -104,6 +105,25 @@ func (uc *UserCreate) SetID(u uuid.UUID) *UserCreate {
 // SetDepartment sets the "department" edge to the Department entity.
 func (uc *UserCreate) SetDepartment(d *Department) *UserCreate {
 	return uc.SetDepartmentID(d.ID)
+}
+
+// SetAuthID sets the "auth" edge to the AuthUser entity by ID.
+func (uc *UserCreate) SetAuthID(id int) *UserCreate {
+	uc.mutation.SetAuthID(id)
+	return uc
+}
+
+// SetNillableAuthID sets the "auth" edge to the AuthUser entity by ID if the given value is not nil.
+func (uc *UserCreate) SetNillableAuthID(id *int) *UserCreate {
+	if id != nil {
+		uc = uc.SetAuthID(*id)
+	}
+	return uc
+}
+
+// SetAuth sets the "auth" edge to the AuthUser entity.
+func (uc *UserCreate) SetAuth(a *AuthUser) *UserCreate {
+	return uc.SetAuthID(a.ID)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -242,6 +262,22 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.DepartmentID = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := uc.mutation.AuthIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   user.AuthTable,
+			Columns: []string{user.AuthColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(authuser.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

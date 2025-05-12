@@ -16,6 +16,7 @@ import (
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/authuser"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/department"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/user"
 )
@@ -25,6 +26,8 @@ type Client struct {
 	config
 	// Schema is the client for creating, migrating and dropping schema.
 	Schema *migrate.Schema
+	// AuthUser is the client for interacting with the AuthUser builders.
+	AuthUser *AuthUserClient
 	// Department is the client for interacting with the Department builders.
 	Department *DepartmentClient
 	// User is the client for interacting with the User builders.
@@ -40,6 +43,7 @@ func NewClient(opts ...Option) *Client {
 
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
+	c.AuthUser = NewAuthUserClient(c.config)
 	c.Department = NewDepartmentClient(c.config)
 	c.User = NewUserClient(c.config)
 }
@@ -134,6 +138,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	return &Tx{
 		ctx:        ctx,
 		config:     cfg,
+		AuthUser:   NewAuthUserClient(cfg),
 		Department: NewDepartmentClient(cfg),
 		User:       NewUserClient(cfg),
 	}, nil
@@ -155,6 +160,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	return &Tx{
 		ctx:        ctx,
 		config:     cfg,
+		AuthUser:   NewAuthUserClient(cfg),
 		Department: NewDepartmentClient(cfg),
 		User:       NewUserClient(cfg),
 	}, nil
@@ -163,7 +169,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 // Debug returns a new debug-client. It's used to get verbose logging on specific operations.
 //
 //	client.Debug().
-//		Department.
+//		AuthUser.
 //		Query().
 //		Count(ctx)
 func (c *Client) Debug() *Client {
@@ -185,6 +191,7 @@ func (c *Client) Close() error {
 // Use adds the mutation hooks to all the entity clients.
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
+	c.AuthUser.Use(hooks...)
 	c.Department.Use(hooks...)
 	c.User.Use(hooks...)
 }
@@ -192,6 +199,7 @@ func (c *Client) Use(hooks ...Hook) {
 // Intercept adds the query interceptors to all the entity clients.
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
+	c.AuthUser.Intercept(interceptors...)
 	c.Department.Intercept(interceptors...)
 	c.User.Intercept(interceptors...)
 }
@@ -199,12 +207,163 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 // Mutate implements the ent.Mutator interface.
 func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 	switch m := m.(type) {
+	case *AuthUserMutation:
+		return c.AuthUser.mutate(ctx, m)
 	case *DepartmentMutation:
 		return c.Department.mutate(ctx, m)
 	case *UserMutation:
 		return c.User.mutate(ctx, m)
 	default:
 		return nil, fmt.Errorf("ent: unknown mutation type %T", m)
+	}
+}
+
+// AuthUserClient is a client for the AuthUser schema.
+type AuthUserClient struct {
+	config
+}
+
+// NewAuthUserClient returns a client for the AuthUser from the given config.
+func NewAuthUserClient(c config) *AuthUserClient {
+	return &AuthUserClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `authuser.Hooks(f(g(h())))`.
+func (c *AuthUserClient) Use(hooks ...Hook) {
+	c.hooks.AuthUser = append(c.hooks.AuthUser, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `authuser.Intercept(f(g(h())))`.
+func (c *AuthUserClient) Intercept(interceptors ...Interceptor) {
+	c.inters.AuthUser = append(c.inters.AuthUser, interceptors...)
+}
+
+// Create returns a builder for creating a AuthUser entity.
+func (c *AuthUserClient) Create() *AuthUserCreate {
+	mutation := newAuthUserMutation(c.config, OpCreate)
+	return &AuthUserCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of AuthUser entities.
+func (c *AuthUserClient) CreateBulk(builders ...*AuthUserCreate) *AuthUserCreateBulk {
+	return &AuthUserCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *AuthUserClient) MapCreateBulk(slice any, setFunc func(*AuthUserCreate, int)) *AuthUserCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &AuthUserCreateBulk{err: fmt.Errorf("calling to AuthUserClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*AuthUserCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &AuthUserCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for AuthUser.
+func (c *AuthUserClient) Update() *AuthUserUpdate {
+	mutation := newAuthUserMutation(c.config, OpUpdate)
+	return &AuthUserUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *AuthUserClient) UpdateOne(au *AuthUser) *AuthUserUpdateOne {
+	mutation := newAuthUserMutation(c.config, OpUpdateOne, withAuthUser(au))
+	return &AuthUserUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *AuthUserClient) UpdateOneID(id int) *AuthUserUpdateOne {
+	mutation := newAuthUserMutation(c.config, OpUpdateOne, withAuthUserID(id))
+	return &AuthUserUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for AuthUser.
+func (c *AuthUserClient) Delete() *AuthUserDelete {
+	mutation := newAuthUserMutation(c.config, OpDelete)
+	return &AuthUserDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *AuthUserClient) DeleteOne(au *AuthUser) *AuthUserDeleteOne {
+	return c.DeleteOneID(au.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *AuthUserClient) DeleteOneID(id int) *AuthUserDeleteOne {
+	builder := c.Delete().Where(authuser.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &AuthUserDeleteOne{builder}
+}
+
+// Query returns a query builder for AuthUser.
+func (c *AuthUserClient) Query() *AuthUserQuery {
+	return &AuthUserQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeAuthUser},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a AuthUser entity by its id.
+func (c *AuthUserClient) Get(ctx context.Context, id int) (*AuthUser, error) {
+	return c.Query().Where(authuser.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *AuthUserClient) GetX(ctx context.Context, id int) *AuthUser {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryUser queries the user edge of a AuthUser.
+func (c *AuthUserClient) QueryUser(au *AuthUser) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := au.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(authuser.Table, authuser.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, true, authuser.UserTable, authuser.UserColumn),
+		)
+		fromV = sqlgraph.Neighbors(au.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *AuthUserClient) Hooks() []Hook {
+	return c.hooks.AuthUser
+}
+
+// Interceptors returns the client interceptors.
+func (c *AuthUserClient) Interceptors() []Interceptor {
+	return c.inters.AuthUser
+}
+
+func (c *AuthUserClient) mutate(ctx context.Context, m *AuthUserMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&AuthUserCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&AuthUserUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&AuthUserUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&AuthUserDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown AuthUser mutation op: %q", m.Op())
 	}
 }
 
@@ -481,6 +640,22 @@ func (c *UserClient) QueryDepartment(u *User) *DepartmentQuery {
 	return query
 }
 
+// QueryAuth queries the auth edge of a User.
+func (c *UserClient) QueryAuth(u *User) *AuthUserQuery {
+	query := (&AuthUserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := u.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(authuser.Table, authuser.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, false, user.AuthTable, user.AuthColumn),
+		)
+		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *UserClient) Hooks() []Hook {
 	return c.hooks.User
@@ -509,9 +684,9 @@ func (c *UserClient) mutate(ctx context.Context, m *UserMutation) (Value, error)
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		Department, User []ent.Hook
+		AuthUser, Department, User []ent.Hook
 	}
 	inters struct {
-		Department, User []ent.Interceptor
+		AuthUser, Department, User []ent.Interceptor
 	}
 )

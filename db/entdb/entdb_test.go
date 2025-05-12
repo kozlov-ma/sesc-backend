@@ -18,7 +18,7 @@ func setupDB(t *testing.T) *DB {
 	t.Helper()
 	client := enttest.Open(t, "sqlite3", "file:ent?mode=memory&cache=shared&_fk=1")
 	t.Cleanup(func() {
-		client.Close()
+		_ = client.Close()
 	})
 	return New(slog.New(slog.DiscardHandler), client)
 }
@@ -167,6 +167,20 @@ func TestSaveUser(t *testing.T) {
 			LastName:   "Doe",
 			Department: sesc.Department{ID: depID},
 			Role:       sesc.Role{ID: 1},
+		}
+
+		err := db.SaveUser(ctx, user)
+		if err != nil {
+			t.Fatalf("SaveUser failed: %v", err)
+		}
+	})
+
+	t.Run("without_department", func(t *testing.T) {
+		user := sesc.User{
+			ID:        uuid.Must(uuid.NewV7()),
+			FirstName: "John",
+			LastName:  "Doe",
+			Role:      sesc.Role{ID: 1},
 		}
 
 		err := db.SaveUser(ctx, user)

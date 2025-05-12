@@ -3,6 +3,7 @@
 package ent
 
 import (
+	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/authuser"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/department"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/schema"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/user"
@@ -12,6 +13,16 @@ import (
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
+	authuserFields := schema.AuthUser{}.Fields()
+	_ = authuserFields
+	// authuserDescUsername is the schema descriptor for username field.
+	authuserDescUsername := authuserFields[0].Descriptor()
+	// authuser.UsernameValidator is a validator for the "username" field. It is called by the builders before save.
+	authuser.UsernameValidator = authuserDescUsername.Validators[0].(func(string) error)
+	// authuserDescPassword is the schema descriptor for password field.
+	authuserDescPassword := authuserFields[1].Descriptor()
+	// authuser.PasswordValidator is a validator for the "password" field. It is called by the builders before save.
+	authuser.PasswordValidator = authuserDescPassword.Validators[0].(func(string) error)
 	departmentFields := schema.Department{}.Fields()
 	_ = departmentFields
 	// departmentDescName is the schema descriptor for name field.

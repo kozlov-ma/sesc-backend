@@ -2,6 +2,7 @@ package schema
 
 import (
 	"entgo.io/ent"
+	"entgo.io/ent/dialect/entsql"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"github.com/gofrs/uuid/v5"
@@ -33,5 +34,9 @@ func (User) Edges() []ent.Edge {
 			Ref("users").
 			Field("department_id").
 			Unique(),
+
+		edge.To("auth", AuthUser.Type).
+			Unique().
+			Annotations(entsql.OnDelete(entsql.Cascade)),
 	}
 }

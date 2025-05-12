@@ -12,14 +12,15 @@
 - `api`: HTTP API adapter, a web entry point for the API. Also has the openapi documentation and dtos.
 - `db`: Package that defines database errors (probably should be refactored to use domain errors)
 - `db/*` : Implementations of the DB interfaces that other services use.
+- `iam`: Authentication and authorization service, providing JWT-based token management.
 - `migrations.old`: DB schema thoughts that were initially discussed, for reference only.
+
 ### Planned packages
 - `achievement`: Domain types and services for managing achievements and achievement lists.
-- `iam`: Auth process & access control to differentiate users and admins, make routes private, etc.
 
 ## Existing issues
 - Poor testing. Need to write more comprehensive tests for all packages.
 - For observability, currently only logs are available. We should consider adding metrics and tracing, also a profiler endpoint.
 - No good way to configure the application.
-- Code written in the `db/pgdb` package is mostly AI-generated, because of the lack of time. Its quality is rather poor, should be rewritten.
+
 - Inconsistent log field naming.

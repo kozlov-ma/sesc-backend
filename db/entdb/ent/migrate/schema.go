@@ -8,6 +8,28 @@ import (
 )
 
 var (
+	// AuthUsersColumns holds the columns for the "auth_users" table.
+	AuthUsersColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "username", Type: field.TypeString, Unique: true},
+		{Name: "password", Type: field.TypeString},
+		{Name: "auth_id", Type: field.TypeUUID, Unique: true},
+		{Name: "user_id", Type: field.TypeUUID, Unique: true},
+	}
+	// AuthUsersTable holds the schema information for the "auth_users" table.
+	AuthUsersTable = &schema.Table{
+		Name:       "auth_users",
+		Columns:    AuthUsersColumns,
+		PrimaryKey: []*schema.Column{AuthUsersColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "auth_users_users_auth",
+				Columns:    []*schema.Column{AuthUsersColumns[4]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
 	// DepartmentsColumns holds the columns for the "departments" table.
 	DepartmentsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
@@ -47,11 +69,13 @@ var (
 	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
+		AuthUsersTable,
 		DepartmentsTable,
 		UsersTable,
 	}
 )
 
 func init() {
+	AuthUsersTable.ForeignKeys[0].RefTable = UsersTable
 	UsersTable.ForeignKeys[0].RefTable = DepartmentsTable
 }
