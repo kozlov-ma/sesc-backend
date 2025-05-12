@@ -9,6 +9,7 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	uuid "github.com/gofrs/uuid/v5"
+	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/authuser"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/department"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/user"
 )
@@ -42,9 +43,11 @@ type User struct {
 type UserEdges struct {
 	// Department holds the value of the department edge.
 	Department *Department `json:"department,omitempty"`
+	// Auth holds the value of the auth edge.
+	Auth *AuthUser `json:"auth,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [2]bool
 }
 
 // DepartmentOrErr returns the Department value or an error if the edge
@@ -56,6 +59,17 @@ func (e UserEdges) DepartmentOrErr() (*Department, error) {
 		return nil, &NotFoundError{label: department.Label}
 	}
 	return nil, &NotLoadedError{edge: "department"}
+}
+
+// AuthOrErr returns the Auth value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e UserEdges) AuthOrErr() (*AuthUser, error) {
+	if e.Auth != nil {
+		return e.Auth, nil
+	} else if e.loadedTypes[1] {
+		return nil, &NotFoundError{label: authuser.Label}
+	}
+	return nil, &NotLoadedError{edge: "auth"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -153,6 +167,11 @@ func (u *User) Value(name string) (ent.Value, error) {
 // QueryDepartment queries the "department" edge of the User entity.
 func (u *User) QueryDepartment() *DepartmentQuery {
 	return NewUserClient(u.config).QueryDepartment(u)
+}
+
+// QueryAuth queries the "auth" edge of the User entity.
+func (u *User) QueryAuth() *AuthUserQuery {
+	return NewUserClient(u.config).QueryAuth(u)
 }
 
 // Update returns a builder for updating this User.

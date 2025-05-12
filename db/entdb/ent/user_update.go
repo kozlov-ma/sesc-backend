@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	uuid "github.com/gofrs/uuid/v5"
+	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/authuser"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/department"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/predicate"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/user"
@@ -151,6 +152,25 @@ func (uu *UserUpdate) SetDepartment(d *Department) *UserUpdate {
 	return uu.SetDepartmentID(d.ID)
 }
 
+// SetAuthID sets the "auth" edge to the AuthUser entity by ID.
+func (uu *UserUpdate) SetAuthID(id int) *UserUpdate {
+	uu.mutation.SetAuthID(id)
+	return uu
+}
+
+// SetNillableAuthID sets the "auth" edge to the AuthUser entity by ID if the given value is not nil.
+func (uu *UserUpdate) SetNillableAuthID(id *int) *UserUpdate {
+	if id != nil {
+		uu = uu.SetAuthID(*id)
+	}
+	return uu
+}
+
+// SetAuth sets the "auth" edge to the AuthUser entity.
+func (uu *UserUpdate) SetAuth(a *AuthUser) *UserUpdate {
+	return uu.SetAuthID(a.ID)
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (uu *UserUpdate) Mutation() *UserMutation {
 	return uu.mutation
@@ -159,6 +179,12 @@ func (uu *UserUpdate) Mutation() *UserMutation {
 // ClearDepartment clears the "department" edge to the Department entity.
 func (uu *UserUpdate) ClearDepartment() *UserUpdate {
 	uu.mutation.ClearDepartment()
+	return uu
+}
+
+// ClearAuth clears the "auth" edge to the AuthUser entity.
+func (uu *UserUpdate) ClearAuth() *UserUpdate {
+	uu.mutation.ClearAuth()
 	return uu
 }
 
@@ -244,6 +270,35 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(department.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if uu.mutation.AuthCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   user.AuthTable,
+			Columns: []string{user.AuthColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(authuser.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uu.mutation.AuthIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   user.AuthTable,
+			Columns: []string{user.AuthColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(authuser.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {
@@ -393,6 +448,25 @@ func (uuo *UserUpdateOne) SetDepartment(d *Department) *UserUpdateOne {
 	return uuo.SetDepartmentID(d.ID)
 }
 
+// SetAuthID sets the "auth" edge to the AuthUser entity by ID.
+func (uuo *UserUpdateOne) SetAuthID(id int) *UserUpdateOne {
+	uuo.mutation.SetAuthID(id)
+	return uuo
+}
+
+// SetNillableAuthID sets the "auth" edge to the AuthUser entity by ID if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableAuthID(id *int) *UserUpdateOne {
+	if id != nil {
+		uuo = uuo.SetAuthID(*id)
+	}
+	return uuo
+}
+
+// SetAuth sets the "auth" edge to the AuthUser entity.
+func (uuo *UserUpdateOne) SetAuth(a *AuthUser) *UserUpdateOne {
+	return uuo.SetAuthID(a.ID)
+}
+
 // Mutation returns the UserMutation object of the builder.
 func (uuo *UserUpdateOne) Mutation() *UserMutation {
 	return uuo.mutation
@@ -401,6 +475,12 @@ func (uuo *UserUpdateOne) Mutation() *UserMutation {
 // ClearDepartment clears the "department" edge to the Department entity.
 func (uuo *UserUpdateOne) ClearDepartment() *UserUpdateOne {
 	uuo.mutation.ClearDepartment()
+	return uuo
+}
+
+// ClearAuth clears the "auth" edge to the AuthUser entity.
+func (uuo *UserUpdateOne) ClearAuth() *UserUpdateOne {
+	uuo.mutation.ClearAuth()
 	return uuo
 }
 
@@ -516,6 +596,35 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(department.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if uuo.mutation.AuthCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   user.AuthTable,
+			Columns: []string{user.AuthColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(authuser.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := uuo.mutation.AuthIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   user.AuthTable,
+			Columns: []string{user.AuthColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(authuser.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

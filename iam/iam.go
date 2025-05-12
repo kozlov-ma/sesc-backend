@@ -4,9 +4,12 @@ import (
 	"context"
 	"errors"
 	"log/slog"
+	"time"
 
 	"github.com/gofrs/uuid/v5"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/kozlov-ma/sesc-backend/db/entdb/ent"
+	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/authuser"
 )
 
 var (
@@ -15,6 +18,9 @@ var (
 	ErrInvalidToken       = errors.New("invalid token")
 	ErrUserNotFound       = errors.New("user not found")
 )
+
+// JWT secret key (should be in config)
+var jwtKey = []byte("dinahu")
 
 type Credentials struct {
 	Username string
@@ -40,32 +46,124 @@ type Identity struct {
 	Role Role
 }
 
+// IAM handles authentication using Ent for persistence.
 type IAM struct {
-	log *slog.Logger
+	log    *slog.Logger
+	client *ent.Client
+}
+
+// New creates a new IAM with the given Ent client.
+func New(log *slog.Logger, client *ent.Client) *IAM {
+	return &IAM{log: log, client: client}
 }
 
 type UUID uuid.UUID
 
-func (i *IAM) Login(ctx context.Context, creds Credentials) (jwt.Token, error)
+// RegisterCredentials stores username/password linked to userID, returns authID.
+// Returns ErrUserAlreadyExists if username exists, ErrInvalidCredentials if creds invalid.
+func (i *IAM) RegisterCredentials(ctx context.Context, userID UUID, creds Credentials) (UUID, error) {
+	if err := creds.Validate(); err != nil {
+		return UUID{}, err
+	}
 
-// RegisterCredentials assigns credentials to a user and returns their auth UUID.
-//
-// If the user already exists, ErrUserAlreadyExists is returned.
-// If the credentials are invalid, like username or password being empty, ErrInvalidCredentials is returned.
-func (i *IAM) RegisterCredentials(ctx context.Context, userID UUID, creds Credentials) (UUID, error)
+	exists, err := i.client.AuthUser.
+		Query().
+		Where(authuser.UsernameEQ(creds.Username)).
+		Exist(ctx)
+	if err != nil {
+		return UUID{}, err
+	}
+	if exists {
+		return UUID{}, ErrUserAlreadyExists
+	}
+	authID := uuid.Must(uuid.NewV7())
+	_, err = i.client.AuthUser.
+		Create().
+		SetUsername(creds.Username).
+		SetPassword(creds.Password).
+		SetAuthID(authID).
+		SetUserID(uuid.UUID(userID)).
+		Save(ctx)
+	if err != nil {
+		return UUID{}, err
+	}
+	return UUID(authID), nil
+}
 
-// ImWatermelon validates a JWT token and returns the identity of the user.
-//
-// If the token is invalid, ErrInvalidToken is returned.
-func (i *IAM) ImWatermelon(ctx context.Context, token jwt.Token) (Identity, error)
+// Login verifies credentials and returns signed JWT token string.
+func (i *IAM) Login(ctx context.Context, creds Credentials) (string, error) {
+	if err := creds.Validate(); err != nil {
+		return "", err
+	}
+	authRec, err := i.client.AuthUser.
+		Query().
+		Where(authuser.UsernameEQ(creds.Username)).
+		Only(ctx)
+	if ent.IsNotFound(err) {
+		return "", ErrInvalidCredentials
+	} else if err != nil {
+		return "", err
+	}
+	if authRec.Password != creds.Password {
+		return "", ErrInvalidCredentials
+	}
 
-// DropCredentials deletes the credentials associated with the given auth ID,
-// and deletes the association of the user with the auth ID.
-//
-// Returns ErrUserNotFound if the user is not found.
-func (i *IAM) DropCredentials(ctx context.Context, authID UUID) error
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"auth_id": authRec.AuthID.String(),
+		"user_id": authRec.UserID.String(),
+		"role":    string(RoleUser),
+		"exp":     time.Now().Add(72 * time.Hour).Unix(),
+	})
+	signed, err := token.SignedString(jwtKey)
+	if err != nil {
+		return "", err
+	}
+	return signed, nil
+}
 
-// Logout invalidates the given token. If the token is alredy invalidated, it's a no-op.
-//
-// If the token itself is invalid, ErrInvalidToken is returned.
-func (i *IAM) Logout(ctx context.Context, token jwt.Token) error
+// ImWatermelon parses tokenString, returns Identity or ErrInvalidToken.
+func (i *IAM) ImWatermelon(ctx context.Context, tokenString string) (Identity, error) {
+	parsed, err := jwt.Parse(tokenString, func(t *jwt.Token) (interface{}, error) {
+		if t.Method != jwt.SigningMethodHS256 {
+			return nil, ErrInvalidToken
+		}
+		return jwtKey, nil
+	})
+	if err != nil || !parsed.Valid {
+		return Identity{}, ErrInvalidToken
+	}
+	claims, ok := parsed.Claims.(jwt.MapClaims)
+	if !ok {
+		return Identity{}, ErrInvalidToken
+	}
+	userIDstr, ok1 := claims["user_id"].(string)
+	roleStr, ok2 := claims["role"].(string)
+	if !ok1 || !ok2 {
+		return Identity{}, ErrInvalidToken
+	}
+	uid, err := uuid.FromString(userIDstr)
+	if err != nil {
+		return Identity{}, ErrInvalidToken
+	}
+	return Identity{ID: uid, Role: Role(roleStr)}, nil
+}
+
+// Logout is a no-op for stateless JWT.
+func (i *IAM) Logout(ctx context.Context, tokenString string) error {
+	return nil
+}
+
+// DropCredentials deletes credentials by authID; returns ErrUserNotFound if missing.
+func (i *IAM) DropCredentials(ctx context.Context, authID UUID) error {
+	res, err := i.client.AuthUser.
+		Delete().
+		Where(authuser.AuthIDEQ(uuid.UUID(authID))).
+		Exec(ctx)
+	if err != nil {
+		return err
+	}
+	if res == 0 {
+		return ErrUserNotFound
+	}
+	return nil
+}

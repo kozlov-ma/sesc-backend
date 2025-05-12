@@ -4,6 +4,7 @@ package ent
 
 import (
 	"context"
+	"database/sql/driver"
 	"fmt"
 	"math"
 
@@ -13,6 +14,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	uuid "github.com/gofrs/uuid/v5"
+	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/authuser"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/department"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/predicate"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/user"
@@ -26,6 +28,7 @@ type UserQuery struct {
 	inters         []Interceptor
 	predicates     []predicate.User
 	withDepartment *DepartmentQuery
+	withAuth       *AuthUserQuery
 	modifiers      []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -78,6 +81,28 @@ func (uq *UserQuery) QueryDepartment() *DepartmentQuery {
 			sqlgraph.From(user.Table, user.FieldID, selector),
 			sqlgraph.To(department.Table, department.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, user.DepartmentTable, user.DepartmentColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryAuth chains the current query on the "auth" edge.
+func (uq *UserQuery) QueryAuth() *AuthUserQuery {
+	query := (&AuthUserClient{config: uq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := uq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := uq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(authuser.Table, authuser.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, false, user.AuthTable, user.AuthColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
 		return fromU, nil
@@ -278,6 +303,7 @@ func (uq *UserQuery) Clone() *UserQuery {
 		inters:         append([]Interceptor{}, uq.inters...),
 		predicates:     append([]predicate.User{}, uq.predicates...),
 		withDepartment: uq.withDepartment.Clone(),
+		withAuth:       uq.withAuth.Clone(),
 		// clone intermediate query.
 		sql:  uq.sql.Clone(),
 		path: uq.path,
@@ -292,6 +318,17 @@ func (uq *UserQuery) WithDepartment(opts ...func(*DepartmentQuery)) *UserQuery {
 		opt(query)
 	}
 	uq.withDepartment = query
+	return uq
+}
+
+// WithAuth tells the query-builder to eager-load the nodes that are connected to
+// the "auth" edge. The optional arguments are used to configure the query builder of the edge.
+func (uq *UserQuery) WithAuth(opts ...func(*AuthUserQuery)) *UserQuery {
+	query := (&AuthUserClient{config: uq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	uq.withAuth = query
 	return uq
 }
 
@@ -373,8 +410,9 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 	var (
 		nodes       = []*User{}
 		_spec       = uq.querySpec()
-		loadedTypes = [1]bool{
+		loadedTypes = [2]bool{
 			uq.withDepartment != nil,
+			uq.withAuth != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -401,6 +439,12 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 	if query := uq.withDepartment; query != nil {
 		if err := uq.loadDepartment(ctx, query, nodes, nil,
 			func(n *User, e *Department) { n.Edges.Department = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := uq.withAuth; query != nil {
+		if err := uq.loadAuth(ctx, query, nodes, nil,
+			func(n *User, e *AuthUser) { n.Edges.Auth = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -436,6 +480,33 @@ func (uq *UserQuery) loadDepartment(ctx context.Context, query *DepartmentQuery,
 		for i := range nodes {
 			assign(nodes[i], n)
 		}
+	}
+	return nil
+}
+func (uq *UserQuery) loadAuth(ctx context.Context, query *AuthUserQuery, nodes []*User, init func(*User), assign func(*User, *AuthUser)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*User)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(authuser.FieldUserID)
+	}
+	query.Where(predicate.AuthUser(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(user.AuthColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.UserID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "user_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
 	}
 	return nil
 }

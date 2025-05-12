@@ -28,6 +28,8 @@ const (
 	FieldRoleID = "role_id"
 	// EdgeDepartment holds the string denoting the department edge name in mutations.
 	EdgeDepartment = "department"
+	// EdgeAuth holds the string denoting the auth edge name in mutations.
+	EdgeAuth = "auth"
 	// Table holds the table name of the user in the database.
 	Table = "users"
 	// DepartmentTable is the table that holds the department relation/edge.
@@ -37,6 +39,13 @@ const (
 	DepartmentInverseTable = "departments"
 	// DepartmentColumn is the table column denoting the department relation/edge.
 	DepartmentColumn = "department_id"
+	// AuthTable is the table that holds the auth relation/edge.
+	AuthTable = "auth_users"
+	// AuthInverseTable is the table name for the AuthUser entity.
+	// It exists in this package in order to avoid circular dependency with the "authuser" package.
+	AuthInverseTable = "auth_users"
+	// AuthColumn is the table column denoting the auth relation/edge.
+	AuthColumn = "user_id"
 )
 
 // Columns holds all SQL columns for user fields.
@@ -117,10 +126,24 @@ func ByDepartmentField(field string, opts ...sql.OrderTermOption) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newDepartmentStep(), sql.OrderByField(field, opts...))
 	}
 }
+
+// ByAuthField orders the results by auth field.
+func ByAuthField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newAuthStep(), sql.OrderByField(field, opts...))
+	}
+}
 func newDepartmentStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(DepartmentInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, true, DepartmentTable, DepartmentColumn),
+	)
+}
+func newAuthStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(AuthInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2O, false, AuthTable, AuthColumn),
 	)
 }
