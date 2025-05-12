@@ -3,7 +3,6 @@ package iam
 import (
 	"context"
 	"errors"
-	"log/slog"
 
 	"github.com/gofrs/uuid/v5"
 	"github.com/golang-jwt/jwt/v5"
@@ -41,7 +40,7 @@ type Identity struct {
 }
 
 type IAM struct {
-	log *slog.Logger
+	// log *slog.Logger
 }
 
 type UUID uuid.UUID
@@ -58,10 +57,10 @@ func (i *IAM) RegisterCredentials(ctx context.Context, userID UUID, creds Creden
 	panic("Not implemented")
 }
 
-// ImWatermelon validates a JWT token and returns the identity of the user.
+// ValidateToken validates a JWT token and returns the identity of the user.
 //
 // If the token is invalid, ErrInvalidToken is returned.
-func (i *IAM) ImWatermelon(ctx context.Context, token jwt.Token) (Identity, error) {
+func (i *IAM) ValidateToken(ctx context.Context, token jwt.Token) (Identity, error) {
 	panic("Not implemented")
 }
 
