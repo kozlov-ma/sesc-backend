@@ -205,157 +205,63 @@ export function UsersTable() {
     await updateUser({ id: selectedUser.id, data: values });
   };
 
-  // These functions are passed to child components, so keep them as is
-  const handleUpdateCredentials = async (
-    userId: string,
-    values: CredentialsFormValues,
-  ) => {
-    try {
-      const credentialsData: ApiCredentialsRequest = {
-        username: values.username,
-        password: values.password,
-      };
+  // These functions are not needed anymore since we moved them inside credentials dialog
+  // Delete them and their references in the component
 
-      await apiClient.users.credentialsUpdate(userId, credentialsData);
-
-      toast("Учетные данные обновлены", {
-        description: "Учетные данные пользователя успешно обновлены.",
-      });
-
-      // Invalidate credentials cache
-      mutate(`credentials-${userId}`);
-    } catch (error: any) {
-      console.error("Error updating credentials:", error);
-
-      // Handle conflict error (credentials already assigned to another user)
-      if (
-        error.response?.data?.code === "USER_EXISTS" ||
-        error.response?.data?.code === "CREDENTIALS_CONFLICT"
-      ) {
-        toast.error("Ошибка", {
-          description: "Эти учетные данные уже назначены другому пользователю.",
-        });
-        throw error;
-      }
-
-      const errorMessage =
-        error.response?.data?.ruMessage ||
-        "Не удалось обновить учетные данные пользователя.";
-
-      toast.error("Ошибка", {
-        description: errorMessage,
-      });
-      throw error;
-    }
-  };
-
-  const handleDeleteCredentials = async (userId: string) => {
-    try {
-      await apiClient.auth.credentialsDelete(userId);
-
-      toast("Учетные данные удалены", {
-        description: "Учетные данные пользователя успешно удалены.",
-      });
-
-      // Invalidate credentials cache
-      mutate(`credentials-${userId}`);
-    } catch (error: any) {
-      console.error("Error deleting credentials:", error);
-      const errorMessage =
-        error.response?.data?.ruMessage ||
-        "Не удалось удалить учетные данные пользователя.";
-
-      toast.error("Ошибка", {
-        description: errorMessage,
-      });
-      throw error;
-    }
-  };
-
-  const handleFetchCredentials = async (
-    userId: string,
-  ): Promise<CredentialsFormValues | null> => {
-    try {
-      const response = await apiClient.auth.credentialsDetail(userId);
-
-      if (response.data) {
-        return {
-          username: response.data.username,
-          password: response.data.password,
-        };
-      }
-      return null;
-    } catch (error: any) {
-      // CREDENTIALS_NOT_FOUND means no credentials are assigned yet, which is a valid case
-      if (error.response?.data?.code === "CREDENTIALS_NOT_FOUND") {
-        // This is an expected case, not an error
-        console.log("No credentials assigned yet for user", userId);
-        return null;
-      }
-
-      // USER_NOT_FOUND is also an expected case
-      if (
-        error.response?.data?.code === "USER_NOT_FOUND" ||
-        error.response?.status === 404
-      ) {
-        console.log("User not found", userId);
-        return null;
-      }
-
-      // Any other error should be properly thrown to be caught by SWR error handler
-      console.error("Error fetching credentials:", error);
-      throw error;
-    }
-  };
-
-  // Filter users based on search term
-  const filteredUsers =
-    data?.users.filter((user: ApiUserResponse) => {
-      const fullName = `${user.lastName} ${user.firstName} ${
-        user.middleName || ""
-      }`.toLowerCase();
-      return fullName.includes(searchTerm.toLowerCase());
-    }) || [];
-
-  // Open create user dialog
   const openCreateUserDialog = () => {
     setSelectedUser(undefined);
     setUserFormOpen(true);
   };
 
-  // Open edit user dialog
   const openEditUserDialog = (user: ApiUserResponse) => {
     setSelectedUser(user);
     setUserFormOpen(true);
   };
 
-  // Open credentials dialog
   const openCredentialsDialog = (user: ApiUserResponse) => {
     setSelectedUser(user);
     setUserCredentialsOpen(true);
   };
 
-  // Handle errors with ErrorMessage component
-  if (error) {
+  // Filter users based on search term
+  const filteredUsers = data?.users.filter((user) => {
+    const searchLower = searchTerm.toLowerCase();
     return (
-      <ErrorMessage
-        message={error.message || "Ошибка при загрузке пользователей"}
-      />
+      user.firstName?.toLowerCase().includes(searchLower) ||
+      user.lastName?.toLowerCase().includes(searchLower) ||
+      user.middleName?.toLowerCase().includes(searchLower) ||
+      (user.department?.name || "").toLowerCase().includes(searchLower) ||
+      (user.role?.name || "").toLowerCase().includes(searchLower)
+    );
+  });
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center p-8">
+        <span className="text-muted-foreground">Загрузка...</span>
+      </div>
     );
   }
 
-  // Loading state
-  if (isLoading || !data) {
-    return <div className="p-8 text-center">Загрузка пользователей...</div>;
+  if (error) {
+    let errorMessage = "Не удалось загрузить список пользователей.";
+    if (error.response?.data?.ruMessage) {
+      errorMessage = error.response.data.ruMessage;
+    }
+
+    return (
+      <div className="p-4">
+        <ErrorMessage message={errorMessage} />
+      </div>
+    );
   }
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <div className="relative max-w-sm">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+      <div className="flex justify-between">
+        <div className="relative w-full md:w-72">
+          <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
-            type="search"
             placeholder="Поиск пользователей..."
             className="pl-8"
             value={searchTerm}
@@ -363,8 +269,8 @@ export function UsersTable() {
           />
         </div>
         <Button onClick={openCreateUserDialog}>
-          <UserPlus className="mr-2 h-4 w-4" />
-          Создать пользователя
+          <UserPlus className="h-4 w-4 mr-2" />
+          Добавить пользователя
         </Button>
       </div>
 
@@ -373,113 +279,109 @@ export function UsersTable() {
           <TableHeader>
             <TableRow>
               <TableHead>Пользователь</TableHead>
-              <TableHead>Кафедра</TableHead>
+              <TableHead>Отдел</TableHead>
               <TableHead>Роль</TableHead>
               <TableHead>Статус</TableHead>
-              <TableHead className="w-[50px]"></TableHead>
+              <TableHead className="w-[70px]"></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredUsers.length === 0 ? (
-              <TableRow>
-                <TableCell
-                  colSpan={5}
-                  className="h-24 text-center text-muted-foreground"
-                >
-                  Пользователи не найдены
-                </TableCell>
-              </TableRow>
-            ) : (
-              filteredUsers.map((user: ApiUserResponse) => (
+            {filteredUsers && filteredUsers.length > 0 ? (
+              filteredUsers.map((user) => (
                 <TableRow key={user.id}>
                   <TableCell>
                     <div className="flex items-center gap-3">
-                      <Avatar>
-                        <AvatarImage src={user.pictureUrl} />
+                      <Avatar className="h-8 w-8">
+                        {user.pictureUrl ? (
+                          <AvatarImage src={user.pictureUrl} alt={user.lastName} />
+                        ) : null}
                         <AvatarFallback>
-                          {user.firstName.charAt(0)}
-                          {user.lastName.charAt(0)}
+                          {user.firstName?.[0]}
+                          {user.lastName?.[0]}
                         </AvatarFallback>
                       </Avatar>
-                      <div className="flex flex-col">
-                        <span className="font-medium">
+                      <div>
+                        <div className="font-medium">
                           {user.lastName} {user.firstName}
-                        </span>
-                        {user.middleName && (
-                          <span className="text-sm text-muted-foreground">
+                        </div>
+                        {user.middleName ? (
+                          <div className="text-sm text-muted-foreground">
                             {user.middleName}
-                          </span>
-                        )}
+                          </div>
+                        ) : null}
                       </div>
                     </div>
                   </TableCell>
+                  <TableCell>{user.department?.name || "-"}</TableCell>
+                  <TableCell>{user.role?.name || "-"}</TableCell>
                   <TableCell>
-                    {user.department ? user.department.name : "—"}
-                  </TableCell>
-                  <TableCell>{user.role.name}</TableCell>
-                  <TableCell>
-                    <Badge
-                      variant={user.suspended ? "destructive" : "default"}
-                      className="text-xs"
-                    >
-                      {user.suspended ? "Заблокирован" : "Активен"}
-                    </Badge>
+                    {user.suspended ? (
+                      <Badge variant="destructive">Заблокирован</Badge>
+                    ) : (
+                      <Badge>Активен</Badge>
+                    )}
                   </TableCell>
                   <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button variant="ghost" size="icon">
                           <MoreHorizontal className="h-4 w-4" />
-                          <span className="sr-only">Меню</span>
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Действия</DropdownMenuLabel>
-                        <DropdownMenuItem
-                          onClick={() => openEditUserDialog(user)}
-                        >
+                        <DropdownMenuItem onClick={() => openEditUserDialog(user)}>
                           Редактировать
                         </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => handleToggleSuspend(user)}
-                        >
-                          {user.suspended ? "Разблокировать" : "Заблокировать"}
+                        <DropdownMenuItem onClick={() => openCredentialsDialog(user)}>
+                          <Key className="h-4 w-4 mr-2" />
+                          Учетные данные
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem
-                          onClick={() => openCredentialsDialog(user)}
+                          className={user.suspended ? "text-success" : "text-destructive"}
+                          onClick={() => handleToggleSuspend(user)}
                         >
-                          <Key className="mr-2 h-4 w-4" />
-                          Учетные данные
+                          {user.suspended ? "Разблокировать" : "Заблокировать"}
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>
                 </TableRow>
               ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={6} className="h-24 text-center">
+                  {searchTerm ? (
+                    <span className="text-muted-foreground">
+                      Пользователи не найдены
+                    </span>
+                  ) : (
+                    <span className="text-muted-foreground">
+                      В системе нет пользователей
+                    </span>
+                  )}
+                </TableCell>
+              </TableRow>
             )}
           </TableBody>
         </Table>
       </div>
 
-      {/* User Form Dialog */}
       <UserFormDialog
         open={userFormOpen}
         onOpenChange={setUserFormOpen}
         user={selectedUser}
-        onSubmit={selectedUser ? handleUpdateUser : handleCreateUser}
-        isLoading={isCreatingUser || isUpdatingUser}
+        onSuccess={() => {
+          mutateUsers();
+        }}
       />
-
-      {/* User Credentials Dialog */}
+      
       {selectedUser && (
         <UserCredentialsDialog
           open={userCredentialsOpen}
           onOpenChange={setUserCredentialsOpen}
           user={selectedUser}
-          onSubmit={handleUpdateCredentials}
-          onDelete={handleDeleteCredentials}
-          onFetchCredentials={handleFetchCredentials}
         />
       )}
     </div>

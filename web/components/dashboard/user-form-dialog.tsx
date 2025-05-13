@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import useSWRMutation from "swr/mutation";
 import {
   Dialog,
   DialogContent,
@@ -31,7 +32,15 @@ import {
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useApi } from "@/hooks/use-api";
-import { ApiUserResponse, ApiRolesResponse, ApiDepartmentsResponse } from "@/lib/Api";
+import { toast } from "sonner";
+import { apiClient } from "@/lib/api-client";
+import { 
+  ApiUserResponse, 
+  ApiRolesResponse, 
+  ApiDepartmentsResponse, 
+  ApiCreateUserRequest,
+  ApiPatchUserRequest
+} from "@/lib/Api";
 
 const userFormSchema = z.object({
   firstName: z.string().min(1, "Введите имя"),
@@ -49,16 +58,14 @@ interface UserFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   user?: ApiUserResponse;
-  onSubmit: (values: UserFormValues) => Promise<void>;
-  isLoading?: boolean;
+  onSuccess?: () => void;
 }
 
 export function UserFormDialog({
   open,
   onOpenChange,
   user,
-  onSubmit,
-  isLoading = false,
+  onSuccess,
 }: UserFormDialogProps) {
   const { data: rolesData } = useApi<ApiRolesResponse>("/roles");
   const { data: departmentsData } = useApi<ApiDepartmentsResponse>("/departments");
@@ -75,6 +82,87 @@ export function UserFormDialog({
       suspended: false,
     },
   });
+
+  // Create new user with SWR mutation
+  const { trigger: createUser, isMutating: isCreating } = useSWRMutation(
+    "create-user",
+    async (_key, { arg }: { arg: UserFormValues }) => {
+      try {
+        const userData: ApiCreateUserRequest = {
+          firstName: arg.firstName,
+          lastName: arg.lastName,
+          middleName: arg.middleName || undefined,
+          departmentId: arg.departmentId || undefined,
+          pictureUrl: arg.pictureUrl || undefined,
+          roleId: arg.roleId,
+        };
+
+        const response = await apiClient.users.usersCreate(userData);
+        
+        toast("Пользователь создан", {
+          description: "Новый пользователь успешно создан.",
+        });
+        
+        onOpenChange(false);
+        if (onSuccess) onSuccess();
+        return response.data;
+      } catch (error: any) {
+        console.error("Error creating user:", error);
+        const errorMessage =
+          error.response?.data?.ruMessage || "Не удалось создать пользователя.";
+
+        toast.error("Ошибка", {
+          description: errorMessage,
+        });
+        
+        return null;
+      }
+    }
+  );
+
+  // Update existing user with SWR mutation
+  const { trigger: updateUser, isMutating: isUpdating } = useSWRMutation(
+    "update-user",
+    async (_key, { arg }: { arg: UserFormValues }) => {
+      try {
+        if (!user) throw new Error("User not defined");
+        
+        const userData: ApiPatchUserRequest = {
+          firstName: arg.firstName,
+          lastName: arg.lastName,
+          middleName: arg.middleName || undefined,
+          departmentId: arg.departmentId || undefined,
+          pictureUrl: arg.pictureUrl || undefined,
+          roleId: arg.roleId,
+          suspended: arg.suspended,
+        };
+
+        const response = await apiClient.users.usersPartialUpdate(
+          user.id,
+          userData,
+        );
+        
+        toast("Пользователь обновлен", {
+          description: "Данные пользователя успешно обновлены.",
+        });
+        
+        onOpenChange(false);
+        if (onSuccess) onSuccess();
+        return response.data;
+      } catch (error: any) {
+        console.error("Error updating user:", error);
+        const errorMessage =
+          error.response?.data?.ruMessage ||
+          "Не удалось обновить данные пользователя.";
+
+        toast.error("Ошибка", {
+          description: errorMessage,
+        });
+        
+        return null;
+      }
+    }
+  );
 
   // Set form values when editing an existing user
   useEffect(() => {
@@ -102,13 +190,14 @@ export function UserFormDialog({
   }, [user, form]);
 
   const handleSubmit = async (values: UserFormValues) => {
-    try {
-      await onSubmit(values);
-      onOpenChange(false);
-    } catch (error) {
-      console.error("Error submitting user form:", error);
+    if (user) {
+      await updateUser(values);
+    } else {
+      await createUser(values);
     }
   };
+
+  const isLoading = isCreating || isUpdating;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

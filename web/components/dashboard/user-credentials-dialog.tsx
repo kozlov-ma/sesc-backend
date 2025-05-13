@@ -27,6 +27,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Copy, RefreshCw, Eye, EyeOff, ClipboardCopy } from "lucide-react";
 import { ApiUserResponse } from "@/lib/Api";
+import { apiClient } from "@/lib/api-client";
 
 const credentialsSchema = z.object({
   username: z
@@ -41,18 +42,12 @@ interface UserCredentialsDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   user: ApiUserResponse;
-  onSubmit: (userId: string, values: CredentialsFormValues) => Promise<void>;
-  onDelete: (userId: string) => Promise<void>;
-  onFetchCredentials: (userId: string) => Promise<CredentialsFormValues | null>;
 }
 
 export function UserCredentialsDialog({
   open,
   onOpenChange,
   user,
-  onSubmit,
-  onDelete,
-  onFetchCredentials,
 }: UserCredentialsDialogProps) {
   const [showPassword, setShowPassword] = useState(false);
 
@@ -68,60 +63,81 @@ export function UserCredentialsDialog({
   const credentialsKey = open ? `credentials-${user.id}` : null;
   const {
     data: credentials,
-    error,
     isLoading,
     isValidating,
     mutate: revalidate,
-  } = useSWR(credentialsKey, () => onFetchCredentials(user.id), {
-    revalidateOnFocus: false,
-    onSuccess: (data) => {
-      if (data) {
-        form.setValue("username", data.username);
-        form.setValue("password", data.password);
-      } else {
-        // Reset form when no credentials found
-        form.reset({
-          username: "",
-          password: "",
+  } = useSWR(
+    credentialsKey,
+    async () => {
+      try {
+        const response = await apiClient.auth.credentialsDetail(user.id);
+        return response.data;
+      } catch (err: any) {
+        // Check if this is a "credentials not found" error, which is expected
+        if (
+          err.response?.data?.code === "CREDENTIALS_NOT_FOUND" ||
+          err.response?.data?.errorType === "CREDENTIALS_NOT_FOUND"
+        ) {
+          // This is not actually an error, just return null
+          return null;
+        }
+
+        // For other errors, display a message
+        let errorMessage = "Не удалось получить учетные данные пользователя.";
+        if (err.response?.data?.ruMessage) {
+          errorMessage = err.response.data.ruMessage;
+        }
+
+        toast.error("Ошибка", {
+          description: errorMessage,
         });
+
+        return null;
       }
     },
-    onError: (err: any) => {
-      console.error("Error fetching credentials:", err);
-
-      // Check if this is a "credentials not found" error, which is expected
-      if (
-        err.response?.data?.code === "CREDENTIALS_NOT_FOUND" ||
-        err.response?.data?.errorType === "CREDENTIALS_NOT_FOUND"
-      ) {
-        // This is not actually an error, just reset form fields
-        form.reset({
-          username: "",
-          password: "",
-        });
-        // Suppress the error display
-        return;
-      }
-
-      // For other errors, display a message
-      let errorMessage = "Не удалось получить учетные данные пользователя.";
-      if (err.response?.data?.ruMessage) {
-        errorMessage = err.response.data.ruMessage;
-      }
-
-      toast.error("Ошибка", {
-        description: errorMessage,
-      });
+    {
+      revalidateOnFocus: false,
+      onSuccess: (data) => {
+        if (data) {
+          form.setValue("username", data.username);
+          form.setValue("password", data.password);
+        } else {
+          // Reset form when no credentials found
+          form.reset({
+            username: "",
+            password: "",
+          });
+        }
+      },
     },
-  });
+  );
 
   // Use SWR Mutation for submitting/updating credentials
   const { trigger: submitCredentials, isMutating: isSubmitting } =
     useSWRMutation(
       `credentials-update-${user.id}`,
       async (_key, { arg }: { arg: CredentialsFormValues }) => {
-        await onSubmit(user.id, arg);
-        return true;
+        try {
+          const response = await apiClient.users.credentialsUpdate(
+            user.id,
+            arg,
+          );
+          return response.data;
+        } catch (err: any) {
+          // Handle conflict error (credentials already assigned to another user)
+          if (
+            err.response?.status === 409 ||
+            err.response?.data?.code === "CREDENTIALS_CONFLICT" ||
+            err.response?.data?.code === "USER_EXISTS"
+          ) {
+            toast.error("Ошибка", {
+              description:
+                "Эти учетные данные уже назначены другому пользователю.",
+            });
+          }
+
+          throw err;
+        }
       },
       {
         onSuccess: () => {
@@ -131,26 +147,16 @@ export function UserCredentialsDialog({
             description: "Учетные данные пользователя успешно обновлены.",
           });
         },
-        onError: (err: any) => {
-          console.error("Error updating credentials:", err);
-          
-          // Handle conflict error (credentials already assigned to another user)
-          if (err.response?.status === 409 || err.response?.data?.code === "CREDENTIALS_CONFLICT") {
-            toast.error("Ошибка", {
-              description: "Эти учетные данные уже назначены другому пользователю.",
-            });
-            return;
-          }
-          
-          // Handle all other API errors with proper message
-          let errorMessage =
+        onError: (err, key, config) => {
+          const errorMessage =
             err.response?.data?.ruMessage ||
             "Не удалось обновить учетные данные пользователя.";
-          
+
           toast.error("Ошибка", {
             description: errorMessage,
           });
         },
+        throwOnError: false,
       },
     );
 
@@ -158,8 +164,20 @@ export function UserCredentialsDialog({
   const { trigger: deleteCredentials, isMutating: isDeleting } = useSWRMutation(
     `credentials-delete-${user.id}`,
     async () => {
-      await onDelete(user.id);
-      return true;
+      try {
+        await apiClient.auth.credentialsDelete(user.id);
+        return true;
+      } catch (err: any) {
+        // Handle all API errors
+        let errorMessage =
+          err.response?.data?.ruMessage ||
+          "Не удалось удалить учетные данные пользователя.";
+
+        toast.error("Ошибка", {
+          description: errorMessage,
+        });
+        return null;
+      }
     },
     {
       onSuccess: () => {
@@ -167,18 +185,6 @@ export function UserCredentialsDialog({
         onOpenChange(false);
         toast("Учетные данные удалены", {
           description: "Учетные данные пользователя успешно удалены.",
-        });
-      },
-      onError: (err: any) => {
-        console.error("Error deleting credentials:", err);
-        
-        // Handle all API errors
-        let errorMessage =
-          err.response?.data?.ruMessage ||
-          "Не удалось удалить учетные данные пользователя.";
-        
-        toast.error("Ошибка", {
-          description: errorMessage,
         });
       },
     },
@@ -206,14 +212,14 @@ export function UserCredentialsDialog({
   const copyAllCredentials = () => {
     const username = form.getValues("username");
     const password = form.getValues("password");
-    
+
     if (!username || !password) {
       toast.error("Ошибка", {
         description: "Нет данных для копирования",
       });
       return;
     }
-    
+
     const text = `Имя пользователя: ${username}\nПароль: ${password}`;
     navigator.clipboard.writeText(text);
     toast("Скопировано в буфер обмена", {
@@ -250,7 +256,6 @@ export function UserCredentialsDialog({
                 <ClipboardCopy className="h-4 w-4 mr-2" />
                 Копировать все
               </Button>
-              
               <Button
                 type="button"
                 variant="outline"
@@ -259,27 +264,10 @@ export function UserCredentialsDialog({
                 disabled={isValidating}
               >
                 <RefreshCw
-                  className={`h-4 w-4 mr-2 ${isValidating ? "animate-spin" : ""}`}
+                  className={`h-4 w-4 ${isValidating ? "animate-spin" : ""}`}
                 />
-                Обновить
               </Button>
             </div>
-
-            {isLoading && (
-              <div className="text-center text-sm text-muted-foreground py-2">
-                Загрузка учетных данных...
-              </div>
-            )}
-
-            {/* Only show error if it's not the expected CREDENTIALS_NOT_FOUND case */}
-            {error &&
-              error.response?.data?.code !== "CREDENTIALS_NOT_FOUND" &&
-              error.response?.data?.errorType !== "CREDENTIALS_NOT_FOUND" && (
-                <div className="text-center text-sm text-destructive py-2">
-                  {error.response?.data?.ruMessage ||
-                    "Ошибка загрузки учетных данных"}
-                </div>
-              )}
 
             <FormField
               control={form.control}
@@ -287,17 +275,16 @@ export function UserCredentialsDialog({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Имя пользователя</FormLabel>
-                  <div className="flex gap-2">
+                  <div className="flex space-x-2">
                     <FormControl>
-                      <Input placeholder="Имя пользователя" {...field} />
+                      <Input {...field} />
                     </FormControl>
                     <Button
                       type="button"
                       variant="outline"
                       size="icon"
-                      onClick={() =>
-                        copyToClipboard(field.value, "Имя пользователя")
-                      }
+                      className="shrink-0"
+                      onClick={() => copyToClipboard(field.value, "Логин")}
                       disabled={!field.value}
                     >
                       <Copy className="h-4 w-4" />
@@ -314,30 +301,33 @@ export function UserCredentialsDialog({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Пароль</FormLabel>
-                  <div className="flex gap-2">
+                  <div className="flex space-x-2">
                     <FormControl>
-                      <Input 
-                        type={showPassword ? "text" : "password"} 
-                        placeholder="Пароль" 
-                        {...field} 
-                      />
+                      <div className="relative">
+                        <Input
+                          {...field}
+                          type={showPassword ? "text" : "password"}
+                        />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="absolute right-0 top-0 h-full"
+                          onClick={() => setShowPassword(!showPassword)}
+                        >
+                          {showPassword ? (
+                            <EyeOff className="h-4 w-4" />
+                          ) : (
+                            <Eye className="h-4 w-4" />
+                          )}
+                        </Button>
+                      </div>
                     </FormControl>
                     <Button
                       type="button"
                       variant="outline"
                       size="icon"
-                      onClick={() => setShowPassword(!showPassword)}
-                    >
-                      {showPassword ? (
-                        <EyeOff className="h-4 w-4" />
-                      ) : (
-                        <Eye className="h-4 w-4" />
-                      )}
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="icon"
+                      className="shrink-0"
                       onClick={() => copyToClipboard(field.value, "Пароль")}
                       disabled={!field.value}
                     >
@@ -349,27 +339,32 @@ export function UserCredentialsDialog({
               )}
             />
 
-            <DialogFooter className="flex justify-between">
-              <Button
-                type="button"
-                variant="destructive"
-                onClick={handleDelete}
-                disabled={isSubmitting || isDeleting || !credentialsExist}
-              >
-                {isDeleting ? "Удаление..." : "Удалить учетные данные"}
-              </Button>
-              <div className="flex gap-2">
+            <DialogFooter className="gap-2 sm:space-x-0">
+              {credentialsExist ? (
                 <Button
                   type="button"
-                  variant="outline"
-                  onClick={() => onOpenChange(false)}
+                  variant="destructive"
+                  onClick={handleDelete}
+                  disabled={isDeleting || isValidating || !credentials}
                 >
-                  Отмена
+                  {isDeleting ? "Удаление..." : "Удалить"}
                 </Button>
-                <Button type="submit" disabled={isSubmitting || isDeleting}>
-                  {isSubmitting ? "Сохранение..." : "Сохранить"}
-                </Button>
-              </div>
+              ) : null}
+              <Button
+                type="submit"
+                disabled={
+                  isSubmitting ||
+                  isValidating ||
+                  !form.formState.isDirty ||
+                  !form.formState.isValid
+                }
+              >
+                {isSubmitting
+                  ? "Сохранение..."
+                  : credentialsExist
+                    ? "Обновить"
+                    : "Создать"}
+              </Button>
             </DialogFooter>
           </form>
         </Form>
