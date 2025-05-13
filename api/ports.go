@@ -37,7 +37,7 @@ type (
 		// CreateUser creates a new User with a specified role.
 		//
 		// Returns an ErrInvalidName if the first or last name is missing.z
-		CreateUser(ctx context.Context, opt sesc.UserOptions, role sesc.Role) (sesc.User, error)
+		CreateUser(ctx context.Context, opt sesc.UserUpdateOptions) (sesc.User, error)
 		// Return a sesc.DepartmentAlreadyExists if the department already exists
 		CreateDepartment(ctx context.Context, name, description string) (sesc.Department, error)
 		UpdateDepartment(ctx context.Context, id sesc.UUID, name, description string) error

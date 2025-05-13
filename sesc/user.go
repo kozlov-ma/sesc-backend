@@ -23,8 +23,6 @@ type User struct {
 	Department Department
 
 	Role Role
-
-	AuthID UUID
 }
 
 func (u User) HasPermission(permission Permission) bool {
@@ -40,6 +38,5 @@ func (u User) UpdateOptions() UserUpdateOptions {
 		Suspended:    u.Suspended,
 		DepartmentID: u.Department.ID,
 		NewRoleID:    u.Role.ID,
-		AuthID:       u.AuthID,
 	}
 }

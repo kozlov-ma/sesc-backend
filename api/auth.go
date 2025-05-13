@@ -72,31 +72,29 @@ func (a *API) RegisterUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	authID, err := a.iam.RegisterCredentials(ctx, userID, creds)
-	if errors.Is(err, iam.ErrInvalidCredentials) {
+	switch {
+	case errors.Is(err, iam.ErrInvalidCredentials):
 		a.writeError(w, APIError{
 			Code:      "INVALID_CREDENTIALS",
 			Message:   "Invalid credentials format",
 			RuMessage: "Неверный формат учетных данных",
 		}, http.StatusBadRequest)
 		return
-	}
-	if errors.Is(err, iam.ErrUserDoesNotExist) {
+	case errors.Is(err, iam.ErrUserDoesNotExist):
 		a.writeError(w, APIError{
 			Code:      "USER_NOT_FOUND",
 			Message:   "User does not exist",
 			RuMessage: "Пользователь не существует",
 		}, http.StatusNotFound)
 		return
-	}
-	if errors.Is(err, iam.ErrUserAlreadyExists) {
+	case errors.Is(err, iam.ErrUserAlreadyExists):
 		a.writeError(w, APIError{
 			Code:      "USER_EXISTS",
 			Message:   "User with this username already exists",
 			RuMessage: "Пользователь с таким именем уже существует",
 		}, http.StatusConflict)
 		return
-	}
-	if err != nil {
+	case err != nil:
 		a.writeError(w, APIError{
 			Code:      "SERVER_ERROR",
 			Message:   "Failed to register user",
@@ -135,15 +133,15 @@ func (a *API) Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	token, err := a.iam.Login(ctx, creds)
-	if errors.Is(err, iam.ErrInvalidCredentials) {
+	switch {
+	case errors.Is(err, iam.ErrInvalidCredentials):
 		a.writeError(w, APIError{
 			Code:      "INVALID_CREDENTIALS",
 			Message:   "Invalid username or password",
 			RuMessage: "Неверное имя пользователя или пароль",
 		}, http.StatusUnauthorized)
 		return
-	}
-	if err != nil {
+	case err != nil:
 		a.writeError(w, APIError{
 			Code:      "SERVER_ERROR",
 			Message:   "Failed to login",
@@ -177,15 +175,15 @@ func (a *API) LoginAdmin(w http.ResponseWriter, r *http.Request) {
 	}
 
 	token, err := a.iam.LoginAdmin(ctx, req.Token)
-	if errors.Is(err, iam.ErrInvalidCredentials) {
+	switch {
+	case errors.Is(err, iam.ErrInvalidCredentials):
 		a.writeError(w, APIError{
 			Code:      "INVALID_ADMIN_TOKEN",
 			Message:   "Invalid admin token",
 			RuMessage: "Неверный токен администратора",
 		}, http.StatusUnauthorized)
 		return
-	}
-	if err != nil {
+	case err != nil:
 		a.writeError(w, APIError{
 			Code:      "SERVER_ERROR",
 			Message:   "Failed to login as admin",
@@ -226,23 +224,22 @@ func (a *API) DeleteCredentials(w http.ResponseWriter, r *http.Request) {
 	}
 
 	err = a.iam.DropCredentials(ctx, userID)
-	if errors.Is(err, iam.ErrUserNotFound) {
+	switch {
+	case errors.Is(err, iam.ErrUserNotFound):
 		a.writeError(w, APIError{
 			Code:      "CREDENTIALS_NOT_FOUND",
 			Message:   "User credentials not found",
 			RuMessage: "Учетные данные пользователя не найдены",
 		}, http.StatusNotFound)
 		return
-	}
-	if errors.Is(err, iam.ErrUserDoesNotExist) {
+	case errors.Is(err, iam.ErrUserDoesNotExist):
 		a.writeError(w, APIError{
 			Code:      "USER_NOT_FOUND",
 			Message:   "User does not exist",
 			RuMessage: "Пользователь не существует",
 		}, http.StatusNotFound)
 		return
-	}
-	if err != nil {
+	case err != nil:
 		a.writeError(w, APIError{
 			Code:      "SERVER_ERROR",
 			Message:   "Failed to delete credentials",
@@ -283,23 +280,22 @@ func (a *API) GetCredentials(w http.ResponseWriter, r *http.Request) {
 	}
 
 	creds, err := a.iam.Credentials(ctx, userID)
-	if errors.Is(err, iam.ErrUserNotFound) {
+	switch {
+	case errors.Is(err, iam.ErrUserNotFound):
 		a.writeError(w, APIError{
 			Code:      "CREDENTIALS_NOT_FOUND",
 			Message:   "User credentials not found",
 			RuMessage: "Учетные данные пользователя не найдены",
 		}, http.StatusNotFound)
 		return
-	}
-	if errors.Is(err, iam.ErrUserDoesNotExist) {
+	case errors.Is(err, iam.ErrUserDoesNotExist):
 		a.writeError(w, APIError{
 			Code:      "USER_NOT_FOUND",
 			Message:   "User does not exist",
 			RuMessage: "Пользователь не существует",
 		}, http.StatusNotFound)
 		return
-	}
-	if err != nil {
+	case err != nil:
 		a.writeError(w, APIError{
 			Code:      "SERVER_ERROR",
 			Message:   "Failed to get user credentials",
@@ -340,15 +336,15 @@ func (a *API) ValidateToken(w http.ResponseWriter, r *http.Request) {
 
 	tokenString := authHeader[7:]
 	identity, err := a.iam.ImWatermelon(ctx, tokenString)
-	if errors.Is(err, iam.ErrInvalidToken) {
+	switch {
+	case errors.Is(err, iam.ErrInvalidToken):
 		a.writeError(w, APIError{
 			Code:      "INVALID_TOKEN",
 			Message:   "Invalid or expired token",
 			RuMessage: "Недействительный или просроченный токен",
 		}, http.StatusUnauthorized)
 		return
-	}
-	if err != nil {
+	case err != nil:
 		a.writeError(w, APIError{
 			Code:      "SERVER_ERROR",
 			Message:   "Failed to validate token",

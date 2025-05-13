@@ -2,6 +2,7 @@ package entdb
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -96,27 +97,49 @@ func (d *DB) Departments(ctx context.Context) ([]sesc.Department, error) {
 }
 
 // SaveUser implements sesc.DB.
-func (d *DB) SaveUser(ctx context.Context, u sesc.User) error {
-	cr := d.c.User.Create().
-		SetID(u.ID).
-		SetFirstName(u.FirstName).
-		SetLastName(u.LastName).
-		SetMiddleName(u.MiddleName).
-		SetPictureURL(u.PictureURL).
-		SetRoleID(u.Role.ID)
-	if u.Department != sesc.NoDepartment {
-		cr = cr.SetDepartmentID(u.Department.ID)
-	}
-	_, err := cr.Save(ctx)
-
-	switch {
-	case ent.IsNotFound(err):
-		return errors.Join(err, sesc.ErrInvalidDepartment)
-	case err != nil:
-		return fmt.Errorf("couldn't save user: %w", err)
+func (d *DB) SaveUser(ctx context.Context, opt sesc.UserUpdateOptions) (sesc.User, error) {
+	tx, err := d.c.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelSerializable})
+	if err != nil {
+		return sesc.User{}, fmt.Errorf("couldn't begin transaction: %w", err)
 	}
 
-	return nil
+	var dept *ent.Department
+	if opt.DepartmentID != uuid.Nil {
+		var err error
+		dept, err = tx.Department.Get(ctx, opt.DepartmentID)
+		switch {
+		case ent.IsNotFound(err):
+			return sesc.User{}, rollback(tx, sesc.ErrInvalidDepartment)
+		case err != nil:
+			return sesc.User{}, rollback(tx, fmt.Errorf("couldn't query department: %w", err))
+		}
+	}
+
+	cr := tx.User.Create().
+		SetFirstName(opt.FirstName).
+		SetLastName(opt.LastName).
+		SetMiddleName(opt.MiddleName).
+		SetPictureURL(opt.PictureURL).
+		SetRoleID(opt.NewRoleID)
+	if dept != nil {
+		cr = cr.SetDepartment(dept)
+	}
+
+	res, err := cr.Save(ctx)
+	if err != nil {
+		return sesc.User{}, rollback(tx, fmt.Errorf("couldn't save user: %w", err))
+	}
+
+	us, err := tx.User.Query().Where(user.ID(res.ID)).WithDepartment().Only(ctx)
+	if err != nil {
+		return sesc.User{}, rollback(tx, fmt.Errorf("couldn't query user after saving them: %w", err))
+	}
+
+	if err := tx.Commit(); err != nil {
+		return sesc.User{}, fmt.Errorf("couldn't commit transaction: %w", err)
+	}
+
+	return convertUser(us)
 }
 
 // UpdateDepartment implements sesc.DB.
@@ -145,12 +168,14 @@ func (d *DB) UpdateProfilePicture(ctx context.Context, id sesc.UUID, pictureURL 
 
 // UpdateUser implements sesc.DB.
 func (d *DB) UpdateUser(ctx context.Context, id sesc.UUID, opt sesc.UserUpdateOptions) (sesc.User, error) {
-	tx, err := d.c.Tx(ctx)
+	tx, err := d.c.BeginTx(ctx, &sql.TxOptions{
+		Isolation: sql.LevelSerializable,
+	})
 	if err != nil {
 		return sesc.User{}, fmt.Errorf("couldn't start transaction: %w", err)
 	}
 
-	user, err := tx.User.Query().ForUpdate().Where(user.ID(id)).WithDepartment().Only(ctx)
+	us, err := tx.User.Get(ctx, id)
 	switch {
 	case ent.IsNotFound(err):
 		return sesc.User{}, rollback(tx, sesc.ErrUserNotFound)
@@ -158,27 +183,48 @@ func (d *DB) UpdateUser(ctx context.Context, id sesc.UUID, opt sesc.UserUpdateOp
 		return sesc.User{}, rollback(tx, fmt.Errorf("couldn't query user: %w", err))
 	}
 
-	upd := user.Update().
+	var dept *ent.Department
+	if opt.DepartmentID != uuid.Nil {
+		var err error
+		dept, err = tx.Department.Get(ctx, opt.DepartmentID)
+		switch {
+		case ent.IsNotFound(err):
+			return sesc.User{}, rollback(tx, sesc.ErrInvalidDepartment)
+		case err != nil:
+			return sesc.User{}, rollback(tx, fmt.Errorf("couldn't query department: %w", err))
+		}
+	}
+
+	upd := us.Update().
 		SetFirstName(opt.FirstName).
 		SetLastName(opt.LastName).
 		SetMiddleName(opt.MiddleName).
 		SetPictureURL(opt.PictureURL).
 		SetSuspended(opt.Suspended).
 		SetRoleID(opt.NewRoleID)
-	if opt.DepartmentID != uuid.Nil {
-		upd = upd.SetDepartmentID(opt.DepartmentID)
+
+	if dept != nil {
+		upd = upd.SetDepartment(dept)
+	} else {
+		upd = upd.ClearDepartment()
 	}
-	res, err := upd.Save(ctx)
+
+	_, err = upd.Save(ctx)
 
 	if err != nil {
 		return sesc.User{}, rollback(tx, fmt.Errorf("couldn't update user: %w", err))
+	}
+
+	us, err = tx.User.Query().Where(user.ID(id)).WithDepartment().Only(ctx)
+	if err != nil {
+		return sesc.User{}, rollback(tx, fmt.Errorf("couldn't query user after an update: %w", err))
 	}
 
 	if err := tx.Commit(); err != nil {
 		return sesc.User{}, fmt.Errorf("couldn't commit transaction: %w", err)
 	}
 
-	return convertUser(res)
+	return convertUser(us)
 }
 
 // UserByID implements sesc.DB.

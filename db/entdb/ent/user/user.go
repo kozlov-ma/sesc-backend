@@ -5,6 +5,7 @@ package user
 import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	uuid "github.com/gofrs/uuid/v5"
 )
 
 const (
@@ -75,6 +76,8 @@ var (
 	DefaultMiddleName string
 	// DefaultSuspended holds the default value on creation for the "suspended" field.
 	DefaultSuspended bool
+	// DefaultID holds the default value on creation for the "id" field.
+	DefaultID func() uuid.UUID
 )
 
 // OrderOption defines the ordering options for the User queries.

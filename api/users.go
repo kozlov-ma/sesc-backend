@@ -21,11 +21,12 @@ type UserResponse struct {
 }
 
 type CreateUserRequest struct {
-	FirstName  string `json:"firstName"  example:"Anna"                   validate:"required"`
-	LastName   string `json:"lastName"   example:"Smirnova"               validate:"required"`
-	MiddleName string `json:"middleName" example:"Olegovna"`
-	PictureURL string `json:"pictureUrl" example:"/images/users/anna.jpg"`
-	RoleID     int32  `json:"roleId"     example:"2"                      validate:"required"`
+	FirstName    string    `json:"firstName"             example:"Anna"                                 validate:"required"`
+	LastName     string    `json:"lastName"              example:"Smirnova"                             validate:"required"`
+	MiddleName   string    `json:"middleName"            example:"Olegovna"`
+	RoleID       int32     `json:"roleId"                example:"2"                                    validate:"required"`
+	PictureURL   string    `json:"pictureUrl,omitzero"   example:"/images/users/ivan.jpg"`
+	DepartmentID uuid.UUID `json:"departmentId,omitzero" example:"550e8400-e29b-41d4-a716-446655440000"`
 }
 
 // GetUser godoc
@@ -57,15 +58,15 @@ func (a *API) GetUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	user, err := a.sesc.User(ctx, userID)
-	if errors.Is(err, sesc.ErrUserNotFound) {
+	switch {
+	case errors.Is(err, sesc.ErrUserNotFound):
 		a.writeError(w, APIError{
 			Code:      "USER_NOT_FOUND",
 			Message:   "User not found",
 			RuMessage: "Пользователь не найден",
 		}, http.StatusNotFound)
 		return
-	}
-	if err != nil {
+	case err != nil:
 		a.writeError(w, APIError{
 			Code:      "SERVER_ERROR",
 			Message:   "Failed to fetch user",
@@ -142,32 +143,31 @@ func (a *API) CreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	role, ok := sesc.RoleByID(req.RoleID)
-	if !ok {
+	user, err := a.sesc.CreateUser(ctx, sesc.UserUpdateOptions{
+		FirstName:    req.FirstName,
+		LastName:     req.LastName,
+		MiddleName:   req.MiddleName,
+		PictureURL:   req.PictureURL,
+		DepartmentID: req.DepartmentID,
+		NewRoleID:    req.RoleID,
+	})
+
+	switch {
+	case errors.Is(err, sesc.ErrInvalidRole):
 		a.writeError(w, APIError{
 			Code:      "INVALID_ROLE",
 			Message:   "Invalid role ID specified",
 			RuMessage: "Указана некорректная роль",
 		}, http.StatusBadRequest)
 		return
-	}
-
-	user, err := a.sesc.CreateUser(ctx, sesc.UserOptions{
-		FirstName:  req.FirstName,
-		LastName:   req.LastName,
-		MiddleName: req.MiddleName,
-	}, role)
-
-	if errors.Is(err, sesc.ErrInvalidName) {
+	case errors.Is(err, sesc.ErrInvalidName):
 		a.writeError(w, APIError{
 			Code:      "INVALID_NAME",
 			Message:   "Invalid name specified",
 			RuMessage: "Указано некорректное имя",
 		}, http.StatusBadRequest)
 		return
-	}
-
-	if err != nil {
+	case err != nil:
 		a.writeError(w, APIError{
 			Code:      "SERVER_ERROR",
 			Message:   "Failed to create user",
@@ -385,15 +385,15 @@ func (a *API) GetCurrentUser(w http.ResponseWriter, r *http.Request) {
 
 	// Get user from sesc
 	user, err := a.sesc.User(ctx, identity.ID)
-	if errors.Is(err, sesc.ErrUserNotFound) {
+	switch {
+	case errors.Is(err, sesc.ErrUserNotFound):
 		a.writeError(w, APIError{
 			Code:      "USER_NOT_FOUND",
 			Message:   "User not found",
 			RuMessage: "Пользователь не найден",
 		}, http.StatusNotFound)
 		return
-	}
-	if err != nil {
+	case err != nil:
 		a.writeError(w, APIError{
 			Code:      "SERVER_ERROR",
 			Message:   "Failed to fetch user data",

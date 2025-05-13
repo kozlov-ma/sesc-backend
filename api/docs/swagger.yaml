@@ -40,6 +40,9 @@ definitions:
     type: object
   api.CreateUserRequest:
     properties:
+      departmentId:
+        example: 550e8400-e29b-41d4-a716-446655440000
+        type: string
       firstName:
         example: Anna
         type: string
@@ -50,7 +53,7 @@ definitions:
         example: Olegovna
         type: string
       pictureUrl:
-        example: /images/users/anna.jpg
+        example: /images/users/ivan.jpg
         type: string
       roleId:
         example: 2

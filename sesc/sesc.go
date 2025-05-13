@@ -44,7 +44,18 @@ type UserUpdateOptions struct {
 	Suspended    bool
 	DepartmentID UUID
 	NewRoleID    int32
-	AuthID       UUID
+}
+
+func (u UserUpdateOptions) Validate() error {
+	if u.FirstName == "" || u.LastName == "" {
+		return ErrInvalidName
+	}
+
+	if _, ok := RoleByID(u.NewRoleID); !ok {
+		return ErrInvalidRole
+	}
+
+	return nil
 }
 
 // UpdateUser updates user with the new fields.
@@ -76,34 +87,18 @@ func (s *SESC) UpdateUser(ctx context.Context, id UUID, upd UserUpdateOptions) (
 	return updated, nil
 }
 
-type UserOptions struct {
-	FirstName  string
-	LastName   string
-	MiddleName string
-}
-
 // CreateUser creates a new User with a specified role.
 //
 // Returns an ErrInvalidName if the first or last name is missing.z
-func (s *SESC) CreateUser(ctx context.Context, opt UserOptions, role Role) (User, error) {
-	id, err := s.newUUID()
-	if err != nil {
+func (s *SESC) CreateUser(ctx context.Context, opt UserUpdateOptions) (User, error) {
+	if err := opt.Validate(); err != nil {
 		return User{}, err
 	}
-
-	u := User{
-		ID:         id,
-		Role:       role,
-		FirstName:  opt.FirstName,
-		LastName:   opt.LastName,
-		MiddleName: opt.MiddleName,
-	}
-
-	if u.FirstName == "" || u.LastName == "" {
-		return User{}, ErrInvalidName
-	}
-
-	if err := s.db.SaveUser(ctx, u); err != nil {
+	u, err := s.db.SaveUser(ctx, opt)
+	switch {
+	case errors.Is(err, ErrInvalidDepartment):
+		return User{}, ErrInvalidDepartment
+	case err != nil:
 		s.log.ErrorContext(ctx, "got a db error when saving user", slog.Any("error", err))
 		return User{}, fmt.Errorf("couldn't save user: %w", err)
 	}

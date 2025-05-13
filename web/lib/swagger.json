@@ -1,1325 +1,1206 @@
 {
-    "swagger": "2.0",
-    "info": {
-        "contact": {}
-    },
-    "paths": {
-        "/auth/admin/login": {
-            "post": {
-                "description": "Verifies admin token and returns a JWT token with admin privileges",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "authentication"
-                ],
-                "summary": "Admin login",
-                "parameters": [
-                    {
-                        "description": "Admin token",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/api.AdminLoginRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/api.TokenResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request format",
-                        "schema": {
-                            "$ref": "#/definitions/api.APIError"
-                        }
-                    },
-                    "401": {
-                        "description": "Invalid admin token",
-                        "schema": {
-                            "$ref": "#/definitions/api.APIError"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "$ref": "#/definitions/api.APIError"
-                        }
-                    }
-                }
+  "swagger": "2.0",
+  "info": {
+    "contact": {}
+  },
+  "paths": {
+    "/auth/admin/login": {
+      "post": {
+        "description": "Verifies admin token and returns a JWT token with admin privileges",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["authentication"],
+        "summary": "Admin login",
+        "parameters": [
+          {
+            "description": "Admin token",
+            "name": "request",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/api.AdminLoginRequest"
             }
-        },
-        "/auth/credentials/{id}": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Retrieves credentials for a user",
-                "tags": [
-                    "authentication"
-                ],
-                "summary": "Get user credentials",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer JWT token",
-                        "name": "Authorization",
-                        "in": "header"
-                    },
-                    {
-                        "type": "string",
-                        "description": "User UUID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/api.CredentialsRequest"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid UUID format",
-                        "schema": {
-                            "$ref": "#/definitions/api.APIError"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/api.APIError"
-                        }
-                    },
-                    "403": {
-                        "description": "Forbidden - admin role required",
-                        "schema": {
-                            "$ref": "#/definitions/api.APIError"
-                        }
-                    },
-                    "404": {
-                        "description": "User not found or does not exist",
-                        "schema": {
-                            "$ref": "#/definitions/api.APIError"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "$ref": "#/definitions/api.APIError"
-                        }
-                    }
-                }
-            },
-            "delete": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Deletes credentials for a user",
-                "tags": [
-                    "authentication"
-                ],
-                "summary": "Delete user credentials",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer JWT token",
-                        "name": "Authorization",
-                        "in": "header"
-                    },
-                    {
-                        "type": "string",
-                        "description": "User UUID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "204": {
-                        "description": "No content"
-                    },
-                    "400": {
-                        "description": "Invalid UUID format",
-                        "schema": {
-                            "$ref": "#/definitions/api.APIError"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/api.APIError"
-                        }
-                    },
-                    "403": {
-                        "description": "Forbidden - admin role required",
-                        "schema": {
-                            "$ref": "#/definitions/api.APIError"
-                        }
-                    },
-                    "404": {
-                        "description": "User not found or does not exist",
-                        "schema": {
-                            "$ref": "#/definitions/api.APIError"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "$ref": "#/definitions/api.APIError"
-                        }
-                    }
-                }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/api.TokenResponse"
             }
-        },
-        "/auth/login": {
-            "post": {
-                "description": "Verifies user credentials and returns a JWT token",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "authentication"
-                ],
-                "summary": "User login",
-                "parameters": [
-                    {
-                        "description": "User credentials",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/api.CredentialsRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/api.TokenResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid credentials format",
-                        "schema": {
-                            "$ref": "#/definitions/api.APIError"
-                        }
-                    },
-                    "401": {
-                        "description": "Invalid credentials",
-                        "schema": {
-                            "$ref": "#/definitions/api.APIError"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "$ref": "#/definitions/api.APIError"
-                        }
-                    }
-                }
+          },
+          "400": {
+            "description": "Invalid request format",
+            "schema": {
+              "$ref": "#/definitions/api.APIError"
             }
-        },
-        "/auth/validate": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Validates a JWT token and returns the identity information",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "authentication"
-                ],
-                "summary": "Validate JWT token",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer JWT token",
-                        "name": "Authorization",
-                        "in": "header"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/api.IdentityResponse"
-                        }
-                    },
-                    "401": {
-                        "description": "Invalid token",
-                        "schema": {
-                            "$ref": "#/definitions/api.APIError"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "$ref": "#/definitions/api.APIError"
-                        }
-                    }
-                }
+          },
+          "401": {
+            "description": "Invalid admin token",
+            "schema": {
+              "$ref": "#/definitions/api.APIError"
             }
-        },
-        "/departments": {
-            "get": {
-                "description": "Retrieves list of all registered departments",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "departments"
-                ],
-                "summary": "List all departments",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/api.DepartmentsResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "$ref": "#/definitions/api.APIError"
-                        }
-                    }
-                }
-            },
-            "post": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Creates a new department with the given details",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "departments"
-                ],
-                "summary": "Create a new department",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer JWT token",
-                        "name": "Authorization",
-                        "in": "header"
-                    },
-                    {
-                        "description": "Department details",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/api.CreateDepartmentRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "Created",
-                        "schema": {
-                            "$ref": "#/definitions/api.Department"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request format",
-                        "schema": {
-                            "$ref": "#/definitions/api.APIError"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/api.APIError"
-                        }
-                    },
-                    "403": {
-                        "description": "Forbidden - admin role required",
-                        "schema": {
-                            "$ref": "#/definitions/api.APIError"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "$ref": "#/definitions/api.APIError"
-                        }
-                    }
-                }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/api.APIError"
             }
-        },
-        "/departments/{id}": {
-            "put": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Updates an existing department with new details",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "departments"
-                ],
-                "summary": "Update department details",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer JWT token",
-                        "name": "Authorization",
-                        "in": "header"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Department UUID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "Updated department details",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/api.UpdateDepartmentRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/api.Department"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid UUID format or request format",
-                        "schema": {
-                            "$ref": "#/definitions/api.APIError"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/api.APIError"
-                        }
-                    },
-                    "403": {
-                        "description": "Forbidden - admin role required",
-                        "schema": {
-                            "$ref": "#/definitions/api.APIError"
-                        }
-                    },
-                    "404": {
-                        "description": "Department not found",
-                        "schema": {
-                            "$ref": "#/definitions/api.APIError"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "$ref": "#/definitions/api.APIError"
-                        }
-                    }
-                }
-            },
-            "delete": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Deletes a department by its ID",
-                "tags": [
-                    "departments"
-                ],
-                "summary": "Delete a department",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer JWT token",
-                        "name": "Authorization",
-                        "in": "header"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Department UUID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "204": {
-                        "description": "No content"
-                    },
-                    "400": {
-                        "description": "Invalid UUID format",
-                        "schema": {
-                            "$ref": "#/definitions/api.APIError"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/api.APIError"
-                        }
-                    },
-                    "403": {
-                        "description": "Forbidden - admin role required",
-                        "schema": {
-                            "$ref": "#/definitions/api.APIError"
-                        }
-                    },
-                    "404": {
-                        "description": "Department not found",
-                        "schema": {
-                            "$ref": "#/definitions/api.APIError"
-                        }
-                    },
-                    "409": {
-                        "description": "Cannot remove department, it still has some users",
-                        "schema": {
-                            "$ref": "#/definitions/api.APIError"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "$ref": "#/definitions/api.APIError"
-                        }
-                    }
-                }
-            }
-        },
-        "/permissions": {
-            "get": {
-                "description": "Retrieves all available system permissions",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "permissions"
-                ],
-                "summary": "List all permissions",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/api.PermissionsResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/roles": {
-            "get": {
-                "description": "Retrieves all system roles with their permissions",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "roles"
-                ],
-                "summary": "List all roles",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/api.RolesResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "$ref": "#/definitions/api.APIError"
-                        }
-                    }
-                }
-            }
-        },
-        "/users": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Retrieves detailed information about all users",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "users"
-                ],
-                "summary": "Get all users registered in the system",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer JWT token",
-                        "name": "Authorization",
-                        "in": "header"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/api.UsersResponse"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/api.APIError"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "$ref": "#/definitions/api.APIError"
-                        }
-                    }
-                }
-            },
-            "post": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Creates a new user with specified role (non-teacher)",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "users"
-                ],
-                "summary": "Create new user",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer JWT token",
-                        "name": "Authorization",
-                        "in": "header"
-                    },
-                    {
-                        "description": "User details",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/api.CreateUserRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "Created",
-                        "schema": {
-                            "$ref": "#/definitions/api.UserResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid role or request format",
-                        "schema": {
-                            "$ref": "#/definitions/api.APIError"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/api.APIError"
-                        }
-                    },
-                    "403": {
-                        "description": "Forbidden - admin role required",
-                        "schema": {
-                            "$ref": "#/definitions/api.APIError"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "$ref": "#/definitions/api.APIError"
-                        }
-                    }
-                }
-            }
-        },
-        "/users/me": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Returns information about the current authenticated user",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "users"
-                ],
-                "summary": "Get current user information",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer JWT token",
-                        "name": "Authorization",
-                        "in": "header"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/api.UserResponse"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized or invalid token",
-                        "schema": {
-                            "$ref": "#/definitions/api.APIError"
-                        }
-                    },
-                    "404": {
-                        "description": "User not found",
-                        "schema": {
-                            "$ref": "#/definitions/api.APIError"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "$ref": "#/definitions/api.APIError"
-                        }
-                    }
-                }
-            }
-        },
-        "/users/{id}": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Retrieves detailed information about a user",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "users"
-                ],
-                "summary": "Get user details",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer JWT token",
-                        "name": "Authorization",
-                        "in": "header"
-                    },
-                    {
-                        "type": "string",
-                        "description": "User UUID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/api.UserResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid UUID format",
-                        "schema": {
-                            "$ref": "#/definitions/api.APIError"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/api.APIError"
-                        }
-                    },
-                    "404": {
-                        "description": "User not found",
-                        "schema": {
-                            "$ref": "#/definitions/api.APIError"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "$ref": "#/definitions/api.APIError"
-                        }
-                    }
-                }
-            },
-            "patch": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Applies a partial update to the user identified by {id}. Only non-nil fields in the request are applied.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "users"
-                ],
-                "summary": "Partially update user",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer JWT token",
-                        "name": "Authorization",
-                        "in": "header"
-                    },
-                    {
-                        "type": "string",
-                        "description": "User UUID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "User fields to update",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/api.PatchUserRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/api.UserResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid UUID format, role or request format",
-                        "schema": {
-                            "$ref": "#/definitions/api.APIError"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/api.APIError"
-                        }
-                    },
-                    "403": {
-                        "description": "Forbidden - admin role required",
-                        "schema": {
-                            "$ref": "#/definitions/api.APIError"
-                        }
-                    },
-                    "404": {
-                        "description": "User not found",
-                        "schema": {
-                            "$ref": "#/definitions/api.APIError"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "$ref": "#/definitions/api.APIError"
-                        }
-                    }
-                }
-            }
-        },
-        "/users/{id}/credentials": {
-            "put": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Assigns username/password credentials to an existing user",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "authentication"
-                ],
-                "summary": "Register user credentials",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer JWT token",
-                        "name": "Authorization",
-                        "in": "header"
-                    },
-                    {
-                        "type": "string",
-                        "description": "User UUID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "User credentials",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/api.CredentialsRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "AuthID",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid credentials or request format",
-                        "schema": {
-                            "$ref": "#/definitions/api.APIError"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/api.APIError"
-                        }
-                    },
-                    "403": {
-                        "description": "Forbidden - admin role required",
-                        "schema": {
-                            "$ref": "#/definitions/api.APIError"
-                        }
-                    },
-                    "404": {
-                        "description": "User does not exist",
-                        "schema": {
-                            "$ref": "#/definitions/api.APIError"
-                        }
-                    },
-                    "409": {
-                        "description": "User already exists",
-                        "schema": {
-                            "$ref": "#/definitions/api.APIError"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "$ref": "#/definitions/api.APIError"
-                        }
-                    }
-                }
-            }
+          }
         }
+      }
     },
-    "definitions": {
-        "api.APIError": {
-            "type": "object",
-            "required": [
-                "code",
-                "message",
-                "ruMessage"
-            ],
-            "properties": {
-                "code": {
-                    "type": "string",
-                    "example": "INVALID_REQUEST"
-                },
-                "details": {
-                    "type": "string",
-                    "example": "field X is required"
-                },
-                "message": {
-                    "type": "string",
-                    "example": "Invalid request body"
-                },
-                "ruMessage": {
-                    "type": "string",
-                    "example": "Некорректный формат запроса"
-                }
+    "/auth/credentials/{id}": {
+      "get": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "description": "Retrieves credentials for a user",
+        "tags": ["authentication"],
+        "summary": "Get user credentials",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Bearer JWT token",
+            "name": "Authorization",
+            "in": "header"
+          },
+          {
+            "type": "string",
+            "description": "User UUID",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/api.CredentialsRequest"
             }
-        },
-        "api.AdminLoginRequest": {
-            "type": "object",
-            "required": [
-                "token"
-            ],
-            "properties": {
-                "token": {
-                    "type": "string",
-                    "example": "admin-secret-token"
-                }
+          },
+          "400": {
+            "description": "Invalid UUID format",
+            "schema": {
+              "$ref": "#/definitions/api.APIError"
             }
-        },
-        "api.CreateDepartmentRequest": {
-            "type": "object",
-            "required": [
-                "description",
-                "name"
-            ],
-            "properties": {
-                "description": {
-                    "type": "string",
-                    "example": "Math department"
-                },
-                "name": {
-                    "type": "string",
-                    "example": "Mathematics"
-                }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "$ref": "#/definitions/api.APIError"
             }
-        },
-        "api.CreateUserRequest": {
-            "type": "object",
-            "required": [
-                "firstName",
-                "lastName",
-                "roleId"
-            ],
-            "properties": {
-                "firstName": {
-                    "type": "string",
-                    "example": "Anna"
-                },
-                "lastName": {
-                    "type": "string",
-                    "example": "Smirnova"
-                },
-                "middleName": {
-                    "type": "string",
-                    "example": "Olegovna"
-                },
-                "pictureUrl": {
-                    "type": "string",
-                    "example": "/images/users/anna.jpg"
-                },
-                "roleId": {
-                    "type": "integer",
-                    "example": 2
-                }
+          },
+          "403": {
+            "description": "Forbidden - admin role required",
+            "schema": {
+              "$ref": "#/definitions/api.APIError"
             }
-        },
-        "api.CredentialsRequest": {
-            "type": "object",
-            "required": [
-                "password",
-                "username"
-            ],
-            "properties": {
-                "password": {
-                    "type": "string",
-                    "example": "secret123"
-                },
-                "username": {
-                    "type": "string",
-                    "example": "johndoe"
-                }
+          },
+          "404": {
+            "description": "User not found or does not exist",
+            "schema": {
+              "$ref": "#/definitions/api.APIError"
             }
-        },
-        "api.Department": {
-            "type": "object",
-            "required": [
-                "description",
-                "id",
-                "name"
-            ],
-            "properties": {
-                "description": {
-                    "type": "string",
-                    "example": "Math department"
-                },
-                "id": {
-                    "type": "string",
-                    "example": "550e8400-e29b-41d4-a716-446655440000"
-                },
-                "name": {
-                    "type": "string",
-                    "example": "Mathematics"
-                }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/api.APIError"
             }
-        },
-        "api.DepartmentsResponse": {
-            "type": "object",
-            "required": [
-                "departments"
-            ],
-            "properties": {
-                "departments": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/api.Department"
-                    }
-                }
-            }
-        },
-        "api.IdentityResponse": {
-            "type": "object",
-            "required": [
-                "id",
-                "role"
-            ],
-            "properties": {
-                "id": {
-                    "type": "string",
-                    "example": "550e8400-e29b-41d4-a716-446655440000"
-                },
-                "role": {
-                    "type": "string",
-                    "example": "user"
-                }
-            }
-        },
-        "api.PatchUserRequest": {
-            "type": "object",
-            "required": [
-                "firstName",
-                "lastName",
-                "roleId",
-                "suspended"
-            ],
-            "properties": {
-                "departmentId": {
-                    "type": "string",
-                    "example": "550e8400-e29b-41d4-a716-446655440000"
-                },
-                "firstName": {
-                    "type": "string",
-                    "example": "Ivan"
-                },
-                "lastName": {
-                    "type": "string",
-                    "example": "Petrov"
-                },
-                "middleName": {
-                    "type": "string",
-                    "example": "Sergeevich"
-                },
-                "pictureUrl": {
-                    "type": "string",
-                    "example": "/images/users/ivan.jpg"
-                },
-                "roleId": {
-                    "type": "integer",
-                    "example": 1
-                },
-                "suspended": {
-                    "type": "boolean",
-                    "example": false
-                }
-            }
-        },
-        "api.Permission": {
-            "type": "object",
-            "required": [
-                "description",
-                "id",
-                "name"
-            ],
-            "properties": {
-                "description": {
-                    "type": "string",
-                    "example": "Создание и заполнение листа достижений"
-                },
-                "id": {
-                    "type": "integer",
-                    "example": 1
-                },
-                "name": {
-                    "type": "string",
-                    "example": "draft_achievement_list"
-                }
-            }
-        },
-        "api.PermissionsResponse": {
-            "type": "object",
-            "required": [
-                "permissions"
-            ],
-            "properties": {
-                "permissions": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/api.Permission"
-                    }
-                }
-            }
-        },
-        "api.Role": {
-            "type": "object",
-            "required": [
-                "id",
-                "name",
-                "permissions"
-            ],
-            "properties": {
-                "id": {
-                    "type": "integer",
-                    "example": 1
-                },
-                "name": {
-                    "type": "string",
-                    "example": "Преподаватель"
-                },
-                "permissions": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/api.Permission"
-                    }
-                }
-            }
-        },
-        "api.RolesResponse": {
-            "type": "object",
-            "properties": {
-                "roles": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/api.Role"
-                    }
-                }
-            }
-        },
-        "api.TokenResponse": {
-            "type": "object",
-            "required": [
-                "token"
-            ],
-            "properties": {
-                "token": {
-                    "type": "string",
-                    "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-                }
-            }
-        },
-        "api.UpdateDepartmentRequest": {
-            "type": "object",
-            "required": [
-                "description",
-                "name"
-            ],
-            "properties": {
-                "description": {
-                    "type": "string",
-                    "example": "Math department"
-                },
-                "name": {
-                    "type": "string",
-                    "example": "Mathematics"
-                }
-            }
-        },
-        "api.UserResponse": {
-            "type": "object",
-            "required": [
-                "firstName",
-                "id",
-                "lastName",
-                "pictureUrl",
-                "role",
-                "suspended"
-            ],
-            "properties": {
-                "department": {
-                    "$ref": "#/definitions/api.Department"
-                },
-                "firstName": {
-                    "type": "string",
-                    "example": "Ivan"
-                },
-                "id": {
-                    "type": "string",
-                    "example": "550e8400-e29b-41d4-a716-446655440000"
-                },
-                "lastName": {
-                    "type": "string",
-                    "example": "Petrov"
-                },
-                "middleName": {
-                    "type": "string",
-                    "example": "Sergeevich"
-                },
-                "pictureUrl": {
-                    "type": "string",
-                    "example": "/images/users/ivan.jpg"
-                },
-                "role": {
-                    "$ref": "#/definitions/api.Role"
-                },
-                "suspended": {
-                    "type": "boolean"
-                }
-            }
-        },
-        "api.UsersResponse": {
-            "type": "object",
-            "required": [
-                "users"
-            ],
-            "properties": {
-                "users": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/api.UserResponse"
-                    }
-                }
-            }
+          }
         }
+      },
+      "delete": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "description": "Deletes credentials for a user",
+        "tags": ["authentication"],
+        "summary": "Delete user credentials",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Bearer JWT token",
+            "name": "Authorization",
+            "in": "header"
+          },
+          {
+            "type": "string",
+            "description": "User UUID",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No content"
+          },
+          "400": {
+            "description": "Invalid UUID format",
+            "schema": {
+              "$ref": "#/definitions/api.APIError"
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "$ref": "#/definitions/api.APIError"
+            }
+          },
+          "403": {
+            "description": "Forbidden - admin role required",
+            "schema": {
+              "$ref": "#/definitions/api.APIError"
+            }
+          },
+          "404": {
+            "description": "User not found or does not exist",
+            "schema": {
+              "$ref": "#/definitions/api.APIError"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/api.APIError"
+            }
+          }
+        }
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "description": "Verifies user credentials and returns a JWT token",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["authentication"],
+        "summary": "User login",
+        "parameters": [
+          {
+            "description": "User credentials",
+            "name": "request",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/api.CredentialsRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/api.TokenResponse"
+            }
+          },
+          "400": {
+            "description": "Invalid credentials format",
+            "schema": {
+              "$ref": "#/definitions/api.APIError"
+            }
+          },
+          "401": {
+            "description": "Invalid credentials",
+            "schema": {
+              "$ref": "#/definitions/api.APIError"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/api.APIError"
+            }
+          }
+        }
+      }
+    },
+    "/auth/validate": {
+      "get": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "description": "Validates a JWT token and returns the identity information",
+        "produces": ["application/json"],
+        "tags": ["authentication"],
+        "summary": "Validate JWT token",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Bearer JWT token",
+            "name": "Authorization",
+            "in": "header"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/api.IdentityResponse"
+            }
+          },
+          "401": {
+            "description": "Invalid token",
+            "schema": {
+              "$ref": "#/definitions/api.APIError"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/api.APIError"
+            }
+          }
+        }
+      }
+    },
+    "/departments": {
+      "get": {
+        "description": "Retrieves list of all registered departments",
+        "produces": ["application/json"],
+        "tags": ["departments"],
+        "summary": "List all departments",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/api.DepartmentsResponse"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/api.APIError"
+            }
+          }
+        }
+      },
+      "post": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "description": "Creates a new department with the given details",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["departments"],
+        "summary": "Create a new department",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Bearer JWT token",
+            "name": "Authorization",
+            "in": "header"
+          },
+          {
+            "description": "Department details",
+            "name": "request",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/api.CreateDepartmentRequest"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created",
+            "schema": {
+              "$ref": "#/definitions/api.Department"
+            }
+          },
+          "400": {
+            "description": "Invalid request format",
+            "schema": {
+              "$ref": "#/definitions/api.APIError"
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "$ref": "#/definitions/api.APIError"
+            }
+          },
+          "403": {
+            "description": "Forbidden - admin role required",
+            "schema": {
+              "$ref": "#/definitions/api.APIError"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/api.APIError"
+            }
+          }
+        }
+      }
+    },
+    "/departments/{id}": {
+      "put": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "description": "Updates an existing department with new details",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["departments"],
+        "summary": "Update department details",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Bearer JWT token",
+            "name": "Authorization",
+            "in": "header"
+          },
+          {
+            "type": "string",
+            "description": "Department UUID",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "description": "Updated department details",
+            "name": "request",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/api.UpdateDepartmentRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/api.Department"
+            }
+          },
+          "400": {
+            "description": "Invalid UUID format or request format",
+            "schema": {
+              "$ref": "#/definitions/api.APIError"
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "$ref": "#/definitions/api.APIError"
+            }
+          },
+          "403": {
+            "description": "Forbidden - admin role required",
+            "schema": {
+              "$ref": "#/definitions/api.APIError"
+            }
+          },
+          "404": {
+            "description": "Department not found",
+            "schema": {
+              "$ref": "#/definitions/api.APIError"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/api.APIError"
+            }
+          }
+        }
+      },
+      "delete": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "description": "Deletes a department by its ID",
+        "tags": ["departments"],
+        "summary": "Delete a department",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Bearer JWT token",
+            "name": "Authorization",
+            "in": "header"
+          },
+          {
+            "type": "string",
+            "description": "Department UUID",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No content"
+          },
+          "400": {
+            "description": "Invalid UUID format",
+            "schema": {
+              "$ref": "#/definitions/api.APIError"
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "$ref": "#/definitions/api.APIError"
+            }
+          },
+          "403": {
+            "description": "Forbidden - admin role required",
+            "schema": {
+              "$ref": "#/definitions/api.APIError"
+            }
+          },
+          "404": {
+            "description": "Department not found",
+            "schema": {
+              "$ref": "#/definitions/api.APIError"
+            }
+          },
+          "409": {
+            "description": "Cannot remove department, it still has some users",
+            "schema": {
+              "$ref": "#/definitions/api.APIError"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/api.APIError"
+            }
+          }
+        }
+      }
+    },
+    "/permissions": {
+      "get": {
+        "description": "Retrieves all available system permissions",
+        "produces": ["application/json"],
+        "tags": ["permissions"],
+        "summary": "List all permissions",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/api.PermissionsResponse"
+            }
+          }
+        }
+      }
+    },
+    "/roles": {
+      "get": {
+        "description": "Retrieves all system roles with their permissions",
+        "produces": ["application/json"],
+        "tags": ["roles"],
+        "summary": "List all roles",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/api.RolesResponse"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/api.APIError"
+            }
+          }
+        }
+      }
+    },
+    "/users": {
+      "get": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "description": "Retrieves detailed information about all users",
+        "produces": ["application/json"],
+        "tags": ["users"],
+        "summary": "Get all users registered in the system",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Bearer JWT token",
+            "name": "Authorization",
+            "in": "header"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/api.UsersResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "$ref": "#/definitions/api.APIError"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/api.APIError"
+            }
+          }
+        }
+      },
+      "post": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "description": "Creates a new user with specified role (non-teacher)",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["users"],
+        "summary": "Create new user",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Bearer JWT token",
+            "name": "Authorization",
+            "in": "header"
+          },
+          {
+            "description": "User details",
+            "name": "request",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/api.CreateUserRequest"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created",
+            "schema": {
+              "$ref": "#/definitions/api.UserResponse"
+            }
+          },
+          "400": {
+            "description": "Invalid role or request format",
+            "schema": {
+              "$ref": "#/definitions/api.APIError"
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "$ref": "#/definitions/api.APIError"
+            }
+          },
+          "403": {
+            "description": "Forbidden - admin role required",
+            "schema": {
+              "$ref": "#/definitions/api.APIError"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/api.APIError"
+            }
+          }
+        }
+      }
+    },
+    "/users/me": {
+      "get": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "description": "Returns information about the current authenticated user",
+        "produces": ["application/json"],
+        "tags": ["users"],
+        "summary": "Get current user information",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Bearer JWT token",
+            "name": "Authorization",
+            "in": "header"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/api.UserResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized or invalid token",
+            "schema": {
+              "$ref": "#/definitions/api.APIError"
+            }
+          },
+          "404": {
+            "description": "User not found",
+            "schema": {
+              "$ref": "#/definitions/api.APIError"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/api.APIError"
+            }
+          }
+        }
+      }
+    },
+    "/users/{id}": {
+      "get": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "description": "Retrieves detailed information about a user",
+        "produces": ["application/json"],
+        "tags": ["users"],
+        "summary": "Get user details",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Bearer JWT token",
+            "name": "Authorization",
+            "in": "header"
+          },
+          {
+            "type": "string",
+            "description": "User UUID",
+            "name": "id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/api.UserResponse"
+            }
+          },
+          "400": {
+            "description": "Invalid UUID format",
+            "schema": {
+              "$ref": "#/definitions/api.APIError"
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "$ref": "#/definitions/api.APIError"
+            }
+          },
+          "404": {
+            "description": "User not found",
+            "schema": {
+              "$ref": "#/definitions/api.APIError"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/api.APIError"
+            }
+          }
+        }
+      },
+      "patch": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "description": "Applies a partial update to the user identified by {id}. Only non-nil fields in the request are applied.",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["users"],
+        "summary": "Partially update user",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Bearer JWT token",
+            "name": "Authorization",
+            "in": "header"
+          },
+          {
+            "type": "string",
+            "description": "User UUID",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "description": "User fields to update",
+            "name": "request",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/api.PatchUserRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/api.UserResponse"
+            }
+          },
+          "400": {
+            "description": "Invalid UUID format, role or request format",
+            "schema": {
+              "$ref": "#/definitions/api.APIError"
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "$ref": "#/definitions/api.APIError"
+            }
+          },
+          "403": {
+            "description": "Forbidden - admin role required",
+            "schema": {
+              "$ref": "#/definitions/api.APIError"
+            }
+          },
+          "404": {
+            "description": "User not found",
+            "schema": {
+              "$ref": "#/definitions/api.APIError"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/api.APIError"
+            }
+          }
+        }
+      }
+    },
+    "/users/{id}/credentials": {
+      "put": {
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "description": "Assigns username/password credentials to an existing user",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["authentication"],
+        "summary": "Register user credentials",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Bearer JWT token",
+            "name": "Authorization",
+            "in": "header"
+          },
+          {
+            "type": "string",
+            "description": "User UUID",
+            "name": "id",
+            "in": "path",
+            "required": true
+          },
+          {
+            "description": "User credentials",
+            "name": "request",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/api.CredentialsRequest"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "AuthID",
+            "schema": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid credentials or request format",
+            "schema": {
+              "$ref": "#/definitions/api.APIError"
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "$ref": "#/definitions/api.APIError"
+            }
+          },
+          "403": {
+            "description": "Forbidden - admin role required",
+            "schema": {
+              "$ref": "#/definitions/api.APIError"
+            }
+          },
+          "404": {
+            "description": "User does not exist",
+            "schema": {
+              "$ref": "#/definitions/api.APIError"
+            }
+          },
+          "409": {
+            "description": "User already exists",
+            "schema": {
+              "$ref": "#/definitions/api.APIError"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/api.APIError"
+            }
+          }
+        }
+      }
     }
+  },
+  "definitions": {
+    "api.APIError": {
+      "type": "object",
+      "required": ["code", "message", "ruMessage"],
+      "properties": {
+        "code": {
+          "type": "string",
+          "example": "INVALID_REQUEST"
+        },
+        "details": {
+          "type": "string",
+          "example": "field X is required"
+        },
+        "message": {
+          "type": "string",
+          "example": "Invalid request body"
+        },
+        "ruMessage": {
+          "type": "string",
+          "example": "Некорректный формат запроса"
+        }
+      }
+    },
+    "api.AdminLoginRequest": {
+      "type": "object",
+      "required": ["token"],
+      "properties": {
+        "token": {
+          "type": "string",
+          "example": "admin-secret-token"
+        }
+      }
+    },
+    "api.CreateDepartmentRequest": {
+      "type": "object",
+      "required": ["description", "name"],
+      "properties": {
+        "description": {
+          "type": "string",
+          "example": "Math department"
+        },
+        "name": {
+          "type": "string",
+          "example": "Mathematics"
+        }
+      }
+    },
+    "api.CreateUserRequest": {
+      "type": "object",
+      "required": ["firstName", "lastName", "roleId"],
+      "properties": {
+        "departmentId": {
+          "type": "string",
+          "example": "550e8400-e29b-41d4-a716-446655440000"
+        },
+        "firstName": {
+          "type": "string",
+          "example": "Anna"
+        },
+        "lastName": {
+          "type": "string",
+          "example": "Smirnova"
+        },
+        "middleName": {
+          "type": "string",
+          "example": "Olegovna"
+        },
+        "pictureUrl": {
+          "type": "string",
+          "example": "/images/users/ivan.jpg"
+        },
+        "roleId": {
+          "type": "integer",
+          "example": 2
+        }
+      }
+    },
+    "api.CredentialsRequest": {
+      "type": "object",
+      "required": ["password", "username"],
+      "properties": {
+        "password": {
+          "type": "string",
+          "example": "secret123"
+        },
+        "username": {
+          "type": "string",
+          "example": "johndoe"
+        }
+      }
+    },
+    "api.Department": {
+      "type": "object",
+      "required": ["description", "id", "name"],
+      "properties": {
+        "description": {
+          "type": "string",
+          "example": "Math department"
+        },
+        "id": {
+          "type": "string",
+          "example": "550e8400-e29b-41d4-a716-446655440000"
+        },
+        "name": {
+          "type": "string",
+          "example": "Mathematics"
+        }
+      }
+    },
+    "api.DepartmentsResponse": {
+      "type": "object",
+      "required": ["departments"],
+      "properties": {
+        "departments": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/api.Department"
+          }
+        }
+      }
+    },
+    "api.IdentityResponse": {
+      "type": "object",
+      "required": ["id", "role"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "example": "550e8400-e29b-41d4-a716-446655440000"
+        },
+        "role": {
+          "type": "string",
+          "example": "user"
+        }
+      }
+    },
+    "api.PatchUserRequest": {
+      "type": "object",
+      "required": ["firstName", "lastName", "roleId", "suspended"],
+      "properties": {
+        "departmentId": {
+          "type": "string",
+          "example": "550e8400-e29b-41d4-a716-446655440000"
+        },
+        "firstName": {
+          "type": "string",
+          "example": "Ivan"
+        },
+        "lastName": {
+          "type": "string",
+          "example": "Petrov"
+        },
+        "middleName": {
+          "type": "string",
+          "example": "Sergeevich"
+        },
+        "pictureUrl": {
+          "type": "string",
+          "example": "/images/users/ivan.jpg"
+        },
+        "roleId": {
+          "type": "integer",
+          "example": 1
+        },
+        "suspended": {
+          "type": "boolean",
+          "example": false
+        }
+      }
+    },
+    "api.Permission": {
+      "type": "object",
+      "required": ["description", "id", "name"],
+      "properties": {
+        "description": {
+          "type": "string",
+          "example": "Создание и заполнение листа достижений"
+        },
+        "id": {
+          "type": "integer",
+          "example": 1
+        },
+        "name": {
+          "type": "string",
+          "example": "draft_achievement_list"
+        }
+      }
+    },
+    "api.PermissionsResponse": {
+      "type": "object",
+      "required": ["permissions"],
+      "properties": {
+        "permissions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/api.Permission"
+          }
+        }
+      }
+    },
+    "api.Role": {
+      "type": "object",
+      "required": ["id", "name", "permissions"],
+      "properties": {
+        "id": {
+          "type": "integer",
+          "example": 1
+        },
+        "name": {
+          "type": "string",
+          "example": "Преподаватель"
+        },
+        "permissions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/api.Permission"
+          }
+        }
+      }
+    },
+    "api.RolesResponse": {
+      "type": "object",
+      "properties": {
+        "roles": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/api.Role"
+          }
+        }
+      }
+    },
+    "api.TokenResponse": {
+      "type": "object",
+      "required": ["token"],
+      "properties": {
+        "token": {
+          "type": "string",
+          "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        }
+      }
+    },
+    "api.UpdateDepartmentRequest": {
+      "type": "object",
+      "required": ["description", "name"],
+      "properties": {
+        "description": {
+          "type": "string",
+          "example": "Math department"
+        },
+        "name": {
+          "type": "string",
+          "example": "Mathematics"
+        }
+      }
+    },
+    "api.UserResponse": {
+      "type": "object",
+      "required": [
+        "firstName",
+        "id",
+        "lastName",
+        "pictureUrl",
+        "role",
+        "suspended"
+      ],
+      "properties": {
+        "department": {
+          "$ref": "#/definitions/api.Department"
+        },
+        "firstName": {
+          "type": "string",
+          "example": "Ivan"
+        },
+        "id": {
+          "type": "string",
+          "example": "550e8400-e29b-41d4-a716-446655440000"
+        },
+        "lastName": {
+          "type": "string",
+          "example": "Petrov"
+        },
+        "middleName": {
+          "type": "string",
+          "example": "Sergeevich"
+        },
+        "pictureUrl": {
+          "type": "string",
+          "example": "/images/users/ivan.jpg"
+        },
+        "role": {
+          "$ref": "#/definitions/api.Role"
+        },
+        "suspended": {
+          "type": "boolean"
+        }
+      }
+    },
+    "api.UsersResponse": {
+      "type": "object",
+      "required": ["users"],
+      "properties": {
+        "users": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/api.UserResponse"
+          }
+        }
+      }
+    }
+  }
 }

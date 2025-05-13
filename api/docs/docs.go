@@ -1045,6 +1045,10 @@ const docTemplate = `{
                 "roleId"
             ],
             "properties": {
+                "departmentId": {
+                    "type": "string",
+                    "example": "550e8400-e29b-41d4-a716-446655440000"
+                },
                 "firstName": {
                     "type": "string",
                     "example": "Anna"
@@ -1059,7 +1063,7 @@ const docTemplate = `{
                 },
                 "pictureUrl": {
                     "type": "string",
-                    "example": "/images/users/anna.jpg"
+                    "example": "/images/users/ivan.jpg"
                 },
                 "roleId": {
                     "type": "integer",

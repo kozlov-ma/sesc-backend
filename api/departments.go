@@ -86,11 +86,11 @@ func (a *API) CreateDepartment(w http.ResponseWriter, r *http.Request) {
 	}
 
 	dep, err := a.sesc.CreateDepartment(ctx, req.Name, req.Description)
-	if errors.Is(err, sesc.ErrInvalidDepartment) {
+	switch {
+	case errors.Is(err, sesc.ErrInvalidDepartment):
 		a.writeError(w, ErrDepartmentExists, http.StatusConflict)
 		return
-	}
-	if err != nil {
+	case err != nil:
 		a.writeError(w, APIError{
 			Code:      "SERVER_ERROR",
 			Message:   "Failed to create department",
@@ -174,11 +174,12 @@ func (a *API) UpdateDepartment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := a.sesc.UpdateDepartment(ctx, id, req.Name, req.Description); err != nil {
-		if errors.Is(err, sesc.ErrInvalidDepartment) {
-			a.writeError(w, ErrDepartmentExists, http.StatusConflict)
-			return
-		}
+	err := a.sesc.UpdateDepartment(ctx, id, req.Name, req.Description)
+	switch {
+	case errors.Is(err, sesc.ErrInvalidDepartment):
+		a.writeError(w, ErrDepartmentExists, http.StatusConflict)
+		return
+	case err != nil:
 		a.writeError(w, APIError{
 			Code:      "SERVER_ERROR",
 			Message:   "Failed to update department",
@@ -219,14 +220,15 @@ func (a *API) DeleteDepartment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := a.sesc.DeleteDepartment(ctx, id); err != nil {
-		if errors.Is(err, sesc.ErrInvalidDepartment) {
-			a.writeError(w, ErrDepartmentNotFound, http.StatusNotFound)
-			return
-		} else if errors.Is(err, sesc.ErrCannotRemoveDepartment) {
-			a.writeError(w, ErrCannotRemoveDepartment, http.StatusConflict)
-			return
-		}
+	err := a.sesc.DeleteDepartment(ctx, id)
+	switch {
+	case errors.Is(err, sesc.ErrInvalidDepartment):
+		a.writeError(w, ErrDepartmentNotFound, http.StatusNotFound)
+		return
+	case errors.Is(err, sesc.ErrCannotRemoveDepartment):
+		a.writeError(w, ErrCannotRemoveDepartment, http.StatusConflict)
+		return
+	case err != nil:
 		a.writeError(w, APIError{
 			Code:      "SERVER_ERROR",
 			Message:   "Failed to delete department",

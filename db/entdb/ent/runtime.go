@@ -3,6 +3,7 @@
 package ent
 
 import (
+	uuid "github.com/gofrs/uuid/v5"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/authuser"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/department"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/schema"
@@ -39,4 +40,8 @@ func init() {
 	userDescSuspended := userFields[5].Descriptor()
 	// user.DefaultSuspended holds the default value on creation for the suspended field.
 	user.DefaultSuspended = userDescSuspended.Default.(bool)
+	// userDescID is the schema descriptor for id field.
+	userDescID := userFields[0].Descriptor()
+	// user.DefaultID holds the default value on creation for the id field.
+	user.DefaultID = userDescID.Default.(func() uuid.UUID)
 }

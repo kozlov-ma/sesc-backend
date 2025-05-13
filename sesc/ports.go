@@ -7,7 +7,7 @@ import (
 type (
 	DB interface {
 		// SaveUser saves a new user to the database.
-		SaveUser(context.Context, User) error
+		SaveUser(context.Context, UserUpdateOptions) (User, error)
 
 		// UpdateUser updates an existing user in the database.
 		// Returns an ErrUserNotFound if the user does not exist.

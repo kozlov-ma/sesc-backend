@@ -12,169 +12,182 @@
 
 export interface ApiAPIError {
   /** @example "INVALID_REQUEST" */
-  code: string
+  code: string;
   /** @example "field X is required" */
-  details?: string
+  details?: string;
   /** @example "Invalid request body" */
-  message: string
+  message: string;
   /** @example "Некорректный формат запроса" */
-  ruMessage: string
+  ruMessage: string;
 }
 
 export interface ApiAdminLoginRequest {
   /** @example "admin-secret-token" */
-  token: string
+  token: string;
 }
 
 export interface ApiCreateDepartmentRequest {
   /** @example "Math department" */
-  description: string
+  description: string;
   /** @example "Mathematics" */
-  name: string
+  name: string;
 }
 
 export interface ApiCreateUserRequest {
+  /** @example "550e8400-e29b-41d4-a716-446655440000" */
+  departmentId?: string;
   /** @example "Anna" */
-  firstName: string
+  firstName: string;
   /** @example "Smirnova" */
-  lastName: string
+  lastName: string;
   /** @example "Olegovna" */
-  middleName?: string
-  /** @example "/images/users/anna.jpg" */
-  pictureUrl?: string
+  middleName?: string;
+  /** @example "/images/users/ivan.jpg" */
+  pictureUrl?: string;
   /** @example 2 */
-  roleId: number
+  roleId: number;
 }
 
 export interface ApiCredentialsRequest {
   /** @example "secret123" */
-  password: string
+  password: string;
   /** @example "johndoe" */
-  username: string
+  username: string;
 }
 
 export interface ApiDepartment {
   /** @example "Math department" */
-  description: string
+  description: string;
   /** @example "550e8400-e29b-41d4-a716-446655440000" */
-  id: string
+  id: string;
   /** @example "Mathematics" */
-  name: string
+  name: string;
 }
 
 export interface ApiDepartmentsResponse {
-  departments: ApiDepartment[]
+  departments: ApiDepartment[];
 }
 
 export interface ApiIdentityResponse {
   /** @example "550e8400-e29b-41d4-a716-446655440000" */
-  id: string
+  id: string;
   /** @example "user" */
-  role: string
+  role: string;
 }
 
 export interface ApiPatchUserRequest {
   /** @example "550e8400-e29b-41d4-a716-446655440000" */
-  departmentId?: string
+  departmentId?: string;
   /** @example "Ivan" */
-  firstName: string
+  firstName: string;
   /** @example "Petrov" */
-  lastName: string
+  lastName: string;
   /** @example "Sergeevich" */
-  middleName?: string
+  middleName?: string;
   /** @example "/images/users/ivan.jpg" */
-  pictureUrl?: string
+  pictureUrl?: string;
   /** @example 1 */
-  roleId: number
+  roleId: number;
   /** @example false */
-  suspended: boolean
+  suspended: boolean;
 }
 
 export interface ApiPermission {
   /** @example "Создание и заполнение листа достижений" */
-  description: string
+  description: string;
   /** @example 1 */
-  id: number
+  id: number;
   /** @example "draft_achievement_list" */
-  name: string
+  name: string;
 }
 
 export interface ApiPermissionsResponse {
-  permissions: ApiPermission[]
+  permissions: ApiPermission[];
 }
 
 export interface ApiRole {
   /** @example 1 */
-  id: number
+  id: number;
   /** @example "Преподаватель" */
-  name: string
-  permissions: ApiPermission[]
+  name: string;
+  permissions: ApiPermission[];
 }
 
 export interface ApiRolesResponse {
-  roles?: ApiRole[]
+  roles?: ApiRole[];
 }
 
 export interface ApiTokenResponse {
   /** @example "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." */
-  token: string
+  token: string;
 }
 
 export interface ApiUpdateDepartmentRequest {
   /** @example "Math department" */
-  description: string
+  description: string;
   /** @example "Mathematics" */
-  name: string
+  name: string;
 }
 
 export interface ApiUserResponse {
-  department?: ApiDepartment
+  department?: ApiDepartment;
   /** @example "Ivan" */
-  firstName: string
+  firstName: string;
   /** @example "550e8400-e29b-41d4-a716-446655440000" */
-  id: string
+  id: string;
   /** @example "Petrov" */
-  lastName: string
+  lastName: string;
   /** @example "Sergeevich" */
-  middleName?: string
+  middleName?: string;
   /** @example "/images/users/ivan.jpg" */
-  pictureUrl: string
-  role: ApiRole
-  suspended: boolean
+  pictureUrl: string;
+  role: ApiRole;
+  suspended: boolean;
 }
 
 export interface ApiUsersResponse {
-  users: ApiUserResponse[]
+  users: ApiUserResponse[];
 }
 
-import type { AxiosInstance, AxiosRequestConfig, AxiosResponse, HeadersDefaults, ResponseType } from "axios"
-import axios from "axios"
+import type {
+  AxiosInstance,
+  AxiosRequestConfig,
+  AxiosResponse,
+  HeadersDefaults,
+  ResponseType,
+} from "axios";
+import axios from "axios";
 
-export type QueryParamsType = Record<string | number, any>
+export type QueryParamsType = Record<string | number, any>;
 
-export interface FullRequestParams extends Omit<AxiosRequestConfig, "data" | "params" | "url" | "responseType"> {
+export interface FullRequestParams
+  extends Omit<AxiosRequestConfig, "data" | "params" | "url" | "responseType"> {
   /** set parameter to `true` for call `securityWorker` for this request */
-  secure?: boolean
+  secure?: boolean;
   /** request path */
-  path: string
+  path: string;
   /** content type of request body */
-  type?: ContentType
+  type?: ContentType;
   /** query params */
-  query?: QueryParamsType
+  query?: QueryParamsType;
   /** format of response (i.e. response.json() -> format: "json") */
-  format?: ResponseType
+  format?: ResponseType;
   /** request body */
-  body?: unknown
+  body?: unknown;
 }
 
-export type RequestParams = Omit<FullRequestParams, "body" | "method" | "query" | "path">
+export type RequestParams = Omit<
+  FullRequestParams,
+  "body" | "method" | "query" | "path"
+>;
 
-export interface ApiConfig<SecurityDataType = unknown> extends Omit<AxiosRequestConfig, "data" | "cancelToken"> {
+export interface ApiConfig<SecurityDataType = unknown>
+  extends Omit<AxiosRequestConfig, "data" | "cancelToken"> {
   securityWorker?: (
     securityData: SecurityDataType | null,
-  ) => Promise<AxiosRequestConfig | void> | AxiosRequestConfig | void
-  secure?: boolean
-  format?: ResponseType
+  ) => Promise<AxiosRequestConfig | void> | AxiosRequestConfig | void;
+  secure?: boolean;
+  format?: ResponseType;
 }
 
 export enum ContentType {
@@ -185,64 +198,80 @@ export enum ContentType {
 }
 
 export class HttpClient<SecurityDataType = unknown> {
-  public instance: AxiosInstance
-  private securityData: SecurityDataType | null = null
-  private securityWorker?: ApiConfig<SecurityDataType>["securityWorker"]
-  private secure?: boolean
-  private format?: ResponseType
+  public instance: AxiosInstance;
+  private securityData: SecurityDataType | null = null;
+  private securityWorker?: ApiConfig<SecurityDataType>["securityWorker"];
+  private secure?: boolean;
+  private format?: ResponseType;
 
-  constructor({ securityWorker, secure, format, ...axiosConfig }: ApiConfig<SecurityDataType> = {}) {
+  constructor({
+    securityWorker,
+    secure,
+    format,
+    ...axiosConfig
+  }: ApiConfig<SecurityDataType> = {}) {
     this.instance = axios.create({
       ...axiosConfig,
       baseURL: axiosConfig.baseURL || "",
-    })
-    this.secure = secure
-    this.format = format
-    this.securityWorker = securityWorker
+    });
+    this.secure = secure;
+    this.format = format;
+    this.securityWorker = securityWorker;
   }
 
   public setSecurityData = (data: SecurityDataType | null) => {
-    this.securityData = data
-  }
+    this.securityData = data;
+  };
 
-  protected mergeRequestParams(params1: AxiosRequestConfig, params2?: AxiosRequestConfig): AxiosRequestConfig {
-    const method = params1.method || (params2 && params2.method)
+  protected mergeRequestParams(
+    params1: AxiosRequestConfig,
+    params2?: AxiosRequestConfig,
+  ): AxiosRequestConfig {
+    const method = params1.method || (params2 && params2.method);
 
     return {
       ...this.instance.defaults,
       ...params1,
       ...(params2 || {}),
       headers: {
-        ...((method && this.instance.defaults.headers[method.toLowerCase() as keyof HeadersDefaults]) || {}),
+        ...((method &&
+          this.instance.defaults.headers[
+            method.toLowerCase() as keyof HeadersDefaults
+          ]) ||
+          {}),
         ...(params1.headers || {}),
         ...((params2 && params2.headers) || {}),
       },
-    }
+    };
   }
 
   protected stringifyFormItem(formItem: unknown) {
     if (typeof formItem === "object" && formItem !== null) {
-      return JSON.stringify(formItem)
+      return JSON.stringify(formItem);
     } else {
-      return `${formItem}`
+      return `${formItem}`;
     }
   }
 
   protected createFormData(input: Record<string, unknown>): FormData {
     if (input instanceof FormData) {
-      return input
+      return input;
     }
     return Object.keys(input || {}).reduce((formData, key) => {
-      const property = input[key]
-      const propertyContent: any[] = property instanceof Array ? property : [property]
+      const property = input[key];
+      const propertyContent: any[] =
+        property instanceof Array ? property : [property];
 
       for (const formItem of propertyContent) {
-        const isFileType = formItem instanceof Blob || formItem instanceof File
-        formData.append(key, isFileType ? formItem : this.stringifyFormItem(formItem))
+        const isFileType = formItem instanceof Blob || formItem instanceof File;
+        formData.append(
+          key,
+          isFileType ? formItem : this.stringifyFormItem(formItem),
+        );
       }
 
-      return formData
-    }, new FormData())
+      return formData;
+    }, new FormData());
   }
 
   public request = async <T = any, _E = any>({
@@ -258,16 +287,26 @@ export class HttpClient<SecurityDataType = unknown> {
       ((typeof secure === "boolean" ? secure : this.secure) &&
         this.securityWorker &&
         (await this.securityWorker(this.securityData))) ||
-      {}
-    const requestParams = this.mergeRequestParams(params, secureParams)
-    const responseFormat = format || this.format || undefined
+      {};
+    const requestParams = this.mergeRequestParams(params, secureParams);
+    const responseFormat = format || this.format || undefined;
 
-    if (type === ContentType.FormData && body && body !== null && typeof body === "object") {
-      body = this.createFormData(body as Record<string, unknown>)
+    if (
+      type === ContentType.FormData &&
+      body &&
+      body !== null &&
+      typeof body === "object"
+    ) {
+      body = this.createFormData(body as Record<string, unknown>);
     }
 
-    if (type === ContentType.Text && body && body !== null && typeof body !== "string") {
-      body = JSON.stringify(body)
+    if (
+      type === ContentType.Text &&
+      body &&
+      body !== null &&
+      typeof body !== "string"
+    ) {
+      body = JSON.stringify(body);
     }
 
     return this.instance.request({
@@ -280,15 +319,17 @@ export class HttpClient<SecurityDataType = unknown> {
       responseType: responseFormat,
       data: body,
       url: path,
-    })
-  }
+    });
+  };
 }
 
 /**
  * @title No title
  * @contact
  */
-export class Api<SecurityDataType> extends HttpClient<SecurityDataType> {
+export class Api<
+  SecurityDataType extends unknown,
+> extends HttpClient<SecurityDataType> {
   auth = {
     /**
      * @description Verifies admin token and returns a JWT token with admin privileges
@@ -298,7 +339,10 @@ export class Api<SecurityDataType> extends HttpClient<SecurityDataType> {
      * @summary Admin login
      * @request POST:/auth/admin/login
      */
-    adminLoginCreate: (request: ApiAdminLoginRequest, params: RequestParams = {}) =>
+    adminLoginCreate: (
+      request: ApiAdminLoginRequest,
+      params: RequestParams = {},
+    ) =>
       this.request<ApiTokenResponse, ApiAPIError>({
         path: `/auth/admin/login`,
         method: "POST",
@@ -377,7 +421,7 @@ export class Api<SecurityDataType> extends HttpClient<SecurityDataType> {
         format: "json",
         ...params,
       }),
-  }
+  };
   departments = {
     /**
      * @description Retrieves list of all registered departments
@@ -404,7 +448,10 @@ export class Api<SecurityDataType> extends HttpClient<SecurityDataType> {
      * @request POST:/departments
      * @secure
      */
-    departmentsCreate: (request: ApiCreateDepartmentRequest, params: RequestParams = {}) =>
+    departmentsCreate: (
+      request: ApiCreateDepartmentRequest,
+      params: RequestParams = {},
+    ) =>
       this.request<ApiDepartment, ApiAPIError>({
         path: `/departments`,
         method: "POST",
@@ -424,7 +471,11 @@ export class Api<SecurityDataType> extends HttpClient<SecurityDataType> {
      * @request PUT:/departments/{id}
      * @secure
      */
-    departmentsUpdate: (id: string, request: ApiUpdateDepartmentRequest, params: RequestParams = {}) =>
+    departmentsUpdate: (
+      id: string,
+      request: ApiUpdateDepartmentRequest,
+      params: RequestParams = {},
+    ) =>
       this.request<ApiDepartment, ApiAPIError>({
         path: `/departments/${id}`,
         method: "PUT",
@@ -451,7 +502,7 @@ export class Api<SecurityDataType> extends HttpClient<SecurityDataType> {
         secure: true,
         ...params,
       }),
-  }
+  };
   permissions = {
     /**
      * @description Retrieves all available system permissions
@@ -468,7 +519,7 @@ export class Api<SecurityDataType> extends HttpClient<SecurityDataType> {
         format: "json",
         ...params,
       }),
-  }
+  };
   roles = {
     /**
      * @description Retrieves all system roles with their permissions
@@ -485,7 +536,7 @@ export class Api<SecurityDataType> extends HttpClient<SecurityDataType> {
         format: "json",
         ...params,
       }),
-  }
+  };
   users = {
     /**
      * @description Retrieves detailed information about all users
@@ -570,7 +621,11 @@ export class Api<SecurityDataType> extends HttpClient<SecurityDataType> {
      * @request PATCH:/users/{id}
      * @secure
      */
-    usersPartialUpdate: (id: string, request: ApiPatchUserRequest, params: RequestParams = {}) =>
+    usersPartialUpdate: (
+      id: string,
+      request: ApiPatchUserRequest,
+      params: RequestParams = {},
+    ) =>
       this.request<ApiUserResponse, ApiAPIError>({
         path: `/users/${id}`,
         method: "PATCH",
@@ -590,7 +645,11 @@ export class Api<SecurityDataType> extends HttpClient<SecurityDataType> {
      * @request PUT:/users/{id}/credentials
      * @secure
      */
-    credentialsUpdate: (id: string, request: ApiCredentialsRequest, params: RequestParams = {}) =>
+    credentialsUpdate: (
+      id: string,
+      request: ApiCredentialsRequest,
+      params: RequestParams = {},
+    ) =>
       this.request<Record<string, string>, ApiAPIError>({
         path: `/users/${id}/credentials`,
         method: "PUT",
@@ -600,5 +659,5 @@ export class Api<SecurityDataType> extends HttpClient<SecurityDataType> {
         format: "json",
         ...params,
       }),
-  }
+  };
 }
