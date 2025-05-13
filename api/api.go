@@ -61,12 +61,14 @@ func convertDepartment(d sesc.Department) Department {
 	}
 }
 
+const allowAllOriginsNow = true
+
 func corsMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Vary", "Origin")
 
 		origin := r.Header.Get("Origin")
-		if isOriginAllowed(origin) {
+		if allowAllOriginsNow || isOriginAllowed(origin) {
 			w.Header().Set("Access-Control-Allow-Origin", origin)
 			w.Header().Set("Access-Control-Allow-Credentials", "true")
 		}

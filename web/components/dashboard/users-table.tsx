@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import useSWR, { mutate } from "swr";
+import useSWR from "swr";
 import useSWRMutation from "swr/mutation";
 import {
   Table,
@@ -21,13 +21,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  ApiUsersResponse,
-  ApiUserResponse,
-  ApiCreateUserRequest,
-  ApiPatchUserRequest,
-  ApiCredentialsRequest,
-} from "@/lib/Api";
+import { ApiUsersResponse, ApiUserResponse } from "@/lib/Api";
 import { ErrorMessage } from "@/components/ui/error-message";
 import { Badge } from "@/components/ui/badge";
 import { MoreHorizontal, Search, UserPlus, Key } from "lucide-react";
@@ -37,23 +31,6 @@ import { UserCredentialsDialog } from "./user-credentials-dialog";
 import { toast } from "sonner";
 import { apiClient } from "@/lib/api-client";
 
-// Define type for form values
-type UserFormValues = {
-  firstName: string;
-  lastName: string;
-  middleName?: string;
-  roleId: number;
-  departmentId?: string;
-  pictureUrl?: string;
-  suspended: boolean;
-};
-
-// Define type for credentials form values
-type CredentialsFormValues = {
-  username: string;
-  password: string;
-};
-
 export function UsersTable() {
   const [searchTerm, setSearchTerm] = useState("");
   const [userFormOpen, setUserFormOpen] = useState(false);
@@ -62,7 +39,6 @@ export function UsersTable() {
     undefined,
   );
 
-  // Use SWR for users data fetching
   const {
     data,
     error,
@@ -72,83 +48,6 @@ export function UsersTable() {
     const response = await apiClient.users.usersList();
     return response.data;
   });
-
-  // Create new user with SWR mutation
-  const { trigger: createUser, isMutating: isCreatingUser } = useSWRMutation(
-    "create-user",
-    async (_key, { arg }: { arg: UserFormValues }) => {
-      const userData: ApiCreateUserRequest = {
-        firstName: arg.firstName,
-        lastName: arg.lastName,
-        middleName: arg.middleName || undefined,
-        departmentId: arg.departmentId || undefined,
-        pictureUrl: arg.pictureUrl || undefined,
-        roleId: arg.roleId,
-      };
-
-      const response = await apiClient.users.usersCreate(userData);
-      return response.data;
-    },
-    {
-      onSuccess: () => {
-        toast("Пользователь создан", {
-          description: "Новый пользователь успешно создан.",
-        });
-        setUserFormOpen(false);
-        mutateUsers();
-      },
-      onError: (error: any) => {
-        console.error("Error creating user:", error);
-        const errorMessage =
-          error.response?.data?.ruMessage || "Не удалось создать пользователя.";
-
-        toast.error("Ошибка", {
-          description: errorMessage,
-        });
-      },
-    },
-  );
-
-  // Update existing user with SWR mutation
-  const { trigger: updateUser, isMutating: isUpdatingUser } = useSWRMutation(
-    "update-user",
-    async (_key, { arg }: { arg: { id: string; data: UserFormValues } }) => {
-      const userData: ApiPatchUserRequest = {
-        firstName: arg.data.firstName,
-        lastName: arg.data.lastName,
-        middleName: arg.data.middleName || undefined,
-        departmentId: arg.data.departmentId || undefined,
-        pictureUrl: arg.data.pictureUrl || undefined,
-        roleId: arg.data.roleId,
-        suspended: arg.data.suspended,
-      };
-
-      const response = await apiClient.users.usersPartialUpdate(
-        arg.id,
-        userData,
-      );
-      return response.data;
-    },
-    {
-      onSuccess: () => {
-        toast("Пользователь обновлен", {
-          description: "Данные пользователя успешно обновлены.",
-        });
-        setUserFormOpen(false);
-        mutateUsers();
-      },
-      onError: (error: any) => {
-        console.error("Error updating user:", error);
-        const errorMessage =
-          error.response?.data?.ruMessage ||
-          "Не удалось обновить данные пользователя.";
-
-        toast.error("Ошибка", {
-          description: errorMessage,
-        });
-      },
-    },
-  );
 
   // Toggle user suspended status with SWR mutation
   const { trigger: toggleSuspend } = useSWRMutation(
@@ -179,11 +78,8 @@ export function UsersTable() {
     },
   );
 
-  // Handle toggle suspend with try/catch
   const handleToggleSuspend = async (user: ApiUserResponse) => {
-    try {
-      await toggleSuspend(user);
-    } catch (error: any) {
+    await toggleSuspend(user).catch((error) => {
       console.error("Error toggling suspend status:", error);
       const errorMessage =
         error.response?.data?.ruMessage ||
@@ -192,17 +88,7 @@ export function UsersTable() {
       toast.error("Ошибка", {
         description: errorMessage,
       });
-    }
-  };
-
-  // Handle form submission
-  const handleCreateUser = async (values: UserFormValues) => {
-    await createUser(values);
-  };
-
-  const handleUpdateUser = async (values: UserFormValues) => {
-    if (!selectedUser) return;
-    await updateUser({ id: selectedUser.id, data: values });
+    });
   };
 
   // These functions are not needed anymore since we moved them inside credentials dialog
@@ -293,7 +179,10 @@ export function UsersTable() {
                     <div className="flex items-center gap-3">
                       <Avatar className="h-8 w-8">
                         {user.pictureUrl ? (
-                          <AvatarImage src={user.pictureUrl} alt={user.lastName} />
+                          <AvatarImage
+                            src={user.pictureUrl}
+                            alt={user.lastName}
+                          />
                         ) : null}
                         <AvatarFallback>
                           {user.firstName?.[0]}
@@ -330,16 +219,22 @@ export function UsersTable() {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Действия</DropdownMenuLabel>
-                        <DropdownMenuItem onClick={() => openEditUserDialog(user)}>
+                        <DropdownMenuItem
+                          onClick={() => openEditUserDialog(user)}
+                        >
                           Редактировать
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => openCredentialsDialog(user)}>
+                        <DropdownMenuItem
+                          onClick={() => openCredentialsDialog(user)}
+                        >
                           <Key className="h-4 w-4 mr-2" />
                           Учетные данные
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem
-                          className={user.suspended ? "text-success" : "text-destructive"}
+                          className={
+                            user.suspended ? "text-success" : "text-destructive"
+                          }
                           onClick={() => handleToggleSuspend(user)}
                         >
                           {user.suspended ? "Разблокировать" : "Заблокировать"}
@@ -376,7 +271,7 @@ export function UsersTable() {
           mutateUsers();
         }}
       />
-      
+
       {selectedUser && (
         <UserCredentialsDialog
           open={userCredentialsOpen}

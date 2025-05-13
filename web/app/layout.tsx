@@ -35,9 +35,9 @@ export default function RootLayout({
         >
           <main>
             {children}
+            {auth}
             {dashboard}
             {admin_dashboard}
-            {auth}
           </main>
           <Toaster />
         </ThemeProvider>

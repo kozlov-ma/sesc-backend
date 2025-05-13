@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -34,12 +34,12 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useApi } from "@/hooks/use-api";
 import { toast } from "sonner";
 import { apiClient } from "@/lib/api-client";
-import { 
-  ApiUserResponse, 
-  ApiRolesResponse, 
-  ApiDepartmentsResponse, 
+import {
+  ApiUserResponse,
+  ApiRolesResponse,
+  ApiDepartmentsResponse,
   ApiCreateUserRequest,
-  ApiPatchUserRequest
+  ApiPatchUserRequest,
 } from "@/lib/Api";
 
 const userFormSchema = z.object({
@@ -68,7 +68,8 @@ export function UserFormDialog({
   onSuccess,
 }: UserFormDialogProps) {
   const { data: rolesData } = useApi<ApiRolesResponse>("/roles");
-  const { data: departmentsData } = useApi<ApiDepartmentsResponse>("/departments");
+  const { data: departmentsData } =
+    useApi<ApiDepartmentsResponse>("/departments");
 
   const form = useForm<UserFormValues>({
     resolver: zodResolver(userFormSchema),
@@ -87,81 +88,85 @@ export function UserFormDialog({
   const { trigger: createUser, isMutating: isCreating } = useSWRMutation(
     "create-user",
     async (_key, { arg }: { arg: UserFormValues }) => {
-      try {
-        const userData: ApiCreateUserRequest = {
-          firstName: arg.firstName,
-          lastName: arg.lastName,
-          middleName: arg.middleName || undefined,
-          departmentId: arg.departmentId || undefined,
-          pictureUrl: arg.pictureUrl || undefined,
-          roleId: arg.roleId,
-        };
+      const userData: ApiCreateUserRequest = {
+        firstName: arg.firstName,
+        lastName: arg.lastName,
+        middleName: arg.middleName || undefined,
+        departmentId: arg.departmentId || undefined,
+        pictureUrl: arg.pictureUrl || undefined,
+        roleId: arg.roleId,
+      };
 
-        const response = await apiClient.users.usersCreate(userData);
-        
-        toast("Пользователь создан", {
-          description: "Новый пользователь успешно создан.",
-        });
-        
-        onOpenChange(false);
-        if (onSuccess) onSuccess();
-        return response.data;
-      } catch (error: any) {
-        console.error("Error creating user:", error);
-        const errorMessage =
-          error.response?.data?.ruMessage || "Не удалось создать пользователя.";
+      const response = await apiClient.users
+        .usersCreate(userData)
+        .catch((error) => {
+          console.error("Error creating user:", error);
+          const errorMessage =
+            error.response?.data?.ruMessage ||
+            "Не удалось создать пользователя.";
 
-        toast.error("Ошибка", {
-          description: errorMessage,
+          toast.error("Ошибка", {
+            description: errorMessage,
+          });
+
+          throw error;
         });
-        
-        return null;
-      }
-    }
+
+      toast("Пользователь создан", {
+        description: "Новый пользователь успешно создан.",
+      });
+
+      onOpenChange(false);
+      if (onSuccess) onSuccess();
+      return response.data;
+    },
+    {
+      throwOnError: false,
+    },
   );
 
   // Update existing user with SWR mutation
   const { trigger: updateUser, isMutating: isUpdating } = useSWRMutation(
     "update-user",
     async (_key, { arg }: { arg: UserFormValues }) => {
-      try {
-        if (!user) throw new Error("User not defined");
-        
-        const userData: ApiPatchUserRequest = {
-          firstName: arg.firstName,
-          lastName: arg.lastName,
-          middleName: arg.middleName || undefined,
-          departmentId: arg.departmentId || undefined,
-          pictureUrl: arg.pictureUrl || undefined,
-          roleId: arg.roleId,
-          suspended: arg.suspended,
-        };
+      if (!user) throw new Error("User not defined");
 
-        const response = await apiClient.users.usersPartialUpdate(
-          user.id,
-          userData,
-        );
-        
-        toast("Пользователь обновлен", {
-          description: "Данные пользователя успешно обновлены.",
-        });
-        
-        onOpenChange(false);
-        if (onSuccess) onSuccess();
-        return response.data;
-      } catch (error: any) {
-        console.error("Error updating user:", error);
-        const errorMessage =
-          error.response?.data?.ruMessage ||
-          "Не удалось обновить данные пользователя.";
+      const userData: ApiPatchUserRequest = {
+        firstName: arg.firstName,
+        lastName: arg.lastName,
+        middleName: arg.middleName || undefined,
+        departmentId: arg.departmentId || undefined,
+        pictureUrl: arg.pictureUrl || undefined,
+        roleId: arg.roleId,
+        suspended: arg.suspended,
+      };
 
-        toast.error("Ошибка", {
-          description: errorMessage,
+      const response = await apiClient.users
+        .usersPartialUpdate(user.id, userData)
+        .catch((error) => {
+          console.error("Ошибка обновления пользователя:", error);
+          const errorMessage =
+            error.response?.data?.ruMessage ||
+            "Не удалось обновить данные пользователя.";
+
+          toast.error("Ошибка", {
+            description: errorMessage,
+          });
+
+          throw error;
         });
-        
-        return null;
-      }
-    }
+
+      toast("Пользователь обновлен", {
+        description: "Данные пользователя успешно обновлены.",
+      });
+
+      onOpenChange(false);
+      if (onSuccess) onSuccess();
+      return response.data;
+    },
+    {
+      throwOnError: false,
+    },
   );
 
   // Set form values when editing an existing user
@@ -203,7 +208,9 @@ export function UserFormDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>{user ? "Редактировать пользователя" : "Создать пользователя"}</DialogTitle>
+          <DialogTitle>
+            {user ? "Редактировать пользователя" : "Создать пользователя"}
+          </DialogTitle>
           <DialogDescription>
             {user
               ? "Измените данные пользователя и нажмите сохранить."
@@ -212,7 +219,10 @@ export function UserFormDialog({
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+          <form
+            onSubmit={form.handleSubmit(handleSubmit)}
+            className="space-y-4"
+          >
             <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
@@ -292,7 +302,9 @@ export function UserFormDialog({
                 <FormItem>
                   <FormLabel>Кафедра (необязательно)</FormLabel>
                   <Select
-                    onValueChange={(value) => field.onChange(value === "none" ? "" : value)}
+                    onValueChange={(value) =>
+                      field.onChange(value === "none" ? "" : value)
+                    }
                     value={!field.value ? "none" : field.value}
                   >
                     <FormControl>
@@ -366,4 +378,4 @@ export function UserFormDialog({
       </DialogContent>
     </Dialog>
   );
-} 
+}

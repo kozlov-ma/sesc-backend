@@ -100,35 +100,40 @@ export default function AdminDashboardPage() {
 
 // Component that displays the total number of users
 function UsersCountDisplay() {
-  const { data, error } = useUsersData();
-  
+  const { data, isLoading, error } = useUsersData();
+
   if (error) return <span className="text-destructive">Ошибка</span>;
-  if (!data) return <span className="text-muted-foreground">Загрузка...</span>;
-  
-  return data.users.length;
+  if (isLoading)
+    return <span className="text-muted-foreground">Загрузка...</span>;
+
+  console.log(data);
+
+  return data?.users?.length;
 }
 
 // Component that displays the number of active users
 function ActiveUsersCountDisplay() {
-  const { data, error } = useUsersData();
-  
+  const { data, isLoading, error } = useUsersData();
+
   if (error) return <span className="text-destructive">Ошибка</span>;
-  if (!data) return <span className="text-muted-foreground">Загрузка...</span>;
-  
-  return data.users.filter((user: ApiUserResponse) => !user.suspended).length;
+  if (isLoading)
+    return <span className="text-muted-foreground">Загрузка...</span>;
+
+  return data?.users?.filter((user: ApiUserResponse) => !user.suspended).length;
 }
 
 // Component that displays the number of suspended users
 function SuspendedUsersCountDisplay() {
-  const { data, error } = useUsersData();
-  
+  const { data, isLoading, error } = useUsersData();
+
   if (error) return <span className="text-destructive">Ошибка</span>;
-  if (!data) return <span className="text-muted-foreground">Загрузка...</span>;
-  
-  return data.users.filter((user: ApiUserResponse) => user.suspended).length;
+  if (isLoading)
+    return <span className="text-muted-foreground">Загрузка...</span>;
+
+  return data?.users?.filter((user: ApiUserResponse) => user.suspended).length;
 }
 
 // Custom hook to fetch users data
 function useUsersData() {
   return useApi<ApiUsersResponse>("/users");
-} 
+}

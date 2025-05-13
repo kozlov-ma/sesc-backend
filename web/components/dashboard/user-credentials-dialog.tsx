@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import useSWR, { mutate } from "swr";
+import useSWR from "swr";
 import useSWRMutation from "swr/mutation";
 import {
   Dialog,
@@ -63,7 +63,6 @@ export function UserCredentialsDialog({
   const credentialsKey = open ? `credentials-${user.id}` : null;
   const {
     data: credentials,
-    isLoading,
     isValidating,
     mutate: revalidate,
   } = useSWR(
@@ -73,16 +72,10 @@ export function UserCredentialsDialog({
         const response = await apiClient.auth.credentialsDetail(user.id);
         return response.data;
       } catch (err: any) {
-        // Check if this is a "credentials not found" error, which is expected
-        if (
-          err.response?.data?.code === "CREDENTIALS_NOT_FOUND" ||
-          err.response?.data?.errorType === "CREDENTIALS_NOT_FOUND"
-        ) {
-          // This is not actually an error, just return null
+        if (err.response?.data?.code === "CREDENTIALS_NOT_FOUND") {
           return null;
         }
 
-        // For other errors, display a message
         let errorMessage = "Не удалось получить учетные данные пользователя.";
         if (err.response?.data?.ruMessage) {
           errorMessage = err.response.data.ruMessage;
@@ -102,7 +95,6 @@ export function UserCredentialsDialog({
           form.setValue("username", data.username);
           form.setValue("password", data.password);
         } else {
-          // Reset form when no credentials found
           form.reset({
             username: "",
             password: "",
@@ -112,7 +104,6 @@ export function UserCredentialsDialog({
     },
   );
 
-  // Use SWR Mutation for submitting/updating credentials
   const { trigger: submitCredentials, isMutating: isSubmitting } =
     useSWRMutation(
       `credentials-update-${user.id}`,
@@ -147,7 +138,7 @@ export function UserCredentialsDialog({
             description: "Учетные данные пользователя успешно обновлены.",
           });
         },
-        onError: (err, key, config) => {
+        onError: (err) => {
           const errorMessage =
             err.response?.data?.ruMessage ||
             "Не удалось обновить учетные данные пользователя.";
@@ -160,7 +151,6 @@ export function UserCredentialsDialog({
       },
     );
 
-  // Use SWR Mutation for deleting credentials
   const { trigger: deleteCredentials, isMutating: isDeleting } = useSWRMutation(
     `credentials-delete-${user.id}`,
     async () => {
@@ -168,8 +158,7 @@ export function UserCredentialsDialog({
         await apiClient.auth.credentialsDelete(user.id);
         return true;
       } catch (err: any) {
-        // Handle all API errors
-        let errorMessage =
+        const errorMessage =
           err.response?.data?.ruMessage ||
           "Не удалось удалить учетные данные пользователя.";
 

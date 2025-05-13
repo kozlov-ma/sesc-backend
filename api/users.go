@@ -355,7 +355,7 @@ func convertUser(user sesc.User) UserResponse {
 }
 
 func convertUsers(users []sesc.User) []UserResponse {
-	var convertedUsers []UserResponse
+	convertedUsers := make([]UserResponse, len(users))
 	for _, user := range users {
 		convertedUsers = append(convertedUsers, convertUser(user))
 	}
