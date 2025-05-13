@@ -32,19 +32,19 @@
           "400": {
             "description": "Invalid request format",
             "schema": {
-              "$ref": "#/definitions/api.Error"
+              "$ref": "#/definitions/api.InvalidRequestError"
             }
           },
           "401": {
-            "description": "Invalid admin token",
+            "description": "Invalid admin token or not recognized",
             "schema": {
-              "$ref": "#/definitions/api.Error"
+              "$ref": "#/definitions/api.CredentialsNotFoundError"
             }
           },
           "500": {
             "description": "Internal server error",
             "schema": {
-              "$ref": "#/definitions/api.Error"
+              "$ref": "#/definitions/api.ServerError"
             }
           }
         }
@@ -85,31 +85,31 @@
           "400": {
             "description": "Invalid UUID format",
             "schema": {
-              "$ref": "#/definitions/api.Error"
+              "$ref": "#/definitions/api.InvalidUUIDError"
             }
           },
           "401": {
             "description": "Unauthorized",
             "schema": {
-              "$ref": "#/definitions/api.Error"
+              "$ref": "#/definitions/api.UnauthorizedError"
             }
           },
           "403": {
             "description": "Forbidden - admin role required",
             "schema": {
-              "$ref": "#/definitions/api.Error"
+              "$ref": "#/definitions/api.ForbiddenError"
             }
           },
           "404": {
             "description": "User not found or does not exist",
             "schema": {
-              "$ref": "#/definitions/api.Error"
+              "$ref": "#/definitions/api.CredentialsNotFoundError"
             }
           },
           "500": {
             "description": "Internal server error",
             "schema": {
-              "$ref": "#/definitions/api.Error"
+              "$ref": "#/definitions/api.ServerError"
             }
           }
         }
@@ -145,31 +145,31 @@
           "400": {
             "description": "Invalid UUID format",
             "schema": {
-              "$ref": "#/definitions/api.Error"
+              "$ref": "#/definitions/api.InvalidUUIDError"
             }
           },
           "401": {
             "description": "Unauthorized",
             "schema": {
-              "$ref": "#/definitions/api.Error"
+              "$ref": "#/definitions/api.UnauthorizedError"
             }
           },
           "403": {
             "description": "Forbidden - admin role required",
             "schema": {
-              "$ref": "#/definitions/api.Error"
+              "$ref": "#/definitions/api.ForbiddenError"
             }
           },
           "404": {
-            "description": "User not found or does not exist",
+            "description": "User credentials not found",
             "schema": {
-              "$ref": "#/definitions/api.Error"
+              "$ref": "#/definitions/api.CredentialsNotFoundError"
             }
           },
           "500": {
             "description": "Internal server error",
             "schema": {
-              "$ref": "#/definitions/api.Error"
+              "$ref": "#/definitions/api.ServerError"
             }
           }
         }
@@ -201,21 +201,21 @@
             }
           },
           "400": {
-            "description": "Invalid credentials format",
+            "description": "Invalid request format",
             "schema": {
-              "$ref": "#/definitions/api.Error"
+              "$ref": "#/definitions/api.InvalidRequestError"
             }
           },
           "401": {
-            "description": "Invalid credentials",
+            "description": "Invalid credentials or user does not exist",
             "schema": {
-              "$ref": "#/definitions/api.Error"
+              "$ref": "#/definitions/api.CredentialsNotFoundError"
             }
           },
           "500": {
             "description": "Internal server error",
             "schema": {
-              "$ref": "#/definitions/api.Error"
+              "$ref": "#/definitions/api.ServerError"
             }
           }
         }
@@ -250,13 +250,13 @@
           "401": {
             "description": "Invalid token",
             "schema": {
-              "$ref": "#/definitions/api.Error"
+              "$ref": "#/definitions/api.InvalidTokenError"
             }
           },
           "500": {
             "description": "Internal server error",
             "schema": {
-              "$ref": "#/definitions/api.Error"
+              "$ref": "#/definitions/api.ServerError"
             }
           }
         }
@@ -278,7 +278,7 @@
           "500": {
             "description": "Internal server error",
             "schema": {
-              "$ref": "#/definitions/api.Error"
+              "$ref": "#/definitions/api.ServerError"
             }
           }
         }
@@ -321,25 +321,31 @@
           "400": {
             "description": "Invalid request format",
             "schema": {
-              "$ref": "#/definitions/api.Error"
+              "$ref": "#/definitions/api.InvalidRequestError"
             }
           },
           "401": {
             "description": "Unauthorized",
             "schema": {
-              "$ref": "#/definitions/api.Error"
+              "$ref": "#/definitions/api.UnauthorizedError"
             }
           },
           "403": {
             "description": "Forbidden - admin role required",
             "schema": {
-              "$ref": "#/definitions/api.Error"
+              "$ref": "#/definitions/api.ForbiddenError"
+            }
+          },
+          "409": {
+            "description": "Department with this name already exists",
+            "schema": {
+              "$ref": "#/definitions/api.DepartmentExistsError"
             }
           },
           "500": {
             "description": "Internal server error",
             "schema": {
-              "$ref": "#/definitions/api.Error"
+              "$ref": "#/definitions/api.ServerError"
             }
           }
         }
@@ -389,33 +395,39 @@
             }
           },
           "400": {
-            "description": "Invalid UUID format or request format",
+            "description": "Invalid request format",
             "schema": {
-              "$ref": "#/definitions/api.Error"
+              "$ref": "#/definitions/api.InvalidRequestError"
             }
           },
           "401": {
             "description": "Unauthorized",
             "schema": {
-              "$ref": "#/definitions/api.Error"
+              "$ref": "#/definitions/api.UnauthorizedError"
             }
           },
           "403": {
             "description": "Forbidden - admin role required",
             "schema": {
-              "$ref": "#/definitions/api.Error"
+              "$ref": "#/definitions/api.ForbiddenError"
             }
           },
           "404": {
             "description": "Department not found",
             "schema": {
-              "$ref": "#/definitions/api.Error"
+              "$ref": "#/definitions/api.DepartmentNotFoundError"
+            }
+          },
+          "409": {
+            "description": "Department with this name already exists",
+            "schema": {
+              "$ref": "#/definitions/api.DepartmentExistsError"
             }
           },
           "500": {
             "description": "Internal server error",
             "schema": {
-              "$ref": "#/definitions/api.Error"
+              "$ref": "#/definitions/api.ServerError"
             }
           }
         }
@@ -451,37 +463,37 @@
           "400": {
             "description": "Invalid UUID format",
             "schema": {
-              "$ref": "#/definitions/api.Error"
+              "$ref": "#/definitions/api.InvalidDepartmentIDError"
             }
           },
           "401": {
             "description": "Unauthorized",
             "schema": {
-              "$ref": "#/definitions/api.Error"
+              "$ref": "#/definitions/api.UnauthorizedError"
             }
           },
           "403": {
             "description": "Forbidden - admin role required",
             "schema": {
-              "$ref": "#/definitions/api.Error"
+              "$ref": "#/definitions/api.ForbiddenError"
             }
           },
           "404": {
             "description": "Department not found",
             "schema": {
-              "$ref": "#/definitions/api.Error"
+              "$ref": "#/definitions/api.DepartmentNotFoundError"
             }
           },
           "409": {
             "description": "Cannot remove department, it still has some users",
             "schema": {
-              "$ref": "#/definitions/api.Error"
+              "$ref": "#/definitions/api.CannotRemoveDepartmentError"
             }
           },
           "500": {
             "description": "Internal server error",
             "schema": {
-              "$ref": "#/definitions/api.Error"
+              "$ref": "#/definitions/api.ServerError"
             }
           }
         }
@@ -554,13 +566,13 @@
           "401": {
             "description": "Unauthorized",
             "schema": {
-              "$ref": "#/definitions/api.Error"
+              "$ref": "#/definitions/api.UnauthorizedError"
             }
           },
           "500": {
             "description": "Internal server error",
             "schema": {
-              "$ref": "#/definitions/api.Error"
+              "$ref": "#/definitions/api.ServerError"
             }
           }
         }
@@ -601,27 +613,27 @@
             }
           },
           "400": {
-            "description": "Invalid role or request format",
+            "description": "Invalid name specified",
             "schema": {
-              "$ref": "#/definitions/api.Error"
+              "$ref": "#/definitions/api.InvalidNameError"
             }
           },
           "401": {
             "description": "Unauthorized",
             "schema": {
-              "$ref": "#/definitions/api.Error"
+              "$ref": "#/definitions/api.UnauthorizedError"
             }
           },
           "403": {
             "description": "Forbidden - admin role required",
             "schema": {
-              "$ref": "#/definitions/api.Error"
+              "$ref": "#/definitions/api.ForbiddenError"
             }
           },
           "500": {
             "description": "Internal server error",
             "schema": {
-              "$ref": "#/definitions/api.Error"
+              "$ref": "#/definitions/api.ServerError"
             }
           }
         }
@@ -656,19 +668,19 @@
           "401": {
             "description": "Unauthorized or invalid token",
             "schema": {
-              "$ref": "#/definitions/api.Error"
+              "$ref": "#/definitions/api.UnauthorizedError"
             }
           },
           "404": {
             "description": "User not found",
             "schema": {
-              "$ref": "#/definitions/api.Error"
+              "$ref": "#/definitions/api.UserNotFoundError"
             }
           },
           "500": {
             "description": "Internal server error",
             "schema": {
-              "$ref": "#/definitions/api.Error"
+              "$ref": "#/definitions/api.ServerError"
             }
           }
         }
@@ -710,25 +722,25 @@
           "400": {
             "description": "Invalid UUID format",
             "schema": {
-              "$ref": "#/definitions/api.Error"
+              "$ref": "#/definitions/api.InvalidUUIDError"
             }
           },
           "401": {
             "description": "Unauthorized",
             "schema": {
-              "$ref": "#/definitions/api.Error"
+              "$ref": "#/definitions/api.UnauthorizedError"
             }
           },
           "404": {
             "description": "User not found",
             "schema": {
-              "$ref": "#/definitions/api.Error"
+              "$ref": "#/definitions/api.UserNotFoundError"
             }
           },
           "500": {
             "description": "Internal server error",
             "schema": {
-              "$ref": "#/definitions/api.Error"
+              "$ref": "#/definitions/api.ServerError"
             }
           }
         }
@@ -776,33 +788,33 @@
             }
           },
           "400": {
-            "description": "Invalid UUID format, role or request format",
+            "description": "Invalid name",
             "schema": {
-              "$ref": "#/definitions/api.Error"
+              "$ref": "#/definitions/api.InvalidNameError"
             }
           },
           "401": {
             "description": "Unauthorized",
             "schema": {
-              "$ref": "#/definitions/api.Error"
+              "$ref": "#/definitions/api.UnauthorizedError"
             }
           },
           "403": {
             "description": "Forbidden - admin role required",
             "schema": {
-              "$ref": "#/definitions/api.Error"
+              "$ref": "#/definitions/api.ForbiddenError"
             }
           },
           "404": {
             "description": "User not found",
             "schema": {
-              "$ref": "#/definitions/api.Error"
+              "$ref": "#/definitions/api.UserNotFoundError"
             }
           },
           "500": {
             "description": "Internal server error",
             "schema": {
-              "$ref": "#/definitions/api.Error"
+              "$ref": "#/definitions/api.ServerError"
             }
           }
         }
@@ -855,39 +867,39 @@
             }
           },
           "400": {
-            "description": "Invalid credentials or request format",
+            "description": "Invalid credentials format",
             "schema": {
-              "$ref": "#/definitions/api.Error"
+              "$ref": "#/definitions/api.InvalidCredentialsError"
             }
           },
           "401": {
             "description": "Unauthorized",
             "schema": {
-              "$ref": "#/definitions/api.Error"
+              "$ref": "#/definitions/api.UnauthorizedError"
             }
           },
           "403": {
             "description": "Forbidden - admin role required",
             "schema": {
-              "$ref": "#/definitions/api.Error"
+              "$ref": "#/definitions/api.ForbiddenError"
             }
           },
           "404": {
             "description": "User does not exist",
             "schema": {
-              "$ref": "#/definitions/api.Error"
+              "$ref": "#/definitions/api.UserNotFoundError"
             }
           },
           "409": {
             "description": "User already exists",
             "schema": {
-              "$ref": "#/definitions/api.Error"
+              "$ref": "#/definitions/api.UserExistsError"
             }
           },
           "500": {
             "description": "Internal server error",
             "schema": {
-              "$ref": "#/definitions/api.Error"
+              "$ref": "#/definitions/api.ServerError"
             }
           }
         }
@@ -902,6 +914,26 @@
         "token": {
           "type": "string",
           "example": "admin-secret-token"
+        }
+      }
+    },
+    "api.CannotRemoveDepartmentError": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "example": "CANNOT_REMOVE_DEPARTMENT"
+        },
+        "details": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string",
+          "example": "Cannot remove department, it still has some users"
+        },
+        "ruMessage": {
+          "type": "string",
+          "example": "Невозможно удалить кафедру, так как она содержит пользователей"
         }
       }
     },
@@ -949,6 +981,26 @@
         }
       }
     },
+    "api.CredentialsNotFoundError": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "example": "CREDENTIALS_NOT_FOUND"
+        },
+        "details": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string",
+          "example": "User credentials not found"
+        },
+        "ruMessage": {
+          "type": "string",
+          "example": "Учетные данные пользователя не найдены"
+        }
+      }
+    },
     "api.CredentialsRequest": {
       "type": "object",
       "required": ["password", "username"],
@@ -978,6 +1030,46 @@
         "name": {
           "type": "string",
           "example": "Mathematics"
+        }
+      }
+    },
+    "api.DepartmentExistsError": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "example": "DEPARTMENT_EXISTS"
+        },
+        "details": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string",
+          "example": "Department with this name already exists"
+        },
+        "ruMessage": {
+          "type": "string",
+          "example": "Кафедра с таким названием уже существует"
+        }
+      }
+    },
+    "api.DepartmentNotFoundError": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "example": "DEPARTMENT_NOT_FOUND"
+        },
+        "details": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string",
+          "example": "Department not found"
+        },
+        "ruMessage": {
+          "type": "string",
+          "example": "Кафедра не найдена"
         }
       }
     },
@@ -1015,6 +1107,26 @@
         }
       }
     },
+    "api.ForbiddenError": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "example": "FORBIDDEN"
+        },
+        "details": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string",
+          "example": "Forbidden - insufficient permissions"
+        },
+        "ruMessage": {
+          "type": "string",
+          "example": "Доступ запрещен - недостаточно прав"
+        }
+      }
+    },
     "api.IdentityResponse": {
       "type": "object",
       "required": ["id", "role"],
@@ -1026,6 +1138,147 @@
         "role": {
           "type": "string",
           "example": "user"
+        }
+      }
+    },
+    "api.InvalidCredentialsError": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "example": "INVALID_CREDENTIALS"
+        },
+        "details": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string",
+          "example": "Invalid credentials format"
+        },
+        "ruMessage": {
+          "type": "string",
+          "example": "Неверный формат учетных данных"
+        }
+      }
+    },
+    "api.InvalidDepartmentIDError": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "example": "INVALID_DEPARTMENT_ID"
+        },
+        "details": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string",
+          "example": "Invalid department ID"
+        },
+        "ruMessage": {
+          "type": "string",
+          "example": "Некорректный идентификатор кафедры"
+        }
+      }
+    },
+    "api.InvalidNameError": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "example": "INVALID_NAME"
+        },
+        "details": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string",
+          "example": "Invalid name specified"
+        },
+        "ruMessage": {
+          "type": "string",
+          "example": "Указано некорректное имя"
+        }
+      }
+    },
+    "api.InvalidRequestError": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "example": "INVALID_REQUEST"
+        },
+        "details": {
+          "type": "string",
+          "example": "field X is required"
+        },
+        "message": {
+          "type": "string",
+          "example": "Invalid request body"
+        },
+        "ruMessage": {
+          "type": "string",
+          "example": "Некорректный формат запроса"
+        }
+      }
+    },
+    "api.InvalidRoleError": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "example": "INVALID_ROLE"
+        },
+        "details": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string",
+          "example": "Invalid role ID specified"
+        },
+        "ruMessage": {
+          "type": "string",
+          "example": "Указана некорректная роль"
+        }
+      }
+    },
+    "api.InvalidTokenError": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "example": "INVALID_TOKEN"
+        },
+        "details": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string",
+          "example": "Invalid or expired token"
+        },
+        "ruMessage": {
+          "type": "string",
+          "example": "Недействительный или просроченный токен"
+        }
+      }
+    },
+    "api.InvalidUUIDError": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "example": "INVALID_UUID"
+        },
+        "details": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string",
+          "example": "Invalid UUID format"
+        },
+        "ruMessage": {
+          "type": "string",
+          "example": "Некорректный формат UUID"
         }
       }
     },
@@ -1124,6 +1377,26 @@
         }
       }
     },
+    "api.ServerError": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "example": "SERVER_ERROR"
+        },
+        "details": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string",
+          "example": "Internal server error"
+        },
+        "ruMessage": {
+          "type": "string",
+          "example": "Внутренняя ошибка сервера"
+        }
+      }
+    },
     "api.TokenResponse": {
       "type": "object",
       "required": ["token"],
@@ -1131,6 +1404,26 @@
         "token": {
           "type": "string",
           "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        }
+      }
+    },
+    "api.UnauthorizedError": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "example": "UNAUTHORIZED"
+        },
+        "details": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string",
+          "example": "Unauthorized access"
+        },
+        "ruMessage": {
+          "type": "string",
+          "example": "Неавторизованный доступ"
         }
       }
     },
@@ -1145,6 +1438,46 @@
         "name": {
           "type": "string",
           "example": "Mathematics"
+        }
+      }
+    },
+    "api.UserExistsError": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "example": "USER_EXISTS"
+        },
+        "details": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string",
+          "example": "User with this username already exists"
+        },
+        "ruMessage": {
+          "type": "string",
+          "example": "Пользователь с таким именем уже существует"
+        }
+      }
+    },
+    "api.UserNotFoundError": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string",
+          "example": "USER_NOT_FOUND"
+        },
+        "details": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string",
+          "example": "User does not exist"
+        },
+        "ruMessage": {
+          "type": "string",
+          "example": "Пользователь не существует"
         }
       }
     },

@@ -12,9 +12,14 @@ const fetcher = async (url: string) => {
     });
     return response.data;
   } catch (error: any) {
-    throw new Error(
-      error.response?.data?.ruMessage || "Ошибка при получении данных",
-    );
+    // Extract error data from axios response
+    const errorData = error.response?.data;
+    // Throw a more detailed error with all available information
+    throw {
+      ...errorData,
+      message: errorData?.ruMessage || "Ошибка при получении данных",
+      originalError: error
+    };
   }
 };
 

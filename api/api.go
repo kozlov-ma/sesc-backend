@@ -39,12 +39,14 @@ func (a *API) writeJSON(w http.ResponseWriter, data any, statusCode int) {
 	}
 }
 
-func (a *API) writeError(w http.ResponseWriter, apiError Error, statusCode int) {
+func writeError[T SpecificError](a *API, w http.ResponseWriter, apiError T, statusCode int) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(statusCode)
-	err := json.NewEncoder(w).Encode(struct {
-		Error Error `json:"error"`
-	}{Error: apiError})
+
+	// Convert the specific error type to a generic Error
+	genericError := ToError(apiError)
+
+	err := json.NewEncoder(w).Encode(genericError)
 
 	if err != nil {
 		a.log.Error("couldn't write json", "error", err)

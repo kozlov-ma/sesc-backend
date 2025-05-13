@@ -52,7 +52,10 @@ export function LoginForm() {
       className="space-y-6"
     >
       {loginUserError && (
-        <ErrorMessage message={loginUserError.response?.data?.ruMessage} />
+        <ErrorMessage message={
+          loginUserError.response?.data?.ruMessage || 
+          "Ошибка при входе в систему. Проверьте имя пользователя и пароль."
+        } />
       )}
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">

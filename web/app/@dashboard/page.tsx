@@ -1,17 +1,17 @@
 "use client";
 
+import { useAuth } from "@/hooks/use-auth";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { useAuth } from "@/hooks/use-auth";
 import { LogOut } from "lucide-react";
 
 export default function DashboardPage() {
-  const { isAuthenticated, role, logout, isLoading } = useAuth();
+  const { isAuthenticated, role, isLoading, logout } = useAuth();
 
-  // Если пользователь не авторизован, не показываем дашборд
-  if (!isAuthenticated || isLoading) {
+  // Only render if user is not admin, otherwise return null
+  if (!isAuthenticated || isLoading || role === "admin") {
     return null;
   }
 
@@ -43,7 +43,7 @@ export default function DashboardPage() {
               transition={{ delay: 0.2, duration: 0.3 }}
               className="text-center text-3xl font-bold p-8"
             >
-              {role === "admin" ? "Администратор" : "Пользователь"}
+              Пользователь
             </motion.div>
           </CardContent>
         </Card>

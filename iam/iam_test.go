@@ -136,13 +136,13 @@ func TestLogin(t *testing.T) {
 			Username: "logintest",
 			Password: "wrongpassword",
 		})
-		require.ErrorIs(t, err, ErrInvalidCredentials)
+		require.ErrorIs(t, err, ErrUserNotFound)
 
 		_, err = iam.Login(ctx, Credentials{
 			Username: "nonexistent",
 			Password: "password123",
 		})
-		require.ErrorIs(t, err, ErrInvalidCredentials)
+		require.ErrorIs(t, err, ErrUserNotFound)
 	})
 }
 
@@ -169,7 +169,7 @@ func TestLoginAdmin(t *testing.T) {
 		ctx, iam := setup(t)
 
 		_, err := iam.LoginAdmin(ctx, "invalid-token")
-		require.ErrorIs(t, err, ErrInvalidCredentials)
+		require.ErrorIs(t, err, ErrUserNotFound)
 	})
 }
 

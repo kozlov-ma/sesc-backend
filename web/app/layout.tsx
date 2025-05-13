@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
-import { useAuth } from "@/hooks/use-auth";
+import { Toaster } from "@/components/ui/sonner";
 
 const inter = Inter({ subsets: ["latin", "cyrillic"] });
 
@@ -17,10 +17,12 @@ export default function RootLayout({
   children,
   auth,
   dashboard,
+  admin_dashboard,
 }: Readonly<{
   children: React.ReactNode;
   auth: React.ReactNode;
   dashboard: React.ReactNode;
+  admin_dashboard: React.ReactNode;
 }>) {
   return (
     <html lang="ru" suppressHydrationWarning>
@@ -31,9 +33,13 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          {children}
-          {dashboard}
-          {auth}
+          <main>
+            {children}
+            {dashboard}
+            {admin_dashboard}
+            {auth}
+          </main>
+          <Toaster />
         </ThemeProvider>
       </body>
     </html>

@@ -15,6 +15,16 @@ export interface ApiAdminLoginRequest {
   token: string;
 }
 
+export interface ApiCannotRemoveDepartmentError {
+  /** @example "CANNOT_REMOVE_DEPARTMENT" */
+  code?: string;
+  details?: string;
+  /** @example "Cannot remove department, it still has some users" */
+  message?: string;
+  /** @example "Невозможно удалить кафедру, так как она содержит пользователей" */
+  ruMessage?: string;
+}
+
 export interface ApiCreateDepartmentRequest {
   /** @example "Math department" */
   description: string;
@@ -37,6 +47,16 @@ export interface ApiCreateUserRequest {
   roleId: number;
 }
 
+export interface ApiCredentialsNotFoundError {
+  /** @example "CREDENTIALS_NOT_FOUND" */
+  code?: string;
+  details?: string;
+  /** @example "User credentials not found" */
+  message?: string;
+  /** @example "Учетные данные пользователя не найдены" */
+  ruMessage?: string;
+}
+
 export interface ApiCredentialsRequest {
   /** @example "secret123" */
   password: string;
@@ -51,6 +71,26 @@ export interface ApiDepartment {
   id: string;
   /** @example "Mathematics" */
   name: string;
+}
+
+export interface ApiDepartmentExistsError {
+  /** @example "DEPARTMENT_EXISTS" */
+  code?: string;
+  details?: string;
+  /** @example "Department with this name already exists" */
+  message?: string;
+  /** @example "Кафедра с таким названием уже существует" */
+  ruMessage?: string;
+}
+
+export interface ApiDepartmentNotFoundError {
+  /** @example "DEPARTMENT_NOT_FOUND" */
+  code?: string;
+  details?: string;
+  /** @example "Department not found" */
+  message?: string;
+  /** @example "Кафедра не найдена" */
+  ruMessage?: string;
 }
 
 export interface ApiDepartmentsResponse {
@@ -68,11 +108,92 @@ export interface ApiError {
   ruMessage: string;
 }
 
+export interface ApiForbiddenError {
+  /** @example "FORBIDDEN" */
+  code?: string;
+  details?: string;
+  /** @example "Forbidden - insufficient permissions" */
+  message?: string;
+  /** @example "Доступ запрещен - недостаточно прав" */
+  ruMessage?: string;
+}
+
 export interface ApiIdentityResponse {
   /** @example "550e8400-e29b-41d4-a716-446655440000" */
   id: string;
   /** @example "user" */
   role: string;
+}
+
+export interface ApiInvalidCredentialsError {
+  /** @example "INVALID_CREDENTIALS" */
+  code?: string;
+  details?: string;
+  /** @example "Invalid credentials format" */
+  message?: string;
+  /** @example "Неверный формат учетных данных" */
+  ruMessage?: string;
+}
+
+export interface ApiInvalidDepartmentIDError {
+  /** @example "INVALID_DEPARTMENT_ID" */
+  code?: string;
+  details?: string;
+  /** @example "Invalid department ID" */
+  message?: string;
+  /** @example "Некорректный идентификатор кафедры" */
+  ruMessage?: string;
+}
+
+export interface ApiInvalidNameError {
+  /** @example "INVALID_NAME" */
+  code?: string;
+  details?: string;
+  /** @example "Invalid name specified" */
+  message?: string;
+  /** @example "Указано некорректное имя" */
+  ruMessage?: string;
+}
+
+export interface ApiInvalidRequestError {
+  /** @example "INVALID_REQUEST" */
+  code?: string;
+  /** @example "field X is required" */
+  details?: string;
+  /** @example "Invalid request body" */
+  message?: string;
+  /** @example "Некорректный формат запроса" */
+  ruMessage?: string;
+}
+
+export interface ApiInvalidRoleError {
+  /** @example "INVALID_ROLE" */
+  code?: string;
+  details?: string;
+  /** @example "Invalid role ID specified" */
+  message?: string;
+  /** @example "Указана некорректная роль" */
+  ruMessage?: string;
+}
+
+export interface ApiInvalidTokenError {
+  /** @example "INVALID_TOKEN" */
+  code?: string;
+  details?: string;
+  /** @example "Invalid or expired token" */
+  message?: string;
+  /** @example "Недействительный или просроченный токен" */
+  ruMessage?: string;
+}
+
+export interface ApiInvalidUUIDError {
+  /** @example "INVALID_UUID" */
+  code?: string;
+  details?: string;
+  /** @example "Invalid UUID format" */
+  message?: string;
+  /** @example "Некорректный формат UUID" */
+  ruMessage?: string;
 }
 
 export interface ApiPatchUserRequest {
@@ -117,9 +238,29 @@ export interface ApiRolesResponse {
   roles?: ApiRole[];
 }
 
+export interface ApiServerError {
+  /** @example "SERVER_ERROR" */
+  code?: string;
+  details?: string;
+  /** @example "Internal server error" */
+  message?: string;
+  /** @example "Внутренняя ошибка сервера" */
+  ruMessage?: string;
+}
+
 export interface ApiTokenResponse {
   /** @example "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." */
   token: string;
+}
+
+export interface ApiUnauthorizedError {
+  /** @example "UNAUTHORIZED" */
+  code?: string;
+  details?: string;
+  /** @example "Unauthorized access" */
+  message?: string;
+  /** @example "Неавторизованный доступ" */
+  ruMessage?: string;
 }
 
 export interface ApiUpdateDepartmentRequest {
@@ -127,6 +268,26 @@ export interface ApiUpdateDepartmentRequest {
   description: string;
   /** @example "Mathematics" */
   name: string;
+}
+
+export interface ApiUserExistsError {
+  /** @example "USER_EXISTS" */
+  code?: string;
+  details?: string;
+  /** @example "User with this username already exists" */
+  message?: string;
+  /** @example "Пользователь с таким именем уже существует" */
+  ruMessage?: string;
+}
+
+export interface ApiUserNotFoundError {
+  /** @example "USER_NOT_FOUND" */
+  code?: string;
+  details?: string;
+  /** @example "User does not exist" */
+  message?: string;
+  /** @example "Пользователь не существует" */
+  ruMessage?: string;
 }
 
 export interface ApiUserResponse {
@@ -343,7 +504,10 @@ export class Api<
       request: ApiAdminLoginRequest,
       params: RequestParams = {},
     ) =>
-      this.request<ApiTokenResponse, ApiError>({
+      this.request<
+        ApiTokenResponse,
+        ApiInvalidRequestError | ApiCredentialsNotFoundError | ApiServerError
+      >({
         path: `/auth/admin/login`,
         method: "POST",
         body: request,
@@ -362,7 +526,14 @@ export class Api<
      * @secure
      */
     credentialsDetail: (id: string, params: RequestParams = {}) =>
-      this.request<ApiCredentialsRequest, ApiError>({
+      this.request<
+        ApiCredentialsRequest,
+        | ApiInvalidUUIDError
+        | ApiUnauthorizedError
+        | ApiForbiddenError
+        | ApiCredentialsNotFoundError
+        | ApiServerError
+      >({
         path: `/auth/credentials/${id}`,
         method: "GET",
         secure: true,
@@ -379,7 +550,14 @@ export class Api<
      * @secure
      */
     credentialsDelete: (id: string, params: RequestParams = {}) =>
-      this.request<void, ApiError>({
+      this.request<
+        void,
+        | ApiInvalidUUIDError
+        | ApiUnauthorizedError
+        | ApiForbiddenError
+        | ApiCredentialsNotFoundError
+        | ApiServerError
+      >({
         path: `/auth/credentials/${id}`,
         method: "DELETE",
         secure: true,
@@ -395,7 +573,10 @@ export class Api<
      * @request POST:/auth/login
      */
     loginCreate: (request: ApiCredentialsRequest, params: RequestParams = {}) =>
-      this.request<ApiTokenResponse, ApiError>({
+      this.request<
+        ApiTokenResponse,
+        ApiInvalidRequestError | ApiCredentialsNotFoundError | ApiServerError
+      >({
         path: `/auth/login`,
         method: "POST",
         body: request,
@@ -414,7 +595,7 @@ export class Api<
      * @secure
      */
     validateList: (params: RequestParams = {}) =>
-      this.request<ApiIdentityResponse, ApiError>({
+      this.request<ApiIdentityResponse, ApiInvalidTokenError | ApiServerError>({
         path: `/auth/validate`,
         method: "GET",
         secure: true,
@@ -432,7 +613,7 @@ export class Api<
      * @request GET:/departments
      */
     departmentsList: (params: RequestParams = {}) =>
-      this.request<ApiDepartmentsResponse, ApiError>({
+      this.request<ApiDepartmentsResponse, ApiServerError>({
         path: `/departments`,
         method: "GET",
         format: "json",
@@ -452,7 +633,14 @@ export class Api<
       request: ApiCreateDepartmentRequest,
       params: RequestParams = {},
     ) =>
-      this.request<ApiDepartment, ApiError>({
+      this.request<
+        ApiDepartment,
+        | ApiInvalidRequestError
+        | ApiUnauthorizedError
+        | ApiForbiddenError
+        | ApiDepartmentExistsError
+        | ApiServerError
+      >({
         path: `/departments`,
         method: "POST",
         body: request,
@@ -476,7 +664,15 @@ export class Api<
       request: ApiUpdateDepartmentRequest,
       params: RequestParams = {},
     ) =>
-      this.request<ApiDepartment, ApiError>({
+      this.request<
+        ApiDepartment,
+        | ApiInvalidRequestError
+        | ApiUnauthorizedError
+        | ApiForbiddenError
+        | ApiDepartmentNotFoundError
+        | ApiDepartmentExistsError
+        | ApiServerError
+      >({
         path: `/departments/${id}`,
         method: "PUT",
         body: request,
@@ -496,7 +692,15 @@ export class Api<
      * @secure
      */
     departmentsDelete: (id: string, params: RequestParams = {}) =>
-      this.request<void, ApiError>({
+      this.request<
+        void,
+        | ApiInvalidDepartmentIDError
+        | ApiUnauthorizedError
+        | ApiForbiddenError
+        | ApiDepartmentNotFoundError
+        | ApiCannotRemoveDepartmentError
+        | ApiServerError
+      >({
         path: `/departments/${id}`,
         method: "DELETE",
         secure: true,
@@ -548,7 +752,7 @@ export class Api<
      * @secure
      */
     usersList: (params: RequestParams = {}) =>
-      this.request<ApiUsersResponse, ApiError>({
+      this.request<ApiUsersResponse, ApiUnauthorizedError | ApiServerError>({
         path: `/users`,
         method: "GET",
         secure: true,
@@ -566,7 +770,13 @@ export class Api<
      * @secure
      */
     usersCreate: (request: ApiCreateUserRequest, params: RequestParams = {}) =>
-      this.request<ApiUserResponse, ApiError>({
+      this.request<
+        ApiUserResponse,
+        | ApiInvalidNameError
+        | ApiUnauthorizedError
+        | ApiForbiddenError
+        | ApiServerError
+      >({
         path: `/users`,
         method: "POST",
         body: request,
@@ -586,7 +796,10 @@ export class Api<
      * @secure
      */
     getUsers: (params: RequestParams = {}) =>
-      this.request<ApiUserResponse, ApiError>({
+      this.request<
+        ApiUserResponse,
+        ApiUnauthorizedError | ApiUserNotFoundError | ApiServerError
+      >({
         path: `/users/me`,
         method: "GET",
         secure: true,
@@ -604,7 +817,13 @@ export class Api<
      * @secure
      */
     usersDetail: (id: string, params: RequestParams = {}) =>
-      this.request<ApiUserResponse, ApiError>({
+      this.request<
+        ApiUserResponse,
+        | ApiInvalidUUIDError
+        | ApiUnauthorizedError
+        | ApiUserNotFoundError
+        | ApiServerError
+      >({
         path: `/users/${id}`,
         method: "GET",
         secure: true,
@@ -626,7 +845,14 @@ export class Api<
       request: ApiPatchUserRequest,
       params: RequestParams = {},
     ) =>
-      this.request<ApiUserResponse, ApiError>({
+      this.request<
+        ApiUserResponse,
+        | ApiInvalidNameError
+        | ApiUnauthorizedError
+        | ApiForbiddenError
+        | ApiUserNotFoundError
+        | ApiServerError
+      >({
         path: `/users/${id}`,
         method: "PATCH",
         body: request,
@@ -650,7 +876,15 @@ export class Api<
       request: ApiCredentialsRequest,
       params: RequestParams = {},
     ) =>
-      this.request<Record<string, string>, ApiError>({
+      this.request<
+        Record<string, string>,
+        | ApiInvalidCredentialsError
+        | ApiUnauthorizedError
+        | ApiForbiddenError
+        | ApiUserNotFoundError
+        | ApiUserExistsError
+        | ApiServerError
+      >({
         path: `/users/${id}/credentials`,
         method: "PUT",
         body: request,

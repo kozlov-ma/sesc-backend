@@ -9,9 +9,10 @@ export default function HomePage() {
   useEffect(() => {
     // Проверяем токен при загрузке страницы
     if (token) {
-      validateToken(token).catch(() => {
+      validateToken(token).catch((error) => {
         // Обработка ошибки, если токен недействителен
-        console.error("Недействительный токен");
+        const errorMessage = error?.response?.data?.ruMessage || "Недействительный токен";
+        console.error(errorMessage);
       });
     }
   }, [token, validateToken]);

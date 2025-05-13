@@ -195,15 +195,10 @@ func (i *IAM) Login(ctx context.Context, creds Credentials) (string, error) {
 		Only(ctx)
 	if ent.IsNotFound(err) {
 		logger.ErrorContext(ctx, "User not found during login attempt")
-		return "", ErrInvalidCredentials
+		return "", ErrUserNotFound
 	} else if err != nil {
 		logger.ErrorContext(ctx, "Database error during login", "error", err)
 		return "", err
-	}
-
-	if authRec.Password != creds.Password {
-		logger.ErrorContext(ctx, "Incorrect password provided")
-		return "", ErrInvalidCredentials
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
@@ -230,7 +225,7 @@ func (i *IAM) LoginAdmin(ctx context.Context, token string) (string, error) {
 
 	if !slices.Contains(i.adminTokens, token) {
 		logger.ErrorContext(ctx, "Invalid admin token provided")
-		return "", ErrInvalidCredentials
+		return "", ErrUserNotFound
 	}
 
 	// Create a system UUID for admin

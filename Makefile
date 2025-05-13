@@ -6,7 +6,7 @@ dev-db:
 
 # Spin up both database and backend
 dev-backend:
-	docker-compose up -d
+	docker-compose up -d --build
 
 # Stop and remove all containers
 down:

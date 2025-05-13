@@ -1,0 +1,7 @@
+web
+.git
+.github
+README.md
+Makefile
+docker-compose.yml
+.golangci.yml

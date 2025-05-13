@@ -49,7 +49,10 @@ export function AdminLoginForm() {
       className="space-y-6"
     >
       {loginAdminError && (
-        <ErrorMessage message={loginAdminError.response?.data?.ruMessage} />
+        <ErrorMessage message={
+          loginAdminError.response?.data?.ruMessage || 
+          "Ошибка при входе в систему. Проверьте токен администратора."
+        } />
       )}
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">

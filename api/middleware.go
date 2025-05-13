@@ -43,7 +43,7 @@ func (a *API) AuthMiddleware(next http.Handler) http.Handler {
 
 		// Validate Bearer token format
 		if !strings.HasPrefix(authHeader, "Bearer ") {
-			a.writeError(w, ErrInvalidAuthHeader, http.StatusUnauthorized)
+			writeError(a, w, ErrInvalidAuthHeader, http.StatusUnauthorized)
 			return
 		}
 
@@ -52,10 +52,10 @@ func (a *API) AuthMiddleware(next http.Handler) http.Handler {
 		identity, err := a.iam.ImWatermelon(ctx, token)
 		if err != nil {
 			if errors.Is(err, iam.ErrInvalidToken) {
-				a.writeError(w, ErrInvalidToken, http.StatusUnauthorized)
+				writeError(a, w, ErrInvalidToken, http.StatusUnauthorized)
 				return
 			}
-			a.writeError(w, ErrAuthError, http.StatusInternalServerError)
+			writeError(a, w, ErrAuthError, http.StatusInternalServerError)
 			return
 		}
 
@@ -68,14 +68,47 @@ func (a *API) AuthMiddleware(next http.Handler) http.Handler {
 // RequireAuthMiddleware ensures the request has a valid token
 func (a *API) RequireAuthMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		ctx := r.Context()
+		authHeader := r.Header.Get("Authorization")
 
-		// Check if identity exists in context
-		if _, ok := GetIdentityFromContext(ctx); !ok {
-			a.writeError(w, ErrUnauthorized.WithDetails("Authentication required"), http.StatusUnauthorized)
+		// Check if auth header exists
+		if authHeader == "" {
+			writeError(a, w, UnauthorizedError{
+				Code:      "UNAUTHORIZED",
+				Message:   "Authentication required",
+				RuMessage: "Требуется аутентификация",
+				Details:   "Authentication required",
+			}, http.StatusUnauthorized)
 			return
 		}
 
+		// Continue with auth chain
+		next.ServeHTTP(w, r)
+	})
+}
+
+// RequireAdminRoleMiddleware ensures the request is from a user with Admin role
+func (a *API) RequireAdminRoleMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		identity, ok := GetIdentityFromContext(r.Context())
+
+		// Check if we have identity in the context
+		if !ok {
+			writeError(a, w, UnauthorizedError{
+				Code:      "UNAUTHORIZED",
+				Message:   "Authentication required",
+				RuMessage: "Требуется аутентификация",
+				Details:   "Authentication required",
+			}, http.StatusUnauthorized)
+			return
+		}
+
+		// Check if user has admin role
+		if string(identity.Role) != "admin" {
+			writeError(a, w, ErrForbidden, http.StatusForbidden)
+			return
+		}
+
+		// Continue with admin access granted
 		next.ServeHTTP(w, r)
 	})
 }
@@ -89,7 +122,12 @@ func (a *API) RoleMiddleware(roles ...string) func(http.Handler) http.Handler {
 			// Get identity from context
 			identity, ok := GetIdentityFromContext(ctx)
 			if !ok {
-				a.writeError(w, ErrUnauthorized.WithDetails("Authentication required"), http.StatusUnauthorized)
+				writeError(a, w, UnauthorizedError{
+					Code:      "UNAUTHORIZED",
+					Message:   "Authentication required",
+					RuMessage: "Требуется аутентификация",
+					Details:   "Authentication required",
+				}, http.StatusUnauthorized)
 				return
 			}
 
@@ -103,7 +141,7 @@ func (a *API) RoleMiddleware(roles ...string) func(http.Handler) http.Handler {
 			}
 
 			if !hasRole {
-				a.writeError(w, ErrForbidden, http.StatusForbidden)
+				writeError(a, w, ErrForbidden, http.StatusForbidden)
 				return
 			}
 
@@ -112,7 +150,7 @@ func (a *API) RoleMiddleware(roles ...string) func(http.Handler) http.Handler {
 	}
 }
 
-// CurrentUserMiddleware adds the current user to the context if available
+// CurrentUserMiddleware adds the current user to the request context if available
 func (a *API) CurrentUserMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
@@ -136,7 +174,7 @@ func (a *API) CurrentUserMiddleware(next http.Handler) http.Handler {
 				}
 
 				// For other errors, return 500
-				a.writeError(w, ErrServerError.WithDetails("Error fetching user data"), http.StatusInternalServerError)
+				writeError(a, w, ErrServerError.WithDetails("Error fetching user data"), http.StatusInternalServerError)
 				return
 			}
 
