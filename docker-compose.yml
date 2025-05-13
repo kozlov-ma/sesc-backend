@@ -16,5 +16,19 @@ services:
       start_period: 30s
       timeout: 10s
 
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: sesc-backend
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      POSTGRES_ADDRESS: postgres://postgres:password@postgres:5432/postgres?sslmode=disable
+
 volumes:
   postgres:
