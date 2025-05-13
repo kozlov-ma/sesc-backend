@@ -2,6 +2,7 @@ package iam
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -20,10 +21,9 @@ var (
 	ErrUserAlreadyExists  = errors.New("user already exists")
 	ErrInvalidToken       = errors.New("invalid token")
 	ErrUserNotFound       = errors.New("user not found")
-	ErrUserDoesNotExist   = errors.New("user does not exist")
 )
 
-// JWT secret key (should be in config)
+// JWT secret key (should be in config).
 var jwtKey = []byte("dinahu")
 
 type Credentials struct {
@@ -59,7 +59,12 @@ type IAM struct {
 }
 
 // New creates a new IAM with the given Ent client.
-func New(log *slog.Logger, client *ent.Client, tokenDuration time.Duration, adminTokens []string) *IAM {
+func New(
+	log *slog.Logger,
+	client *ent.Client,
+	tokenDuration time.Duration,
+	adminTokens []string,
+) *IAM {
 	return &IAM{
 		log:           log,
 		client:        client,
@@ -73,7 +78,11 @@ type UUID = uuid.UUID
 // RegisterCredentials assigns username/password to an existing userID, returns authID.
 // Returns ErrUserDoesNotExist if user does not exist, ErrUserAlreadyExists if username exists,
 // or ErrInvalidCredentials if creds invalid.
-func (i *IAM) RegisterCredentials(ctx context.Context, userID UUID, creds Credentials) (UUID, error) {
+func (i *IAM) RegisterCredentials(
+	ctx context.Context,
+	userID UUID,
+	creds Credentials,
+) (UUID, error) {
 	logger := i.log.With("method", "RegisterCredentials", "user_id", userID)
 	logger.DebugContext(ctx, "Starting credentials registration")
 
@@ -82,48 +91,91 @@ func (i *IAM) RegisterCredentials(ctx context.Context, userID UUID, creds Creden
 		return UUID{}, err
 	}
 
-	// TODO ЗДЕСЬ ОЧЕНЬ НУЖНА ТРАНЗАКЦИЯ!!!!!!!
+	// Start a transaction with serializable isolation
+	tx, err := i.client.BeginTx(ctx, &sql.TxOptions{
+		Isolation: sql.LevelSerializable,
+	})
+	if err != nil {
+		logger.ErrorContext(ctx, "Failed to begin transaction", "error", err)
+		return UUID{}, fmt.Errorf("couldn't start transaction: %w", err)
+	}
+
+	// Function to rollback transaction and wrap error
+	rollback := func(err error) (UUID, error) {
+		if rbErr := tx.Rollback(); rbErr != nil {
+			logger.ErrorContext(ctx, "Failed to rollback transaction", "error", rbErr)
+			return UUID{}, fmt.Errorf("%w: rollback failed: %w", err, rbErr)
+		}
+		return UUID{}, err
+	}
 
 	// Check if the user exists first
-	userExists, err := i.client.User.Query().
+	userExists, err := tx.User.Query().
 		Where(user.ID(userID)).
 		Exist(ctx)
 	if err != nil {
 		logger.ErrorContext(ctx, "Failed to check if user exists", "error", err)
-		return UUID{}, fmt.Errorf("error checking user existence: %w", err)
+		return rollback(fmt.Errorf("error checking user existence: %w", err))
 	}
 	if !userExists {
-		logger.ErrorContext(ctx, "Cannot register credentials for non-existent user", "user_id", userID)
-		return UUID{}, ErrUserDoesNotExist
+		logger.ErrorContext(
+			ctx,
+			"Cannot register credentials for non-existent user",
+			"user_id",
+			userID,
+		)
+		return rollback(ErrUserNotFound)
 	}
 
-	exists, err := i.client.AuthUser.
+	// Check if the username already exists
+	exists, err := tx.AuthUser.
 		Query().
 		Where(authuser.UsernameEQ(creds.Username)).
 		Exist(ctx)
 	if err != nil {
-		logger.ErrorContext(ctx, "Failed to check if username exists", "username", creds.Username, "error", err)
-		return UUID{}, err
+		logger.ErrorContext(
+			ctx,
+			"Failed to check if username exists",
+			"username",
+			creds.Username,
+			"error",
+			err,
+		)
+		return rollback(err)
 	}
 	if exists {
 		logger.ErrorContext(ctx, "User already exists", "username", creds.Username)
-		return UUID{}, ErrUserAlreadyExists
+		return rollback(ErrUserAlreadyExists)
 	}
 
+	// Create the auth user entry
 	authID := uuid.Must(uuid.NewV7())
-	_, err = i.client.AuthUser.
+	_, err = tx.AuthUser.
 		Create().
 		SetUsername(creds.Username).
 		SetPassword(creds.Password).
 		SetAuthID(authID).
-		SetUserID(uuid.UUID(userID)).
+		SetUserID(userID).
 		Save(ctx)
 	if err != nil {
 		logger.ErrorContext(ctx, "Failed to create auth user", "error", err)
-		return UUID{}, err
+		return rollback(err)
 	}
 
-	logger.InfoContext(ctx, "User credentials registered successfully", "auth_id", authID, "username", creds.Username)
+	err = tx.Commit()
+	if err != nil {
+		logger.ErrorContext(ctx, "Failed to commit transaction", "error", err)
+		return rollback(fmt.Errorf("couldn't commit transaction: %w", err))
+	}
+
+	logger.InfoContext(
+		ctx,
+		"User credentials registered successfully",
+		"auth_id",
+		authID,
+		"username",
+		creds.Username,
+	)
 	return authID, nil
 }
 
@@ -235,7 +287,14 @@ func (i *IAM) ImWatermelon(ctx context.Context, tokenString string) (Identity, e
 
 	uid, err := uuid.FromString(userIDstr)
 	if err != nil {
-		logger.ErrorContext(ctx, "Failed to parse user ID from token", "user_id_str", userIDstr, "error", err)
+		logger.ErrorContext(
+			ctx,
+			"Failed to parse user ID from token",
+			"user_id_str",
+			userIDstr,
+			"error",
+			err,
+		)
 		return Identity{}, ErrInvalidToken
 	}
 
@@ -250,31 +309,65 @@ func (i *IAM) DropCredentials(ctx context.Context, userID UUID) error {
 	logger := i.log.With("method", "DropCredentials", "user_id", userID)
 	logger.DebugContext(ctx, "Attempting to drop user credentials")
 
+	// Start a transaction with serializable isolation
+	tx, err := i.client.BeginTx(ctx, &sql.TxOptions{
+		Isolation: sql.LevelSerializable,
+	})
+	if err != nil {
+		logger.ErrorContext(ctx, "Failed to begin transaction", "error", err)
+		return fmt.Errorf("couldn't start transaction: %w", err)
+	}
+
+	// Function to rollback transaction and wrap error
+	rollback := func(err error) error {
+		if rbErr := tx.Rollback(); rbErr != nil {
+			logger.ErrorContext(ctx, "Failed to rollback transaction", "error", rbErr)
+			return fmt.Errorf("%w: rollback failed: %w", err, rbErr)
+		}
+		return err
+	}
+
 	// Check if the user exists first
-	userExists, err := i.client.User.Query().
+	userExists, err := tx.User.Query().
 		Where(user.ID(userID)).
 		Exist(ctx)
 	if err != nil {
 		logger.ErrorContext(ctx, "Failed to check if user exists", "error", err)
-		return fmt.Errorf("error checking user existence: %w", err)
+		return rollback(fmt.Errorf("error checking user existence: %w", err))
 	}
 	if !userExists {
 		logger.ErrorContext(ctx, "Cannot drop credentials for non-existent user", "user_id", userID)
-		return ErrUserDoesNotExist
+		return rollback(ErrUserNotFound)
 	}
 
-	_, err = i.client.AuthUser.
+	// Check if credentials exist before trying to delete
+	credExists, err := tx.AuthUser.Query().
+		Where(authuser.UserID(userID)).
+		Exist(ctx)
+	if err != nil {
+		logger.ErrorContext(ctx, "Failed to check if credentials exist", "error", err)
+		return rollback(fmt.Errorf("error checking credentials existence: %w", err))
+	}
+	if !credExists {
+		logger.ErrorContext(ctx, "User credentials not found", "user_id", userID)
+		return rollback(ErrUserNotFound)
+	}
+
+	// Delete the credentials
+	_, err = tx.AuthUser.
 		Delete().
 		Where(authuser.UserID(userID)).
 		Exec(ctx)
-
-	switch {
-	case ent.IsNotFound(err):
-		logger.ErrorContext(ctx, "User not found when trying to drop credentials")
-		return ErrUserNotFound
-	case err != nil:
+	if err != nil {
 		logger.ErrorContext(ctx, "Failed to drop user credentials", "error", err)
-		return fmt.Errorf("couldn't drop user's credentials: %w", err)
+		return rollback(fmt.Errorf("couldn't drop user's credentials: %w", err))
+	}
+
+	// Commit the transaction
+	err = tx.Commit()
+	if err != nil {
+		logger.ErrorContext(ctx, "Failed to commit transaction", "error", err)
+		return rollback(fmt.Errorf("couldn't commit transaction: %w", err))
 	}
 
 	logger.InfoContext(ctx, "User credentials dropped successfully")
@@ -294,8 +387,13 @@ func (i *IAM) Credentials(ctx context.Context, userID UUID) (Credentials, error)
 		return Credentials{}, fmt.Errorf("error checking user existence: %w", err)
 	}
 	if !userExists {
-		logger.ErrorContext(ctx, "Cannot retrieve credentials for non-existent user", "user_id", userID)
-		return Credentials{}, ErrUserDoesNotExist
+		logger.ErrorContext(
+			ctx,
+			"Cannot retrieve credentials for non-existent user",
+			"user_id",
+			userID,
+		)
+		return Credentials{}, ErrUserNotFound
 	}
 
 	res, err := i.client.AuthUser.Query().Where(authuser.UserID(userID)).Only(ctx)

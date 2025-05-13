@@ -1,6 +1,7 @@
+//nolint:mnd // the only magic numbers here are ids
 package sesc
 
-// A role is a standartized set of Permissions granted to a User influenced
+// Role is a standartized set of Permissions granted to a User influenced
 // by their role in the organization.
 //
 // Roles are predefined in this file.
@@ -24,35 +25,35 @@ func (r Role) HasPermissionWithID(id int32) bool {
 }
 
 var (
-	Teacher Role = Role{
+	Teacher = Role{
 		ID:   1,
 		Name: "Преподаватель",
 		Permissions: []Permission{
 			PermissionDraftAchievementList,
 		},
 	}
-	Dephead Role = Role{
+	Dephead = Role{
 		ID:   2,
 		Name: "Заведующий кафедрой",
 		Permissions: []Permission{
 			PermissionDepheadReview,
 		},
 	}
-	ContestDeputy Role = Role{
+	ContestDeputy = Role{
 		ID:   3,
 		Name: "Заместитель директора по олимпиадной работе",
 		Permissions: []Permission{
 			PermissionContestReview,
 		},
 	}
-	ScientificDeputy Role = Role{
+	ScientificDeputy = Role{
 		ID:   4,
 		Name: "Заместитель директора по научной работе",
 		Permissions: []Permission{
 			PermissionScientificReview,
 		},
 	}
-	DevelopmentDeputy Role = Role{
+	DevelopmentDeputy = Role{
 		ID:   5,
 		Name: "Заместитель директора по развитию",
 		Permissions: []Permission{

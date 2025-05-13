@@ -49,19 +49,19 @@ const docTemplate = `{
                     "400": {
                         "description": "Invalid request format",
                         "schema": {
-                            "$ref": "#/definitions/api.APIError"
+                            "$ref": "#/definitions/api.Error"
                         }
                     },
                     "401": {
                         "description": "Invalid admin token",
                         "schema": {
-                            "$ref": "#/definitions/api.APIError"
+                            "$ref": "#/definitions/api.Error"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/api.APIError"
+                            "$ref": "#/definitions/api.Error"
                         }
                     }
                 }
@@ -104,31 +104,31 @@ const docTemplate = `{
                     "400": {
                         "description": "Invalid UUID format",
                         "schema": {
-                            "$ref": "#/definitions/api.APIError"
+                            "$ref": "#/definitions/api.Error"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/api.APIError"
+                            "$ref": "#/definitions/api.Error"
                         }
                     },
                     "403": {
                         "description": "Forbidden - admin role required",
                         "schema": {
-                            "$ref": "#/definitions/api.APIError"
+                            "$ref": "#/definitions/api.Error"
                         }
                     },
                     "404": {
                         "description": "User not found or does not exist",
                         "schema": {
-                            "$ref": "#/definitions/api.APIError"
+                            "$ref": "#/definitions/api.Error"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/api.APIError"
+                            "$ref": "#/definitions/api.Error"
                         }
                     }
                 }
@@ -166,31 +166,31 @@ const docTemplate = `{
                     "400": {
                         "description": "Invalid UUID format",
                         "schema": {
-                            "$ref": "#/definitions/api.APIError"
+                            "$ref": "#/definitions/api.Error"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/api.APIError"
+                            "$ref": "#/definitions/api.Error"
                         }
                     },
                     "403": {
                         "description": "Forbidden - admin role required",
                         "schema": {
-                            "$ref": "#/definitions/api.APIError"
+                            "$ref": "#/definitions/api.Error"
                         }
                     },
                     "404": {
                         "description": "User not found or does not exist",
                         "schema": {
-                            "$ref": "#/definitions/api.APIError"
+                            "$ref": "#/definitions/api.Error"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/api.APIError"
+                            "$ref": "#/definitions/api.Error"
                         }
                     }
                 }
@@ -230,19 +230,19 @@ const docTemplate = `{
                     "400": {
                         "description": "Invalid credentials format",
                         "schema": {
-                            "$ref": "#/definitions/api.APIError"
+                            "$ref": "#/definitions/api.Error"
                         }
                     },
                     "401": {
                         "description": "Invalid credentials",
                         "schema": {
-                            "$ref": "#/definitions/api.APIError"
+                            "$ref": "#/definitions/api.Error"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/api.APIError"
+                            "$ref": "#/definitions/api.Error"
                         }
                     }
                 }
@@ -281,13 +281,13 @@ const docTemplate = `{
                     "401": {
                         "description": "Invalid token",
                         "schema": {
-                            "$ref": "#/definitions/api.APIError"
+                            "$ref": "#/definitions/api.Error"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/api.APIError"
+                            "$ref": "#/definitions/api.Error"
                         }
                     }
                 }
@@ -313,7 +313,7 @@ const docTemplate = `{
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/api.APIError"
+                            "$ref": "#/definitions/api.Error"
                         }
                     }
                 }
@@ -362,25 +362,25 @@ const docTemplate = `{
                     "400": {
                         "description": "Invalid request format",
                         "schema": {
-                            "$ref": "#/definitions/api.APIError"
+                            "$ref": "#/definitions/api.Error"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/api.APIError"
+                            "$ref": "#/definitions/api.Error"
                         }
                     },
                     "403": {
                         "description": "Forbidden - admin role required",
                         "schema": {
-                            "$ref": "#/definitions/api.APIError"
+                            "$ref": "#/definitions/api.Error"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/api.APIError"
+                            "$ref": "#/definitions/api.Error"
                         }
                     }
                 }
@@ -438,31 +438,31 @@ const docTemplate = `{
                     "400": {
                         "description": "Invalid UUID format or request format",
                         "schema": {
-                            "$ref": "#/definitions/api.APIError"
+                            "$ref": "#/definitions/api.Error"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/api.APIError"
+                            "$ref": "#/definitions/api.Error"
                         }
                     },
                     "403": {
                         "description": "Forbidden - admin role required",
                         "schema": {
-                            "$ref": "#/definitions/api.APIError"
+                            "$ref": "#/definitions/api.Error"
                         }
                     },
                     "404": {
                         "description": "Department not found",
                         "schema": {
-                            "$ref": "#/definitions/api.APIError"
+                            "$ref": "#/definitions/api.Error"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/api.APIError"
+                            "$ref": "#/definitions/api.Error"
                         }
                     }
                 }
@@ -500,37 +500,37 @@ const docTemplate = `{
                     "400": {
                         "description": "Invalid UUID format",
                         "schema": {
-                            "$ref": "#/definitions/api.APIError"
+                            "$ref": "#/definitions/api.Error"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/api.APIError"
+                            "$ref": "#/definitions/api.Error"
                         }
                     },
                     "403": {
                         "description": "Forbidden - admin role required",
                         "schema": {
-                            "$ref": "#/definitions/api.APIError"
+                            "$ref": "#/definitions/api.Error"
                         }
                     },
                     "404": {
                         "description": "Department not found",
                         "schema": {
-                            "$ref": "#/definitions/api.APIError"
+                            "$ref": "#/definitions/api.Error"
                         }
                     },
                     "409": {
                         "description": "Cannot remove department, it still has some users",
                         "schema": {
-                            "$ref": "#/definitions/api.APIError"
+                            "$ref": "#/definitions/api.Error"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/api.APIError"
+                            "$ref": "#/definitions/api.Error"
                         }
                     }
                 }
@@ -576,7 +576,7 @@ const docTemplate = `{
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/api.APIError"
+                            "$ref": "#/definitions/api.Error"
                         }
                     }
                 }
@@ -615,13 +615,13 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/api.APIError"
+                            "$ref": "#/definitions/api.Error"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/api.APIError"
+                            "$ref": "#/definitions/api.Error"
                         }
                     }
                 }
@@ -670,25 +670,25 @@ const docTemplate = `{
                     "400": {
                         "description": "Invalid role or request format",
                         "schema": {
-                            "$ref": "#/definitions/api.APIError"
+                            "$ref": "#/definitions/api.Error"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/api.APIError"
+                            "$ref": "#/definitions/api.Error"
                         }
                     },
                     "403": {
                         "description": "Forbidden - admin role required",
                         "schema": {
-                            "$ref": "#/definitions/api.APIError"
+                            "$ref": "#/definitions/api.Error"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/api.APIError"
+                            "$ref": "#/definitions/api.Error"
                         }
                     }
                 }
@@ -727,19 +727,19 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized or invalid token",
                         "schema": {
-                            "$ref": "#/definitions/api.APIError"
+                            "$ref": "#/definitions/api.Error"
                         }
                     },
                     "404": {
                         "description": "User not found",
                         "schema": {
-                            "$ref": "#/definitions/api.APIError"
+                            "$ref": "#/definitions/api.Error"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/api.APIError"
+                            "$ref": "#/definitions/api.Error"
                         }
                     }
                 }
@@ -785,25 +785,25 @@ const docTemplate = `{
                     "400": {
                         "description": "Invalid UUID format",
                         "schema": {
-                            "$ref": "#/definitions/api.APIError"
+                            "$ref": "#/definitions/api.Error"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/api.APIError"
+                            "$ref": "#/definitions/api.Error"
                         }
                     },
                     "404": {
                         "description": "User not found",
                         "schema": {
-                            "$ref": "#/definitions/api.APIError"
+                            "$ref": "#/definitions/api.Error"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/api.APIError"
+                            "$ref": "#/definitions/api.Error"
                         }
                     }
                 }
@@ -859,31 +859,31 @@ const docTemplate = `{
                     "400": {
                         "description": "Invalid UUID format, role or request format",
                         "schema": {
-                            "$ref": "#/definitions/api.APIError"
+                            "$ref": "#/definitions/api.Error"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/api.APIError"
+                            "$ref": "#/definitions/api.Error"
                         }
                     },
                     "403": {
                         "description": "Forbidden - admin role required",
                         "schema": {
-                            "$ref": "#/definitions/api.APIError"
+                            "$ref": "#/definitions/api.Error"
                         }
                     },
                     "404": {
                         "description": "User not found",
                         "schema": {
-                            "$ref": "#/definitions/api.APIError"
+                            "$ref": "#/definitions/api.Error"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/api.APIError"
+                            "$ref": "#/definitions/api.Error"
                         }
                     }
                 }
@@ -944,37 +944,37 @@ const docTemplate = `{
                     "400": {
                         "description": "Invalid credentials or request format",
                         "schema": {
-                            "$ref": "#/definitions/api.APIError"
+                            "$ref": "#/definitions/api.Error"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/api.APIError"
+                            "$ref": "#/definitions/api.Error"
                         }
                     },
                     "403": {
                         "description": "Forbidden - admin role required",
                         "schema": {
-                            "$ref": "#/definitions/api.APIError"
+                            "$ref": "#/definitions/api.Error"
                         }
                     },
                     "404": {
                         "description": "User does not exist",
                         "schema": {
-                            "$ref": "#/definitions/api.APIError"
+                            "$ref": "#/definitions/api.Error"
                         }
                     },
                     "409": {
                         "description": "User already exists",
                         "schema": {
-                            "$ref": "#/definitions/api.APIError"
+                            "$ref": "#/definitions/api.Error"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/api.APIError"
+                            "$ref": "#/definitions/api.Error"
                         }
                     }
                 }
@@ -982,32 +982,6 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "api.APIError": {
-            "type": "object",
-            "required": [
-                "code",
-                "message",
-                "ruMessage"
-            ],
-            "properties": {
-                "code": {
-                    "type": "string",
-                    "example": "INVALID_REQUEST"
-                },
-                "details": {
-                    "type": "string",
-                    "example": "field X is required"
-                },
-                "message": {
-                    "type": "string",
-                    "example": "Invalid request body"
-                },
-                "ruMessage": {
-                    "type": "string",
-                    "example": "Некорректный формат запроса"
-                }
-            }
-        },
         "api.AdminLoginRequest": {
             "type": "object",
             "required": [
@@ -1121,6 +1095,32 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/api.Department"
                     }
+                }
+            }
+        },
+        "api.Error": {
+            "type": "object",
+            "required": [
+                "code",
+                "message",
+                "ruMessage"
+            ],
+            "properties": {
+                "code": {
+                    "type": "string",
+                    "example": "INVALID_REQUEST"
+                },
+                "details": {
+                    "type": "string",
+                    "example": "field X is required"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "Invalid request body"
+                },
+                "ruMessage": {
+                    "type": "string",
+                    "example": "Некорректный формат запроса"
                 }
             }
         },

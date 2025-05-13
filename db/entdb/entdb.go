@@ -32,7 +32,11 @@ func (d *DB) CreateDepartment(
 	name string,
 	description string,
 ) (sesc.Department, error) {
-	res, err := d.c.Department.Create().SetID(id).SetName(name).SetDescription(description).Save(ctx)
+	res, err := d.c.Department.Create().
+		SetID(id).
+		SetName(name).
+		SetDescription(description).
+		Save(ctx)
 	switch {
 	case ent.IsConstraintError(err):
 		return sesc.NoDepartment, sesc.ErrInvalidDepartment
@@ -105,7 +109,6 @@ func (d *DB) SaveUser(ctx context.Context, opt sesc.UserUpdateOptions) (sesc.Use
 
 	var dept *ent.Department
 	if opt.DepartmentID != uuid.Nil {
-		var err error
 		dept, err = tx.Department.Get(ctx, opt.DepartmentID)
 		switch {
 		case ent.IsNotFound(err):
@@ -132,10 +135,14 @@ func (d *DB) SaveUser(ctx context.Context, opt sesc.UserUpdateOptions) (sesc.Use
 
 	us, err := tx.User.Query().Where(user.ID(res.ID)).WithDepartment().Only(ctx)
 	if err != nil {
-		return sesc.User{}, rollback(tx, fmt.Errorf("couldn't query user after saving them: %w", err))
+		return sesc.User{}, rollback(
+			tx,
+			fmt.Errorf("couldn't query user after saving them: %w", err),
+		)
 	}
 
-	if err := tx.Commit(); err != nil {
+	err = tx.Commit()
+	if err != nil {
 		return sesc.User{}, fmt.Errorf("couldn't commit transaction: %w", err)
 	}
 
@@ -143,7 +150,12 @@ func (d *DB) SaveUser(ctx context.Context, opt sesc.UserUpdateOptions) (sesc.Use
 }
 
 // UpdateDepartment implements sesc.DB.
-func (d *DB) UpdateDepartment(ctx context.Context, id sesc.UUID, name string, description string) error {
+func (d *DB) UpdateDepartment(
+	ctx context.Context,
+	id sesc.UUID,
+	name string,
+	description string,
+) error {
 	err := d.c.Department.UpdateOneID(id).SetName(name).SetDescription(description).Exec(ctx)
 	switch {
 	case ent.IsNotFound(err):
@@ -167,7 +179,11 @@ func (d *DB) UpdateProfilePicture(ctx context.Context, id sesc.UUID, pictureURL 
 }
 
 // UpdateUser implements sesc.DB.
-func (d *DB) UpdateUser(ctx context.Context, id sesc.UUID, opt sesc.UserUpdateOptions) (sesc.User, error) {
+func (d *DB) UpdateUser(
+	ctx context.Context,
+	id sesc.UUID,
+	opt sesc.UserUpdateOptions,
+) (sesc.User, error) {
 	tx, err := d.c.BeginTx(ctx, &sql.TxOptions{
 		Isolation: sql.LevelSerializable,
 	})
@@ -185,7 +201,6 @@ func (d *DB) UpdateUser(ctx context.Context, id sesc.UUID, opt sesc.UserUpdateOp
 
 	var dept *ent.Department
 	if opt.DepartmentID != uuid.Nil {
-		var err error
 		dept, err = tx.Department.Get(ctx, opt.DepartmentID)
 		switch {
 		case ent.IsNotFound(err):
@@ -220,7 +235,8 @@ func (d *DB) UpdateUser(ctx context.Context, id sesc.UUID, opt sesc.UserUpdateOp
 		return sesc.User{}, rollback(tx, fmt.Errorf("couldn't query user after an update: %w", err))
 	}
 
-	if err := tx.Commit(); err != nil {
+	err = tx.Commit()
+	if err != nil {
 		return sesc.User{}, fmt.Errorf("couldn't commit transaction: %w", err)
 	}
 
@@ -249,7 +265,6 @@ func (d *DB) Users(ctx context.Context) ([]sesc.User, error) {
 
 	users := make([]sesc.User, len(res))
 	for i, r := range res {
-		var err error
 		users[i], err = convertUser(r)
 		if err != nil {
 			return nil, fmt.Errorf("couldn't conver user: %w", err)
@@ -263,7 +278,7 @@ func (d *DB) Users(ctx context.Context) ([]sesc.User, error) {
 // with the rollback error if occurred.
 func rollback(tx *ent.Tx, err error) error {
 	if rerr := tx.Rollback(); rerr != nil {
-		err = fmt.Errorf("%w: %v", err, rerr)
+		err = fmt.Errorf("%w: %w", err, rerr)
 	}
 	return err
 }

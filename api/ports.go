@@ -15,7 +15,11 @@ type (
 		// RegisterCredentials assigns username/password to an existing userID, returns authID.
 		// Returns ErrUserDoesNotExist if user does not exist, ErrUserAlreadyExists if username exists,
 		// or ErrInvalidCredentials if credentials are invalid.
-		RegisterCredentials(ctx context.Context, userID uuid.UUID, creds iam.Credentials) (uuid.UUID, error)
+		RegisterCredentials(
+			ctx context.Context,
+			userID uuid.UUID,
+			creds iam.Credentials,
+		) (uuid.UUID, error)
 		// Login verifies credentials and returns signed JWT token string
 		Login(ctx context.Context, creds iam.Credentials) (string, error)
 		// LoginAdmin checks token for being an admin token

@@ -89,7 +89,7 @@ func (s *SESC) UpdateUser(ctx context.Context, id UUID, upd UserUpdateOptions) (
 
 // CreateUser creates a new User with a specified role.
 //
-// Returns an ErrInvalidName if the first or last name is missing.z
+// Returns an ErrInvalidName if the first or last name is missing.
 func (s *SESC) CreateUser(ctx context.Context, opt UserUpdateOptions) (User, error) {
 	if err := opt.Validate(); err != nil {
 		return User{}, err

@@ -13,7 +13,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// Helper functions for validation
 func requireDepartmentMatches(t *testing.T, expected, actual sesc.Department) {
 	t.Helper()
 	require.Equal(t, expected.ID, actual.ID, "Department ID mismatch")
@@ -29,7 +28,12 @@ func requireUserMatches(t *testing.T, expected, actual sesc.User) {
 
 	// Only check department if expected has one
 	if expected.Department.ID != uuid.Nil {
-		require.Equal(t, expected.Department.ID, actual.Department.ID, "User Department.ID mismatch")
+		require.Equal(
+			t,
+			expected.Department.ID,
+			actual.Department.ID,
+			"User Department.ID mismatch",
+		)
 	}
 
 	if expected.Role.ID != 0 {
@@ -52,7 +56,7 @@ func setupDB(t *testing.T) *DB {
 
 func TestCreateDepartment(t *testing.T) {
 	setup := func(t *testing.T) (ctx context.Context, db *DB) {
-		ctx = context.Background()
+		ctx = t.Context()
 		db = setupDB(t)
 		return ctx, db
 	}
@@ -82,7 +86,7 @@ func TestCreateDepartment(t *testing.T) {
 
 func TestDeleteDepartment(t *testing.T) {
 	setup := func(t *testing.T) (ctx context.Context, db *DB, id uuid.UUID) {
-		ctx = context.Background()
+		ctx = t.Context()
 		db = setupDB(t)
 		id = uuid.Must(uuid.NewV7())
 		_, _ = db.CreateDepartment(ctx, id, "Test", "Test Dept")
@@ -125,7 +129,7 @@ func TestDeleteDepartment(t *testing.T) {
 
 func TestDepartmentByID(t *testing.T) {
 	setup := func(t *testing.T) (ctx context.Context, db *DB, id uuid.UUID) {
-		ctx = context.Background()
+		ctx = t.Context()
 		db = setupDB(t)
 		id = uuid.Must(uuid.NewV7())
 		name := "Test"
@@ -154,7 +158,7 @@ func TestDepartmentByID(t *testing.T) {
 
 func TestDepartments(t *testing.T) {
 	setup := func(t *testing.T) (ctx context.Context, db *DB) {
-		ctx = context.Background()
+		ctx = t.Context()
 		db = setupDB(t)
 		return ctx, db
 	}
@@ -202,7 +206,7 @@ func TestDepartments(t *testing.T) {
 
 func TestSaveUser(t *testing.T) {
 	setup := func(t *testing.T) (ctx context.Context, db *DB, depID uuid.UUID) {
-		ctx = context.Background()
+		ctx = t.Context()
 		db = setupDB(t)
 		depID = uuid.Must(uuid.NewV7())
 		_, _ = db.CreateDepartment(ctx, depID, "Dep", "Dep")
@@ -281,7 +285,7 @@ func TestSaveUser(t *testing.T) {
 
 func TestUpdateDepartment(t *testing.T) {
 	setup := func(t *testing.T) (ctx context.Context, db *DB, id uuid.UUID) {
-		ctx = context.Background()
+		ctx = t.Context()
 		db = setupDB(t)
 		id = uuid.Must(uuid.NewV7())
 		_, _ = db.CreateDepartment(ctx, id, "Old", "Old Desc")
@@ -312,7 +316,7 @@ func TestUpdateDepartment(t *testing.T) {
 
 func TestUpdateProfilePicture(t *testing.T) {
 	setup := func(t *testing.T) (ctx context.Context, db *DB, userID uuid.UUID) {
-		ctx = context.Background()
+		ctx = t.Context()
 		db = setupDB(t)
 		userID = uuid.Must(uuid.NewV7())
 		db.c.User.Create().
@@ -354,7 +358,7 @@ func TestUpdateProfilePicture(t *testing.T) {
 
 func TestUpdateUser(t *testing.T) {
 	setup := func(t *testing.T) (ctx context.Context, db *DB, depID uuid.UUID, userID uuid.UUID) {
-		ctx = context.Background()
+		ctx = t.Context()
 		db = setupDB(t)
 		depID = uuid.Must(uuid.NewV7())
 		_, _ = db.CreateDepartment(ctx, depID, "Dep", "Dep")
@@ -435,7 +439,7 @@ func TestUpdateUser(t *testing.T) {
 
 func TestUserByID(t *testing.T) {
 	setup := func(t *testing.T) (ctx context.Context, db *DB, userID uuid.UUID) {
-		ctx = context.Background()
+		ctx = t.Context()
 		db = setupDB(t)
 		userID = uuid.Must(uuid.NewV7())
 		db.c.User.Create().
@@ -472,7 +476,7 @@ func TestUserByID(t *testing.T) {
 
 func TestUsers(t *testing.T) {
 	setup := func(t *testing.T) (ctx context.Context, db *DB) {
-		ctx = context.Background()
+		ctx = t.Context()
 		db = setupDB(t)
 
 		user1ID := uuid.Must(uuid.NewV7())

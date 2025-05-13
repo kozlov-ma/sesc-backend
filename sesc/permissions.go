@@ -1,3 +1,4 @@
+//nolint:mnd // the only magic numbers here are ids
 package sesc
 
 // Permission represents an ability of a user to perform a specific action,
@@ -38,7 +39,7 @@ var (
 	}
 )
 
-var Permissions []Permission = []Permission{
+var Permissions = []Permission{
 	PermissionDraftAchievementList,
 	PermissionDepheadReview,
 	PermissionContestReview,

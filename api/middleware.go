@@ -43,11 +43,7 @@ func (a *API) AuthMiddleware(next http.Handler) http.Handler {
 
 		// Validate Bearer token format
 		if !strings.HasPrefix(authHeader, "Bearer ") {
-			a.writeError(w, APIError{
-				Code:      "INVALID_AUTH_HEADER",
-				Message:   "Invalid Authorization header format",
-				RuMessage: "Неверный формат заголовка авторизации",
-			}, http.StatusUnauthorized)
+			a.writeError(w, ErrInvalidAuthHeader, http.StatusUnauthorized)
 			return
 		}
 
@@ -56,18 +52,10 @@ func (a *API) AuthMiddleware(next http.Handler) http.Handler {
 		identity, err := a.iam.ImWatermelon(ctx, token)
 		if err != nil {
 			if errors.Is(err, iam.ErrInvalidToken) {
-				a.writeError(w, APIError{
-					Code:      "INVALID_TOKEN",
-					Message:   "Invalid or expired token",
-					RuMessage: "Недействительный или просроченный токен",
-				}, http.StatusUnauthorized)
+				a.writeError(w, ErrInvalidToken, http.StatusUnauthorized)
 				return
 			}
-			a.writeError(w, APIError{
-				Code:      "AUTH_ERROR",
-				Message:   "Error processing authentication",
-				RuMessage: "Ошибка обработки аутентификации",
-			}, http.StatusInternalServerError)
+			a.writeError(w, ErrAuthError, http.StatusInternalServerError)
 			return
 		}
 
@@ -84,11 +72,7 @@ func (a *API) RequireAuthMiddleware(next http.Handler) http.Handler {
 
 		// Check if identity exists in context
 		if _, ok := GetIdentityFromContext(ctx); !ok {
-			a.writeError(w, APIError{
-				Code:      "UNAUTHORIZED",
-				Message:   "Authentication required",
-				RuMessage: "Требуется авторизация",
-			}, http.StatusUnauthorized)
+			a.writeError(w, ErrUnauthorized.WithDetails("Authentication required"), http.StatusUnauthorized)
 			return
 		}
 
@@ -105,11 +89,7 @@ func (a *API) RoleMiddleware(roles ...string) func(http.Handler) http.Handler {
 			// Get identity from context
 			identity, ok := GetIdentityFromContext(ctx)
 			if !ok {
-				a.writeError(w, APIError{
-					Code:      "UNAUTHORIZED",
-					Message:   "Authentication required",
-					RuMessage: "Требуется авторизация",
-				}, http.StatusUnauthorized)
+				a.writeError(w, ErrUnauthorized.WithDetails("Authentication required"), http.StatusUnauthorized)
 				return
 			}
 
@@ -123,11 +103,7 @@ func (a *API) RoleMiddleware(roles ...string) func(http.Handler) http.Handler {
 			}
 
 			if !hasRole {
-				a.writeError(w, APIError{
-					Code:      "FORBIDDEN",
-					Message:   "Insufficient permissions",
-					RuMessage: "Недостаточно прав доступа",
-				}, http.StatusForbidden)
+				a.writeError(w, ErrForbidden, http.StatusForbidden)
 				return
 			}
 
@@ -160,11 +136,7 @@ func (a *API) CurrentUserMiddleware(next http.Handler) http.Handler {
 				}
 
 				// For other errors, return 500
-				a.writeError(w, APIError{
-					Code:      "SERVER_ERROR",
-					Message:   "Error fetching user data",
-					RuMessage: "Ошибка получения данных пользователя",
-				}, http.StatusInternalServerError)
+				a.writeError(w, ErrServerError.WithDetails("Error fetching user data"), http.StatusInternalServerError)
 				return
 			}
 

@@ -7,10 +7,9 @@ import (
 	"net/url"
 
 	"github.com/go-chi/chi/v5"
+	_ "github.com/kozlov-ma/sesc-backend/api/docs" // This blank import is needed to serve the swagger scheme.
 	"github.com/kozlov-ma/sesc-backend/sesc"
 	httpSwagger "github.com/swaggo/http-swagger"
-
-	_ "github.com/kozlov-ma/sesc-backend/api/docs"
 )
 
 // @title SESC Management API
@@ -40,11 +39,11 @@ func (a *API) writeJSON(w http.ResponseWriter, data any, statusCode int) {
 	}
 }
 
-func (a *API) writeError(w http.ResponseWriter, apiError APIError, statusCode int) {
+func (a *API) writeError(w http.ResponseWriter, apiError Error, statusCode int) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(statusCode)
 	err := json.NewEncoder(w).Encode(struct {
-		Error APIError `json:"error"`
+		Error Error `json:"error"`
 	}{Error: apiError})
 
 	if err != nil {
@@ -70,7 +69,7 @@ func corsMiddleware(next http.Handler) http.Handler {
 			w.Header().Set("Access-Control-Allow-Credentials", "true")
 		}
 
-		if r.Method == "OPTIONS" {
+		if r.Method == http.MethodOptions {
 			w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS")
 			requestedHeaders := r.Header.Get("Access-Control-Request-Headers")
 			w.Header().Set("Access-Control-Allow-Headers", requestedHeaders)

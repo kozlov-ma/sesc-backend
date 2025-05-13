@@ -12,5 +12,5 @@ type Department struct {
 }
 
 var (
-	NoDepartment Department = Department{}
+	NoDepartment = Department{}
 )

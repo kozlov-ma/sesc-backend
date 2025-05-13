@@ -34,27 +34,27 @@ type UpdateDepartmentRequest struct {
 type UpdateDepartmentResponse = Department
 
 var (
-	ErrDepartmentNotFound = APIError{
+	ErrDepartmentNotFound = Error{
 		Code:      "DEPARTMENT_NOT_FOUND",
 		Message:   "Department not found",
 		RuMessage: "Кафедра не найдена",
 	}
-	ErrInvalidDepartmentID = APIError{
+	ErrInvalidDepartmentID = Error{
 		Code:      "INVALID_DEPARTMENT_ID",
 		Message:   "Invalid department ID",
 		RuMessage: "Некорректный идентификатор кафедры",
 	}
-	ErrInvalidDepartment = APIError{
+	ErrInvalidDepartment = Error{
 		Code:      "INVALID_DEPARTMENT",
 		Message:   "Invalid department data",
 		RuMessage: "Некорректные данные кафедры",
 	}
-	ErrDepartmentExists = APIError{
+	ErrDepartmentExists = Error{
 		Code:      "DEPARTMENT_EXISTS",
 		Message:   "Department with this name already exists",
 		RuMessage: "Кафедра с таким названием уже существует",
 	}
-	ErrCannotRemoveDepartment = APIError{
+	ErrCannotRemoveDepartment = Error{
 		Code:      "CANNOT_REMOVE_DEPARTMENT",
 		Message:   "Cannot remove department, it still has some users",
 		RuMessage: "Невозможно удалить кафедру, так как она содержит пользователей",
@@ -71,10 +71,10 @@ var (
 // @Param Authorization header string false "Bearer JWT token"
 // @Param request body CreateDepartmentRequest true "Department details"
 // @Success 201 {object} Department
-// @Failure 400 {object} APIError "Invalid request format"
-// @Failure 401 {object} APIError "Unauthorized"
-// @Failure 403 {object} APIError "Forbidden - admin role required"
-// @Failure 500 {object} APIError "Internal server error"
+// @Failure 400 {object} Error "Invalid request format"
+// @Failure 401 {object} Error "Unauthorized"
+// @Failure 403 {object} Error "Forbidden - admin role required"
+// @Failure 500 {object} Error "Internal server error"
 // @Router /departments [post]
 func (a *API) CreateDepartment(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
@@ -91,7 +91,7 @@ func (a *API) CreateDepartment(w http.ResponseWriter, r *http.Request) {
 		a.writeError(w, ErrDepartmentExists, http.StatusConflict)
 		return
 	case err != nil:
-		a.writeError(w, APIError{
+		a.writeError(w, Error{
 			Code:      "SERVER_ERROR",
 			Message:   "Failed to create department",
 			RuMessage: "Ошибка создания кафедры",
@@ -112,14 +112,14 @@ func (a *API) CreateDepartment(w http.ResponseWriter, r *http.Request) {
 // @Tags departments
 // @Produce json
 // @Success 200 {object} DepartmentsResponse
-// @Failure 500 {object} APIError "Internal server error"
+// @Failure 500 {object} Error "Internal server error"
 // @Router /departments [get]
 func (a *API) Departments(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	deps, err := a.sesc.Departments(ctx)
 	if err != nil {
-		a.writeError(w, APIError{
+		a.writeError(w, Error{
 			Code:      "SERVER_ERROR",
 			Message:   "Failed to fetch departments",
 			RuMessage: "Ошибка получения списка кафедр",
@@ -152,11 +152,11 @@ func (a *API) Departments(w http.ResponseWriter, r *http.Request) {
 // @Param id path string true "Department UUID"
 // @Param request body UpdateDepartmentRequest true "Updated department details"
 // @Success 200 {object} Department
-// @Failure 400 {object} APIError "Invalid UUID format or request format"
-// @Failure 401 {object} APIError "Unauthorized"
-// @Failure 403 {object} APIError "Forbidden - admin role required"
-// @Failure 404 {object} APIError "Department not found"
-// @Failure 500 {object} APIError "Internal server error"
+// @Failure 400 {object} Error "Invalid UUID format or request format"
+// @Failure 401 {object} Error "Unauthorized"
+// @Failure 403 {object} Error "Forbidden - admin role required"
+// @Failure 404 {object} Error "Department not found"
+// @Failure 500 {object} Error "Internal server error"
 // @Router /departments/{id} [put]
 func (a *API) UpdateDepartment(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
@@ -180,7 +180,7 @@ func (a *API) UpdateDepartment(w http.ResponseWriter, r *http.Request) {
 		a.writeError(w, ErrDepartmentExists, http.StatusConflict)
 		return
 	case err != nil:
-		a.writeError(w, APIError{
+		a.writeError(w, Error{
 			Code:      "SERVER_ERROR",
 			Message:   "Failed to update department",
 			RuMessage: "Ошибка обновления кафедры",
@@ -203,12 +203,12 @@ func (a *API) UpdateDepartment(w http.ResponseWriter, r *http.Request) {
 // @Param Authorization header string false "Bearer JWT token"
 // @Param id path string true "Department UUID"
 // @Success 204 "No content"
-// @Failure 400 {object} APIError "Invalid UUID format"
-// @Failure 401 {object} APIError "Unauthorized"
-// @Failure 403 {object} APIError "Forbidden - admin role required"
-// @Failure 404 {object} APIError "Department not found"
-// @Failure 409 {object} APIError "Cannot remove department, it still has some users"
-// @Failure 500 {object} APIError "Internal server error"
+// @Failure 400 {object} Error "Invalid UUID format"
+// @Failure 401 {object} Error "Unauthorized"
+// @Failure 403 {object} Error "Forbidden - admin role required"
+// @Failure 404 {object} Error "Department not found"
+// @Failure 409 {object} Error "Cannot remove department, it still has some users"
+// @Failure 500 {object} Error "Internal server error"
 // @Router /departments/{id} [delete]
 func (a *API) DeleteDepartment(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
@@ -229,7 +229,7 @@ func (a *API) DeleteDepartment(w http.ResponseWriter, r *http.Request) {
 		a.writeError(w, ErrCannotRemoveDepartment, http.StatusConflict)
 		return
 	case err != nil:
-		a.writeError(w, APIError{
+		a.writeError(w, Error{
 			Code:      "SERVER_ERROR",
 			Message:   "Failed to delete department",
 			RuMessage: "Ошибка удаления кафедры",

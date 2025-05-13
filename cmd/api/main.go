@@ -15,7 +15,6 @@ import (
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/migrate"
 	"github.com/kozlov-ma/sesc-backend/iam"
 	"github.com/kozlov-ma/sesc-backend/sesc"
-
 	_ "github.com/lib/pq"
 )
 
@@ -52,9 +51,12 @@ func main() {
 
 	api.RegisterRoutes(router)
 
+	const readHeaderTimeout = 300 * time.Millisecond // Put in config.
+
 	srv := &http.Server{
-		Addr:    ":8080",
-		Handler: router,
+		Addr:              ":8080",
+		Handler:           router,
+		ReadHeaderTimeout: readHeaderTimeout,
 	}
 
 	go func() {

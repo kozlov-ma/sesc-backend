@@ -12,7 +12,9 @@ import (
 //
 // These methods don't really need to be tested, though unit tests are still welcome.
 
-// Return a sesc.DepartmentAlreadyExists if the department already exists
+// CreateDepartment creates a new Department with the given name and description.
+//
+// Return a sesc.DepartmentAlreadyExists if the department already exists.
 func (s *SESC) CreateDepartment(ctx context.Context, name, description string) (Department, error) {
 	id, err := s.newUUID()
 	if err != nil {
@@ -72,14 +74,20 @@ func (s *SESC) DepartmentByID(ctx context.Context, id UUID) (Department, error) 
 
 func (s *SESC) DeleteDepartment(ctx context.Context, id UUID) error {
 	err := s.db.DeleteDepartment(ctx, id)
-	if errors.Is(err, ErrInvalidDepartment) {
+	switch {
+	case errors.Is(err, ErrInvalidDepartment):
 		s.log.DebugContext(ctx, "department id not found", slog.Any("id", id))
 		return err
-	} else if errors.Is(err, ErrCannotRemoveDepartment) {
+	case errors.Is(err, ErrCannotRemoveDepartment):
 		s.log.InfoContext(ctx, "tried to delete department which still has users", slog.Any("department_id", id))
 		return err
-	} else if err != nil {
-		s.log.ErrorContext(ctx, "couldn't delete department because of db error", slog.Any("department_id", id), slog.Any("error", err))
+	case err != nil:
+		s.log.ErrorContext(
+			ctx,
+			"couldn't delete department because of db error",
+			slog.Any("department_id", id),
+			slog.Any("error", err),
+		)
 		return fmt.Errorf("couldn't delete department: %w", err)
 	}
 

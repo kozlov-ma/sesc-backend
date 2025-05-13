@@ -10,17 +10,6 @@
  * ---------------------------------------------------------------
  */
 
-export interface ApiAPIError {
-  /** @example "INVALID_REQUEST" */
-  code: string;
-  /** @example "field X is required" */
-  details?: string;
-  /** @example "Invalid request body" */
-  message: string;
-  /** @example "Некорректный формат запроса" */
-  ruMessage: string;
-}
-
 export interface ApiAdminLoginRequest {
   /** @example "admin-secret-token" */
   token: string;
@@ -66,6 +55,17 @@ export interface ApiDepartment {
 
 export interface ApiDepartmentsResponse {
   departments: ApiDepartment[];
+}
+
+export interface ApiError {
+  /** @example "INVALID_REQUEST" */
+  code: string;
+  /** @example "field X is required" */
+  details?: string;
+  /** @example "Invalid request body" */
+  message: string;
+  /** @example "Некорректный формат запроса" */
+  ruMessage: string;
 }
 
 export interface ApiIdentityResponse {
@@ -343,7 +343,7 @@ export class Api<
       request: ApiAdminLoginRequest,
       params: RequestParams = {},
     ) =>
-      this.request<ApiTokenResponse, ApiAPIError>({
+      this.request<ApiTokenResponse, ApiError>({
         path: `/auth/admin/login`,
         method: "POST",
         body: request,
@@ -362,7 +362,7 @@ export class Api<
      * @secure
      */
     credentialsDetail: (id: string, params: RequestParams = {}) =>
-      this.request<ApiCredentialsRequest, ApiAPIError>({
+      this.request<ApiCredentialsRequest, ApiError>({
         path: `/auth/credentials/${id}`,
         method: "GET",
         secure: true,
@@ -379,7 +379,7 @@ export class Api<
      * @secure
      */
     credentialsDelete: (id: string, params: RequestParams = {}) =>
-      this.request<void, ApiAPIError>({
+      this.request<void, ApiError>({
         path: `/auth/credentials/${id}`,
         method: "DELETE",
         secure: true,
@@ -395,7 +395,7 @@ export class Api<
      * @request POST:/auth/login
      */
     loginCreate: (request: ApiCredentialsRequest, params: RequestParams = {}) =>
-      this.request<ApiTokenResponse, ApiAPIError>({
+      this.request<ApiTokenResponse, ApiError>({
         path: `/auth/login`,
         method: "POST",
         body: request,
@@ -414,7 +414,7 @@ export class Api<
      * @secure
      */
     validateList: (params: RequestParams = {}) =>
-      this.request<ApiIdentityResponse, ApiAPIError>({
+      this.request<ApiIdentityResponse, ApiError>({
         path: `/auth/validate`,
         method: "GET",
         secure: true,
@@ -432,7 +432,7 @@ export class Api<
      * @request GET:/departments
      */
     departmentsList: (params: RequestParams = {}) =>
-      this.request<ApiDepartmentsResponse, ApiAPIError>({
+      this.request<ApiDepartmentsResponse, ApiError>({
         path: `/departments`,
         method: "GET",
         format: "json",
@@ -452,7 +452,7 @@ export class Api<
       request: ApiCreateDepartmentRequest,
       params: RequestParams = {},
     ) =>
-      this.request<ApiDepartment, ApiAPIError>({
+      this.request<ApiDepartment, ApiError>({
         path: `/departments`,
         method: "POST",
         body: request,
@@ -476,7 +476,7 @@ export class Api<
       request: ApiUpdateDepartmentRequest,
       params: RequestParams = {},
     ) =>
-      this.request<ApiDepartment, ApiAPIError>({
+      this.request<ApiDepartment, ApiError>({
         path: `/departments/${id}`,
         method: "PUT",
         body: request,
@@ -496,7 +496,7 @@ export class Api<
      * @secure
      */
     departmentsDelete: (id: string, params: RequestParams = {}) =>
-      this.request<void, ApiAPIError>({
+      this.request<void, ApiError>({
         path: `/departments/${id}`,
         method: "DELETE",
         secure: true,
@@ -530,7 +530,7 @@ export class Api<
      * @request GET:/roles
      */
     rolesList: (params: RequestParams = {}) =>
-      this.request<ApiRolesResponse, ApiAPIError>({
+      this.request<ApiRolesResponse, ApiError>({
         path: `/roles`,
         method: "GET",
         format: "json",
@@ -548,7 +548,7 @@ export class Api<
      * @secure
      */
     usersList: (params: RequestParams = {}) =>
-      this.request<ApiUsersResponse, ApiAPIError>({
+      this.request<ApiUsersResponse, ApiError>({
         path: `/users`,
         method: "GET",
         secure: true,
@@ -566,7 +566,7 @@ export class Api<
      * @secure
      */
     usersCreate: (request: ApiCreateUserRequest, params: RequestParams = {}) =>
-      this.request<ApiUserResponse, ApiAPIError>({
+      this.request<ApiUserResponse, ApiError>({
         path: `/users`,
         method: "POST",
         body: request,
@@ -586,7 +586,7 @@ export class Api<
      * @secure
      */
     getUsers: (params: RequestParams = {}) =>
-      this.request<ApiUserResponse, ApiAPIError>({
+      this.request<ApiUserResponse, ApiError>({
         path: `/users/me`,
         method: "GET",
         secure: true,
@@ -604,7 +604,7 @@ export class Api<
      * @secure
      */
     usersDetail: (id: string, params: RequestParams = {}) =>
-      this.request<ApiUserResponse, ApiAPIError>({
+      this.request<ApiUserResponse, ApiError>({
         path: `/users/${id}`,
         method: "GET",
         secure: true,
@@ -626,7 +626,7 @@ export class Api<
       request: ApiPatchUserRequest,
       params: RequestParams = {},
     ) =>
-      this.request<ApiUserResponse, ApiAPIError>({
+      this.request<ApiUserResponse, ApiError>({
         path: `/users/${id}`,
         method: "PATCH",
         body: request,
@@ -650,7 +650,7 @@ export class Api<
       request: ApiCredentialsRequest,
       params: RequestParams = {},
     ) =>
-      this.request<Record<string, string>, ApiAPIError>({
+      this.request<Record<string, string>, ApiError>({
         path: `/users/${id}/credentials`,
         method: "PUT",
         body: request,

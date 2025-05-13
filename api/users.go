@@ -38,10 +38,10 @@ type CreateUserRequest struct {
 // @Param Authorization header string false "Bearer JWT token"
 // @Param id path string true "User UUID"
 // @Success 200 {object} UserResponse
-// @Failure 400 {object} APIError "Invalid UUID format"
-// @Failure 401 {object} APIError "Unauthorized"
-// @Failure 404 {object} APIError "User not found"
-// @Failure 500 {object} APIError "Internal server error"
+// @Failure 400 {object} Error "Invalid UUID format"
+// @Failure 401 {object} Error "Unauthorized"
+// @Failure 404 {object} Error "User not found"
+// @Failure 500 {object} Error "Internal server error"
 // @Router /users/{id} [get]
 func (a *API) GetUser(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
@@ -49,7 +49,7 @@ func (a *API) GetUser(w http.ResponseWriter, r *http.Request) {
 
 	userID, err := uuid.FromString(idStr)
 	if err != nil {
-		a.writeError(w, APIError{
+		a.writeError(w, Error{
 			Code:      "INVALID_UUID",
 			Message:   "Invalid user ID format",
 			RuMessage: "Некорректный формат ID пользователя",
@@ -60,14 +60,14 @@ func (a *API) GetUser(w http.ResponseWriter, r *http.Request) {
 	user, err := a.sesc.User(ctx, userID)
 	switch {
 	case errors.Is(err, sesc.ErrUserNotFound):
-		a.writeError(w, APIError{
+		a.writeError(w, Error{
 			Code:      "USER_NOT_FOUND",
 			Message:   "User not found",
 			RuMessage: "Пользователь не найден",
 		}, http.StatusNotFound)
 		return
 	case err != nil:
-		a.writeError(w, APIError{
+		a.writeError(w, Error{
 			Code:      "SERVER_ERROR",
 			Message:   "Failed to fetch user",
 			RuMessage: "Ошибка получения данных пользователя",
@@ -99,14 +99,14 @@ type UsersResponse struct {
 // @Security BearerAuth
 // @Param Authorization header string false "Bearer JWT token"
 // @Success 200 {object} UsersResponse
-// @Failure 401 {object} APIError "Unauthorized"
-// @Failure 500 {object} APIError "Internal server error"
+// @Failure 401 {object} Error "Unauthorized"
+// @Failure 500 {object} Error "Internal server error"
 // @Router /users [get]
 func (a *API) GetUsers(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	users, err := a.sesc.Users(ctx)
 	if err != nil {
-		a.writeError(w, APIError{
+		a.writeError(w, Error{
 			Code:      "SERVER_ERROR",
 			Message:   "Failed to fetch users",
 			RuMessage: "Ошибка получения данных пользователей",
@@ -129,10 +129,10 @@ func (a *API) GetUsers(w http.ResponseWriter, r *http.Request) {
 // @Param Authorization header string false "Bearer JWT token"
 // @Param request body CreateUserRequest true "User details"
 // @Success 201 {object} UserResponse
-// @Failure 400 {object} APIError "Invalid role or request format"
-// @Failure 401 {object} APIError "Unauthorized"
-// @Failure 403 {object} APIError "Forbidden - admin role required"
-// @Failure 500 {object} APIError "Internal server error"
+// @Failure 400 {object} Error "Invalid role or request format"
+// @Failure 401 {object} Error "Unauthorized"
+// @Failure 403 {object} Error "Forbidden - admin role required"
+// @Failure 500 {object} Error "Internal server error"
 // @Router /users [post]
 func (a *API) CreateUser(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
@@ -154,21 +154,21 @@ func (a *API) CreateUser(w http.ResponseWriter, r *http.Request) {
 
 	switch {
 	case errors.Is(err, sesc.ErrInvalidRole):
-		a.writeError(w, APIError{
+		a.writeError(w, Error{
 			Code:      "INVALID_ROLE",
 			Message:   "Invalid role ID specified",
 			RuMessage: "Указана некорректная роль",
 		}, http.StatusBadRequest)
 		return
 	case errors.Is(err, sesc.ErrInvalidName):
-		a.writeError(w, APIError{
+		a.writeError(w, Error{
 			Code:      "INVALID_NAME",
 			Message:   "Invalid name specified",
 			RuMessage: "Указано некорректное имя",
 		}, http.StatusBadRequest)
 		return
 	case err != nil:
-		a.writeError(w, APIError{
+		a.writeError(w, Error{
 			Code:      "SERVER_ERROR",
 			Message:   "Failed to create user",
 			RuMessage: "Ошибка создания пользователя",
@@ -196,7 +196,7 @@ type PatchUserRequest struct {
 	PictureURL   *string    `json:"pictureUrl,omitzero"   example:"/images/users/ivan.jpg"`
 	Suspended    *bool      `json:"suspended,omitzero"    example:"false"                                validate:"required"`
 	DepartmentID *uuid.UUID `json:"departmentId,omitzero" example:"550e8400-e29b-41d4-a716-446655440000"`
-	RoleId       *int32     `json:"roleId,omitzero"       example:"1"                                    validate:"required"`
+	RoleID       *int32     `json:"roleId,omitzero"       example:"1"                                    validate:"required"`
 }
 
 // PatchUser godoc
@@ -211,11 +211,11 @@ type PatchUserRequest struct {
 // @Param id path string true "User UUID"
 // @Param request body PatchUserRequest true "User fields to update"
 // @Success 200 {object} UserResponse
-// @Failure 400 {object} APIError "Invalid UUID format, role or request format"
-// @Failure 401 {object} APIError "Unauthorized"
-// @Failure 403 {object} APIError "Forbidden - admin role required"
-// @Failure 404 {object} APIError "User not found"
-// @Failure 500 {object} APIError "Internal server error"
+// @Failure 400 {object} Error "Invalid UUID format, role or request format"
+// @Failure 401 {object} Error "Unauthorized"
+// @Failure 403 {object} Error "Forbidden - admin role required"
+// @Failure 404 {object} Error "User not found"
+// @Failure 500 {object} Error "Internal server error"
 // @Router /users/{id} [patch]
 func (a *API) PatchUser(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
@@ -223,7 +223,7 @@ func (a *API) PatchUser(w http.ResponseWriter, r *http.Request) {
 	idStr := r.PathValue("id")
 	userID, err := uuid.FromString(idStr)
 	if err != nil {
-		a.writeError(w, APIError{
+		a.writeError(w, Error{
 			Code:      "INVALID_UUID",
 			Message:   "Invalid user ID format",
 			RuMessage: "Некорректный формат ID пользователя",
@@ -239,7 +239,7 @@ func (a *API) PatchUser(w http.ResponseWriter, r *http.Request) {
 
 	existing, err := a.sesc.User(ctx, userID)
 	if errors.Is(err, sesc.ErrUserNotFound) {
-		a.writeError(w, APIError{
+		a.writeError(w, Error{
 			Code:      "USER_NOT_FOUND",
 			Message:   "User not found",
 			RuMessage: "Пользователь не найден",
@@ -247,7 +247,7 @@ func (a *API) PatchUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err != nil {
-		a.writeError(w, APIError{
+		a.writeError(w, Error{
 			Code:      "SERVER_ERROR",
 			Message:   "Failed to fetch user",
 			RuMessage: "Ошибка получения данных пользователя",
@@ -272,10 +272,10 @@ func (a *API) PatchUser(w http.ResponseWriter, r *http.Request) {
 		upd.Suspended = *req.Suspended
 	}
 	if req.DepartmentID != nil {
-		newRoleIsBad := (req.RoleId != nil && *req.RoleId != sesc.Teacher.ID && *req.RoleId != sesc.Dephead.ID)
-		noNewRoleAndOldIsBad := (req.RoleId == nil && existing.Role.ID != sesc.Teacher.ID && existing.Role.ID != sesc.Dephead.ID)
+		newRoleIsBad := (req.RoleID != nil && *req.RoleID != sesc.Teacher.ID && *req.RoleID != sesc.Dephead.ID)
+		noNewRoleAndOldIsBad := (req.RoleID == nil && existing.Role.ID != sesc.Teacher.ID && existing.Role.ID != sesc.Dephead.ID)
 		if newRoleIsBad || noNewRoleAndOldIsBad {
-			a.writeError(w, APIError{
+			a.writeError(w, Error{
 				Code:      "INVALID_ROLE",
 				Message:   "Unable to assign department to selected role",
 				RuMessage: "Нельзя указать департамент для выбранной роли",
@@ -285,14 +285,14 @@ func (a *API) PatchUser(w http.ResponseWriter, r *http.Request) {
 
 		upd.DepartmentID = *req.DepartmentID
 	}
-	if req.RoleId != nil {
-		upd.NewRoleID = *req.RoleId
+	if req.RoleID != nil {
+		upd.NewRoleID = *req.RoleID
 	}
 
 	updated, err := a.sesc.UpdateUser(ctx, userID, upd)
 	switch {
 	case errors.Is(err, sesc.ErrUserNotFound):
-		a.writeError(w, APIError{
+		a.writeError(w, Error{
 			Code:      "USER_NOT_FOUND",
 			Message:   "User not found",
 			RuMessage: "Пользователь не найден",
@@ -300,7 +300,7 @@ func (a *API) PatchUser(w http.ResponseWriter, r *http.Request) {
 		return
 
 	case errors.Is(err, sesc.ErrInvalidRole):
-		a.writeError(w, APIError{
+		a.writeError(w, Error{
 			Code:      "INVALID_ROLE",
 			Message:   "Invalid role ID specified",
 			RuMessage: "Указана некорректная роль",
@@ -308,7 +308,7 @@ func (a *API) PatchUser(w http.ResponseWriter, r *http.Request) {
 		return
 
 	case errors.Is(err, sesc.ErrInvalidName):
-		a.writeError(w, APIError{
+		a.writeError(w, Error{
 			Code:      "INVALID_NAME",
 			Message:   "Invalid first or last name",
 			RuMessage: "Указано некорректное имя",
@@ -316,7 +316,7 @@ func (a *API) PatchUser(w http.ResponseWriter, r *http.Request) {
 		return
 
 	case err != nil:
-		a.writeError(w, APIError{
+		a.writeError(w, Error{
 			Code:      "SERVER_ERROR",
 			Message:   "Failed to update user",
 			RuMessage: "Ошибка обновления пользователя",
@@ -365,9 +365,9 @@ func convertUsers(users []sesc.User) []UserResponse {
 // @Security BearerAuth
 // @Param Authorization header string false "Bearer JWT token"
 // @Success 200 {object} UserResponse
-// @Failure 401 {object} APIError "Unauthorized or invalid token"
-// @Failure 404 {object} APIError "User not found"
-// @Failure 500 {object} APIError "Internal server error"
+// @Failure 401 {object} Error "Unauthorized or invalid token"
+// @Failure 404 {object} Error "User not found"
+// @Failure 500 {object} Error "Internal server error"
 // @Router /users/me [get]
 func (a *API) GetCurrentUser(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
@@ -375,7 +375,7 @@ func (a *API) GetCurrentUser(w http.ResponseWriter, r *http.Request) {
 	// Get identity from context
 	identity, ok := GetIdentityFromContext(ctx)
 	if !ok {
-		a.writeError(w, APIError{
+		a.writeError(w, Error{
 			Code:      "UNAUTHORIZED",
 			Message:   "Authentication required",
 			RuMessage: "Требуется авторизация",
@@ -387,14 +387,14 @@ func (a *API) GetCurrentUser(w http.ResponseWriter, r *http.Request) {
 	user, err := a.sesc.User(ctx, identity.ID)
 	switch {
 	case errors.Is(err, sesc.ErrUserNotFound):
-		a.writeError(w, APIError{
+		a.writeError(w, Error{
 			Code:      "USER_NOT_FOUND",
 			Message:   "User not found",
 			RuMessage: "Пользователь не найден",
 		}, http.StatusNotFound)
 		return
 	case err != nil:
-		a.writeError(w, APIError{
+		a.writeError(w, Error{
 			Code:      "SERVER_ERROR",
 			Message:   "Failed to fetch user data",
 			RuMessage: "Ошибка получения данных пользователя",

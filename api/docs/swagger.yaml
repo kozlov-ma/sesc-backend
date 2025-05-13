@@ -1,23 +1,4 @@
 definitions:
-  api.APIError:
-    properties:
-      code:
-        example: INVALID_REQUEST
-        type: string
-      details:
-        example: field X is required
-        type: string
-      message:
-        example: Invalid request body
-        type: string
-      ruMessage:
-        example: Некорректный формат запроса
-        type: string
-    required:
-    - code
-    - message
-    - ruMessage
-    type: object
   api.AdminLoginRequest:
     properties:
       token:
@@ -99,6 +80,25 @@ definitions:
         type: array
     required:
     - departments
+    type: object
+  api.Error:
+    properties:
+      code:
+        example: INVALID_REQUEST
+        type: string
+      details:
+        example: field X is required
+        type: string
+      message:
+        example: Invalid request body
+        type: string
+      ruMessage:
+        example: Некорректный формат запроса
+        type: string
+    required:
+    - code
+    - message
+    - ruMessage
     type: object
   api.IdentityResponse:
     properties:
@@ -275,15 +275,15 @@ paths:
         "400":
           description: Invalid request format
           schema:
-            $ref: '#/definitions/api.APIError'
+            $ref: '#/definitions/api.Error'
         "401":
           description: Invalid admin token
           schema:
-            $ref: '#/definitions/api.APIError'
+            $ref: '#/definitions/api.Error'
         "500":
           description: Internal server error
           schema:
-            $ref: '#/definitions/api.APIError'
+            $ref: '#/definitions/api.Error'
       summary: Admin login
       tags:
       - authentication
@@ -306,23 +306,23 @@ paths:
         "400":
           description: Invalid UUID format
           schema:
-            $ref: '#/definitions/api.APIError'
+            $ref: '#/definitions/api.Error'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/api.APIError'
+            $ref: '#/definitions/api.Error'
         "403":
           description: Forbidden - admin role required
           schema:
-            $ref: '#/definitions/api.APIError'
+            $ref: '#/definitions/api.Error'
         "404":
           description: User not found or does not exist
           schema:
-            $ref: '#/definitions/api.APIError'
+            $ref: '#/definitions/api.Error'
         "500":
           description: Internal server error
           schema:
-            $ref: '#/definitions/api.APIError'
+            $ref: '#/definitions/api.Error'
       security:
       - BearerAuth: []
       summary: Delete user credentials
@@ -348,23 +348,23 @@ paths:
         "400":
           description: Invalid UUID format
           schema:
-            $ref: '#/definitions/api.APIError'
+            $ref: '#/definitions/api.Error'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/api.APIError'
+            $ref: '#/definitions/api.Error'
         "403":
           description: Forbidden - admin role required
           schema:
-            $ref: '#/definitions/api.APIError'
+            $ref: '#/definitions/api.Error'
         "404":
           description: User not found or does not exist
           schema:
-            $ref: '#/definitions/api.APIError'
+            $ref: '#/definitions/api.Error'
         "500":
           description: Internal server error
           schema:
-            $ref: '#/definitions/api.APIError'
+            $ref: '#/definitions/api.Error'
       security:
       - BearerAuth: []
       summary: Get user credentials
@@ -392,15 +392,15 @@ paths:
         "400":
           description: Invalid credentials format
           schema:
-            $ref: '#/definitions/api.APIError'
+            $ref: '#/definitions/api.Error'
         "401":
           description: Invalid credentials
           schema:
-            $ref: '#/definitions/api.APIError'
+            $ref: '#/definitions/api.Error'
         "500":
           description: Internal server error
           schema:
-            $ref: '#/definitions/api.APIError'
+            $ref: '#/definitions/api.Error'
       summary: User login
       tags:
       - authentication
@@ -422,11 +422,11 @@ paths:
         "401":
           description: Invalid token
           schema:
-            $ref: '#/definitions/api.APIError'
+            $ref: '#/definitions/api.Error'
         "500":
           description: Internal server error
           schema:
-            $ref: '#/definitions/api.APIError'
+            $ref: '#/definitions/api.Error'
       security:
       - BearerAuth: []
       summary: Validate JWT token
@@ -445,7 +445,7 @@ paths:
         "500":
           description: Internal server error
           schema:
-            $ref: '#/definitions/api.APIError'
+            $ref: '#/definitions/api.Error'
       summary: List all departments
       tags:
       - departments
@@ -474,19 +474,19 @@ paths:
         "400":
           description: Invalid request format
           schema:
-            $ref: '#/definitions/api.APIError'
+            $ref: '#/definitions/api.Error'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/api.APIError'
+            $ref: '#/definitions/api.Error'
         "403":
           description: Forbidden - admin role required
           schema:
-            $ref: '#/definitions/api.APIError'
+            $ref: '#/definitions/api.Error'
         "500":
           description: Internal server error
           schema:
-            $ref: '#/definitions/api.APIError'
+            $ref: '#/definitions/api.Error'
       security:
       - BearerAuth: []
       summary: Create a new department
@@ -511,27 +511,27 @@ paths:
         "400":
           description: Invalid UUID format
           schema:
-            $ref: '#/definitions/api.APIError'
+            $ref: '#/definitions/api.Error'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/api.APIError'
+            $ref: '#/definitions/api.Error'
         "403":
           description: Forbidden - admin role required
           schema:
-            $ref: '#/definitions/api.APIError'
+            $ref: '#/definitions/api.Error'
         "404":
           description: Department not found
           schema:
-            $ref: '#/definitions/api.APIError'
+            $ref: '#/definitions/api.Error'
         "409":
           description: Cannot remove department, it still has some users
           schema:
-            $ref: '#/definitions/api.APIError'
+            $ref: '#/definitions/api.Error'
         "500":
           description: Internal server error
           schema:
-            $ref: '#/definitions/api.APIError'
+            $ref: '#/definitions/api.Error'
       security:
       - BearerAuth: []
       summary: Delete a department
@@ -567,23 +567,23 @@ paths:
         "400":
           description: Invalid UUID format or request format
           schema:
-            $ref: '#/definitions/api.APIError'
+            $ref: '#/definitions/api.Error'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/api.APIError'
+            $ref: '#/definitions/api.Error'
         "403":
           description: Forbidden - admin role required
           schema:
-            $ref: '#/definitions/api.APIError'
+            $ref: '#/definitions/api.Error'
         "404":
           description: Department not found
           schema:
-            $ref: '#/definitions/api.APIError'
+            $ref: '#/definitions/api.Error'
         "500":
           description: Internal server error
           schema:
-            $ref: '#/definitions/api.APIError'
+            $ref: '#/definitions/api.Error'
       security:
       - BearerAuth: []
       summary: Update department details
@@ -615,7 +615,7 @@ paths:
         "500":
           description: Internal server error
           schema:
-            $ref: '#/definitions/api.APIError'
+            $ref: '#/definitions/api.Error'
       summary: List all roles
       tags:
       - roles
@@ -637,11 +637,11 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/api.APIError'
+            $ref: '#/definitions/api.Error'
         "500":
           description: Internal server error
           schema:
-            $ref: '#/definitions/api.APIError'
+            $ref: '#/definitions/api.Error'
       security:
       - BearerAuth: []
       summary: Get all users registered in the system
@@ -672,19 +672,19 @@ paths:
         "400":
           description: Invalid role or request format
           schema:
-            $ref: '#/definitions/api.APIError'
+            $ref: '#/definitions/api.Error'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/api.APIError'
+            $ref: '#/definitions/api.Error'
         "403":
           description: Forbidden - admin role required
           schema:
-            $ref: '#/definitions/api.APIError'
+            $ref: '#/definitions/api.Error'
         "500":
           description: Internal server error
           schema:
-            $ref: '#/definitions/api.APIError'
+            $ref: '#/definitions/api.Error'
       security:
       - BearerAuth: []
       summary: Create new user
@@ -713,19 +713,19 @@ paths:
         "400":
           description: Invalid UUID format
           schema:
-            $ref: '#/definitions/api.APIError'
+            $ref: '#/definitions/api.Error'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/api.APIError'
+            $ref: '#/definitions/api.Error'
         "404":
           description: User not found
           schema:
-            $ref: '#/definitions/api.APIError'
+            $ref: '#/definitions/api.Error'
         "500":
           description: Internal server error
           schema:
-            $ref: '#/definitions/api.APIError'
+            $ref: '#/definitions/api.Error'
       security:
       - BearerAuth: []
       summary: Get user details
@@ -762,23 +762,23 @@ paths:
         "400":
           description: Invalid UUID format, role or request format
           schema:
-            $ref: '#/definitions/api.APIError'
+            $ref: '#/definitions/api.Error'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/api.APIError'
+            $ref: '#/definitions/api.Error'
         "403":
           description: Forbidden - admin role required
           schema:
-            $ref: '#/definitions/api.APIError'
+            $ref: '#/definitions/api.Error'
         "404":
           description: User not found
           schema:
-            $ref: '#/definitions/api.APIError'
+            $ref: '#/definitions/api.Error'
         "500":
           description: Internal server error
           schema:
-            $ref: '#/definitions/api.APIError'
+            $ref: '#/definitions/api.Error'
       security:
       - BearerAuth: []
       summary: Partially update user
@@ -817,27 +817,27 @@ paths:
         "400":
           description: Invalid credentials or request format
           schema:
-            $ref: '#/definitions/api.APIError'
+            $ref: '#/definitions/api.Error'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/api.APIError'
+            $ref: '#/definitions/api.Error'
         "403":
           description: Forbidden - admin role required
           schema:
-            $ref: '#/definitions/api.APIError'
+            $ref: '#/definitions/api.Error'
         "404":
           description: User does not exist
           schema:
-            $ref: '#/definitions/api.APIError'
+            $ref: '#/definitions/api.Error'
         "409":
           description: User already exists
           schema:
-            $ref: '#/definitions/api.APIError'
+            $ref: '#/definitions/api.Error'
         "500":
           description: Internal server error
           schema:
-            $ref: '#/definitions/api.APIError'
+            $ref: '#/definitions/api.Error'
       security:
       - BearerAuth: []
       summary: Register user credentials
@@ -861,15 +861,15 @@ paths:
         "401":
           description: Unauthorized or invalid token
           schema:
-            $ref: '#/definitions/api.APIError'
+            $ref: '#/definitions/api.Error'
         "404":
           description: User not found
           schema:
-            $ref: '#/definitions/api.APIError'
+            $ref: '#/definitions/api.Error'
         "500":
           description: Internal server error
           schema:
-            $ref: '#/definitions/api.APIError'
+            $ref: '#/definitions/api.Error'
       security:
       - BearerAuth: []
       summary: Get current user information

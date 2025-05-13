@@ -32,9 +32,9 @@ type Permission struct {
 // @Tags roles
 // @Produce json
 // @Success 200 {object} RolesResponse
-// @Failure 500 {object} APIError "Internal server error"
+// @Failure 500 {object} Error "Internal server error"
 // @Router /roles [get]
-func (a *API) Roles(w http.ResponseWriter, r *http.Request) {
+func (a *API) Roles(w http.ResponseWriter, _ *http.Request) {
 	response := RolesResponse{
 		Roles: make([]Role, len(sesc.Roles)),
 	}
@@ -52,7 +52,7 @@ func (a *API) Roles(w http.ResponseWriter, r *http.Request) {
 // @Produce json
 // @Success 200 {object} PermissionsResponse
 // @Router /permissions [get]
-func (a *API) Permissions(w http.ResponseWriter, r *http.Request) {
+func (a *API) Permissions(w http.ResponseWriter, _ *http.Request) {
 	perms := sesc.Permissions
 	response := PermissionsResponse{
 		Permissions: make([]Permission, len(perms)),
