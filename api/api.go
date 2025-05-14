@@ -123,10 +123,7 @@ func (a *API) RegisterRoutes(r chi.Router) {
 
 		// User routes with current user context
 		r.Route("/users", func(r chi.Router) {
-			// Add current user to context for user routes
-			r.Use(a.CurrentUserMiddleware)
-
-			r.Get("/me", a.GetCurrentUser)
+			r.With(a.CurrentUserMiddleware).Get("/me", a.GetCurrentUser)
 			r.Get("/", a.GetUsers)
 			r.Get("/{id}", a.GetUser)
 		})

@@ -218,29 +218,17 @@ func (a *API) GetCredentials(w http.ResponseWriter, r *http.Request) {
 
 	userID, err := uuid.FromString(idStr)
 	if err != nil {
-		writeError(a, w, InvalidUUIDError{
-			Code:      "INVALID_UUID",
-			Message:   "Invalid user ID format",
-			RuMessage: "Некорректный формат ID пользователя",
-		}, http.StatusBadRequest)
+		writeError(a, w, ErrInvalidUUID, http.StatusBadRequest)
 		return
 	}
 
 	creds, err := a.iam.Credentials(ctx, userID)
 	switch {
 	case errors.Is(err, iam.ErrUserNotFound):
-		writeError(a, w, CredentialsNotFoundError{
-			Code:      "CREDENTIALS_NOT_FOUND",
-			Message:   "User credentials not found",
-			RuMessage: "Учетные данные пользователя не найдены",
-		}, http.StatusNotFound)
+		writeError(a, w, ErrCredentialsNotFound, http.StatusNotFound)
 		return
 	case err != nil:
-		writeError(a, w, ServerError{
-			Code:      "SERVER_ERROR",
-			Message:   "Failed to get user credentials",
-			RuMessage: "Ошибка получения учетных данных пользователя",
-		}, http.StatusInternalServerError)
+		writeError(a, w, ErrServerError, http.StatusInternalServerError)
 		return
 	}
 
@@ -278,23 +266,18 @@ func (a *API) ValidateToken(w http.ResponseWriter, r *http.Request) {
 	identity, err := a.iam.ImWatermelon(ctx, tokenString)
 	switch {
 	case errors.Is(err, iam.ErrInvalidToken):
-		writeError(a, w, InvalidTokenError{
-			Code:      "INVALID_TOKEN",
-			Message:   "Invalid or expired token",
-			RuMessage: "Недействительный или просроченный токен",
-		}, http.StatusUnauthorized)
+		writeError(a, w, ErrInvalidToken, http.StatusUnauthorized)
+		return
+	case errors.Is(err, iam.ErrUserNotFound):
+		writeError(a, w, ErrUnauthorized, http.StatusUnauthorized)
 		return
 	case err != nil:
-		writeError(a, w, ServerError{
-			Code:      "SERVER_ERROR",
-			Message:   "Failed to validate token",
-			RuMessage: "Ошибка проверки токена",
-		}, http.StatusInternalServerError)
+		writeError(a, w, ErrServerError, http.StatusInternalServerError)
 		return
 	}
 
 	a.writeJSON(w, IdentityResponse{
-		ID:   identity.ID,
+		ID:   identity.AuthID,
 		Role: string(identity.Role),
 	}, http.StatusOK)
 }

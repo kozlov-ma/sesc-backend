@@ -46,8 +46,9 @@ const (
 )
 
 type Identity struct {
-	ID   uuid.UUID
-	Role Role
+	AuthID uuid.UUID
+	Role   Role
+	ID     uuid.UUID
 }
 
 // IAM handles authentication using Ent for persistence.
@@ -202,7 +203,7 @@ func (i *IAM) Login(ctx context.Context, creds Credentials) (string, error) {
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"user_id": authRec.UserID.String(),
+		"user_id": authRec.AuthID.String(),
 		"role":    string(RoleUser),
 		"exp":     time.Now().Add(i.tokenDuration).Unix(),
 	})
@@ -228,11 +229,8 @@ func (i *IAM) LoginAdmin(ctx context.Context, token string) (string, error) {
 		return "", ErrUserNotFound
 	}
 
-	// Create a system UUID for admin
-	adminID := uuid.Must(uuid.NewV7())
-
 	tok := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"user_id": adminID.String(), // Add user_id claim for admin
+		"user_id": uuid.Nil.String(), // Add user_id claim for admin
 		"role":    string(RoleAdmin),
 		"exp":     time.Now().Add(i.tokenDuration).Unix(),
 	})
@@ -244,7 +242,7 @@ func (i *IAM) LoginAdmin(ctx context.Context, token string) (string, error) {
 		return "", fmt.Errorf("couldn't sign token: %w", err)
 	}
 
-	logger.InfoContext(ctx, "Admin logged in successfully", "admin_id", adminID)
+	logger.InfoContext(ctx, "Admin logged in")
 	return signed, nil
 }
 
@@ -255,46 +253,66 @@ func (i *IAM) ImWatermelon(ctx context.Context, tokenString string) (Identity, e
 
 	parsed, err := jwt.Parse(tokenString, func(t *jwt.Token) (interface{}, error) {
 		if t.Method != jwt.SigningMethodHS256 {
-			logger.ErrorContext(ctx, "Invalid token signing method", "method", t.Method)
+			logger.DebugContext(ctx, "Invalid token signing method", "method", t.Method)
 			return nil, ErrInvalidToken
 		}
 		return jwtKey, nil
 	})
 
 	if err != nil || !parsed.Valid {
-		logger.ErrorContext(ctx, "Invalid or expired token", "error", err)
+		logger.DebugContext(ctx, "Invalid or expired token", "error", err)
 		return Identity{}, errors.Join(ErrInvalidToken, err)
 	}
 
 	claims, ok := parsed.Claims.(jwt.MapClaims)
 	if !ok {
-		logger.ErrorContext(ctx, "Failed to parse token claims")
+		logger.DebugContext(ctx, "Failed to parse token claims")
 		return Identity{}, ErrInvalidToken
 	}
 
-	userIDstr, ok1 := claims["user_id"].(string)
+	authIDStr, ok1 := claims["user_id"].(string)
 	roleStr, ok2 := claims["role"].(string)
 	if !ok1 || !ok2 {
-		logger.ErrorContext(ctx, "Missing required claims in token",
-			"has_user_id", ok1, "has_role", ok2)
+		logger.DebugContext(ctx, "Missing required claims in token",
+			"has_auth_id", ok1, "has_role", ok2)
 		return Identity{}, ErrInvalidToken
 	}
 
-	uid, err := uuid.FromString(userIDstr)
+	if roleStr == string(RoleAdmin) {
+		logger.DebugContext(ctx, "Admin token validated", "claims", claims)
+		return Identity{
+			AuthID: uuid.Nil,
+			Role:   RoleAdmin,
+		}, nil
+	}
+
+	aid, err := uuid.FromString(authIDStr)
 	if err != nil {
-		logger.ErrorContext(
+		logger.DebugContext(
 			ctx,
 			"Failed to parse user ID from token",
 			"user_id_str",
-			userIDstr,
+			authIDStr,
 			"error",
 			err,
 		)
 		return Identity{}, ErrInvalidToken
 	}
 
-	identity := Identity{ID: uid, Role: Role(roleStr)}
-	logger.DebugContext(ctx, "Token verified successfully", "user_id", uid, "role", roleStr)
+	res, err := i.client.AuthUser.Query().Where(authuser.AuthID(aid)).Only(ctx)
+	switch {
+	case ent.IsNotFound(err):
+		return Identity{}, ErrUserNotFound
+	case err != nil:
+		return Identity{}, fmt.Errorf("couldn't get user id from auth id: %w", err)
+	}
+
+	identity := Identity{
+		AuthID: res.AuthID,
+		Role:   Role(roleStr),
+		ID:     res.UserID,
+	}
+	logger.DebugContext(ctx, "Token verified successfully", "user_id", aid, "role", roleStr)
 	return identity, nil
 }
 

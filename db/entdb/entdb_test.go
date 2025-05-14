@@ -238,6 +238,10 @@ func TestSaveUser(t *testing.T) {
 		savedUser, err := db.UserByID(ctx, user.ID)
 		require.NoError(t, err)
 		requireUserMatches(t, expected, savedUser)
+
+		us, err := db.Users(ctx)
+		require.NoError(t, err)
+		require.Len(t, us, 1)
 	})
 
 	t.Run("without_department", func(t *testing.T) {

@@ -165,7 +165,7 @@ export function UsersTable() {
           <TableHeader>
             <TableRow>
               <TableHead>Пользователь</TableHead>
-              <TableHead>Отдел</TableHead>
+              <TableHead>Кафедра</TableHead>
               <TableHead>Роль</TableHead>
               <TableHead>Статус</TableHead>
               <TableHead className="w-[70px]"></TableHead>

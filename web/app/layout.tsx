@@ -16,13 +16,11 @@ export const metadata: Metadata = {
 export default function RootLayout({
   children,
   auth,
-  dashboard,
-  admin_dashboard,
+  user,
 }: Readonly<{
   children: React.ReactNode;
   auth: React.ReactNode;
-  dashboard: React.ReactNode;
-  admin_dashboard: React.ReactNode;
+  user: React.ReactNode;
 }>) {
   return (
     <html lang="ru" suppressHydrationWarning>
@@ -34,10 +32,9 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <main>
-            {children}
             {auth}
-            {dashboard}
-            {admin_dashboard}
+            {user}
+            {children}
           </main>
           <Toaster />
         </ThemeProvider>

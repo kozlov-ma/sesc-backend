@@ -356,8 +356,8 @@ func convertUser(user sesc.User) UserResponse {
 
 func convertUsers(users []sesc.User) []UserResponse {
 	convertedUsers := make([]UserResponse, len(users))
-	for _, user := range users {
-		convertedUsers = append(convertedUsers, convertUser(user))
+	for i, user := range users {
+		convertedUsers[i] = convertUser(user)
 	}
 	return convertedUsers
 }
@@ -377,35 +377,7 @@ func convertUsers(users []sesc.User) []UserResponse {
 func (a *API) GetCurrentUser(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	// Get identity from context
-	identity, ok := GetIdentityFromContext(ctx)
-	if !ok {
-		writeError(a, w, UnauthorizedError{
-			Code:      "UNAUTHORIZED",
-			Message:   "Authentication required",
-			RuMessage: "Требуется авторизация",
-		}, http.StatusUnauthorized)
-		return
-	}
-
-	// Get user from sesc
-	user, err := a.sesc.User(ctx, identity.ID)
-	switch {
-	case errors.Is(err, sesc.ErrUserNotFound):
-		writeError(a, w, UserNotFoundError{
-			Code:      "USER_NOT_FOUND",
-			Message:   "User not found",
-			RuMessage: "Пользователь не найден",
-		}, http.StatusNotFound)
-		return
-	case err != nil:
-		writeError(a, w, ServerError{
-			Code:      "SERVER_ERROR",
-			Message:   "Failed to fetch user data",
-			RuMessage: "Ошибка получения данных пользователя",
-		}, http.StatusInternalServerError)
-		return
-	}
+	user, _ := GetUserFromContext(ctx)
 
 	// Return user data
 	a.writeJSON(w, UserResponse{

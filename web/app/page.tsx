@@ -2,15 +2,24 @@
 
 import { useEffect } from "react";
 import { useAuth } from "@/hooks/use-auth";
+import { useRouter } from "next/navigation";
 
 export default function HomePage() {
-  const { token, validateToken } = useAuth();
+  const { token, validateToken, role } = useAuth();
+  const { push } = useRouter()
 
   useEffect(() => {
-    // Проверяем токен при загрузке страницы
+    if (role === "admin") {
+      push("/admin")
+    }
+    if (role === "user") {
+      push("/u")
+    }
+  }, [role, push])
+
+  useEffect(() => {
     if (token) {
-      validateToken(token).catch((error) => {
-        // Обработка ошибки, если токен недействителен
+      validateToken().catch((error) => {
         const errorMessage = error?.response?.data?.ruMessage || "Недействительный токен";
         console.error(errorMessage);
       });

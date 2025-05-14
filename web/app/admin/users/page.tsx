@@ -1,27 +1,26 @@
 "use client";
 
-import { motion } from "framer-motion";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ThemeToggle } from "@/components/theme-toggle";
 import { useAuth } from "@/hooks/use-auth";
-import { LogOut, UserRound, UserRoundCheck, UserRoundX } from "lucide-react";
-import { UsersTable } from "@/components/dashboard/users-table";
+import { motion } from "framer-motion";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { UserRound, UserRoundCheck, UserRoundX } from "lucide-react";
+import { UsersTable } from "@/components/admin-dashboard/users-table";
 import { useApi } from "@/hooks/use-api";
 import { ApiUsersResponse, ApiUserResponse } from "@/lib/Api";
 
-export function AdminDashboard() {
-  const { logout } = useAuth();
+export default function UsersPage() {
+  const { isAuthenticated, role, isLoading } = useAuth();
+
+  // Only render if user is admin, otherwise return null
+  if (!isAuthenticated || isLoading || role !== "admin") {
+    return null;
+  }
 
   return (
     <div className="min-h-screen flex flex-col p-6 bg-background">
       <header className="w-full flex justify-between items-center mb-8">
-        <h1 className="text-2xl font-bold">Панель администратора</h1>
+        <h1 className="text-2xl font-bold">Управление пользователями</h1>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="icon" onClick={logout}>
-            <LogOut className="h-5 w-5" />
-          </Button>
-          <ThemeToggle />
         </div>
       </header>
 
@@ -95,35 +94,40 @@ export function AdminDashboard() {
 
 // Component that displays the total number of users
 function UsersCountDisplay() {
-  const { data, error } = useUsersData();
-  
+  const { data, isLoading, error } = useUsersData();
+
   if (error) return <span className="text-destructive">Ошибка</span>;
-  if (!data) return <span className="text-muted-foreground">Загрузка...</span>;
-  
-  return data.users.length;
+  if (isLoading)
+    return <span className="text-muted-foreground">Загрузка...</span>;
+
+  console.log(data);
+
+  return data?.users?.length;
 }
 
 // Component that displays the number of active users
 function ActiveUsersCountDisplay() {
-  const { data, error } = useUsersData();
-  
+  const { data, isLoading, error } = useUsersData();
+
   if (error) return <span className="text-destructive">Ошибка</span>;
-  if (!data) return <span className="text-muted-foreground">Загрузка...</span>;
-  
-  return data.users.filter((user: ApiUserResponse) => !user.suspended).length;
+  if (isLoading)
+    return <span className="text-muted-foreground">Загрузка...</span>;
+
+  return data?.users?.filter((user: ApiUserResponse) => !user.suspended).length;
 }
 
 // Component that displays the number of suspended users
 function SuspendedUsersCountDisplay() {
-  const { data, error } = useUsersData();
-  
+  const { data, isLoading, error } = useUsersData();
+
   if (error) return <span className="text-destructive">Ошибка</span>;
-  if (!data) return <span className="text-muted-foreground">Загрузка...</span>;
-  
-  return data.users.filter((user: ApiUserResponse) => user.suspended).length;
+  if (isLoading)
+    return <span className="text-muted-foreground">Загрузка...</span>;
+
+  return data?.users?.filter((user: ApiUserResponse) => user.suspended).length;
 }
 
 // Custom hook to fetch users data
 function useUsersData() {
   return useApi<ApiUsersResponse>("/users");
-} 
+}

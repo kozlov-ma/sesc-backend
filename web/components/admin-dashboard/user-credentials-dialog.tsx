@@ -108,27 +108,11 @@ export function UserCredentialsDialog({
     useSWRMutation(
       `credentials-update-${user.id}`,
       async (_key, { arg }: { arg: CredentialsFormValues }) => {
-        try {
           const response = await apiClient.users.credentialsUpdate(
             user.id,
             arg,
           );
           return response.data;
-        } catch (err: any) {
-          // Handle conflict error (credentials already assigned to another user)
-          if (
-            err.response?.status === 409 ||
-            err.response?.data?.code === "CREDENTIALS_CONFLICT" ||
-            err.response?.data?.code === "USER_EXISTS"
-          ) {
-            toast.error("Ошибка", {
-              description:
-                "Эти учетные данные уже назначены другому пользователю.",
-            });
-          }
-
-          throw err;
-        }
       },
       {
         onSuccess: () => {

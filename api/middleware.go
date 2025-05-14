@@ -29,6 +29,18 @@ func GetUserFromContext(ctx context.Context) (sesc.User, bool) {
 	return user, ok
 }
 
+func (a *API) UnauthorizeSuspendedUsersMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+		u, ok := GetUserFromContext(ctx)
+		if ok && u.Suspended {
+			writeError(a, w, ErrUnauthorized.WithDetails("you are suspended"), http.StatusUnauthorized)
+			return
+		}
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
+
 // AuthMiddleware checks for a token in the Authorization header and adds the identity to the context
 func (a *API) AuthMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -55,7 +67,11 @@ func (a *API) AuthMiddleware(next http.Handler) http.Handler {
 				writeError(a, w, ErrInvalidToken, http.StatusUnauthorized)
 				return
 			}
-			writeError(a, w, ErrAuthError, http.StatusInternalServerError)
+			if errors.Is(err, iam.ErrUserNotFound) {
+				writeError(a, w, ErrUnauthorized, http.StatusUnauthorized)
+				return
+			}
+			writeError(a, w, ErrServerError, http.StatusInternalServerError)
 			return
 		}
 
@@ -72,6 +88,7 @@ func (a *API) RequireAuthMiddleware(next http.Handler) http.Handler {
 
 		// Check if auth header exists
 		if authHeader == "" {
+			a.log.DebugContext(r.Context(), "got a request without an auth header", "header", r.Header)
 			writeError(a, w, UnauthorizedError{
 				Code:      "UNAUTHORIZED",
 				Message:   "Authentication required",
@@ -155,30 +172,26 @@ func (a *API) CurrentUserMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 
-		// Get identity from context
 		identity, ok := GetIdentityFromContext(ctx)
 		if !ok {
-			// If no identity, just continue without adding user
-			next.ServeHTTP(w, r)
+			a.log.DebugContext(ctx, "identity was not in the context, exiting")
+			writeError(a, w, ErrUnauthorized, http.StatusUnauthorized)
 			return
 		}
 
-		// Only try to get user if role is "user"
 		if string(identity.Role) == "user" {
 			user, err := a.sesc.User(ctx, identity.ID)
 			if err != nil {
-				// If user not found, just continue
 				if errors.Is(err, sesc.ErrUserNotFound) {
-					next.ServeHTTP(w, r)
+					a.log.DebugContext(ctx, "sesc user not found, exiting")
+					writeError(a, w, ErrUnauthorized, http.StatusUnauthorized)
 					return
 				}
 
-				// For other errors, return 500
 				writeError(a, w, ErrServerError.WithDetails("Error fetching user data"), http.StatusInternalServerError)
 				return
 			}
 
-			// Add user to context
 			ctx = context.WithValue(ctx, userContextKey, user)
 		}
 

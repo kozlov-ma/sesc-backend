@@ -4,45 +4,12 @@ import useSWRMutation from "swr/mutation";
 import { apiClient } from "@/lib/api-client";
 import { useAuthStore } from "@/store/auth-store";
 import type { ApiCredentialsRequest, ApiAdminLoginRequest } from "@/lib/Api";
+import { useRouter } from "next/navigation";
 
-async function loginUserFetcher(
-  url: string,
-  { arg }: { arg: ApiCredentialsRequest },
-) {
-  const response = await apiClient.auth.loginCreate(arg);
-  const token = response.data.token;
 
-  // Получаем информацию о пользователе
-  apiClient.setSecurityData(token);
-  const userInfo = await apiClient.auth.validateList();
-
-  return {
-    token,
-    role: userInfo.data.role,
-  };
-}
-
-// Функция для входа администратора
-async function loginAdminFetcher(
-  url: string,
-  { arg }: { arg: ApiAdminLoginRequest },
-) {
-  const response = await apiClient.auth.adminLoginCreate(arg);
-  const token = response.data.token;
-
-  // Получаем информацию о пользователе
-  apiClient.setSecurityData(token);
-  const userInfo = await apiClient.auth.validateList();
-
-  return {
-    token,
-    role: userInfo.data.role,
-  };
-}
 
 // Функция для проверки токена
-async function validateTokenFetcher(url: string, { arg }: { arg: string }) {
-  apiClient.setSecurityData(arg);
+async function validateTokenFetcher() {
   const response = await apiClient.auth.validateList();
   return {
     role: response.data.role,
@@ -50,17 +17,35 @@ async function validateTokenFetcher(url: string, { arg }: { arg: string }) {
 }
 
 export function useAuth() {
+  const { push } = useRouter()
+
   const { token, role, setAuth, clearAuth } = useAuthStore();
+
+  async function loginUserFetcher(
+    url: string,
+    { arg }: { arg: ApiCredentialsRequest },
+  ) {
+    const response = await apiClient.auth.loginCreate(arg);
+    const token = response.data.token;
+    setAuth(token, "user")
+  }
+
+  async function loginAdminFetcher(
+    url: string,
+    { arg }: { arg: ApiAdminLoginRequest },
+  ) {
+    const response = await apiClient.auth.adminLoginCreate(arg);
+    const token = response.data.token;
+    setAuth(token, "admin")
+  }
+
   const {
     trigger: loginUser,
     isMutating: isLoginUserLoading,
     error: loginUserError,
     reset: resetLoginUserError,
-  } = useSWRMutation("/auth/login", loginUserFetcher, {
-    onSuccess: (data) => {
-      setAuth(data.token, data.role);
-    },
-  });
+  } = useSWRMutation("/auth/login", loginUserFetcher, {}
+  );
 
   const {
     trigger: loginAdmin,
@@ -68,9 +53,6 @@ export function useAuth() {
     error: loginAdminError,
     reset: resetLoginAdminError,
   } = useSWRMutation("/auth/admin/login", loginAdminFetcher, {
-    onSuccess: (data) => {
-      setAuth(data.token, data.role);
-    },
   });
 
   const {
@@ -85,13 +67,13 @@ export function useAuth() {
 
   const logout = () => {
     clearAuth();
-    apiClient.setSecurityData(null);
+    push("/")
   };
 
   const checkAuth = async () => {
     if (token) {
       try {
-        await validateToken(token);
+        await validateToken();
         return true;
       } catch (error) {
         clearAuth();
@@ -115,6 +97,6 @@ export function useAuth() {
     validateToken,
     resetLoginUserError,
     resetLoginAdminError,
-    checkAuth, // Добавляем функцию checkAuth
+    checkAuth,
   };
 }
