@@ -30,12 +30,12 @@ const docTemplate = `{
                 "summary": "Admin login",
                 "parameters": [
                     {
-                        "description": "Admin token",
+                        "description": "Admin credentials",
                         "name": "request",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/api.AdminLoginRequest"
+                            "$ref": "#/definitions/api.CredentialsRequest"
                         }
                     }
                 ],
@@ -1027,18 +1027,6 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "api.AdminLoginRequest": {
-            "type": "object",
-            "required": [
-                "token"
-            ],
-            "properties": {
-                "token": {
-                    "type": "string",
-                    "example": "admin-secret-token"
-                }
-            }
-        },
         "api.CannotRemoveDepartmentError": {
             "type": "object",
             "properties": {

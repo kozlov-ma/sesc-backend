@@ -18,10 +18,6 @@ type TokenResponse struct {
 	Token string `json:"token" example:"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." validate:"required"`
 }
 
-type AdminLoginRequest struct {
-	Token string `json:"token" example:"admin-secret-token" validate:"required"`
-}
-
 type IdentityResponse struct {
 	ID   uuid.UUID `json:"id"   example:"550e8400-e29b-41d4-a716-446655440000" validate:"required"`
 	Role string    `json:"role" example:"user"                                 validate:"required"`
@@ -77,7 +73,7 @@ func (a *API) RegisterUser(w http.ResponseWriter, r *http.Request) {
 	case errors.Is(err, iam.ErrUserNotFound):
 		writeError(a, w, ErrUserNotFound, http.StatusNotFound)
 		return
-	case errors.Is(err, iam.ErrUserAlreadyExists):
+	case errors.Is(err, iam.ErrCredentialsAlreadyExist):
 		writeError(a, w, ErrUserExists, http.StatusConflict)
 		return
 	case err != nil:
@@ -133,7 +129,7 @@ func (a *API) Login(w http.ResponseWriter, r *http.Request) {
 // @Tags authentication
 // @Accept json
 // @Produce json
-// @Param request body AdminLoginRequest true "Admin token"
+// @Param request body CredentialsRequest true "Admin credentials"
 // @Success 200 {object} TokenResponse
 // @Failure 400 {object} InvalidRequestError "Invalid request format"
 // @Failure 401 {object} CredentialsNotFoundError "Invalid admin token or not recognized"
@@ -141,17 +137,17 @@ func (a *API) Login(w http.ResponseWriter, r *http.Request) {
 // @Router /auth/admin/login [post]
 func (a *API) LoginAdmin(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	var req AdminLoginRequest
+	var req CredentialsRequest
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		writeError(a, w, ErrInvalidRequest, http.StatusBadRequest)
 		return
 	}
 
-	token, err := a.iam.LoginAdmin(ctx, req.Token)
+	token, err := a.iam.LoginAdmin(ctx, iam.Credentials(req))
 	switch {
 	case errors.Is(err, iam.ErrUserNotFound):
-		writeError(a, w, ErrCredentialsNotFound.WithDetails("Invalid admin token"), http.StatusUnauthorized)
+		writeError(a, w, ErrCredentialsNotFound.WithDetails("Invalid admin credentials"), http.StatusUnauthorized)
 		return
 	case err != nil:
 		writeError(a, w, ErrServerError.WithDetails("Failed to login as admin"), http.StatusInternalServerError)

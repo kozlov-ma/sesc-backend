@@ -17,14 +17,11 @@ import (
 )
 
 var (
-	ErrInvalidCredentials = errors.New("invalid credentials")
-	ErrUserAlreadyExists  = errors.New("user already exists")
-	ErrInvalidToken       = errors.New("invalid token")
-	ErrUserNotFound       = errors.New("user not found")
+	ErrInvalidCredentials      = errors.New("invalid credentials")
+	ErrCredentialsAlreadyExist = errors.New("user with similar credentials already exists")
+	ErrInvalidToken            = errors.New("invalid token")
+	ErrUserNotFound            = errors.New("user not found")
 )
-
-// JWT secret key (should be in config).
-var jwtKey = []byte("dinahu")
 
 type Credentials struct {
 	Username string
@@ -53,10 +50,11 @@ type Identity struct {
 
 // IAM handles authentication using Ent for persistence.
 type IAM struct {
-	log           *slog.Logger
-	client        *ent.Client
-	adminTokens   []string
-	tokenDuration time.Duration
+	log              *slog.Logger
+	client           *ent.Client
+	adminCredentials []Credentials
+	tokenDuration    time.Duration
+	jwtkey           []byte
 }
 
 // New creates a new IAM with the given Ent client.
@@ -64,13 +62,15 @@ func New(
 	log *slog.Logger,
 	client *ent.Client,
 	tokenDuration time.Duration,
-	adminTokens []string,
+	adminCredentials []Credentials,
+	jwtkey []byte,
 ) *IAM {
 	return &IAM{
-		log:           log,
-		client:        client,
-		adminTokens:   adminTokens,
-		tokenDuration: tokenDuration,
+		log:              log,
+		client:           client,
+		adminCredentials: adminCredentials,
+		tokenDuration:    tokenDuration,
+		jwtkey:           jwtkey,
 	}
 }
 
@@ -146,7 +146,7 @@ func (i *IAM) RegisterCredentials(
 	}
 	if exists {
 		logger.ErrorContext(ctx, "User already exists", "username", creds.Username)
-		return rollback(ErrUserAlreadyExists)
+		return rollback(ErrCredentialsAlreadyExist)
 	}
 
 	// Create the auth user entry
@@ -208,7 +208,7 @@ func (i *IAM) Login(ctx context.Context, creds Credentials) (string, error) {
 		"exp":     time.Now().Add(i.tokenDuration).Unix(),
 	})
 
-	signed, err := token.SignedString(jwtKey)
+	signed, err := token.SignedString(i.jwtkey)
 	if err != nil {
 		logger.ErrorContext(ctx, "Failed to sign token", "error", err)
 		return "", fmt.Errorf("couldn't sign token: %w", err)
@@ -220,11 +220,11 @@ func (i *IAM) Login(ctx context.Context, creds Credentials) (string, error) {
 
 // LoginAdmin checks token for being an admin token.
 // Returns ErrInvalidCredentials if the token is not valid.
-func (i *IAM) LoginAdmin(ctx context.Context, token string) (string, error) {
+func (i *IAM) LoginAdmin(ctx context.Context, creds Credentials) (string, error) {
 	logger := i.log.With("method", "LoginAdmin")
 	logger.DebugContext(ctx, "Attempting admin login")
 
-	if !slices.Contains(i.adminTokens, token) {
+	if !slices.Contains(i.adminCredentials, creds) {
 		logger.ErrorContext(ctx, "Invalid admin token provided")
 		return "", ErrUserNotFound
 	}
@@ -236,7 +236,7 @@ func (i *IAM) LoginAdmin(ctx context.Context, token string) (string, error) {
 	})
 
 	// Use SignedString with jwtKey instead of SigningString
-	signed, err := tok.SignedString(jwtKey)
+	signed, err := tok.SignedString(i.jwtkey)
 	if err != nil {
 		logger.ErrorContext(ctx, "Failed to sign admin token", "error", err)
 		return "", fmt.Errorf("couldn't sign token: %w", err)
@@ -256,7 +256,7 @@ func (i *IAM) ImWatermelon(ctx context.Context, tokenString string) (Identity, e
 			logger.DebugContext(ctx, "Invalid token signing method", "method", t.Method)
 			return nil, ErrInvalidToken
 		}
-		return jwtKey, nil
+		return i.jwtkey, nil
 	})
 
 	if err != nil || !parsed.Valid {

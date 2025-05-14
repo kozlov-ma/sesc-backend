@@ -23,7 +23,7 @@ type (
 		// Login verifies credentials and returns signed JWT token string
 		Login(ctx context.Context, creds iam.Credentials) (string, error)
 		// LoginAdmin checks token for being an admin token
-		LoginAdmin(ctx context.Context, token string) (string, error)
+		LoginAdmin(ctx context.Context, creds iam.Credentials) (string, error)
 		// ImWatermelon parses tokenString, returns Identity or error
 		ImWatermelon(ctx context.Context, tokenString string) (iam.Identity, error)
 		// DropCredentials deletes credentials by userID

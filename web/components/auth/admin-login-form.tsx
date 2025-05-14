@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { motion } from "framer-motion";
-import type { ApiAdminLoginRequest } from "@/lib/Api";
+import type { ApiCredentialsRequest } from "@/lib/Api";
 import { useAuth } from "@/hooks/use-auth";
 import { ErrorMessage } from "@/components/ui/error-message";
 import { Button } from "@/components/ui/button";
@@ -13,7 +13,8 @@ import { Loader2 } from "lucide-react";
 
 // Схема валидации для формы входа администратора
 const adminLoginSchema = z.object({
-  token: z.string().min(1, "Токен администратора обязателен"),
+  username: z.string().min(1, "Имя пользователя обязательно"),
+  password: z.string().min(1, "Пароль обязателен"),
 });
 
 type AdminLoginFormValues = z.infer<typeof adminLoginSchema>;
@@ -29,16 +30,18 @@ export function AdminLoginForm() {
   } = useForm<AdminLoginFormValues>({
     resolver: zodResolver(adminLoginSchema),
     defaultValues: {
-      token: "",
+      username: "",
+      password: "",
     },
   });
 
   const onSubmit = async (data: AdminLoginFormValues) => {
     resetLoginAdminError();
-    const adminToken: ApiAdminLoginRequest = {
-      token: data.token,
+    const adminCreds: ApiCredentialsRequest = {
+      username: data.username,
+      password: data.password,
     };
-    await loginAdmin(adminToken);
+    await loginAdmin(adminCreds);
   };
 
   return (
@@ -50,21 +53,34 @@ export function AdminLoginForm() {
     >
       {loginAdminError && (
         <ErrorMessage message={
-          loginAdminError.response?.data?.ruMessage || 
-          "Ошибка при входе в систему. Проверьте токен администратора."
+          loginAdminError.response?.data?.ruMessage ||
+          "Ошибка при входе в систему. Проверьте имя пользователя и пароль."
         } />
       )}
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="token">Токен администратора</Label>
+          <Label htmlFor="username">Имя пользователя</Label>
           <Input
-            id="token"
-            placeholder="Введите токен администратора"
-            {...register("token")}
+            id="username"
+            placeholder="Введите имя пользователя"
+            {...register("username")}
           />
-          {errors.token && (
-            <p className="text-sm text-red-500">{errors.token.message}</p>
+          {errors.username && (
+            <p className="text-sm text-red-500">{errors.username.message}</p>
+          )}
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="password">Пароль</Label>
+          <Input
+            id="password"
+            type="password"
+            placeholder="Введите пароль"
+            {...register("password")}
+          />
+          {errors.password && (
+            <p className="text-sm text-red-500">{errors.password.message}</p>
           )}
         </div>
 
@@ -75,7 +91,7 @@ export function AdminLoginForm() {
               Вход...
             </>
           ) : (
-            "Войти как администратор"
+            "Войти"
           )}
         </Button>
       </form>

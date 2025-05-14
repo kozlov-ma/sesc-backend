@@ -1,12 +1,4 @@
 definitions:
-  api.AdminLoginRequest:
-    properties:
-      token:
-        example: admin-secret-token
-        type: string
-    required:
-    - token
-    type: object
   api.CannotRemoveDepartmentError:
     properties:
       code:
@@ -484,12 +476,12 @@ paths:
       - application/json
       description: Verifies admin token and returns a JWT token with admin privileges
       parameters:
-      - description: Admin token
+      - description: Admin credentials
         in: body
         name: request
         required: true
         schema:
-          $ref: '#/definitions/api.AdminLoginRequest'
+          $ref: '#/definitions/api.CredentialsRequest'
       produces:
       - application/json
       responses:

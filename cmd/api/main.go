@@ -42,7 +42,12 @@ func main() {
 
 	db := entdb.New(log, client)
 
-	iam := iam.New(log, client, 7*24*time.Hour, []string{"dummy"})
+	iam := iam.New(log, client, 7*24*time.Hour, []iam.Credentials{
+		{
+			Username: "admin",
+			Password: "admin",
+		},
+	}, []byte("dinahu"))
 
 	sesc := sesc.New(log, db)
 	api := api.New(log, sesc, iam)

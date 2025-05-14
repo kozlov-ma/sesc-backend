@@ -24,7 +24,13 @@ func setupIAM(t *testing.T) *IAM {
 		slog.New(slog.DiscardHandler),
 		client,
 		time.Hour,
-		[]string{"admin-token"},
+		[]Credentials{
+			{
+				Username: "admin",
+				Password: "admin",
+			},
+		},
+		[]byte("testkey"),
 	)
 }
 
@@ -99,7 +105,7 @@ func TestRegisterCredentials(t *testing.T) {
 		anotherUserID := createTestUser(ctx, t, iam.client)
 
 		_, err = iam.RegisterCredentials(ctx, anotherUserID, creds)
-		require.ErrorIs(t, err, ErrUserAlreadyExists)
+		require.ErrorIs(t, err, ErrCredentialsAlreadyExist)
 	})
 }
 
@@ -156,7 +162,7 @@ func TestLoginAdmin(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		ctx, iam := setup(t)
 
-		token, err := iam.LoginAdmin(ctx, "admin-token")
+		token, err := iam.LoginAdmin(ctx, Credentials{"admin", "admin"})
 		require.NoError(t, err)
 		require.NotEmpty(t, token)
 
@@ -168,7 +174,7 @@ func TestLoginAdmin(t *testing.T) {
 	t.Run("invalid_token", func(t *testing.T) {
 		ctx, iam := setup(t)
 
-		_, err := iam.LoginAdmin(ctx, "invalid-token")
+		_, err := iam.LoginAdmin(ctx, Credentials{"hell", "nah"})
 		require.ErrorIs(t, err, ErrUserNotFound)
 	})
 }

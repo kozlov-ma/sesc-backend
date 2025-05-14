@@ -18,7 +18,7 @@ import (
 // @Success 200
 // @Failure 500 {object} ServerError "Internal server error"
 // @Router /dev/fakedata [post]
-func (a *API) FakeData(w http.ResponseWriter, r *http.Request) {
+func (a *API) FakeData(_ http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	var fakeDepartments = []sesc.Department{
@@ -79,7 +79,9 @@ func (a *API) FakeData(w http.ResponseWriter, r *http.Request) {
 
 	var teachers []sesc.UserUpdateOptions
 	for _, d := range depts {
-		for range gofakeit.Number(7, 27) {
+		const minTeachersPerDept = 7
+		const maxTeachersPerDept = 27
+		for range gofakeit.Number(minTeachersPerDept, maxTeachersPerDept) {
 			teachers = append(teachers, sesc.UserUpdateOptions{
 				FirstName:    gofakeit.FirstName(),
 				LastName:     gofakeit.LastName(),

@@ -10,11 +10,6 @@
  * ---------------------------------------------------------------
  */
 
-export interface ApiAdminLoginRequest {
-  /** @example "admin-secret-token" */
-  token: string;
-}
-
 export interface ApiCannotRemoveDepartmentError {
   /** @example "CANNOT_REMOVE_DEPARTMENT" */
   code?: string;
@@ -501,7 +496,7 @@ export class Api<
      * @request POST:/auth/admin/login
      */
     adminLoginCreate: (
-      request: ApiAdminLoginRequest,
+      request: ApiCredentialsRequest,
       params: RequestParams = {},
     ) =>
       this.request<
@@ -703,6 +698,24 @@ export class Api<
       >({
         path: `/departments/${id}`,
         method: "DELETE",
+        secure: true,
+        ...params,
+      }),
+  };
+  dev = {
+    /**
+     * @description Creates departments, users, credentials, ...
+     *
+     * @tags dev
+     * @name FakedataCreate
+     * @summary Create a lot of fake data (for testing and development purposes)
+     * @request POST:/dev/fakedata
+     * @secure
+     */
+    fakedataCreate: (params: RequestParams = {}) =>
+      this.request<void, ApiServerError>({
+        path: `/dev/fakedata`,
+        method: "POST",
         secure: true,
         ...params,
       }),
