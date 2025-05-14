@@ -149,6 +149,12 @@ func (i *IAM) RegisterCredentials(
 		return rollback(ErrCredentialsAlreadyExist)
 	}
 
+	_, err = tx.AuthUser.Delete().Where(authuser.UserID(userID)).Exec(ctx)
+	if err != nil {
+		logger.ErrorContext(ctx, "Couldn't delete old credentials", "username", creds.Username)
+		return rollback(fmt.Errorf("couldn't delete old credentials: %w", err))
+	}
+
 	// Create the auth user entry
 	authID := uuid.Must(uuid.NewV7())
 	_, err = tx.AuthUser.
