@@ -822,6 +822,26 @@ paths:
       summary: Update department details
       tags:
       - departments
+  /dev/fakedata:
+    post:
+      description: Creates departments, users, credentials, ...
+      parameters:
+      - description: Bearer JWT token
+        in: header
+        name: Authorization
+        type: string
+      responses:
+        "200":
+          description: OK
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/api.ServerError'
+      security:
+      - BearerAuth: []
+      summary: Create a lot of fake data (for testing and development purposes)
+      tags:
+      - dev
   /permissions:
     get:
       description: Retrieves all available system permissions

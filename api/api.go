@@ -134,6 +134,8 @@ func (a *API) RegisterRoutes(r chi.Router) {
 		r.Use(a.RequireAuthMiddleware)
 		r.Use(a.RoleMiddleware("admin"))
 
+		r.Post("/dev/fakedata", a.FakeData)
+
 		// Setting credentials for a user
 		r.Put("/users/{id}/credentials", a.RegisterUser)
 

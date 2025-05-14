@@ -548,6 +548,39 @@ const docTemplate = `{
                 }
             }
         },
+        "/dev/fakedata": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Creates departments, users, credentials, ...",
+                "tags": [
+                    "dev"
+                ],
+                "summary": "Create a lot of fake data (for testing and development purposes)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer JWT token",
+                        "name": "Authorization",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/api.ServerError"
+                        }
+                    }
+                }
+            }
+        },
         "/permissions": {
             "get": {
                 "description": "Retrieves all available system permissions",
