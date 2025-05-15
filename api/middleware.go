@@ -266,7 +266,7 @@ func (a *API) EventMiddleware(next http.Handler) http.Handler {
 		m := httpsnoop.CaptureMetrics(next, w, r.WithContext(ctx))
 
 		rec.Set(
-			"processing_time", time.Now(),
+			"processing_time", m.Duration,
 		)
 
 		httprec.Sub("response").Set(

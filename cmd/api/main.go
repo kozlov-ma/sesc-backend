@@ -10,7 +10,6 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/kozlov-ma/sesc-backend/api"
-	"github.com/kozlov-ma/sesc-backend/db/entdb"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/migrate"
 	"github.com/kozlov-ma/sesc-backend/iam"
@@ -41,8 +40,6 @@ func main() {
 		return
 	}
 
-	db := entdb.New(client)
-
 	iam := iam.New(client, 7*24*time.Hour, []iam.Credentials{
 		{
 			Username: "admin",
@@ -50,7 +47,7 @@ func main() {
 		},
 	}, []byte("dinahu"))
 
-	sesc := sesc.New(db)
+	sesc := sesc.New(client)
 	api := api.New(sesc, iam, slogsink.New(log))
 
 	router := chi.NewRouter()

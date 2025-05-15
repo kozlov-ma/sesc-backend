@@ -516,5 +516,3 @@ func convertUser(u *ent.User) (sesc.User, error) {
 		Role:       role,
 	}, nil
 }
-
-var _ sesc.DB = (*DB)(nil)
