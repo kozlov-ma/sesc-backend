@@ -14,6 +14,7 @@ import (
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/migrate"
 	"github.com/kozlov-ma/sesc-backend/iam"
+	"github.com/kozlov-ma/sesc-backend/internal/slogsink"
 	"github.com/kozlov-ma/sesc-backend/sesc"
 	_ "github.com/lib/pq"
 )
@@ -42,7 +43,7 @@ func main() {
 
 	db := entdb.New(log, client)
 
-	iam := iam.New(log, client, 7*24*time.Hour, []iam.Credentials{
+	iam := iam.New(client, 7*24*time.Hour, []iam.Credentials{
 		{
 			Username: "admin",
 			Password: "admin",
@@ -50,7 +51,7 @@ func main() {
 	}, []byte("dinahu"))
 
 	sesc := sesc.New(log, db)
-	api := api.New(log, sesc, iam)
+	api := api.New(sesc, iam, slogsink.New(log))
 
 	router := chi.NewRouter()
 

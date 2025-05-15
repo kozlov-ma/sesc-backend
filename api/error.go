@@ -1,5 +1,7 @@
 package api
 
+import "fmt"
+
 // Error represents a structured error returned by the API.
 type Error struct {
 	Code      string `json:"code"             example:"INVALID_REQUEST"             validate:"required"`
@@ -12,6 +14,10 @@ type Error struct {
 func (e Error) WithDetails(details string) Error {
 	e.Details = details
 	return e
+}
+
+func (e Error) Error() string {
+	return fmt.Sprintf("%s: %s (%s); %s", e.Code, e.Message, e.RuMessage, e.Details)
 }
 
 type SpecificError interface {

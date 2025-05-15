@@ -3,9 +3,12 @@ package api
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/gofrs/uuid/v5"
+	"github.com/kozlov-ma/sesc-backend/pkg/event"
+	"github.com/kozlov-ma/sesc-backend/pkg/event/events"
 	"github.com/kozlov-ma/sesc-backend/sesc"
 )
 
@@ -139,28 +142,27 @@ var (
 // @Router /departments [post]
 func (a *API) CreateDepartment(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
+	rec := event.Get(ctx)
+
 	var req CreateDepartmentRequest
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		writeError(a, w, ErrInvalidRequest, http.StatusBadRequest)
+		writeError(ctx, w, ErrInvalidRequest, http.StatusBadRequest)
 		return
 	}
 
 	dep, err := a.sesc.CreateDepartment(ctx, req.Name, req.Description)
 	switch {
 	case errors.Is(err, sesc.ErrInvalidDepartment):
-		writeError(a, w, ErrDepartmentExists, http.StatusConflict)
+		writeError(ctx, w, ErrDepartmentExists, http.StatusConflict)
 		return
 	case err != nil:
-		writeError(a, w, ServerError{
-			Code:      "SERVER_ERROR",
-			Message:   "Failed to create department",
-			RuMessage: "Ошибка создания кафедры",
-		}, http.StatusInternalServerError)
+		writeError(ctx, w, ErrServerError, http.StatusInternalServerError)
+		rec.Add(events.Error, fmt.Errorf("couldn't create department: %w", err))
 		return
 	}
 
-	a.writeJSON(w, CreateDepartmentResponse{
+	a.writeJSON(ctx, w, CreateDepartmentResponse{
 		ID:          dep.ID,
 		Name:        dep.Name,
 		Description: dep.Description,
@@ -177,14 +179,12 @@ func (a *API) CreateDepartment(w http.ResponseWriter, r *http.Request) {
 // @Router /departments [get]
 func (a *API) Departments(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
+	rec := event.Get(ctx)
 
 	deps, err := a.sesc.Departments(ctx)
 	if err != nil {
-		writeError(a, w, ServerError{
-			Code:      "SERVER_ERROR",
-			Message:   "Failed to fetch departments",
-			RuMessage: "Ошибка получения списка кафедр",
-		}, http.StatusInternalServerError)
+		rec.Add(events.Error, fmt.Errorf("couldn't get departments: %w", err))
+		writeError(ctx, w, ErrServerError, http.StatusInternalServerError)
 		return
 	}
 
@@ -199,7 +199,7 @@ func (a *API) Departments(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	a.writeJSON(w, response, http.StatusOK)
+	a.writeJSON(ctx, w, response, http.StatusOK)
 }
 
 // UpdateDepartment godoc
@@ -224,34 +224,32 @@ func (a *API) Departments(w http.ResponseWriter, r *http.Request) {
 func (a *API) UpdateDepartment(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	idStr := r.PathValue("id")
+	rec := event.Get(ctx)
 
 	var id uuid.UUID
 	if err := (&id).Parse(idStr); err != nil {
-		writeError(a, w, ErrInvalidDepartmentID, http.StatusBadRequest)
+		writeError(ctx, w, ErrInvalidDepartmentID, http.StatusBadRequest)
 		return
 	}
 
 	var req UpdateDepartmentRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		writeError(a, w, ErrInvalidRequest, http.StatusBadRequest)
+		writeError(ctx, w, ErrInvalidRequest, http.StatusBadRequest)
 		return
 	}
 
 	err := a.sesc.UpdateDepartment(ctx, id, req.Name, req.Description)
 	switch {
 	case errors.Is(err, sesc.ErrInvalidDepartment):
-		writeError(a, w, ErrDepartmentExists, http.StatusConflict)
+		writeError(ctx, w, ErrDepartmentExists, http.StatusConflict)
 		return
 	case err != nil:
-		writeError(a, w, ServerError{
-			Code:      "SERVER_ERROR",
-			Message:   "Failed to update department",
-			RuMessage: "Ошибка обновления кафедры",
-		}, http.StatusInternalServerError)
+		rec.Add(events.Error, err)
+		writeError(ctx, w, ErrServerError, http.StatusInternalServerError)
 		return
 	}
 
-	a.writeJSON(w, UpdateDepartmentResponse{
+	a.writeJSON(ctx, w, UpdateDepartmentResponse{
 		ID:          id,
 		Name:        req.Name,
 		Description: req.Description,
@@ -276,23 +274,25 @@ func (a *API) UpdateDepartment(w http.ResponseWriter, r *http.Request) {
 func (a *API) DeleteDepartment(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	idStr := r.PathValue("id")
+	rec := event.Get(ctx)
 
 	var id uuid.UUID
 	if err := (&id).Parse(idStr); err != nil {
-		writeError(a, w, ErrInvalidDepartmentID, http.StatusBadRequest)
+		writeError(ctx, w, ErrInvalidDepartmentID, http.StatusBadRequest)
 		return
 	}
 
 	err := a.sesc.DeleteDepartment(ctx, id)
 	switch {
 	case errors.Is(err, sesc.ErrInvalidDepartment):
-		writeError(a, w, ErrDepartmentNotFound, http.StatusNotFound)
+		writeError(ctx, w, ErrDepartmentNotFound, http.StatusNotFound)
 		return
 	case errors.Is(err, sesc.ErrCannotRemoveDepartment):
-		writeError(a, w, ErrCannotRemoveDepartment, http.StatusConflict)
+		writeError(ctx, w, ErrCannotRemoveDepartment, http.StatusConflict)
 		return
 	case err != nil:
-		writeError(a, w, ServerError{
+		rec.Add(events.Error, err)
+		writeError(ctx, w, ServerError{
 			Code:      "SERVER_ERROR",
 			Message:   "Failed to delete department",
 			RuMessage: "Ошибка удаления кафедры",

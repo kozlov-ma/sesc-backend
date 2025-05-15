@@ -34,7 +34,8 @@ type Permission struct {
 // @Success 200 {object} RolesResponse
 // @Failure 500 {object} Error "Internal server error"
 // @Router /roles [get]
-func (a *API) Roles(w http.ResponseWriter, _ *http.Request) {
+func (a *API) Roles(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
 	response := RolesResponse{
 		Roles: make([]Role, len(sesc.Roles)),
 	}
@@ -42,7 +43,7 @@ func (a *API) Roles(w http.ResponseWriter, _ *http.Request) {
 		response.Roles[i] = convertRole(role)
 	}
 
-	a.writeJSON(w, response, http.StatusOK)
+	a.writeJSON(ctx, w, response, http.StatusOK)
 }
 
 // Permissions godoc
@@ -52,7 +53,9 @@ func (a *API) Roles(w http.ResponseWriter, _ *http.Request) {
 // @Produce json
 // @Success 200 {object} PermissionsResponse
 // @Router /permissions [get]
-func (a *API) Permissions(w http.ResponseWriter, _ *http.Request) {
+func (a *API) Permissions(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
 	perms := sesc.Permissions
 	response := PermissionsResponse{
 		Permissions: make([]Permission, len(perms)),
@@ -66,7 +69,7 @@ func (a *API) Permissions(w http.ResponseWriter, _ *http.Request) {
 		}
 	}
 
-	a.writeJSON(w, response, http.StatusOK)
+	a.writeJSON(ctx, w, response, http.StatusOK)
 }
 
 func convertRole(r sesc.Role) Role {
