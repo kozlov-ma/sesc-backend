@@ -220,7 +220,7 @@ func (a *API) CurrentUserMiddleware(next http.Handler) http.Handler {
 				return
 			}
 
-			rec.Set("user", events.UserRecorder(user))
+			rec.Set("user", user.EventRecord())
 
 			ctx = context.WithValue(ctx, userContextKey, user)
 		}

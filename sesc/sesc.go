@@ -5,34 +5,33 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log/slog"
+	"time"
 
 	"github.com/gofrs/uuid/v5"
+	"github.com/kozlov-ma/sesc-backend/pkg/event"
+	"github.com/kozlov-ma/sesc-backend/pkg/event/events"
 )
 
 type UUID = uuid.UUID
 
 // SESC represents the organization's structure and provides methods to interact with it.
 type SESC struct {
-	log *slog.Logger
-	db  DB
+	db DB
 }
 
-func New(log *slog.Logger, db DB) *SESC {
+func New(db DB) *SESC {
 	return &SESC{
-		log: log,
-		db:  db,
+		db: db,
 	}
 }
 
 func (s *SESC) newUUID() (UUID, error) {
 	id, err := uuid.NewV7()
 	if err != nil {
-		s.log.Error("couldn't create uuid", slog.Any("error", err))
 		return id, fmt.Errorf("couldn't create UUID: %w", err)
 	}
 
-	return id, err
+	return id, nil
 }
 
 // UserUpdateOptions represents the options for updating a user.
@@ -63,6 +62,19 @@ func (u UserUpdateOptions) Validate() error {
 // Returns an ErrInvalidRole if the new role id is invalid.
 // Returns an ErrInvalidName if the first or last name is missing.
 func (s *SESC) UpdateUser(ctx context.Context, id UUID, upd UserUpdateOptions) (User, error) {
+	rec := event.Get(ctx).Sub("sesc/update_user")
+
+	rec.Sub("params").Set(
+		"id", id,
+		"first_name", upd.FirstName,
+		"last_name", upd.LastName,
+		"middle_name", upd.MiddleName,
+		"picture_url", upd.PictureURL,
+		"suspended", upd.Suspended,
+		"department_id", upd.DepartmentID,
+		"new_role_id", upd.NewRoleID,
+	)
+
 	if upd.NewRoleID != 0 {
 		_, ok := RoleByID(upd.NewRoleID)
 		if !ok {
@@ -74,16 +86,22 @@ func (s *SESC) UpdateUser(ctx context.Context, id UUID, upd UserUpdateOptions) (
 		return User{}, ErrInvalidName
 	}
 
+	statrec := event.Get(ctx).Sub("stats")
+	dbStart := time.Now()
 	updated, err := s.db.UpdateUser(ctx, id, upd)
+	statrec.Add(events.PostgresTime, time.Since(dbStart))
+
 	if errors.Is(err, ErrUserNotFound) {
-		s.log.DebugContext(ctx, "tried to update user that does not exist", slog.Any("id", id))
+		rec.Set("user_exists", false)
 		return User{}, ErrUserNotFound
 	} else if err != nil {
-		s.log.ErrorContext(ctx, "failed to update user because of a db error", slog.Any("id", id), slog.Any("updates", upd), slog.Any("error", err))
-		return User{}, fmt.Errorf("failed to update user: %w", err)
+		err := fmt.Errorf("failed to update user: %w", err)
+		rec.Add(events.Error, err)
+		return User{}, err
 	}
 
-	s.log.InfoContext(ctx, "updated user", slog.Any("id", id), slog.Any("updates", upd))
+	rec.Set("success", true)
+	rec.Set("user", updated.EventRecord())
 	return updated, nil
 }
 
@@ -91,18 +109,37 @@ func (s *SESC) UpdateUser(ctx context.Context, id UUID, upd UserUpdateOptions) (
 //
 // Returns an ErrInvalidName if the first or last name is missing.
 func (s *SESC) CreateUser(ctx context.Context, opt UserUpdateOptions) (User, error) {
+	rec := event.Get(ctx).Sub("sesc/create_user")
+
+	rec.Sub("params").Set(
+		"first_name", opt.FirstName,
+		"last_name", opt.LastName,
+		"middle_name", opt.MiddleName,
+		"picture_url", opt.PictureURL,
+		"suspended", opt.Suspended,
+		"department_id", opt.DepartmentID,
+		"new_role_id", opt.NewRoleID,
+	)
+
 	if err := opt.Validate(); err != nil {
 		return User{}, err
 	}
+
+	statrec := event.Get(ctx).Sub("stats")
+	dbStart := time.Now()
 	u, err := s.db.SaveUser(ctx, opt)
+	statrec.Add(events.PostgresTime, time.Since(dbStart))
+
 	switch {
 	case errors.Is(err, ErrInvalidDepartment):
 		return User{}, ErrInvalidDepartment
 	case err != nil:
-		s.log.ErrorContext(ctx, "got a db error when saving user", slog.Any("error", err))
-		return User{}, fmt.Errorf("couldn't save user: %w", err)
+		err := fmt.Errorf("couldn't save user: %w", err)
+		rec.Add(events.Error, err)
+		return User{}, err
 	}
 
-	s.log.InfoContext(ctx, "created user", slog.Any("user", u))
+	rec.Set("success", true)
+	rec.Set("user", u.EventRecord())
 	return u, nil
 }

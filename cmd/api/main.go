@@ -41,7 +41,7 @@ func main() {
 		return
 	}
 
-	db := entdb.New(log, client)
+	db := entdb.New(client)
 
 	iam := iam.New(client, 7*24*time.Hour, []iam.Credentials{
 		{
@@ -50,7 +50,7 @@ func main() {
 		},
 	}, []byte("dinahu"))
 
-	sesc := sesc.New(log, db)
+	sesc := sesc.New(db)
 	api := api.New(sesc, iam, slogsink.New(log))
 
 	router := chi.NewRouter()
