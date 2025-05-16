@@ -42,6 +42,10 @@ type User struct {
 	EmploymentRate float64 `json:"employment_rate,omitempty"`
 	// AcademicDegree holds the value of the "academic_degree" field.
 	AcademicDegree int `json:"academic_degree,omitempty"`
+	// PersonnelCategory holds the value of the "personnel_category" field.
+	PersonnelCategory int `json:"personnel_category,omitempty"`
+	// EmploymentType holds the value of the "employment_type" field.
+	EmploymentType int `json:"employment_type,omitempty"`
 	// AcademicTitle holds the value of the "academic_title" field.
 	AcademicTitle string `json:"academic_title,omitempty"`
 	// Honors holds the value of the "honors" field.
@@ -106,7 +110,7 @@ func (*User) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullBool)
 		case user.FieldEmploymentRate:
 			values[i] = new(sql.NullFloat64)
-		case user.FieldRoleID, user.FieldAcademicDegree:
+		case user.FieldRoleID, user.FieldAcademicDegree, user.FieldPersonnelCategory, user.FieldEmploymentType:
 			values[i] = new(sql.NullInt64)
 		case user.FieldFirstName, user.FieldLastName, user.FieldMiddleName, user.FieldPictureURL, user.FieldSubdivision, user.FieldJobTitle, user.FieldAcademicTitle, user.FieldHonors, user.FieldCategory:
 			values[i] = new(sql.NullString)
@@ -201,6 +205,18 @@ func (u *User) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field academic_degree", values[i])
 			} else if value.Valid {
 				u.AcademicDegree = int(value.Int64)
+			}
+		case user.FieldPersonnelCategory:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field personnel_category", values[i])
+			} else if value.Valid {
+				u.PersonnelCategory = int(value.Int64)
+			}
+		case user.FieldEmploymentType:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field employment_type", values[i])
+			} else if value.Valid {
+				u.EmploymentType = int(value.Int64)
 			}
 		case user.FieldAcademicTitle:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -324,6 +340,12 @@ func (u *User) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("academic_degree=")
 	builder.WriteString(fmt.Sprintf("%v", u.AcademicDegree))
+	builder.WriteString(", ")
+	builder.WriteString("personnel_category=")
+	builder.WriteString(fmt.Sprintf("%v", u.PersonnelCategory))
+	builder.WriteString(", ")
+	builder.WriteString("employment_type=")
+	builder.WriteString(fmt.Sprintf("%v", u.EmploymentType))
 	builder.WriteString(", ")
 	builder.WriteString("academic_title=")
 	builder.WriteString(u.AcademicTitle)

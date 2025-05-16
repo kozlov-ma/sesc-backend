@@ -55,6 +55,8 @@ var (
 		{Name: "job_title", Type: field.TypeString},
 		{Name: "employment_rate", Type: field.TypeFloat64, Default: 1},
 		{Name: "academic_degree", Type: field.TypeInt, Default: 0},
+		{Name: "personnel_category", Type: field.TypeInt},
+		{Name: "employment_type", Type: field.TypeInt},
 		{Name: "academic_title", Type: field.TypeString, Default: ""},
 		{Name: "honors", Type: field.TypeString, Default: ""},
 		{Name: "category", Type: field.TypeString, Default: ""},
@@ -72,7 +74,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "users_departments_users",
-				Columns:    []*schema.Column{UsersColumns[18]},
+				Columns:    []*schema.Column{UsersColumns[20]},
 				RefColumns: []*schema.Column{DepartmentsColumns[0]},
 				OnDelete:   schema.Restrict,
 			},

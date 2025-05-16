@@ -137,6 +137,18 @@ func (uc *UserCreate) SetNillableAcademicDegree(i *int) *UserCreate {
 	return uc
 }
 
+// SetPersonnelCategory sets the "personnel_category" field.
+func (uc *UserCreate) SetPersonnelCategory(i int) *UserCreate {
+	uc.mutation.SetPersonnelCategory(i)
+	return uc
+}
+
+// SetEmploymentType sets the "employment_type" field.
+func (uc *UserCreate) SetEmploymentType(i int) *UserCreate {
+	uc.mutation.SetEmploymentType(i)
+	return uc
+}
+
 // SetAcademicTitle sets the "academic_title" field.
 func (uc *UserCreate) SetAcademicTitle(s string) *UserCreate {
 	uc.mutation.SetAcademicTitle(s)
@@ -383,6 +395,12 @@ func (uc *UserCreate) check() error {
 	if _, ok := uc.mutation.AcademicDegree(); !ok {
 		return &ValidationError{Name: "academic_degree", err: errors.New(`ent: missing required field "User.academic_degree"`)}
 	}
+	if _, ok := uc.mutation.PersonnelCategory(); !ok {
+		return &ValidationError{Name: "personnel_category", err: errors.New(`ent: missing required field "User.personnel_category"`)}
+	}
+	if _, ok := uc.mutation.EmploymentType(); !ok {
+		return &ValidationError{Name: "employment_type", err: errors.New(`ent: missing required field "User.employment_type"`)}
+	}
 	if _, ok := uc.mutation.AcademicTitle(); !ok {
 		return &ValidationError{Name: "academic_title", err: errors.New(`ent: missing required field "User.academic_title"`)}
 	}
@@ -475,6 +493,14 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 	if value, ok := uc.mutation.AcademicDegree(); ok {
 		_spec.SetField(user.FieldAcademicDegree, field.TypeInt, value)
 		_node.AcademicDegree = value
+	}
+	if value, ok := uc.mutation.PersonnelCategory(); ok {
+		_spec.SetField(user.FieldPersonnelCategory, field.TypeInt, value)
+		_node.PersonnelCategory = value
+	}
+	if value, ok := uc.mutation.EmploymentType(); ok {
+		_spec.SetField(user.FieldEmploymentType, field.TypeInt, value)
+		_node.EmploymentType = value
 	}
 	if value, ok := uc.mutation.AcademicTitle(); ok {
 		_spec.SetField(user.FieldAcademicTitle, field.TypeString, value)

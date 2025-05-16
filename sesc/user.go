@@ -62,9 +62,12 @@ func (u User) EventRecord() *event.Record {
 		"job_title", u.JobTitle,
 		"employment_rate", u.EmploymentRate,
 		"academic_degree", u.AcademicDegree,
+		"employment_type", u.EmploymentType,
+		"personnel_category", u.PersonnelCategory,
 		"academic_title", u.AcademicTitle,
 		"honors", u.Honors,
 		"category", u.Category,
+
 		"date_of_employment", u.DateOfEmployment,
 		"unemployment_date", u.UnemploymentDate,
 		"created_at", u.CreateDate,

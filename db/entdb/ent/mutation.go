@@ -1078,37 +1078,41 @@ func (m *DepartmentMutation) ResetEdge(name string) error {
 // UserMutation represents an operation that mutates the User nodes in the graph.
 type UserMutation struct {
 	config
-	op                 Op
-	typ                string
-	id                 *uuid.UUID
-	first_name         *string
-	last_name          *string
-	middle_name        *string
-	picture_url        *string
-	suspended          *bool
-	role_id            *int32
-	addrole_id         *int32
-	subdivision        *string
-	job_title          *string
-	employment_rate    *float64
-	addemployment_rate *float64
-	academic_degree    *int
-	addacademic_degree *int
-	academic_title     *string
-	honors             *string
-	category           *string
-	date_of_employment *time.Time
-	unemployment_date  *time.Time
-	created_at         *time.Time
-	updated_at         *time.Time
-	clearedFields      map[string]struct{}
-	department         *uuid.UUID
-	cleareddepartment  bool
-	auth               *int
-	clearedauth        bool
-	done               bool
-	oldValue           func(context.Context) (*User, error)
-	predicates         []predicate.User
+	op                    Op
+	typ                   string
+	id                    *uuid.UUID
+	first_name            *string
+	last_name             *string
+	middle_name           *string
+	picture_url           *string
+	suspended             *bool
+	role_id               *int32
+	addrole_id            *int32
+	subdivision           *string
+	job_title             *string
+	employment_rate       *float64
+	addemployment_rate    *float64
+	academic_degree       *int
+	addacademic_degree    *int
+	personnel_category    *int
+	addpersonnel_category *int
+	employment_type       *int
+	addemployment_type    *int
+	academic_title        *string
+	honors                *string
+	category              *string
+	date_of_employment    *time.Time
+	unemployment_date     *time.Time
+	created_at            *time.Time
+	updated_at            *time.Time
+	clearedFields         map[string]struct{}
+	department            *uuid.UUID
+	cleareddepartment     bool
+	auth                  *int
+	clearedauth           bool
+	done                  bool
+	oldValue              func(context.Context) (*User, error)
+	predicates            []predicate.User
 }
 
 var _ ent.Mutation = (*UserMutation)(nil)
@@ -1697,6 +1701,118 @@ func (m *UserMutation) ResetAcademicDegree() {
 	m.addacademic_degree = nil
 }
 
+// SetPersonnelCategory sets the "personnel_category" field.
+func (m *UserMutation) SetPersonnelCategory(i int) {
+	m.personnel_category = &i
+	m.addpersonnel_category = nil
+}
+
+// PersonnelCategory returns the value of the "personnel_category" field in the mutation.
+func (m *UserMutation) PersonnelCategory() (r int, exists bool) {
+	v := m.personnel_category
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPersonnelCategory returns the old "personnel_category" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldPersonnelCategory(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPersonnelCategory is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPersonnelCategory requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPersonnelCategory: %w", err)
+	}
+	return oldValue.PersonnelCategory, nil
+}
+
+// AddPersonnelCategory adds i to the "personnel_category" field.
+func (m *UserMutation) AddPersonnelCategory(i int) {
+	if m.addpersonnel_category != nil {
+		*m.addpersonnel_category += i
+	} else {
+		m.addpersonnel_category = &i
+	}
+}
+
+// AddedPersonnelCategory returns the value that was added to the "personnel_category" field in this mutation.
+func (m *UserMutation) AddedPersonnelCategory() (r int, exists bool) {
+	v := m.addpersonnel_category
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetPersonnelCategory resets all changes to the "personnel_category" field.
+func (m *UserMutation) ResetPersonnelCategory() {
+	m.personnel_category = nil
+	m.addpersonnel_category = nil
+}
+
+// SetEmploymentType sets the "employment_type" field.
+func (m *UserMutation) SetEmploymentType(i int) {
+	m.employment_type = &i
+	m.addemployment_type = nil
+}
+
+// EmploymentType returns the value of the "employment_type" field in the mutation.
+func (m *UserMutation) EmploymentType() (r int, exists bool) {
+	v := m.employment_type
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEmploymentType returns the old "employment_type" field's value of the User entity.
+// If the User object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UserMutation) OldEmploymentType(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEmploymentType is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEmploymentType requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEmploymentType: %w", err)
+	}
+	return oldValue.EmploymentType, nil
+}
+
+// AddEmploymentType adds i to the "employment_type" field.
+func (m *UserMutation) AddEmploymentType(i int) {
+	if m.addemployment_type != nil {
+		*m.addemployment_type += i
+	} else {
+		m.addemployment_type = &i
+	}
+}
+
+// AddedEmploymentType returns the value that was added to the "employment_type" field in this mutation.
+func (m *UserMutation) AddedEmploymentType() (r int, exists bool) {
+	v := m.addemployment_type
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetEmploymentType resets all changes to the "employment_type" field.
+func (m *UserMutation) ResetEmploymentType() {
+	m.employment_type = nil
+	m.addemployment_type = nil
+}
+
 // SetAcademicTitle sets the "academic_title" field.
 func (m *UserMutation) SetAcademicTitle(s string) {
 	m.academic_title = &s
@@ -2062,7 +2178,7 @@ func (m *UserMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *UserMutation) Fields() []string {
-	fields := make([]string, 0, 18)
+	fields := make([]string, 0, 20)
 	if m.first_name != nil {
 		fields = append(fields, user.FieldFirstName)
 	}
@@ -2095,6 +2211,12 @@ func (m *UserMutation) Fields() []string {
 	}
 	if m.academic_degree != nil {
 		fields = append(fields, user.FieldAcademicDegree)
+	}
+	if m.personnel_category != nil {
+		fields = append(fields, user.FieldPersonnelCategory)
+	}
+	if m.employment_type != nil {
+		fields = append(fields, user.FieldEmploymentType)
 	}
 	if m.academic_title != nil {
 		fields = append(fields, user.FieldAcademicTitle)
@@ -2147,6 +2269,10 @@ func (m *UserMutation) Field(name string) (ent.Value, bool) {
 		return m.EmploymentRate()
 	case user.FieldAcademicDegree:
 		return m.AcademicDegree()
+	case user.FieldPersonnelCategory:
+		return m.PersonnelCategory()
+	case user.FieldEmploymentType:
+		return m.EmploymentType()
 	case user.FieldAcademicTitle:
 		return m.AcademicTitle()
 	case user.FieldHonors:
@@ -2192,6 +2318,10 @@ func (m *UserMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldEmploymentRate(ctx)
 	case user.FieldAcademicDegree:
 		return m.OldAcademicDegree(ctx)
+	case user.FieldPersonnelCategory:
+		return m.OldPersonnelCategory(ctx)
+	case user.FieldEmploymentType:
+		return m.OldEmploymentType(ctx)
 	case user.FieldAcademicTitle:
 		return m.OldAcademicTitle(ctx)
 	case user.FieldHonors:
@@ -2292,6 +2422,20 @@ func (m *UserMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetAcademicDegree(v)
 		return nil
+	case user.FieldPersonnelCategory:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPersonnelCategory(v)
+		return nil
+	case user.FieldEmploymentType:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEmploymentType(v)
+		return nil
 	case user.FieldAcademicTitle:
 		v, ok := value.(string)
 		if !ok {
@@ -2358,6 +2502,12 @@ func (m *UserMutation) AddedFields() []string {
 	if m.addacademic_degree != nil {
 		fields = append(fields, user.FieldAcademicDegree)
 	}
+	if m.addpersonnel_category != nil {
+		fields = append(fields, user.FieldPersonnelCategory)
+	}
+	if m.addemployment_type != nil {
+		fields = append(fields, user.FieldEmploymentType)
+	}
 	return fields
 }
 
@@ -2372,6 +2522,10 @@ func (m *UserMutation) AddedField(name string) (ent.Value, bool) {
 		return m.AddedEmploymentRate()
 	case user.FieldAcademicDegree:
 		return m.AddedAcademicDegree()
+	case user.FieldPersonnelCategory:
+		return m.AddedPersonnelCategory()
+	case user.FieldEmploymentType:
+		return m.AddedEmploymentType()
 	}
 	return nil, false
 }
@@ -2401,6 +2555,20 @@ func (m *UserMutation) AddField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.AddAcademicDegree(v)
+		return nil
+	case user.FieldPersonnelCategory:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddPersonnelCategory(v)
+		return nil
+	case user.FieldEmploymentType:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddEmploymentType(v)
 		return nil
 	}
 	return fmt.Errorf("unknown User numeric field %s", name)
@@ -2482,6 +2650,12 @@ func (m *UserMutation) ResetField(name string) error {
 		return nil
 	case user.FieldAcademicDegree:
 		m.ResetAcademicDegree()
+		return nil
+	case user.FieldPersonnelCategory:
+		m.ResetPersonnelCategory()
+		return nil
+	case user.FieldEmploymentType:
+		m.ResetEmploymentType()
 		return nil
 	case user.FieldAcademicTitle:
 		m.ResetAcademicTitle()

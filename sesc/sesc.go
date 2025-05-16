@@ -47,14 +47,27 @@ func convertUser(u *ent.User) (User, error) {
 	}
 
 	return User{
-		ID:         u.ID,
-		FirstName:  u.FirstName,
-		LastName:   u.LastName,
-		MiddleName: u.MiddleName,
-		PictureURL: u.PictureURL,
-		Suspended:  u.Suspended,
-		Department: dept,
-		Role:       role,
+		ID:                u.ID,
+		FirstName:         u.FirstName,
+		LastName:          u.LastName,
+		MiddleName:        u.MiddleName,
+		PictureURL:        u.PictureURL,
+		Suspended:         u.Suspended,
+		Department:        dept,
+		Role:              role,
+		Subdivision:       u.Subdivision,
+		JobTitle:          u.JobTitle,
+		EmploymentRate:    u.EmploymentRate,
+		PersonnelCategory: PersonnelCategory(u.PersonnelCategory),
+		EmploymentType:    EmploymentType(u.EmploymentRate),
+		AcademicDegree:    AcademicDegree(u.AcademicDegree),
+		AcademicTitle:     u.AcademicTitle,
+		Honors:            u.Honors,
+		Category:          u.Category,
+		DateOfEmployment:  u.DateOfEmployment,
+		UnemploymentDate:  u.UnemploymentDate,
+		CreateDate:        u.CreatedAt,
+		UpdateDate:        u.UpdatedAt,
 	}, nil
 }
 

@@ -218,6 +218,48 @@ func (uu *UserUpdate) AddAcademicDegree(i int) *UserUpdate {
 	return uu
 }
 
+// SetPersonnelCategory sets the "personnel_category" field.
+func (uu *UserUpdate) SetPersonnelCategory(i int) *UserUpdate {
+	uu.mutation.ResetPersonnelCategory()
+	uu.mutation.SetPersonnelCategory(i)
+	return uu
+}
+
+// SetNillablePersonnelCategory sets the "personnel_category" field if the given value is not nil.
+func (uu *UserUpdate) SetNillablePersonnelCategory(i *int) *UserUpdate {
+	if i != nil {
+		uu.SetPersonnelCategory(*i)
+	}
+	return uu
+}
+
+// AddPersonnelCategory adds i to the "personnel_category" field.
+func (uu *UserUpdate) AddPersonnelCategory(i int) *UserUpdate {
+	uu.mutation.AddPersonnelCategory(i)
+	return uu
+}
+
+// SetEmploymentType sets the "employment_type" field.
+func (uu *UserUpdate) SetEmploymentType(i int) *UserUpdate {
+	uu.mutation.ResetEmploymentType()
+	uu.mutation.SetEmploymentType(i)
+	return uu
+}
+
+// SetNillableEmploymentType sets the "employment_type" field if the given value is not nil.
+func (uu *UserUpdate) SetNillableEmploymentType(i *int) *UserUpdate {
+	if i != nil {
+		uu.SetEmploymentType(*i)
+	}
+	return uu
+}
+
+// AddEmploymentType adds i to the "employment_type" field.
+func (uu *UserUpdate) AddEmploymentType(i int) *UserUpdate {
+	uu.mutation.AddEmploymentType(i)
+	return uu
+}
+
 // SetAcademicTitle sets the "academic_title" field.
 func (uu *UserUpdate) SetAcademicTitle(s string) *UserUpdate {
 	uu.mutation.SetAcademicTitle(s)
@@ -440,6 +482,18 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := uu.mutation.AddedAcademicDegree(); ok {
 		_spec.AddField(user.FieldAcademicDegree, field.TypeInt, value)
+	}
+	if value, ok := uu.mutation.PersonnelCategory(); ok {
+		_spec.SetField(user.FieldPersonnelCategory, field.TypeInt, value)
+	}
+	if value, ok := uu.mutation.AddedPersonnelCategory(); ok {
+		_spec.AddField(user.FieldPersonnelCategory, field.TypeInt, value)
+	}
+	if value, ok := uu.mutation.EmploymentType(); ok {
+		_spec.SetField(user.FieldEmploymentType, field.TypeInt, value)
+	}
+	if value, ok := uu.mutation.AddedEmploymentType(); ok {
+		_spec.AddField(user.FieldEmploymentType, field.TypeInt, value)
 	}
 	if value, ok := uu.mutation.AcademicTitle(); ok {
 		_spec.SetField(user.FieldAcademicTitle, field.TypeString, value)
@@ -730,6 +784,48 @@ func (uuo *UserUpdateOne) AddAcademicDegree(i int) *UserUpdateOne {
 	return uuo
 }
 
+// SetPersonnelCategory sets the "personnel_category" field.
+func (uuo *UserUpdateOne) SetPersonnelCategory(i int) *UserUpdateOne {
+	uuo.mutation.ResetPersonnelCategory()
+	uuo.mutation.SetPersonnelCategory(i)
+	return uuo
+}
+
+// SetNillablePersonnelCategory sets the "personnel_category" field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillablePersonnelCategory(i *int) *UserUpdateOne {
+	if i != nil {
+		uuo.SetPersonnelCategory(*i)
+	}
+	return uuo
+}
+
+// AddPersonnelCategory adds i to the "personnel_category" field.
+func (uuo *UserUpdateOne) AddPersonnelCategory(i int) *UserUpdateOne {
+	uuo.mutation.AddPersonnelCategory(i)
+	return uuo
+}
+
+// SetEmploymentType sets the "employment_type" field.
+func (uuo *UserUpdateOne) SetEmploymentType(i int) *UserUpdateOne {
+	uuo.mutation.ResetEmploymentType()
+	uuo.mutation.SetEmploymentType(i)
+	return uuo
+}
+
+// SetNillableEmploymentType sets the "employment_type" field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableEmploymentType(i *int) *UserUpdateOne {
+	if i != nil {
+		uuo.SetEmploymentType(*i)
+	}
+	return uuo
+}
+
+// AddEmploymentType adds i to the "employment_type" field.
+func (uuo *UserUpdateOne) AddEmploymentType(i int) *UserUpdateOne {
+	uuo.mutation.AddEmploymentType(i)
+	return uuo
+}
+
 // SetAcademicTitle sets the "academic_title" field.
 func (uuo *UserUpdateOne) SetAcademicTitle(s string) *UserUpdateOne {
 	uuo.mutation.SetAcademicTitle(s)
@@ -982,6 +1078,18 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 	}
 	if value, ok := uuo.mutation.AddedAcademicDegree(); ok {
 		_spec.AddField(user.FieldAcademicDegree, field.TypeInt, value)
+	}
+	if value, ok := uuo.mutation.PersonnelCategory(); ok {
+		_spec.SetField(user.FieldPersonnelCategory, field.TypeInt, value)
+	}
+	if value, ok := uuo.mutation.AddedPersonnelCategory(); ok {
+		_spec.AddField(user.FieldPersonnelCategory, field.TypeInt, value)
+	}
+	if value, ok := uuo.mutation.EmploymentType(); ok {
+		_spec.SetField(user.FieldEmploymentType, field.TypeInt, value)
+	}
+	if value, ok := uuo.mutation.AddedEmploymentType(); ok {
+		_spec.AddField(user.FieldEmploymentType, field.TypeInt, value)
 	}
 	if value, ok := uuo.mutation.AcademicTitle(); ok {
 		_spec.SetField(user.FieldAcademicTitle, field.TypeString, value)

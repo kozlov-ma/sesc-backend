@@ -38,6 +38,10 @@ const (
 	FieldEmploymentRate = "employment_rate"
 	// FieldAcademicDegree holds the string denoting the academic_degree field in the database.
 	FieldAcademicDegree = "academic_degree"
+	// FieldPersonnelCategory holds the string denoting the personnel_category field in the database.
+	FieldPersonnelCategory = "personnel_category"
+	// FieldEmploymentType holds the string denoting the employment_type field in the database.
+	FieldEmploymentType = "employment_type"
 	// FieldAcademicTitle holds the string denoting the academic_title field in the database.
 	FieldAcademicTitle = "academic_title"
 	// FieldHonors holds the string denoting the honors field in the database.
@@ -88,6 +92,8 @@ var Columns = []string{
 	FieldJobTitle,
 	FieldEmploymentRate,
 	FieldAcademicDegree,
+	FieldPersonnelCategory,
+	FieldEmploymentType,
 	FieldAcademicTitle,
 	FieldHonors,
 	FieldCategory,
@@ -197,6 +203,16 @@ func ByEmploymentRate(opts ...sql.OrderTermOption) OrderOption {
 // ByAcademicDegree orders the results by the academic_degree field.
 func ByAcademicDegree(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldAcademicDegree, opts...).ToFunc()
+}
+
+// ByPersonnelCategory orders the results by the personnel_category field.
+func ByPersonnelCategory(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldPersonnelCategory, opts...).ToFunc()
+}
+
+// ByEmploymentType orders the results by the employment_type field.
+func ByEmploymentType(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldEmploymentType, opts...).ToFunc()
 }
 
 // ByAcademicTitle orders the results by the academic_title field.

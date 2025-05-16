@@ -53,23 +53,23 @@ func init() {
 	// user.DefaultAcademicDegree holds the default value on creation for the academic_degree field.
 	user.DefaultAcademicDegree = userDescAcademicDegree.Default.(int)
 	// userDescAcademicTitle is the schema descriptor for academic_title field.
-	userDescAcademicTitle := userFields[12].Descriptor()
+	userDescAcademicTitle := userFields[14].Descriptor()
 	// user.DefaultAcademicTitle holds the default value on creation for the academic_title field.
 	user.DefaultAcademicTitle = userDescAcademicTitle.Default.(string)
 	// userDescHonors is the schema descriptor for honors field.
-	userDescHonors := userFields[13].Descriptor()
+	userDescHonors := userFields[15].Descriptor()
 	// user.DefaultHonors holds the default value on creation for the honors field.
 	user.DefaultHonors = userDescHonors.Default.(string)
 	// userDescCategory is the schema descriptor for category field.
-	userDescCategory := userFields[14].Descriptor()
+	userDescCategory := userFields[16].Descriptor()
 	// user.DefaultCategory holds the default value on creation for the category field.
 	user.DefaultCategory = userDescCategory.Default.(string)
 	// userDescCreatedAt is the schema descriptor for created_at field.
-	userDescCreatedAt := userFields[17].Descriptor()
+	userDescCreatedAt := userFields[19].Descriptor()
 	// user.DefaultCreatedAt holds the default value on creation for the created_at field.
 	user.DefaultCreatedAt = userDescCreatedAt.Default.(func() time.Time)
 	// userDescUpdatedAt is the schema descriptor for updated_at field.
-	userDescUpdatedAt := userFields[18].Descriptor()
+	userDescUpdatedAt := userFields[20].Descriptor()
 	// user.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	user.DefaultUpdatedAt = userDescUpdatedAt.Default.(func() time.Time)
 	// userDescID is the schema descriptor for id field.

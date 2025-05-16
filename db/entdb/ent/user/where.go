@@ -111,6 +111,16 @@ func AcademicDegree(v int) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldAcademicDegree, v))
 }
 
+// PersonnelCategory applies equality check predicate on the "personnel_category" field. It's identical to PersonnelCategoryEQ.
+func PersonnelCategory(v int) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldPersonnelCategory, v))
+}
+
+// EmploymentType applies equality check predicate on the "employment_type" field. It's identical to EmploymentTypeEQ.
+func EmploymentType(v int) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldEmploymentType, v))
+}
+
 // AcademicTitle applies equality check predicate on the "academic_title" field. It's identical to AcademicTitleEQ.
 func AcademicTitle(v string) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldAcademicTitle, v))
@@ -704,6 +714,86 @@ func AcademicDegreeLT(v int) predicate.User {
 // AcademicDegreeLTE applies the LTE predicate on the "academic_degree" field.
 func AcademicDegreeLTE(v int) predicate.User {
 	return predicate.User(sql.FieldLTE(FieldAcademicDegree, v))
+}
+
+// PersonnelCategoryEQ applies the EQ predicate on the "personnel_category" field.
+func PersonnelCategoryEQ(v int) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldPersonnelCategory, v))
+}
+
+// PersonnelCategoryNEQ applies the NEQ predicate on the "personnel_category" field.
+func PersonnelCategoryNEQ(v int) predicate.User {
+	return predicate.User(sql.FieldNEQ(FieldPersonnelCategory, v))
+}
+
+// PersonnelCategoryIn applies the In predicate on the "personnel_category" field.
+func PersonnelCategoryIn(vs ...int) predicate.User {
+	return predicate.User(sql.FieldIn(FieldPersonnelCategory, vs...))
+}
+
+// PersonnelCategoryNotIn applies the NotIn predicate on the "personnel_category" field.
+func PersonnelCategoryNotIn(vs ...int) predicate.User {
+	return predicate.User(sql.FieldNotIn(FieldPersonnelCategory, vs...))
+}
+
+// PersonnelCategoryGT applies the GT predicate on the "personnel_category" field.
+func PersonnelCategoryGT(v int) predicate.User {
+	return predicate.User(sql.FieldGT(FieldPersonnelCategory, v))
+}
+
+// PersonnelCategoryGTE applies the GTE predicate on the "personnel_category" field.
+func PersonnelCategoryGTE(v int) predicate.User {
+	return predicate.User(sql.FieldGTE(FieldPersonnelCategory, v))
+}
+
+// PersonnelCategoryLT applies the LT predicate on the "personnel_category" field.
+func PersonnelCategoryLT(v int) predicate.User {
+	return predicate.User(sql.FieldLT(FieldPersonnelCategory, v))
+}
+
+// PersonnelCategoryLTE applies the LTE predicate on the "personnel_category" field.
+func PersonnelCategoryLTE(v int) predicate.User {
+	return predicate.User(sql.FieldLTE(FieldPersonnelCategory, v))
+}
+
+// EmploymentTypeEQ applies the EQ predicate on the "employment_type" field.
+func EmploymentTypeEQ(v int) predicate.User {
+	return predicate.User(sql.FieldEQ(FieldEmploymentType, v))
+}
+
+// EmploymentTypeNEQ applies the NEQ predicate on the "employment_type" field.
+func EmploymentTypeNEQ(v int) predicate.User {
+	return predicate.User(sql.FieldNEQ(FieldEmploymentType, v))
+}
+
+// EmploymentTypeIn applies the In predicate on the "employment_type" field.
+func EmploymentTypeIn(vs ...int) predicate.User {
+	return predicate.User(sql.FieldIn(FieldEmploymentType, vs...))
+}
+
+// EmploymentTypeNotIn applies the NotIn predicate on the "employment_type" field.
+func EmploymentTypeNotIn(vs ...int) predicate.User {
+	return predicate.User(sql.FieldNotIn(FieldEmploymentType, vs...))
+}
+
+// EmploymentTypeGT applies the GT predicate on the "employment_type" field.
+func EmploymentTypeGT(v int) predicate.User {
+	return predicate.User(sql.FieldGT(FieldEmploymentType, v))
+}
+
+// EmploymentTypeGTE applies the GTE predicate on the "employment_type" field.
+func EmploymentTypeGTE(v int) predicate.User {
+	return predicate.User(sql.FieldGTE(FieldEmploymentType, v))
+}
+
+// EmploymentTypeLT applies the LT predicate on the "employment_type" field.
+func EmploymentTypeLT(v int) predicate.User {
+	return predicate.User(sql.FieldLT(FieldEmploymentType, v))
+}
+
+// EmploymentTypeLTE applies the LTE predicate on the "employment_type" field.
+func EmploymentTypeLTE(v int) predicate.User {
+	return predicate.User(sql.FieldLTE(FieldEmploymentType, v))
 }
 
 // AcademicTitleEQ applies the EQ predicate on the "academic_title" field.

@@ -34,9 +34,12 @@ func (User) Fields() []ent.Field {
 		field.String("job_title"),
 		field.Float("employment_rate").Default(1),
 		field.Int("academic_degree").Default(0),
+		field.Int("personnel_category"),
+		field.Int("employment_type"),
 		field.String("academic_title").Default(""),
 		field.String("honors").Default(""),
 		field.String("category").Default(""),
+
 		field.Time("date_of_employment"),
 		field.Time("unemployment_date").Optional(),
 		field.Time("created_at").Default(time.Now),
