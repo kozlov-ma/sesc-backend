@@ -30,7 +30,6 @@ SESC_ADMIN_CREDENTIALS_1_PASSWORD="secure_password"
 ## Project structure
 ### Packages and directories
 - `cmd/api`: API entry point.
-- `cmd/pgsetup`: A tool to set up PostgreSQL for development.
 - `sesc`: Domain types and services that model the organization structure (users, roles, permissions).
 - `api`: HTTP API adapter, a web entry point for the API. Also has the OpenAPI documentation and DTOs.
 - `db`: Database interfaces and implementations.
