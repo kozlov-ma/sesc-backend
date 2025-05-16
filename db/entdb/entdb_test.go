@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/gofrs/uuid/v5"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/enttest"
@@ -42,6 +43,41 @@ func requireUserMatches(t *testing.T, expected, actual sesc.User) {
 
 	if expected.PictureURL != "" {
 		require.Equal(t, expected.PictureURL, actual.PictureURL, "User PictureURL mismatch")
+	}
+
+	// Check new fields if they are set in the expected User
+	if expected.Subdivision != "" {
+		require.Equal(t, expected.Subdivision, actual.Subdivision, "User Subdivision mismatch")
+	}
+	if expected.JobTitle != "" {
+		require.Equal(t, expected.JobTitle, actual.JobTitle, "User JobTitle mismatch")
+	}
+	if expected.EmploymentRate != 0 {
+		require.Equal(t, expected.EmploymentRate, actual.EmploymentRate, "User EmploymentRate mismatch")
+	}
+	if expected.PersonnelCategory != 0 {
+		require.Equal(t, expected.PersonnelCategory, actual.PersonnelCategory, "User PersonnelCategory mismatch")
+	}
+	if expected.EmploymentType != 0 {
+		require.Equal(t, expected.EmploymentType, actual.EmploymentType, "User EmploymentType mismatch")
+	}
+	if expected.AcademicDegree != 0 {
+		require.Equal(t, expected.AcademicDegree, actual.AcademicDegree, "User AcademicDegree mismatch")
+	}
+	if expected.AcademicTitle != "" {
+		require.Equal(t, expected.AcademicTitle, actual.AcademicTitle, "User AcademicTitle mismatch")
+	}
+	if expected.Honors != "" {
+		require.Equal(t, expected.Honors, actual.Honors, "User Honors mismatch")
+	}
+	if expected.Category != "" {
+		require.Equal(t, expected.Category, actual.Category, "User Category mismatch")
+	}
+	if !expected.DateOfEmployment.IsZero() {
+		require.Equal(t, expected.DateOfEmployment, actual.DateOfEmployment, "User DateOfEmployment mismatch")
+	}
+	if !expected.UnemploymentDate.IsZero() {
+		require.Equal(t, expected.UnemploymentDate, actual.UnemploymentDate, "User UnemploymentDate mismatch")
 	}
 }
 
@@ -277,6 +313,57 @@ func TestSaveUser(t *testing.T) {
 		requireUserMatches(t, expected, savedUser)
 	})
 
+	t.Run("with_new_fields", func(t *testing.T) {
+		ctx, db, depID := setup(t)
+		now := time.Now().UTC().Truncate(time.Second)
+
+		opts := sesc.UserUpdateOptions{
+			FirstName:         "John",
+			LastName:          "Smith",
+			DepartmentID:      depID,
+			NewRoleID:         1,
+			Subdivision:       "Development",
+			JobTitle:          "Software Engineer",
+			EmploymentRate:    0.8,
+			PersonnelCategory: int(sesc.Pedagogical),
+			EmploymentType:    int(sesc.InternalPartTime),
+			AcademicDegree:    int(sesc.Candidate),
+			AcademicTitle:     "Associate Professor",
+			Honors:            "Most Valuable Employee",
+			Category:          "Middle",
+			DateOfEmployment:  now,
+			UnemploymentDate:  now.AddDate(10, 0, 0),
+		}
+
+		user, err := db.SaveUser(ctx, opts)
+		require.NoError(t, err, "SaveUser with new fields failed")
+
+		expected := sesc.User{
+			ID:                user.ID,
+			FirstName:         opts.FirstName,
+			LastName:          opts.LastName,
+			Department:        sesc.Department{ID: depID},
+			Role:              sesc.Role{ID: 1},
+			Subdivision:       opts.Subdivision,
+			JobTitle:          opts.JobTitle,
+			EmploymentRate:    opts.EmploymentRate,
+			PersonnelCategory: sesc.Pedagogical,
+			EmploymentType:    sesc.InternalPartTime,
+			AcademicDegree:    sesc.Candidate,
+			AcademicTitle:     opts.AcademicTitle,
+			Honors:            opts.Honors,
+			Category:          opts.Category,
+			DateOfEmployment:  opts.DateOfEmployment,
+			UnemploymentDate:  opts.UnemploymentDate,
+		}
+		requireUserMatches(t, expected, user)
+
+		// Verify user is retrievable with all fields
+		savedUser, err := db.UserByID(ctx, user.ID)
+		require.NoError(t, err)
+		requireUserMatches(t, expected, savedUser)
+	})
+
 	t.Run("invalid department", func(t *testing.T) {
 		ctx, db, _ := setup(t)
 
@@ -407,6 +494,57 @@ func TestUpdateUser(t *testing.T) {
 			Role:       sesc.Role{ID: opts.NewRoleID},
 		}
 		requireUserMatches(t, expected, user)
+	})
+
+	t.Run("success with new fields", func(t *testing.T) {
+		ctx, db, depID, userID := setup(t)
+		now := time.Now().UTC().Truncate(time.Second)
+
+		opts := sesc.UserUpdateOptions{
+			FirstName:         "Updated",
+			LastName:          "User",
+			DepartmentID:      depID,
+			NewRoleID:         2,
+			Subdivision:       "Research",
+			JobTitle:          "Senior Researcher",
+			EmploymentRate:    0.75,
+			PersonnelCategory: int(sesc.ProfessorialPedagogical),
+			EmploymentType:    int(sesc.Main),
+			AcademicDegree:    int(sesc.Doctor),
+			AcademicTitle:     "Professor",
+			Honors:            "Distinguished Scientist",
+			Category:          "Senior",
+			DateOfEmployment:  now,
+			UnemploymentDate:  now.AddDate(5, 0, 0),
+		}
+
+		user, err := db.UpdateUser(ctx, userID, opts)
+		require.NoError(t, err, "UpdateUser with new fields failed")
+
+		expected := sesc.User{
+			ID:                userID,
+			FirstName:         opts.FirstName,
+			LastName:          opts.LastName,
+			Department:        sesc.Department{ID: depID},
+			Role:              sesc.Role{ID: opts.NewRoleID},
+			Subdivision:       opts.Subdivision,
+			JobTitle:          opts.JobTitle,
+			EmploymentRate:    opts.EmploymentRate,
+			PersonnelCategory: sesc.ProfessorialPedagogical,
+			EmploymentType:    sesc.Main,
+			AcademicDegree:    sesc.Doctor,
+			AcademicTitle:     opts.AcademicTitle,
+			Honors:            opts.Honors,
+			Category:          opts.Category,
+			DateOfEmployment:  opts.DateOfEmployment,
+			UnemploymentDate:  opts.UnemploymentDate,
+		}
+		requireUserMatches(t, expected, user)
+
+		// Fetch user by ID to verify persistence
+		fetchedUser, err := db.UserByID(ctx, userID)
+		require.NoError(t, err, "UserByID failed")
+		requireUserMatches(t, expected, fetchedUser)
 	})
 
 	t.Run("non-existent user", func(t *testing.T) {
