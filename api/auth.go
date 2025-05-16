@@ -68,6 +68,7 @@ func (a *API) RegisterUser(w http.ResponseWriter, r *http.Request) {
 		Password: credsReq.Password,
 	}
 
+	ctx = rec.Sub("iam/register_credentials").Wrap(ctx)
 	authID, err := a.iam.RegisterCredentials(ctx, userID, creds)
 	switch {
 	case errors.Is(err, iam.ErrInvalidCredentials):
@@ -102,6 +103,7 @@ func (a *API) RegisterUser(w http.ResponseWriter, r *http.Request) {
 // @Router /auth/login [post]
 func (a *API) Login(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
+	rec := event.Get(ctx)
 	var credsReq CredentialsRequest
 
 	if err := json.NewDecoder(r.Body).Decode(&credsReq); err != nil {
@@ -114,6 +116,7 @@ func (a *API) Login(w http.ResponseWriter, r *http.Request) {
 		Password: credsReq.Password,
 	}
 
+	ctx = rec.Sub("iam/login").Wrap(ctx)
 	token, err := a.iam.Login(ctx, creds)
 	switch {
 	case errors.Is(err, iam.ErrUserNotFound):
@@ -146,6 +149,7 @@ func (a *API) Login(w http.ResponseWriter, r *http.Request) {
 // @Router /auth/admin/login [post]
 func (a *API) LoginAdmin(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
+	rec := event.Get(ctx)
 	var req CredentialsRequest
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -153,6 +157,7 @@ func (a *API) LoginAdmin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	ctx = rec.Sub("iam/login_admin").Wrap(ctx)
 	token, err := a.iam.LoginAdmin(ctx, iam.Credentials(req))
 	switch {
 	case errors.Is(err, iam.ErrUserNotFound):
@@ -182,6 +187,7 @@ func (a *API) LoginAdmin(w http.ResponseWriter, r *http.Request) {
 // @Router /auth/credentials/{id} [delete]
 func (a *API) DeleteCredentials(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
+	rec := event.Get(ctx)
 	idStr := r.PathValue("id")
 
 	userID, err := uuid.FromString(idStr)
@@ -190,6 +196,7 @@ func (a *API) DeleteCredentials(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	ctx = rec.Sub("iam/drop_credentials").Wrap(ctx)
 	err = a.iam.DropCredentials(ctx, userID)
 	switch {
 	case errors.Is(err, iam.ErrUserNotFound):
@@ -224,6 +231,7 @@ func (a *API) DeleteCredentials(w http.ResponseWriter, r *http.Request) {
 // @Router /auth/credentials/{id} [get]
 func (a *API) GetCredentials(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
+	rec := event.Get(ctx)
 	idStr := r.PathValue("id")
 
 	userID, err := uuid.FromString(idStr)
@@ -232,6 +240,7 @@ func (a *API) GetCredentials(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	ctx = rec.Sub("iam/credentials").Wrap(ctx)
 	creds, err := a.iam.Credentials(ctx, userID)
 	switch {
 	case errors.Is(err, iam.ErrUserNotFound):
@@ -261,6 +270,7 @@ func (a *API) GetCredentials(w http.ResponseWriter, r *http.Request) {
 // @Router /auth/validate [get]
 func (a *API) ValidateToken(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
+	rec := event.Get(ctx)
 
 	authHeader := r.Header.Get("Authorization")
 	if authHeader == "" || len(authHeader) < 8 || authHeader[:7] != "Bearer " {
@@ -273,6 +283,7 @@ func (a *API) ValidateToken(w http.ResponseWriter, r *http.Request) {
 	}
 
 	tokenString := authHeader[7:]
+	ctx = rec.Sub("iam/im_watermelon").Wrap(ctx)
 	identity, err := a.iam.ImWatermelon(ctx, tokenString)
 	switch {
 	case errors.Is(err, iam.ErrInvalidToken):

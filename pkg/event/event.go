@@ -283,6 +283,10 @@ func (r *Record) Finish() {
 	r.values = nil
 }
 
+func (r *Record) Wrap(parent context.Context) context.Context {
+	return context.WithValue(parent, eventCtxKey, r)
+}
+
 func newRecord() *Record {
 	m, _ := mapPool.Get().(map[ustring]any)
 	return &Record{
@@ -293,6 +297,7 @@ func newRecord() *Record {
 func NewRecord(parent context.Context, eventName string) (context.Context, *Record) {
 	rec := newRecord()
 	newRecord().eventName = unique.Make(eventName)
+	parent = context.WithValue(parent, rootCtxKey, rec)
 	return context.WithValue(parent, eventCtxKey, rec), rec
 }
 
@@ -306,12 +311,24 @@ type ctxKey int
 
 const (
 	eventCtxKey ctxKey = iota + 1
+	rootCtxKey
 )
 
 func Get(from context.Context) *Record {
 	ev := from.Value(eventCtxKey)
 	if ev == nil {
 		panic("context does not have any events associated with it")
+	}
+
+	r, _ := ev.(*Record)
+
+	return r
+}
+
+func Root(from context.Context) *Record {
+	ev := from.Value(rootCtxKey)
+	if ev == nil {
+		panic("context does not have any root events associated with it")
 	}
 
 	r, _ := ev.(*Record)
