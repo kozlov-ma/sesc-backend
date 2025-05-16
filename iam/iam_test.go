@@ -23,10 +23,13 @@ func setupIAM(t *testing.T) *IAM {
 	return New(
 		client,
 		time.Hour,
-		[]Credentials{
+		[]AdminCredentials{
 			{
-				Username: "admin",
-				Password: "admin",
+				ID: uuid.Must(uuid.NewV7()),
+				Credentials: Credentials{
+					Username: "admin",
+					Password: "admin",
+				},
 			},
 		},
 		[]byte("testkey"),

@@ -72,7 +72,7 @@ func (s *SESC) CreateDepartment(
 	description string,
 ) (Department, error) {
 	// Caller should create the record and use Wrap to add it to the context
-	rec := event.Get(ctx)
+	rec := event.Get(ctx).Sub("sesc/create_department")
 	rootRec := event.Root(ctx)
 	statrec := rootRec.Sub("stats")
 
@@ -164,7 +164,7 @@ func (s *SESC) createDepartmentRecord(
 // Returns an ErrInvalidDepartment if the department does not exist.
 func (s *SESC) DepartmentByID(ctx context.Context, id UUID) (Department, error) {
 	// Caller should create the record and use Wrap to add it to the context
-	rec := event.Get(ctx)
+	rec := event.Get(ctx).Sub("sesc/department_by_id")
 	rootRec := event.Root(ctx)
 	statrec := rootRec.Sub("stats")
 
@@ -200,7 +200,7 @@ func (s *SESC) DepartmentByID(ctx context.Context, id UUID) (Department, error) 
 // Departments retrieves all departments.
 func (s *SESC) Departments(ctx context.Context) ([]Department, error) {
 	// Caller should create the record and use Wrap to add it to the context
-	rec := event.Get(ctx)
+	rec := event.Get(ctx).Sub("sesc/departments")
 	rootRec := event.Root(ctx)
 	statrec := rootRec.Sub("stats")
 
@@ -236,7 +236,7 @@ func (s *SESC) UpdateDepartment(
 	description string,
 ) error {
 	// Caller should create the record and use Wrap to add it to the context
-	rec := event.Get(ctx)
+	rec := event.Get(ctx).Sub("sesc/update_department")
 	rootRec := event.Root(ctx)
 	statrec := rootRec.Sub("stats")
 
@@ -294,7 +294,7 @@ func (s *SESC) updateDepartmentRecord(
 // Returns an ErrCannotRemoveDepartment if the department has users.
 func (s *SESC) DeleteDepartment(ctx context.Context, id UUID) error {
 	// Caller should create the record and use Wrap to add it to the context
-	rec := event.Get(ctx)
+	rec := event.Get(ctx).Sub("sesc/delete_department")
 
 	rec.Sub("params").Set("id", id)
 
@@ -380,7 +380,7 @@ func (u UserUpdateOptions) Validate() error {
 // Returns an ErrUserNotFound if the user does not exist.
 func (s *SESC) UpdateUser(ctx context.Context, id UUID, upd UserUpdateOptions) (User, error) {
 	// Caller should create the record and use Wrap to add it to the context
-	rec := event.Get(ctx)
+	rec := event.Get(ctx).Sub("sesc/update_user")
 	rootRec := event.Root(ctx)
 	statrec := rootRec.Sub("stats")
 
@@ -645,7 +645,7 @@ func (s *SESC) convertUserEntity(
 // Returns an ErrInvalidName if the first or last name is missing.
 func (s *SESC) CreateUser(ctx context.Context, opt UserUpdateOptions) (User, error) {
 	// Caller should create the record and use Wrap to add it to the context
-	rec := event.Get(ctx)
+	rec := event.Get(ctx).Sub("sesc/create_user")
 	rootRec := event.Root(ctx)
 	statrec := rootRec.Sub("stats")
 
@@ -793,7 +793,7 @@ func (s *SESC) queryCreatedUser(
 // Returns an ErrUserNotFound if the user does not exist.
 func (s *SESC) UpdateProfilePicture(ctx context.Context, id UUID, pictureURL string) error {
 	// Caller should create the record and use Wrap to add it to the context
-	rec := event.Get(ctx)
+	rec := event.Get(ctx).Sub("sesc/update_profile_picture")
 
 	rec.Sub("params").Set(
 		"id", id,
@@ -845,7 +845,7 @@ func (s *SESC) updateProfilePictureRecord(ctx context.Context, id UUID, pictureU
 // Returns an ErrUserNotFound if the user does not exist.
 func (s *SESC) UserByID(ctx context.Context, id UUID) (User, error) {
 	// Caller should create the record and use Wrap to add it to the context
-	rec := event.Get(ctx)
+	rec := event.Get(ctx).Sub("sesc/user_by_id")
 
 	rec.Sub("params").Set("id", id)
 
@@ -914,7 +914,7 @@ func (s *SESC) convertUserFromEntity(ctx context.Context, u *ent.User) (User, er
 // Users gets all users.
 func (s *SESC) Users(ctx context.Context) ([]User, error) {
 	// Caller should create the record and use Wrap to add it to the context
-	rec := event.Get(ctx)
+	rec := event.Get(ctx).Sub("sesc/users")
 
 	// Stage 1: Query all users
 	ctx = rec.Sub("query_all_users").Wrap(ctx)
@@ -977,5 +977,9 @@ func (s *SESC) convertAllUsers(ctx context.Context, entUsers []*ent.User) ([]Use
 // User returns a User by ID. Alias for UserByID.
 // Returns ErrUserNotFound if the user does not exist.
 func (s *SESC) User(ctx context.Context, id UUID) (User, error) {
+	rec := event.Get(ctx).Sub("sesc/user")
+
+	// Create a wrapped context for UserByID
+	ctx = rec.Sub("user_by_id").Wrap(ctx)
 	return s.UserByID(ctx, id)
 }

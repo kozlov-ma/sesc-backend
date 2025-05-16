@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"slices"
 	"time"
 
 	"github.com/gofrs/uuid/v5"
@@ -27,6 +26,11 @@ var (
 type Credentials struct {
 	Username string
 	Password string
+}
+
+type AdminCredentials struct {
+	ID UUID
+	Credentials
 }
 
 func (c Credentials) Validate() error {
@@ -52,7 +56,7 @@ type Identity struct {
 // IAM handles authentication using Ent for persistence.
 type IAM struct {
 	client           *ent.Client
-	adminCredentials []Credentials
+	adminCredentials []AdminCredentials
 	tokenDuration    time.Duration
 	jwtkey           []byte
 }
@@ -61,7 +65,7 @@ type IAM struct {
 func New(
 	client *ent.Client,
 	tokenDuration time.Duration,
-	adminCredentials []Credentials,
+	adminCredentials []AdminCredentials,
 	jwtkey []byte,
 ) *IAM {
 	return &IAM{
@@ -298,39 +302,41 @@ func (i *IAM) createAuthRecord(
 // Login verifies credentials and returns signed JWT token string.
 func (i *IAM) Login(ctx context.Context, creds Credentials) (string, error) {
 	rec := event.Get(ctx).Sub("iam/login")
-	statrec := event.Get(ctx).Sub("stats")
 
 	rec.Sub("params").Set(
 		"username", creds.Username,
 	)
 
 	// Stage 1: Validate credentials
-	if err := i.validateLoginCredentials(ctx, rec, creds); err != nil {
+	ctx = rec.Sub("validate_credentials").Wrap(ctx)
+	if err := i.validateLoginCredentials(ctx, creds); err != nil {
 		return "", err
 	}
 
 	// Stage 2: Find auth record
-	authRec, err := i.findAuthRecord(ctx, rec, statrec, creds)
+	ctx = rec.Sub("find_auth_record").Wrap(ctx)
+	authRec, err := i.findAuthRecord(ctx, creds)
 	if err != nil {
 		return "", err
 	}
 
 	// Stage 3: Generate token
-	token, err := i.generateUserToken(ctx, rec, authRec)
+	ctx = rec.Sub("generate_token").Wrap(ctx)
+	token, err := i.generateUserToken(ctx, authRec)
 	if err != nil {
 		return "", err
 	}
 
+	rec.Set("success", true)
 	return token, nil
 }
 
 // validateLoginCredentials validates the login credentials
 func (i *IAM) validateLoginCredentials(
-	_ context.Context,
-	rec *event.Record,
+	ctx context.Context,
 	creds Credentials,
 ) error {
-	rec = rec.Sub("validate_credentials")
+	rec := event.Get(ctx).Sub("validate_credentials")
 	rec.Set("username", creds.Username)
 
 	if err := creds.Validate(); err != nil {
@@ -346,11 +352,12 @@ func (i *IAM) validateLoginCredentials(
 // findAuthRecord finds the auth record for the given credentials
 func (i *IAM) findAuthRecord(
 	ctx context.Context,
-	rec *event.Record,
-	statrec *event.Record,
 	creds Credentials,
 ) (*ent.AuthUser, error) {
-	rec = rec.Sub("find_auth_record")
+	rec := event.Get(ctx)
+	rootRec := event.Root(ctx)
+	statrec := rootRec.Sub("stats")
+
 	rec.Set("username", creds.Username)
 
 	pgTime := time.Now()
@@ -383,11 +390,10 @@ func (i *IAM) findAuthRecord(
 
 // generateUserToken generates a JWT token for a user
 func (i *IAM) generateUserToken(
-	_ context.Context,
-	rec *event.Record,
+	ctx context.Context,
 	authRec *ent.AuthUser,
 ) (string, error) {
-	rec = rec.Sub("generate_token")
+	rec := event.Get(ctx).Sub("generate_token")
 	rec.Set(
 		"auth_id", authRec.AuthID,
 		"role", string(RoleUser),
@@ -419,12 +425,13 @@ func (i *IAM) LoginAdmin(ctx context.Context, creds Credentials) (string, error)
 	rec.Sub("params").Set("username", creds.Username)
 
 	// Stage 1: Verify admin credentials
-	if err := i.verifyAdminCredentials(ctx, rec, creds); err != nil {
+	id, err := i.verifyAdminCredentials(ctx, creds)
+	if err != nil {
 		return "", err
 	}
 
 	// Stage 2: Generate admin token
-	token, err := i.generateAdminToken(ctx, rec)
+	token, err := i.generateAdminToken(ctx, id)
 	if err != nil {
 		return "", err
 	}
@@ -434,31 +441,32 @@ func (i *IAM) LoginAdmin(ctx context.Context, creds Credentials) (string, error)
 
 // verifyAdminCredentials verifies if the credentials match admin credentials
 func (i *IAM) verifyAdminCredentials(
-	_ context.Context,
-	rec *event.Record,
+	ctx context.Context,
 	creds Credentials,
-) error {
-	rec = rec.Sub("verify_admin_credentials")
+) (UUID, error) {
+	rec := event.Get(ctx).Sub("verify_admin_credentials")
 	rec.Set("username", creds.Username)
 
-	if !slices.Contains(i.adminCredentials, creds) {
-		rec.Set("valid", false)
-		return ErrUserNotFound
+	for _, c := range i.adminCredentials {
+		if c.Credentials == creds {
+			rec.Set("valid", true)
+			return c.ID, nil
+		}
 	}
 
-	rec.Set("valid", true)
-	return nil
+	rec.Set("valid", false)
+	return uuid.Nil, ErrUserNotFound
 }
 
 // generateAdminToken generates a JWT token for an admin
 func (i *IAM) generateAdminToken(
-	_ context.Context,
-	rec *event.Record,
+	ctx context.Context,
+	id UUID,
 ) (string, error) {
-	rec = rec.Sub("generate_admin_token")
+	rec := event.Get(ctx).Sub("generate_admin_token")
 
 	tok := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"user_id": uuid.Nil.String(), // Add user_id claim for admin
+		"user_id": id.String(), // Add user_id claim for admin
 		"role":    string(RoleAdmin),
 		"exp":     time.Now().Add(i.tokenDuration).Unix(),
 	})
@@ -479,43 +487,71 @@ func (i *IAM) generateAdminToken(
 // ImWatermelon parses tokenString, returns Identity or ErrInvalidToken.
 func (i *IAM) ImWatermelon(ctx context.Context, tokenString string) (Identity, error) {
 	rec := event.Get(ctx).Sub("iam/im_watermelon")
-	statrec := event.Get(ctx).Sub("stats")
 
 	// Stage 1: Parse and validate token
-	claims, err := i.parseAndValidateToken(rec, tokenString)
+	ctx = rec.Sub("parse_token").Wrap(ctx)
+	claims, err := i.parseAndValidateToken(ctx, tokenString)
 	if err != nil {
 		return Identity{}, err
 	}
 
 	// Stage 2: Extract and validate claims
-	authIDStr, roleStr, err := i.extractTokenClaims(rec, claims)
+	ctx = rec.Sub("extract_claims").Wrap(ctx)
+	authIDStr, roleStr, err := i.extractTokenClaims(ctx, claims)
 	if err != nil {
 		return Identity{}, err
 	}
 
-	// Handle admin token
+	// Stage 3: handle admin role
 	if roleStr == string(RoleAdmin) {
+		ctx = rec.Sub("check_admin_role").Wrap(ctx)
+		if err := i.checkAdminRole(ctx, authIDStr); err != nil {
+			return Identity{}, err
+		}
 		return Identity{
 			AuthID: uuid.Nil,
 			Role:   RoleAdmin,
 		}, nil
 	}
 
-	// Stage 3: Retrieve auth user for normal user
-	identity, err := i.retrieveUserIdentity(ctx, rec, statrec, authIDStr, roleStr)
+	// Stage 4: Retrieve auth user for normal user
+	ctx = rec.Sub("retrieve_identity").Wrap(ctx)
+	identity, err := i.retrieveUserIdentity(ctx, authIDStr, roleStr)
 	if err != nil {
 		return Identity{}, err
 	}
 
+	rec.Set("success", true)
 	return identity, nil
+}
+
+func (i *IAM) checkAdminRole(ctx context.Context, authIDStr string) error {
+	rec := event.Get(ctx).Sub("check_admin_role")
+
+	var id uuid.UUID
+	if err := (&id).Parse(authIDStr); err != nil {
+		rec.Add("auth_id_valid", false)
+		return ErrInvalidToken
+	}
+	rec.Add("auth_id_valid", false)
+
+	for _, c := range i.adminCredentials {
+		if c.ID == id {
+			rec.Add("auth_id_exists", true)
+			return nil
+		}
+	}
+
+	rec.Add("auth_id_exists", false)
+	return ErrUserNotFound
 }
 
 // parseAndValidateToken parses and validates the JWT token
 func (i *IAM) parseAndValidateToken(
-	rec *event.Record,
+	ctx context.Context,
 	tokenString string,
 ) (jwt.MapClaims, error) {
-	rec = rec.Sub("parse_token")
+	rec := event.Get(ctx).Sub("parse_token")
 
 	parsed, err := jwt.Parse(tokenString, func(t *jwt.Token) (any, error) {
 		if t.Method != jwt.SigningMethodHS256 {
@@ -542,10 +578,10 @@ func (i *IAM) parseAndValidateToken(
 
 // extractTokenClaims extracts and validates token claims
 func (i *IAM) extractTokenClaims(
-	rec *event.Record,
+	ctx context.Context,
 	claims jwt.MapClaims,
 ) (string, string, error) {
-	rec = rec.Sub("extract_claims")
+	rec := event.Get(ctx).Sub("extract_claims")
 
 	authIDStr, ok1 := claims["user_id"].(string)
 	roleStr, ok2 := claims["role"].(string)
@@ -570,12 +606,12 @@ func (i *IAM) extractTokenClaims(
 // retrieveUserIdentity retrieves the user identity from the database
 func (i *IAM) retrieveUserIdentity(
 	ctx context.Context,
-	rec *event.Record,
-	statrec *event.Record,
 	authIDStr string,
 	roleStr string,
 ) (Identity, error) {
-	rec = rec.Sub("retrieve_identity")
+	rec := event.Get(ctx).Sub("retrieve_identity")
+	rootRec := event.Root(ctx)
+	statrec := rootRec.Sub("stats")
 
 	aid, err := uuid.FromString(authIDStr)
 	if err != nil {
@@ -652,18 +688,18 @@ func (i *IAM) DropCredentials(ctx context.Context, userID UUID) error {
 	}
 
 	// Stage 1: Check if user exists
-	if err := i.checkUserExistsForDrop(ctx, rec, statrec, tx, userID); err != nil {
+	if err := i.checkUserExistsForDrop(ctx, tx, userID); err != nil {
 		return rollback(err)
 	}
 
 	// Stage 2: Check if credentials exist
-	_, err = i.checkCredentialsExist(ctx, rec, statrec, tx, userID)
+	_, err = i.checkCredentialsExist(ctx, tx, userID)
 	if err != nil {
 		return rollback(err)
 	}
 
 	// Stage 3: Delete credentials
-	if err := i.deleteCredentials(ctx, rec, statrec, tx, userID); err != nil {
+	if err := i.deleteCredentials(ctx, tx, userID); err != nil {
 		return rollback(err)
 	}
 
@@ -682,12 +718,13 @@ func (i *IAM) DropCredentials(ctx context.Context, userID UUID) error {
 // checkUserExistsForDrop checks if the user exists in the database
 func (i *IAM) checkUserExistsForDrop(
 	ctx context.Context,
-	rec *event.Record,
-	statrec *event.Record,
 	tx *ent.Tx,
 	userID UUID,
 ) error {
-	rec = rec.Sub("drop_check_user_exists")
+	rec := event.Get(ctx).Sub("drop_check_user_exists")
+	rootRec := event.Root(ctx)
+	statrec := rootRec.Sub("stats")
+
 	rec.Set("user_id", userID)
 
 	statrec.Add(events.PostgresQueries, 1)
@@ -719,12 +756,13 @@ func (i *IAM) checkUserExistsForDrop(
 // checkCredentialsExist checks if credentials exist for the user
 func (i *IAM) checkCredentialsExist(
 	ctx context.Context,
-	rec *event.Record,
-	statrec *event.Record,
 	tx *ent.Tx,
 	userID UUID,
 ) (*ent.AuthUser, error) {
-	rec = rec.Sub("drop_check_credentials_exist")
+	rec := event.Get(ctx).Sub("drop_check_credentials_exist")
+	rootRec := event.Root(ctx)
+	statrec := rootRec.Sub("stats")
+
 	rec.Set("user_id", userID)
 
 	statrec.Add(events.PostgresQueries, 1)
@@ -755,12 +793,13 @@ func (i *IAM) checkCredentialsExist(
 // deleteCredentials deletes the credentials for the user
 func (i *IAM) deleteCredentials(
 	ctx context.Context,
-	rec *event.Record,
-	statrec *event.Record,
 	tx *ent.Tx,
 	userID UUID,
 ) error {
-	rec = rec.Sub("drop_delete_credentials")
+	rec := event.Get(ctx).Sub("drop_delete_credentials")
+	rootRec := event.Root(ctx)
+	statrec := rootRec.Sub("stats")
+
 	rec.Set("user_id", userID)
 
 	statrec.Add(events.PostgresQueries, 1)
@@ -782,31 +821,35 @@ func (i *IAM) deleteCredentials(
 
 func (i *IAM) Credentials(ctx context.Context, userID UUID) (Credentials, error) {
 	rec := event.Get(ctx).Sub("iam/credentials")
-	statrec := event.Get(ctx).Sub("stats")
 
 	rec.Sub("params").Set("user_id", userID)
 
 	// Stage 1: Query credentials
-	authUser, err := i.queryUserCredentials(ctx, rec, statrec, userID)
+	ctx = rec.Sub("query_credentials").Wrap(ctx)
+	authUser, err := i.queryUserCredentials(ctx, userID)
 	if err != nil {
 		return Credentials{}, err
 	}
 
 	// Create and return credentials
-	return Credentials{
+	credentials := Credentials{
 		Username: authUser.Username,
 		Password: authUser.Password,
-	}, nil
+	}
+
+	rec.Set("success", true)
+	return credentials, nil
 }
 
 // queryUserCredentials queries the credentials for a user
 func (i *IAM) queryUserCredentials(
 	ctx context.Context,
-	rec *event.Record,
-	statrec *event.Record,
 	userID UUID,
 ) (*ent.AuthUser, error) {
-	rec = rec.Sub("query_credentials")
+	rec := event.Get(ctx).Sub("query_credentials")
+	rootRec := event.Root(ctx)
+	statrec := rootRec.Sub("stats")
+
 	rec.Set("user_id", userID)
 
 	statrec.Add(events.PostgresQueries, 1)

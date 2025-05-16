@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/gofrs/uuid/v5"
 	"github.com/kozlov-ma/sesc-backend/api"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/migrate"
@@ -40,10 +41,13 @@ func main() {
 		return
 	}
 
-	iam := iam.New(client, 7*24*time.Hour, []iam.Credentials{
+	iam := iam.New(client, 7*24*time.Hour, []iam.AdminCredentials{
 		{
-			Username: "admin",
-			Password: "admin",
+			ID: uuid.Must(uuid.FromString("f1157f63-65dc-4c3d-bcb2-4d6d55d2e3fd")),
+			Credentials: iam.Credentials{
+				Username: "admin",
+				Password: "admin",
+			},
 		},
 	}, []byte("dinahu"))
 

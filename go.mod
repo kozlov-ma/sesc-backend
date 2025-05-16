@@ -46,6 +46,5 @@ require (
 	github.com/stretchr/testify v1.10.0
 	github.com/swaggo/http-swagger v1.3.4
 	github.com/swaggo/swag v1.16.4
-	go.uber.org/mock v0.5.2
 	golang.org/x/exp v0.0.0-20250506013437-ce4c2cf36ca6
 )
