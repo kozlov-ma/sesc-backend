@@ -296,7 +296,7 @@ func newRecord() *Record {
 
 func NewRecord(parent context.Context, eventName string) (context.Context, *Record) {
 	rec := newRecord()
-	newRecord().eventName = unique.Make(eventName)
+	rec.eventName = unique.Make(eventName)
 	parent = context.WithValue(parent, rootCtxKey, rec)
 	return context.WithValue(parent, eventCtxKey, rec), rec
 }

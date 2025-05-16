@@ -109,8 +109,10 @@ type UsersResponse struct {
 // @Router /users [get]
 func (a *API) GetUsers(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
+	rec := event.Get(ctx)
 	users, err := a.sesc.Users(ctx)
 	if err != nil {
+		rec.Add(events.Error, err)
 		writeError(ctx, w, ServerError{
 			Code:      "SERVER_ERROR",
 			Message:   "Failed to fetch users",
@@ -143,6 +145,8 @@ func (a *API) GetUsers(w http.ResponseWriter, r *http.Request) {
 // @Router /users [post]
 func (a *API) CreateUser(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
+	rec := event.Get(ctx)
+
 	var req CreateUserRequest
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -167,6 +171,8 @@ func (a *API) CreateUser(w http.ResponseWriter, r *http.Request) {
 			RuMessage: "Указана некорректная роль",
 		}, http.StatusBadRequest)
 		return
+	case errors.Is(err, sesc.ErrInvalidDepartment):
+		writeError(ctx, w, ErrInvalidDepartment, http.StatusBadRequest)
 	case errors.Is(err, sesc.ErrInvalidName):
 		writeError(ctx, w, InvalidNameError{
 			Code:      "INVALID_NAME",
@@ -175,6 +181,7 @@ func (a *API) CreateUser(w http.ResponseWriter, r *http.Request) {
 		}, http.StatusBadRequest)
 		return
 	case err != nil:
+		rec.Add(events.Error, err)
 		writeError(ctx, w, ServerError{
 			Code:      "SERVER_ERROR",
 			Message:   "Failed to create user",
@@ -229,6 +236,7 @@ type PatchUserRequest struct {
 // @Router /users/{id} [patch]
 func (a *API) PatchUser(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
+	rec := event.Get(ctx)
 
 	idStr := r.PathValue("id")
 	userID, err := uuid.FromString(idStr)
@@ -257,6 +265,7 @@ func (a *API) PatchUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if err != nil {
+		rec.Add(events.Error, err)
 		writeError(ctx, w, ServerError{
 			Code:      "SERVER_ERROR",
 			Message:   "Failed to fetch user",
@@ -326,6 +335,7 @@ func (a *API) PatchUser(w http.ResponseWriter, r *http.Request) {
 		return
 
 	case err != nil:
+		rec.Add(events.Error, err)
 		writeError(ctx, w, ServerError{
 			Code:      "SERVER_ERROR",
 			Message:   "Failed to update user",

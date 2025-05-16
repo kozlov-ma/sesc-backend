@@ -128,6 +128,7 @@ func (a *API) Login(w http.ResponseWriter, r *http.Request) {
 		)
 		return
 	case err != nil:
+		rec.Add(events.Error, err)
 		writeError(ctx, w, ErrServerError.WithDetails("Failed to login"), http.StatusInternalServerError)
 		return
 	}
@@ -164,6 +165,7 @@ func (a *API) LoginAdmin(w http.ResponseWriter, r *http.Request) {
 		writeError(ctx, w, ErrCredentialsNotFound.WithDetails("Invalid admin credentials"), http.StatusUnauthorized)
 		return
 	case err != nil:
+		rec.Add(events.Error, err)
 		writeError(ctx, w, ErrServerError.WithDetails("Failed to login as admin"), http.StatusInternalServerError)
 		return
 	}
@@ -203,6 +205,7 @@ func (a *API) DeleteCredentials(w http.ResponseWriter, r *http.Request) {
 		writeError(ctx, w, ErrCredentialsNotFound, http.StatusNotFound)
 		return
 	case err != nil:
+		rec.Add(events.Error, err)
 		writeError(
 			ctx,
 			w,
@@ -247,6 +250,7 @@ func (a *API) GetCredentials(w http.ResponseWriter, r *http.Request) {
 		writeError(ctx, w, ErrCredentialsNotFound, http.StatusNotFound)
 		return
 	case err != nil:
+		rec.Add(events.Error, err)
 		writeError(ctx, w, ErrServerError, http.StatusInternalServerError)
 		return
 	}
@@ -293,6 +297,7 @@ func (a *API) ValidateToken(w http.ResponseWriter, r *http.Request) {
 		writeError(ctx, w, ErrUnauthorized, http.StatusUnauthorized)
 		return
 	case err != nil:
+		rec.Add(events.Error, err)
 		writeError(ctx, w, ErrServerError, http.StatusInternalServerError)
 		return
 	}
