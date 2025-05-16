@@ -67,8 +67,8 @@ func (u User) EventRecord() *event.Record {
 		"category", u.Category,
 		"date_of_employment", u.DateOfEmployment,
 		"unemployment_date", u.UnemploymentDate,
-		"create_date", u.CreateDate,
-		"update_date", u.UpdateDate,
+		"created_at", u.CreateDate,
+		"updated_at", u.UpdateDate,
 	)
 }
 

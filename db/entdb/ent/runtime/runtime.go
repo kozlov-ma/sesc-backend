@@ -2,7 +2,81 @@
 
 package runtime
 
-// The schema-stitching logic is generated in github.com/kozlov-ma/sesc-backend/db/entdb/ent/runtime.go
+import (
+	"time"
+
+	uuid "github.com/gofrs/uuid/v5"
+	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/authuser"
+	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/department"
+	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/schema"
+	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/user"
+)
+
+// The init function reads all schema descriptors with runtime code
+// (default values, validators, hooks and policies) and stitches it
+// to their package variables.
+func init() {
+	authuserFields := schema.AuthUser{}.Fields()
+	_ = authuserFields
+	// authuserDescUsername is the schema descriptor for username field.
+	authuserDescUsername := authuserFields[0].Descriptor()
+	// authuser.UsernameValidator is a validator for the "username" field. It is called by the builders before save.
+	authuser.UsernameValidator = authuserDescUsername.Validators[0].(func(string) error)
+	// authuserDescPassword is the schema descriptor for password field.
+	authuserDescPassword := authuserFields[1].Descriptor()
+	// authuser.PasswordValidator is a validator for the "password" field. It is called by the builders before save.
+	authuser.PasswordValidator = authuserDescPassword.Validators[0].(func(string) error)
+	departmentFields := schema.Department{}.Fields()
+	_ = departmentFields
+	// departmentDescName is the schema descriptor for name field.
+	departmentDescName := departmentFields[1].Descriptor()
+	// department.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	department.NameValidator = departmentDescName.Validators[0].(func(string) error)
+	userHooks := schema.User{}.Hooks()
+	user.Hooks[0] = userHooks[0]
+	userFields := schema.User{}.Fields()
+	_ = userFields
+	// userDescMiddleName is the schema descriptor for middle_name field.
+	userDescMiddleName := userFields[3].Descriptor()
+	// user.DefaultMiddleName holds the default value on creation for the middle_name field.
+	user.DefaultMiddleName = userDescMiddleName.Default.(string)
+	// userDescSuspended is the schema descriptor for suspended field.
+	userDescSuspended := userFields[5].Descriptor()
+	// user.DefaultSuspended holds the default value on creation for the suspended field.
+	user.DefaultSuspended = userDescSuspended.Default.(bool)
+	// userDescEmploymentRate is the schema descriptor for employment_rate field.
+	userDescEmploymentRate := userFields[10].Descriptor()
+	// user.DefaultEmploymentRate holds the default value on creation for the employment_rate field.
+	user.DefaultEmploymentRate = userDescEmploymentRate.Default.(float64)
+	// userDescAcademicDegree is the schema descriptor for academic_degree field.
+	userDescAcademicDegree := userFields[11].Descriptor()
+	// user.DefaultAcademicDegree holds the default value on creation for the academic_degree field.
+	user.DefaultAcademicDegree = userDescAcademicDegree.Default.(int)
+	// userDescAcademicTitle is the schema descriptor for academic_title field.
+	userDescAcademicTitle := userFields[12].Descriptor()
+	// user.DefaultAcademicTitle holds the default value on creation for the academic_title field.
+	user.DefaultAcademicTitle = userDescAcademicTitle.Default.(string)
+	// userDescHonors is the schema descriptor for honors field.
+	userDescHonors := userFields[13].Descriptor()
+	// user.DefaultHonors holds the default value on creation for the honors field.
+	user.DefaultHonors = userDescHonors.Default.(string)
+	// userDescCategory is the schema descriptor for category field.
+	userDescCategory := userFields[14].Descriptor()
+	// user.DefaultCategory holds the default value on creation for the category field.
+	user.DefaultCategory = userDescCategory.Default.(string)
+	// userDescCreatedAt is the schema descriptor for created_at field.
+	userDescCreatedAt := userFields[17].Descriptor()
+	// user.DefaultCreatedAt holds the default value on creation for the created_at field.
+	user.DefaultCreatedAt = userDescCreatedAt.Default.(func() time.Time)
+	// userDescUpdatedAt is the schema descriptor for updated_at field.
+	userDescUpdatedAt := userFields[18].Descriptor()
+	// user.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	user.DefaultUpdatedAt = userDescUpdatedAt.Default.(func() time.Time)
+	// userDescID is the schema descriptor for id field.
+	userDescID := userFields[0].Descriptor()
+	// user.DefaultID holds the default value on creation for the id field.
+	user.DefaultID = userDescID.Default.(func() uuid.UUID)
+}
 
 const (
 	Version = "v0.14.4"                                         // Version of ent codegen.

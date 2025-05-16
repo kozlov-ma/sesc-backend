@@ -2,46 +2,4 @@
 
 package ent
 
-import (
-	uuid "github.com/gofrs/uuid/v5"
-	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/authuser"
-	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/department"
-	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/schema"
-	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/user"
-)
-
-// The init function reads all schema descriptors with runtime code
-// (default values, validators, hooks and policies) and stitches it
-// to their package variables.
-func init() {
-	authuserFields := schema.AuthUser{}.Fields()
-	_ = authuserFields
-	// authuserDescUsername is the schema descriptor for username field.
-	authuserDescUsername := authuserFields[0].Descriptor()
-	// authuser.UsernameValidator is a validator for the "username" field. It is called by the builders before save.
-	authuser.UsernameValidator = authuserDescUsername.Validators[0].(func(string) error)
-	// authuserDescPassword is the schema descriptor for password field.
-	authuserDescPassword := authuserFields[1].Descriptor()
-	// authuser.PasswordValidator is a validator for the "password" field. It is called by the builders before save.
-	authuser.PasswordValidator = authuserDescPassword.Validators[0].(func(string) error)
-	departmentFields := schema.Department{}.Fields()
-	_ = departmentFields
-	// departmentDescName is the schema descriptor for name field.
-	departmentDescName := departmentFields[1].Descriptor()
-	// department.NameValidator is a validator for the "name" field. It is called by the builders before save.
-	department.NameValidator = departmentDescName.Validators[0].(func(string) error)
-	userFields := schema.User{}.Fields()
-	_ = userFields
-	// userDescMiddleName is the schema descriptor for middle_name field.
-	userDescMiddleName := userFields[3].Descriptor()
-	// user.DefaultMiddleName holds the default value on creation for the middle_name field.
-	user.DefaultMiddleName = userDescMiddleName.Default.(string)
-	// userDescSuspended is the schema descriptor for suspended field.
-	userDescSuspended := userFields[5].Descriptor()
-	// user.DefaultSuspended holds the default value on creation for the suspended field.
-	user.DefaultSuspended = userDescSuspended.Default.(bool)
-	// userDescID is the schema descriptor for id field.
-	userDescID := userFields[0].Descriptor()
-	// user.DefaultID holds the default value on creation for the id field.
-	user.DefaultID = userDescID.Default.(func() uuid.UUID)
-}
+// The schema-stitching logic is generated in github.com/kozlov-ma/sesc-backend/db/entdb/ent/runtime/runtime.go

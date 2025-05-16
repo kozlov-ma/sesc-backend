@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -147,6 +148,180 @@ func (uu *UserUpdate) AddRoleID(i int32) *UserUpdate {
 	return uu
 }
 
+// SetSubdivision sets the "subdivision" field.
+func (uu *UserUpdate) SetSubdivision(s string) *UserUpdate {
+	uu.mutation.SetSubdivision(s)
+	return uu
+}
+
+// SetNillableSubdivision sets the "subdivision" field if the given value is not nil.
+func (uu *UserUpdate) SetNillableSubdivision(s *string) *UserUpdate {
+	if s != nil {
+		uu.SetSubdivision(*s)
+	}
+	return uu
+}
+
+// SetJobTitle sets the "job_title" field.
+func (uu *UserUpdate) SetJobTitle(s string) *UserUpdate {
+	uu.mutation.SetJobTitle(s)
+	return uu
+}
+
+// SetNillableJobTitle sets the "job_title" field if the given value is not nil.
+func (uu *UserUpdate) SetNillableJobTitle(s *string) *UserUpdate {
+	if s != nil {
+		uu.SetJobTitle(*s)
+	}
+	return uu
+}
+
+// SetEmploymentRate sets the "employment_rate" field.
+func (uu *UserUpdate) SetEmploymentRate(f float64) *UserUpdate {
+	uu.mutation.ResetEmploymentRate()
+	uu.mutation.SetEmploymentRate(f)
+	return uu
+}
+
+// SetNillableEmploymentRate sets the "employment_rate" field if the given value is not nil.
+func (uu *UserUpdate) SetNillableEmploymentRate(f *float64) *UserUpdate {
+	if f != nil {
+		uu.SetEmploymentRate(*f)
+	}
+	return uu
+}
+
+// AddEmploymentRate adds f to the "employment_rate" field.
+func (uu *UserUpdate) AddEmploymentRate(f float64) *UserUpdate {
+	uu.mutation.AddEmploymentRate(f)
+	return uu
+}
+
+// SetAcademicDegree sets the "academic_degree" field.
+func (uu *UserUpdate) SetAcademicDegree(i int) *UserUpdate {
+	uu.mutation.ResetAcademicDegree()
+	uu.mutation.SetAcademicDegree(i)
+	return uu
+}
+
+// SetNillableAcademicDegree sets the "academic_degree" field if the given value is not nil.
+func (uu *UserUpdate) SetNillableAcademicDegree(i *int) *UserUpdate {
+	if i != nil {
+		uu.SetAcademicDegree(*i)
+	}
+	return uu
+}
+
+// AddAcademicDegree adds i to the "academic_degree" field.
+func (uu *UserUpdate) AddAcademicDegree(i int) *UserUpdate {
+	uu.mutation.AddAcademicDegree(i)
+	return uu
+}
+
+// SetAcademicTitle sets the "academic_title" field.
+func (uu *UserUpdate) SetAcademicTitle(s string) *UserUpdate {
+	uu.mutation.SetAcademicTitle(s)
+	return uu
+}
+
+// SetNillableAcademicTitle sets the "academic_title" field if the given value is not nil.
+func (uu *UserUpdate) SetNillableAcademicTitle(s *string) *UserUpdate {
+	if s != nil {
+		uu.SetAcademicTitle(*s)
+	}
+	return uu
+}
+
+// SetHonors sets the "honors" field.
+func (uu *UserUpdate) SetHonors(s string) *UserUpdate {
+	uu.mutation.SetHonors(s)
+	return uu
+}
+
+// SetNillableHonors sets the "honors" field if the given value is not nil.
+func (uu *UserUpdate) SetNillableHonors(s *string) *UserUpdate {
+	if s != nil {
+		uu.SetHonors(*s)
+	}
+	return uu
+}
+
+// SetCategory sets the "category" field.
+func (uu *UserUpdate) SetCategory(s string) *UserUpdate {
+	uu.mutation.SetCategory(s)
+	return uu
+}
+
+// SetNillableCategory sets the "category" field if the given value is not nil.
+func (uu *UserUpdate) SetNillableCategory(s *string) *UserUpdate {
+	if s != nil {
+		uu.SetCategory(*s)
+	}
+	return uu
+}
+
+// SetDateOfEmployment sets the "date_of_employment" field.
+func (uu *UserUpdate) SetDateOfEmployment(t time.Time) *UserUpdate {
+	uu.mutation.SetDateOfEmployment(t)
+	return uu
+}
+
+// SetNillableDateOfEmployment sets the "date_of_employment" field if the given value is not nil.
+func (uu *UserUpdate) SetNillableDateOfEmployment(t *time.Time) *UserUpdate {
+	if t != nil {
+		uu.SetDateOfEmployment(*t)
+	}
+	return uu
+}
+
+// SetUnemploymentDate sets the "unemployment_date" field.
+func (uu *UserUpdate) SetUnemploymentDate(t time.Time) *UserUpdate {
+	uu.mutation.SetUnemploymentDate(t)
+	return uu
+}
+
+// SetNillableUnemploymentDate sets the "unemployment_date" field if the given value is not nil.
+func (uu *UserUpdate) SetNillableUnemploymentDate(t *time.Time) *UserUpdate {
+	if t != nil {
+		uu.SetUnemploymentDate(*t)
+	}
+	return uu
+}
+
+// ClearUnemploymentDate clears the value of the "unemployment_date" field.
+func (uu *UserUpdate) ClearUnemploymentDate() *UserUpdate {
+	uu.mutation.ClearUnemploymentDate()
+	return uu
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (uu *UserUpdate) SetCreatedAt(t time.Time) *UserUpdate {
+	uu.mutation.SetCreatedAt(t)
+	return uu
+}
+
+// SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
+func (uu *UserUpdate) SetNillableCreatedAt(t *time.Time) *UserUpdate {
+	if t != nil {
+		uu.SetCreatedAt(*t)
+	}
+	return uu
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (uu *UserUpdate) SetUpdatedAt(t time.Time) *UserUpdate {
+	uu.mutation.SetUpdatedAt(t)
+	return uu
+}
+
+// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
+func (uu *UserUpdate) SetNillableUpdatedAt(t *time.Time) *UserUpdate {
+	if t != nil {
+		uu.SetUpdatedAt(*t)
+	}
+	return uu
+}
+
 // SetDepartment sets the "department" edge to the Department entity.
 func (uu *UserUpdate) SetDepartment(d *Department) *UserUpdate {
 	return uu.SetDepartmentID(d.ID)
@@ -247,6 +422,48 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := uu.mutation.AddedRoleID(); ok {
 		_spec.AddField(user.FieldRoleID, field.TypeInt32, value)
+	}
+	if value, ok := uu.mutation.Subdivision(); ok {
+		_spec.SetField(user.FieldSubdivision, field.TypeString, value)
+	}
+	if value, ok := uu.mutation.JobTitle(); ok {
+		_spec.SetField(user.FieldJobTitle, field.TypeString, value)
+	}
+	if value, ok := uu.mutation.EmploymentRate(); ok {
+		_spec.SetField(user.FieldEmploymentRate, field.TypeFloat64, value)
+	}
+	if value, ok := uu.mutation.AddedEmploymentRate(); ok {
+		_spec.AddField(user.FieldEmploymentRate, field.TypeFloat64, value)
+	}
+	if value, ok := uu.mutation.AcademicDegree(); ok {
+		_spec.SetField(user.FieldAcademicDegree, field.TypeInt, value)
+	}
+	if value, ok := uu.mutation.AddedAcademicDegree(); ok {
+		_spec.AddField(user.FieldAcademicDegree, field.TypeInt, value)
+	}
+	if value, ok := uu.mutation.AcademicTitle(); ok {
+		_spec.SetField(user.FieldAcademicTitle, field.TypeString, value)
+	}
+	if value, ok := uu.mutation.Honors(); ok {
+		_spec.SetField(user.FieldHonors, field.TypeString, value)
+	}
+	if value, ok := uu.mutation.Category(); ok {
+		_spec.SetField(user.FieldCategory, field.TypeString, value)
+	}
+	if value, ok := uu.mutation.DateOfEmployment(); ok {
+		_spec.SetField(user.FieldDateOfEmployment, field.TypeTime, value)
+	}
+	if value, ok := uu.mutation.UnemploymentDate(); ok {
+		_spec.SetField(user.FieldUnemploymentDate, field.TypeTime, value)
+	}
+	if uu.mutation.UnemploymentDateCleared() {
+		_spec.ClearField(user.FieldUnemploymentDate, field.TypeTime)
+	}
+	if value, ok := uu.mutation.CreatedAt(); ok {
+		_spec.SetField(user.FieldCreatedAt, field.TypeTime, value)
+	}
+	if value, ok := uu.mutation.UpdatedAt(); ok {
+		_spec.SetField(user.FieldUpdatedAt, field.TypeTime, value)
 	}
 	if uu.mutation.DepartmentCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -443,6 +660,180 @@ func (uuo *UserUpdateOne) AddRoleID(i int32) *UserUpdateOne {
 	return uuo
 }
 
+// SetSubdivision sets the "subdivision" field.
+func (uuo *UserUpdateOne) SetSubdivision(s string) *UserUpdateOne {
+	uuo.mutation.SetSubdivision(s)
+	return uuo
+}
+
+// SetNillableSubdivision sets the "subdivision" field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableSubdivision(s *string) *UserUpdateOne {
+	if s != nil {
+		uuo.SetSubdivision(*s)
+	}
+	return uuo
+}
+
+// SetJobTitle sets the "job_title" field.
+func (uuo *UserUpdateOne) SetJobTitle(s string) *UserUpdateOne {
+	uuo.mutation.SetJobTitle(s)
+	return uuo
+}
+
+// SetNillableJobTitle sets the "job_title" field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableJobTitle(s *string) *UserUpdateOne {
+	if s != nil {
+		uuo.SetJobTitle(*s)
+	}
+	return uuo
+}
+
+// SetEmploymentRate sets the "employment_rate" field.
+func (uuo *UserUpdateOne) SetEmploymentRate(f float64) *UserUpdateOne {
+	uuo.mutation.ResetEmploymentRate()
+	uuo.mutation.SetEmploymentRate(f)
+	return uuo
+}
+
+// SetNillableEmploymentRate sets the "employment_rate" field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableEmploymentRate(f *float64) *UserUpdateOne {
+	if f != nil {
+		uuo.SetEmploymentRate(*f)
+	}
+	return uuo
+}
+
+// AddEmploymentRate adds f to the "employment_rate" field.
+func (uuo *UserUpdateOne) AddEmploymentRate(f float64) *UserUpdateOne {
+	uuo.mutation.AddEmploymentRate(f)
+	return uuo
+}
+
+// SetAcademicDegree sets the "academic_degree" field.
+func (uuo *UserUpdateOne) SetAcademicDegree(i int) *UserUpdateOne {
+	uuo.mutation.ResetAcademicDegree()
+	uuo.mutation.SetAcademicDegree(i)
+	return uuo
+}
+
+// SetNillableAcademicDegree sets the "academic_degree" field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableAcademicDegree(i *int) *UserUpdateOne {
+	if i != nil {
+		uuo.SetAcademicDegree(*i)
+	}
+	return uuo
+}
+
+// AddAcademicDegree adds i to the "academic_degree" field.
+func (uuo *UserUpdateOne) AddAcademicDegree(i int) *UserUpdateOne {
+	uuo.mutation.AddAcademicDegree(i)
+	return uuo
+}
+
+// SetAcademicTitle sets the "academic_title" field.
+func (uuo *UserUpdateOne) SetAcademicTitle(s string) *UserUpdateOne {
+	uuo.mutation.SetAcademicTitle(s)
+	return uuo
+}
+
+// SetNillableAcademicTitle sets the "academic_title" field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableAcademicTitle(s *string) *UserUpdateOne {
+	if s != nil {
+		uuo.SetAcademicTitle(*s)
+	}
+	return uuo
+}
+
+// SetHonors sets the "honors" field.
+func (uuo *UserUpdateOne) SetHonors(s string) *UserUpdateOne {
+	uuo.mutation.SetHonors(s)
+	return uuo
+}
+
+// SetNillableHonors sets the "honors" field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableHonors(s *string) *UserUpdateOne {
+	if s != nil {
+		uuo.SetHonors(*s)
+	}
+	return uuo
+}
+
+// SetCategory sets the "category" field.
+func (uuo *UserUpdateOne) SetCategory(s string) *UserUpdateOne {
+	uuo.mutation.SetCategory(s)
+	return uuo
+}
+
+// SetNillableCategory sets the "category" field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableCategory(s *string) *UserUpdateOne {
+	if s != nil {
+		uuo.SetCategory(*s)
+	}
+	return uuo
+}
+
+// SetDateOfEmployment sets the "date_of_employment" field.
+func (uuo *UserUpdateOne) SetDateOfEmployment(t time.Time) *UserUpdateOne {
+	uuo.mutation.SetDateOfEmployment(t)
+	return uuo
+}
+
+// SetNillableDateOfEmployment sets the "date_of_employment" field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableDateOfEmployment(t *time.Time) *UserUpdateOne {
+	if t != nil {
+		uuo.SetDateOfEmployment(*t)
+	}
+	return uuo
+}
+
+// SetUnemploymentDate sets the "unemployment_date" field.
+func (uuo *UserUpdateOne) SetUnemploymentDate(t time.Time) *UserUpdateOne {
+	uuo.mutation.SetUnemploymentDate(t)
+	return uuo
+}
+
+// SetNillableUnemploymentDate sets the "unemployment_date" field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableUnemploymentDate(t *time.Time) *UserUpdateOne {
+	if t != nil {
+		uuo.SetUnemploymentDate(*t)
+	}
+	return uuo
+}
+
+// ClearUnemploymentDate clears the value of the "unemployment_date" field.
+func (uuo *UserUpdateOne) ClearUnemploymentDate() *UserUpdateOne {
+	uuo.mutation.ClearUnemploymentDate()
+	return uuo
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (uuo *UserUpdateOne) SetCreatedAt(t time.Time) *UserUpdateOne {
+	uuo.mutation.SetCreatedAt(t)
+	return uuo
+}
+
+// SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableCreatedAt(t *time.Time) *UserUpdateOne {
+	if t != nil {
+		uuo.SetCreatedAt(*t)
+	}
+	return uuo
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (uuo *UserUpdateOne) SetUpdatedAt(t time.Time) *UserUpdateOne {
+	uuo.mutation.SetUpdatedAt(t)
+	return uuo
+}
+
+// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableUpdatedAt(t *time.Time) *UserUpdateOne {
+	if t != nil {
+		uuo.SetUpdatedAt(*t)
+	}
+	return uuo
+}
+
 // SetDepartment sets the "department" edge to the Department entity.
 func (uuo *UserUpdateOne) SetDepartment(d *Department) *UserUpdateOne {
 	return uuo.SetDepartmentID(d.ID)
@@ -573,6 +964,48 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 	}
 	if value, ok := uuo.mutation.AddedRoleID(); ok {
 		_spec.AddField(user.FieldRoleID, field.TypeInt32, value)
+	}
+	if value, ok := uuo.mutation.Subdivision(); ok {
+		_spec.SetField(user.FieldSubdivision, field.TypeString, value)
+	}
+	if value, ok := uuo.mutation.JobTitle(); ok {
+		_spec.SetField(user.FieldJobTitle, field.TypeString, value)
+	}
+	if value, ok := uuo.mutation.EmploymentRate(); ok {
+		_spec.SetField(user.FieldEmploymentRate, field.TypeFloat64, value)
+	}
+	if value, ok := uuo.mutation.AddedEmploymentRate(); ok {
+		_spec.AddField(user.FieldEmploymentRate, field.TypeFloat64, value)
+	}
+	if value, ok := uuo.mutation.AcademicDegree(); ok {
+		_spec.SetField(user.FieldAcademicDegree, field.TypeInt, value)
+	}
+	if value, ok := uuo.mutation.AddedAcademicDegree(); ok {
+		_spec.AddField(user.FieldAcademicDegree, field.TypeInt, value)
+	}
+	if value, ok := uuo.mutation.AcademicTitle(); ok {
+		_spec.SetField(user.FieldAcademicTitle, field.TypeString, value)
+	}
+	if value, ok := uuo.mutation.Honors(); ok {
+		_spec.SetField(user.FieldHonors, field.TypeString, value)
+	}
+	if value, ok := uuo.mutation.Category(); ok {
+		_spec.SetField(user.FieldCategory, field.TypeString, value)
+	}
+	if value, ok := uuo.mutation.DateOfEmployment(); ok {
+		_spec.SetField(user.FieldDateOfEmployment, field.TypeTime, value)
+	}
+	if value, ok := uuo.mutation.UnemploymentDate(); ok {
+		_spec.SetField(user.FieldUnemploymentDate, field.TypeTime, value)
+	}
+	if uuo.mutation.UnemploymentDateCleared() {
+		_spec.ClearField(user.FieldUnemploymentDate, field.TypeTime)
+	}
+	if value, ok := uuo.mutation.CreatedAt(); ok {
+		_spec.SetField(user.FieldCreatedAt, field.TypeTime, value)
+	}
+	if value, ok := uuo.mutation.UpdatedAt(); ok {
+		_spec.SetField(user.FieldUpdatedAt, field.TypeTime, value)
 	}
 	if uuo.mutation.DepartmentCleared() {
 		edge := &sqlgraph.EdgeSpec{
