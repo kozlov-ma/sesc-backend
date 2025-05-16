@@ -1,0 +1,19 @@
+postgres:
+  address: "postgres://postgres:password@localhost:5432/postgres?sslmode=disable"
+
+http:
+  server_address: ":8080"
+  read_header_timeout: 300ms
+  read_timeout: 10s
+  write_timeout: 10s
+
+jwt_secret: "your_secret_key_here"
+
+admin_credentials:
+  - id: "f1157f63-65dc-4c3d-bcb2-4d6d55d2e3fd"
+    username: "admin"
+    password: "admin"
+  # You can add more admin credentials here if needed:
+  # - id: "00000000-0000-0000-0000-000000000000"
+  #   username: "another_admin"
+  #   password: "secure_password"
