@@ -1,13 +1,16 @@
 package api
 
 import (
+	"context"
 	"encoding/json"
-	"log/slog"
+	"fmt"
 	"net/http"
 	"net/url"
 
 	"github.com/go-chi/chi/v5"
 	_ "github.com/kozlov-ma/sesc-backend/api/docs" // This blank import is needed to serve the swagger scheme.
+	"github.com/kozlov-ma/sesc-backend/pkg/event"
+	"github.com/kozlov-ma/sesc-backend/pkg/event/events"
 	"github.com/kozlov-ma/sesc-backend/sesc"
 	httpSwagger "github.com/swaggo/http-swagger"
 )
@@ -21,35 +24,37 @@ import (
 // @description Enter 'Bearer ' followed by your token
 
 type API struct {
-	log  *slog.Logger
-	sesc SESC
-	iam  IAMService
+	sesc      SESC
+	iam       IAMService
+	eventSink EventSink
 }
 
-func New(log *slog.Logger, sesc SESC, iam IAMService) *API {
-	return &API{log: log, sesc: sesc, iam: iam}
+func New(sesc SESC, iam IAMService, eventSink EventSink) *API {
+	return &API{sesc: sesc, iam: iam, eventSink: eventSink}
 }
 
 // Helper functions
-func (a *API) writeJSON(w http.ResponseWriter, data any, statusCode int) {
+func (a *API) writeJSON(ctx context.Context, w http.ResponseWriter, data any, statusCode int) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(statusCode)
 	if err := json.NewEncoder(w).Encode(data); err != nil {
-		a.log.Error("couldn't write json", "error", err)
+		rec := event.Get(ctx)
+		rec.Add(events.Error, fmt.Errorf("couldn't write json: %w", err))
 	}
 }
 
-func writeError[T SpecificError](a *API, w http.ResponseWriter, apiError T, statusCode int) {
+func writeError[T SpecificError](ctx context.Context, w http.ResponseWriter, apiError T, statusCode int) {
+	rec := event.Get(ctx)
+
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(statusCode)
 
-	// Convert the specific error type to a generic Error
 	genericError := ToError(apiError)
+	rec.Sub("http").Add("error_response", genericError)
 
 	err := json.NewEncoder(w).Encode(genericError)
-
 	if err != nil {
-		a.log.Error("couldn't write json", "error", err)
+		rec.Add(events.Error, fmt.Errorf("couldn't write json: %w", err))
 	}
 }
 
@@ -98,6 +103,8 @@ func isOriginAllowed(origin string) bool {
 }
 
 func (a *API) RegisterRoutes(r chi.Router) {
+	r.Use(a.EventMiddleware)
+
 	// Apply global middlewares
 	r.Use(corsMiddleware)
 	r.Use(a.AuthMiddleware)

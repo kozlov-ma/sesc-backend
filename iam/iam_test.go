@@ -2,13 +2,13 @@ package iam
 
 import (
 	"context"
-	"log/slog"
 	"testing"
 	"time"
 
 	"github.com/gofrs/uuid/v5"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/enttest"
+	"github.com/kozlov-ma/sesc-backend/pkg/event"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/stretchr/testify/require"
 )
@@ -21,13 +21,15 @@ func setupIAM(t *testing.T) *IAM {
 	})
 
 	return New(
-		slog.New(slog.DiscardHandler),
 		client,
 		time.Hour,
-		[]Credentials{
+		[]AdminCredentials{
 			{
-				Username: "admin",
-				Password: "admin",
+				ID: uuid.Must(uuid.NewV7()),
+				Credentials: Credentials{
+					Username: "admin",
+					Password: "admin",
+				},
 			},
 		},
 		[]byte("testkey"),
@@ -50,6 +52,7 @@ func createTestUser(ctx context.Context, t *testing.T, client *ent.Client) uuid.
 func TestRegisterCredentials(t *testing.T) {
 	setup := func(t *testing.T) (ctx context.Context, iam *IAM, userID uuid.UUID) {
 		ctx = t.Context()
+		ctx, _ = event.NewRecord(ctx, "test")
 		iam = setupIAM(t)
 		userID = createTestUser(ctx, t, iam.client)
 		return ctx, iam, userID
@@ -112,6 +115,7 @@ func TestRegisterCredentials(t *testing.T) {
 func TestLogin(t *testing.T) {
 	setup := func(t *testing.T) (ctx context.Context, iam *IAM, creds Credentials) {
 		ctx = t.Context()
+		ctx, _ = event.NewRecord(ctx, "test")
 		iam = setupIAM(t)
 		userID := createTestUser(ctx, t, iam.client)
 		creds = Credentials{
@@ -155,6 +159,7 @@ func TestLogin(t *testing.T) {
 func TestLoginAdmin(t *testing.T) {
 	setup := func(t *testing.T) (ctx context.Context, iam *IAM) {
 		ctx = t.Context()
+		ctx, _ = event.NewRecord(ctx, "test")
 		iam = setupIAM(t)
 		return ctx, iam
 	}
@@ -182,6 +187,7 @@ func TestLoginAdmin(t *testing.T) {
 func TestDropCredentials(t *testing.T) {
 	setup := func(t *testing.T) (ctx context.Context, iam *IAM, userID uuid.UUID) {
 		ctx = t.Context()
+		ctx, _ = event.NewRecord(ctx, "test")
 		iam = setupIAM(t)
 		userID = createTestUser(ctx, t, iam.client)
 		creds := Credentials{
@@ -224,6 +230,7 @@ func TestDropCredentials(t *testing.T) {
 func TestImWatermelon(t *testing.T) {
 	setup := func(t *testing.T) (ctx context.Context, iam *IAM, userID uuid.UUID, token string) {
 		ctx = t.Context()
+		ctx, _ = event.NewRecord(ctx, "test")
 		iam = setupIAM(t)
 		userID = createTestUser(ctx, t, iam.client)
 		creds := Credentials{
@@ -257,6 +264,7 @@ func TestImWatermelon(t *testing.T) {
 func TestCredentials(t *testing.T) {
 	setup := func(t *testing.T) (ctx context.Context, iam *IAM, userID uuid.UUID, originalCreds Credentials) {
 		ctx = t.Context()
+		ctx, _ = event.NewRecord(ctx, "test")
 		iam = setupIAM(t)
 		userID = createTestUser(ctx, t, iam.client)
 		originalCreds = Credentials{

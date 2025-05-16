@@ -10,10 +10,11 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/kozlov-ma/sesc-backend/api"
-	"github.com/kozlov-ma/sesc-backend/db/entdb"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/migrate"
 	"github.com/kozlov-ma/sesc-backend/iam"
+	"github.com/kozlov-ma/sesc-backend/internal/config"
+	"github.com/kozlov-ma/sesc-backend/internal/slogsink"
 	"github.com/kozlov-ma/sesc-backend/sesc"
 	_ "github.com/lib/pq"
 )
@@ -23,7 +24,13 @@ func main() {
 
 	log := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}))
 
-	client, err := ent.Open("postgres", os.Getenv("POSTGRES_ADDRESS"))
+	cfg, err := config.LoadConfig()
+	if err != nil {
+		log.ErrorContext(ctx, "failed to load configuration", "error", err)
+		return
+	}
+
+	client, err := ent.Open("postgres", cfg.Postgres.Address)
 	if err != nil {
 		log.ErrorContext(ctx, "failed to set up database", "error", err)
 		return
@@ -40,28 +47,26 @@ func main() {
 		return
 	}
 
-	db := entdb.New(log, client)
+	adminCredentials, err := cfg.ToIAMAdminCredentials()
+	if err != nil {
+		log.ErrorContext(ctx, "failed to convert admin credentials", "error", err)
+		return
+	}
 
-	iam := iam.New(log, client, 7*24*time.Hour, []iam.Credentials{
-		{
-			Username: "admin",
-			Password: "admin",
-		},
-	}, []byte("dinahu"))
+	iamService := iam.New(client, 7*24*time.Hour, adminCredentials, []byte(cfg.JWTSecret))
 
-	sesc := sesc.New(log, db)
-	api := api.New(log, sesc, iam)
+	sescService := sesc.New(client)
+	apiService := api.New(sescService, iamService, slogsink.New(log))
 
 	router := chi.NewRouter()
-
-	api.RegisterRoutes(router)
-
-	const readHeaderTimeout = 300 * time.Millisecond // Put in config.
+	apiService.RegisterRoutes(router)
 
 	srv := &http.Server{
-		Addr:              ":8080",
+		Addr:              cfg.HTTP.ServerAddress,
 		Handler:           router,
-		ReadHeaderTimeout: readHeaderTimeout,
+		ReadHeaderTimeout: cfg.HTTP.ReadHeaderTimeout,
+		ReadTimeout:       cfg.HTTP.ReadTimeout,
+		WriteTimeout:      cfg.HTTP.WriteTimeout,
 	}
 
 	go func() {
@@ -71,7 +76,7 @@ func main() {
 		}
 	}()
 
-	log.InfoContext(ctx, "starting server")
+	log.InfoContext(ctx, "starting server", "address", cfg.HTTP.ServerAddress)
 	if err := srv.ListenAndServe(); err != http.ErrServerClosed {
 		log.ErrorContext(ctx, "failed to start server", "error", err)
 	}

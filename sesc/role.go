@@ -1,6 +1,8 @@
 //nolint:mnd // the only magic numbers here are ids
 package sesc
 
+import "github.com/kozlov-ma/sesc-backend/pkg/event"
+
 // Role is a standartized set of Permissions granted to a User influenced
 // by their role in the organization.
 //
@@ -9,6 +11,13 @@ type Role struct {
 	ID          int32
 	Name        string
 	Permissions []Permission
+}
+
+func (r Role) EventRecord() *event.Record {
+	return event.Group(
+		"id", r.ID,
+		"name", r.Name,
+	)
 }
 
 func (r Role) HasPermission(p Permission) bool {

@@ -1,11 +1,13 @@
 package api
 
 import (
+	"fmt"
 	"net/http"
 	"slices"
 
 	"github.com/brianvoe/gofakeit/v7"
 	"github.com/kozlov-ma/sesc-backend/iam"
+	"github.com/kozlov-ma/sesc-backend/pkg/event"
 	"github.com/kozlov-ma/sesc-backend/sesc"
 )
 
@@ -20,6 +22,7 @@ import (
 // @Router /dev/fakedata [post]
 func (a *API) FakeData(_ http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
+	rec := event.Get(ctx)
 
 	var fakeDepartments = []sesc.Department{
 		{
@@ -60,7 +63,7 @@ func (a *API) FakeData(_ http.ResponseWriter, r *http.Request) {
 	for _, d := range fakeDepartments {
 		de, err := a.sesc.CreateDepartment(ctx, d.Name, d.Description)
 		if err != nil {
-			a.log.WarnContext(ctx, "couldn't create department", "name", d.Name, "error", err)
+			rec.Add("error", fmt.Errorf("couldn't create department: %w", err))
 		}
 
 		depts = append(depts, de)
@@ -118,7 +121,7 @@ func (a *API) FakeData(_ http.ResponseWriter, r *http.Request) {
 	for _, u := range allUsers {
 		us, err := a.sesc.CreateUser(ctx, u)
 		if err != nil {
-			a.log.ErrorContext(ctx, "couldn't create user", "error", err)
+			rec.Add("error", fmt.Errorf("couldn't create user: %w", err))
 			continue
 		}
 
@@ -127,10 +130,8 @@ func (a *API) FakeData(_ http.ResponseWriter, r *http.Request) {
 			Password: "password",
 		})
 		if err != nil {
-			a.log.ErrorContext(ctx, "couldn't register user credentials", "error", err)
+			rec.Add("error", fmt.Errorf("couldn't create user: %w", err))
 			continue
 		}
 	}
-
-	a.log.InfoContext(ctx, "created fake data")
 }

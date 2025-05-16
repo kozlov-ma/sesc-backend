@@ -1,5 +1,7 @@
 package sesc
 
+import "github.com/kozlov-ma/sesc-backend/pkg/event"
+
 // User represents a SESC employee that participates in the achievement list
 // filling and review processes.
 //
@@ -23,6 +25,18 @@ type User struct {
 	Department Department
 
 	Role Role
+}
+
+func (u User) EventRecord() *event.Record {
+	return event.Group(
+		"id", u.ID,
+		"first_name", u.FirstName,
+		"suspended", u.Suspended,
+		"department_id", u.Department.ID,
+		"department", u.Department,
+		"role_id", u.Role.ID,
+		"role", u.Role,
+	)
 }
 
 func (u User) HasPermission(permission Permission) bool {

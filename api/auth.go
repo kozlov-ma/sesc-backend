@@ -7,6 +7,8 @@ import (
 
 	"github.com/gofrs/uuid/v5"
 	"github.com/kozlov-ma/sesc-backend/iam"
+	"github.com/kozlov-ma/sesc-backend/pkg/event"
+	"github.com/kozlov-ma/sesc-backend/pkg/event/events"
 )
 
 type CredentialsRequest struct {
@@ -45,18 +47,19 @@ type IdentityResponse struct {
 // @Router /users/{id}/credentials [put]
 func (a *API) RegisterUser(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
+	rec := event.Get(ctx)
 
 	// Get userID from path parameter
 	idStr := r.PathValue("id")
 	userID, err := uuid.FromString(idStr)
 	if err != nil {
-		writeError(a, w, ErrInvalidUUID, http.StatusBadRequest)
+		writeError(ctx, w, ErrInvalidUUID, http.StatusBadRequest)
 		return
 	}
 
 	var credsReq CredentialsRequest
 	if err := json.NewDecoder(r.Body).Decode(&credsReq); err != nil {
-		writeError(a, w, ErrInvalidRequest, http.StatusBadRequest)
+		writeError(ctx, w, ErrInvalidRequest, http.StatusBadRequest)
 		return
 	}
 
@@ -65,23 +68,25 @@ func (a *API) RegisterUser(w http.ResponseWriter, r *http.Request) {
 		Password: credsReq.Password,
 	}
 
+	ctx = rec.Sub("iam/register_credentials").Wrap(ctx)
 	authID, err := a.iam.RegisterCredentials(ctx, userID, creds)
 	switch {
 	case errors.Is(err, iam.ErrInvalidCredentials):
-		writeError(a, w, ErrInvalidCredentials, http.StatusBadRequest)
+		writeError(ctx, w, ErrInvalidCredentials, http.StatusBadRequest)
 		return
 	case errors.Is(err, iam.ErrUserNotFound):
-		writeError(a, w, ErrUserNotFound, http.StatusNotFound)
+		writeError(ctx, w, ErrUserNotFound, http.StatusNotFound)
 		return
 	case errors.Is(err, iam.ErrCredentialsAlreadyExist):
-		writeError(a, w, ErrUserExists, http.StatusConflict)
+		writeError(ctx, w, ErrUserExists, http.StatusConflict)
 		return
 	case err != nil:
-		writeError(a, w, ErrServerError.WithDetails("Failed to register user"), http.StatusInternalServerError)
+		rec.Add(events.Error, err)
+		writeError(ctx, w, ErrServerError.WithDetails("Failed to register user"), http.StatusInternalServerError)
 		return
 	}
 
-	a.writeJSON(w, map[string]uuid.UUID{"authId": authID}, http.StatusCreated)
+	a.writeJSON(ctx, w, map[string]uuid.UUID{"authId": authID}, http.StatusCreated)
 }
 
 // Login godoc
@@ -98,10 +103,11 @@ func (a *API) RegisterUser(w http.ResponseWriter, r *http.Request) {
 // @Router /auth/login [post]
 func (a *API) Login(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
+	rec := event.Get(ctx)
 	var credsReq CredentialsRequest
 
 	if err := json.NewDecoder(r.Body).Decode(&credsReq); err != nil {
-		writeError(a, w, ErrInvalidRequest, http.StatusBadRequest)
+		writeError(ctx, w, ErrInvalidRequest, http.StatusBadRequest)
 		return
 	}
 
@@ -110,17 +116,23 @@ func (a *API) Login(w http.ResponseWriter, r *http.Request) {
 		Password: credsReq.Password,
 	}
 
+	ctx = rec.Sub("iam/login").Wrap(ctx)
 	token, err := a.iam.Login(ctx, creds)
 	switch {
 	case errors.Is(err, iam.ErrUserNotFound):
-		writeError(a, w, ErrCredentialsNotFound.WithDetails("Invalid username or password"), http.StatusUnauthorized)
+		writeError(
+			ctx,
+			w,
+			ErrCredentialsNotFound.WithDetails("Invalid username or password"),
+			http.StatusUnauthorized,
+		)
 		return
 	case err != nil:
-		writeError(a, w, ErrServerError.WithDetails("Failed to login"), http.StatusInternalServerError)
+		writeError(ctx, w, ErrServerError.WithDetails("Failed to login"), http.StatusInternalServerError)
 		return
 	}
 
-	a.writeJSON(w, TokenResponse{Token: token}, http.StatusOK)
+	a.writeJSON(ctx, w, TokenResponse{Token: token}, http.StatusOK)
 }
 
 // LoginAdmin godoc
@@ -137,24 +149,26 @@ func (a *API) Login(w http.ResponseWriter, r *http.Request) {
 // @Router /auth/admin/login [post]
 func (a *API) LoginAdmin(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
+	rec := event.Get(ctx)
 	var req CredentialsRequest
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		writeError(a, w, ErrInvalidRequest, http.StatusBadRequest)
+		writeError(ctx, w, ErrInvalidRequest, http.StatusBadRequest)
 		return
 	}
 
+	ctx = rec.Sub("iam/login_admin").Wrap(ctx)
 	token, err := a.iam.LoginAdmin(ctx, iam.Credentials(req))
 	switch {
 	case errors.Is(err, iam.ErrUserNotFound):
-		writeError(a, w, ErrCredentialsNotFound.WithDetails("Invalid admin credentials"), http.StatusUnauthorized)
+		writeError(ctx, w, ErrCredentialsNotFound.WithDetails("Invalid admin credentials"), http.StatusUnauthorized)
 		return
 	case err != nil:
-		writeError(a, w, ErrServerError.WithDetails("Failed to login as admin"), http.StatusInternalServerError)
+		writeError(ctx, w, ErrServerError.WithDetails("Failed to login as admin"), http.StatusInternalServerError)
 		return
 	}
 
-	a.writeJSON(w, TokenResponse{Token: token}, http.StatusOK)
+	a.writeJSON(ctx, w, TokenResponse{Token: token}, http.StatusOK)
 }
 
 // DeleteCredentials godoc
@@ -173,21 +187,28 @@ func (a *API) LoginAdmin(w http.ResponseWriter, r *http.Request) {
 // @Router /auth/credentials/{id} [delete]
 func (a *API) DeleteCredentials(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
+	rec := event.Get(ctx)
 	idStr := r.PathValue("id")
 
 	userID, err := uuid.FromString(idStr)
 	if err != nil {
-		writeError(a, w, ErrInvalidUUID, http.StatusBadRequest)
+		writeError(ctx, w, ErrInvalidUUID, http.StatusBadRequest)
 		return
 	}
 
+	ctx = rec.Sub("iam/drop_credentials").Wrap(ctx)
 	err = a.iam.DropCredentials(ctx, userID)
 	switch {
 	case errors.Is(err, iam.ErrUserNotFound):
-		writeError(a, w, ErrCredentialsNotFound, http.StatusNotFound)
+		writeError(ctx, w, ErrCredentialsNotFound, http.StatusNotFound)
 		return
 	case err != nil:
-		writeError(a, w, ErrServerError.WithDetails("Failed to delete credentials"), http.StatusInternalServerError)
+		writeError(
+			ctx,
+			w,
+			ErrServerError.WithDetails("Failed to delete credentials"),
+			http.StatusInternalServerError,
+		)
 		return
 	}
 
@@ -210,25 +231,27 @@ func (a *API) DeleteCredentials(w http.ResponseWriter, r *http.Request) {
 // @Router /auth/credentials/{id} [get]
 func (a *API) GetCredentials(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
+	rec := event.Get(ctx)
 	idStr := r.PathValue("id")
 
 	userID, err := uuid.FromString(idStr)
 	if err != nil {
-		writeError(a, w, ErrInvalidUUID, http.StatusBadRequest)
+		writeError(ctx, w, ErrInvalidUUID, http.StatusBadRequest)
 		return
 	}
 
+	ctx = rec.Sub("iam/credentials").Wrap(ctx)
 	creds, err := a.iam.Credentials(ctx, userID)
 	switch {
 	case errors.Is(err, iam.ErrUserNotFound):
-		writeError(a, w, ErrCredentialsNotFound, http.StatusNotFound)
+		writeError(ctx, w, ErrCredentialsNotFound, http.StatusNotFound)
 		return
 	case err != nil:
-		writeError(a, w, ErrServerError, http.StatusInternalServerError)
+		writeError(ctx, w, ErrServerError, http.StatusInternalServerError)
 		return
 	}
 
-	a.writeJSON(w, CredentialsRequest{
+	a.writeJSON(ctx, w, CredentialsRequest{
 		Username: creds.Username,
 		Password: creds.Password,
 	}, http.StatusOK)
@@ -247,10 +270,11 @@ func (a *API) GetCredentials(w http.ResponseWriter, r *http.Request) {
 // @Router /auth/validate [get]
 func (a *API) ValidateToken(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
+	rec := event.Get(ctx)
 
 	authHeader := r.Header.Get("Authorization")
 	if authHeader == "" || len(authHeader) < 8 || authHeader[:7] != "Bearer " {
-		writeError(a, w, InvalidTokenError{
+		writeError(ctx, w, InvalidTokenError{
 			Code:      "INVALID_TOKEN",
 			Message:   "Missing or invalid Authorization header",
 			RuMessage: "Отсутствует или некорректный заголовок авторизации",
@@ -259,20 +283,21 @@ func (a *API) ValidateToken(w http.ResponseWriter, r *http.Request) {
 	}
 
 	tokenString := authHeader[7:]
+	ctx = rec.Sub("iam/im_watermelon").Wrap(ctx)
 	identity, err := a.iam.ImWatermelon(ctx, tokenString)
 	switch {
 	case errors.Is(err, iam.ErrInvalidToken):
-		writeError(a, w, ErrInvalidToken, http.StatusUnauthorized)
+		writeError(ctx, w, ErrInvalidToken, http.StatusUnauthorized)
 		return
 	case errors.Is(err, iam.ErrUserNotFound):
-		writeError(a, w, ErrUnauthorized, http.StatusUnauthorized)
+		writeError(ctx, w, ErrUnauthorized, http.StatusUnauthorized)
 		return
 	case err != nil:
-		writeError(a, w, ErrServerError, http.StatusInternalServerError)
+		writeError(ctx, w, ErrServerError, http.StatusInternalServerError)
 		return
 	}
 
-	a.writeJSON(w, IdentityResponse{
+	a.writeJSON(ctx, w, IdentityResponse{
 		ID:   identity.AuthID,
 		Role: string(identity.Role),
 	}, http.StatusOK)

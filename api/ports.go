@@ -5,6 +5,7 @@ import (
 
 	"github.com/gofrs/uuid/v5"
 	"github.com/kozlov-ma/sesc-backend/iam"
+	"github.com/kozlov-ma/sesc-backend/pkg/event"
 	"github.com/kozlov-ma/sesc-backend/sesc"
 )
 
@@ -56,5 +57,9 @@ type (
 		DepartmentByID(ctx context.Context, id sesc.UUID) (sesc.Department, error)
 		DeleteDepartment(ctx context.Context, id sesc.UUID) error
 		UpdateProfilePicture(ctx context.Context, id sesc.UUID, pictureURL string) error
+	}
+
+	EventSink interface {
+		ProcessEvent(*event.Record)
 	}
 )

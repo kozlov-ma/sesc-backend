@@ -3,11 +3,11 @@ package entdb
 import (
 	"context"
 	"fmt"
-	"log/slog"
 	"testing"
 
 	"github.com/gofrs/uuid/v5"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/enttest"
+	"github.com/kozlov-ma/sesc-backend/pkg/event"
 	"github.com/kozlov-ma/sesc-backend/sesc"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/stretchr/testify/require"
@@ -51,12 +51,14 @@ func setupDB(t *testing.T) *DB {
 	t.Cleanup(func() {
 		_ = client.Close()
 	})
-	return New(slog.New(slog.DiscardHandler), client)
+	return New(client)
 }
 
 func TestCreateDepartment(t *testing.T) {
 	setup := func(t *testing.T) (ctx context.Context, db *DB) {
 		ctx = t.Context()
+		ctx, _ = event.NewRecord(ctx, "test")
+
 		db = setupDB(t)
 		return ctx, db
 	}
@@ -87,6 +89,7 @@ func TestCreateDepartment(t *testing.T) {
 func TestDeleteDepartment(t *testing.T) {
 	setup := func(t *testing.T) (ctx context.Context, db *DB, id uuid.UUID) {
 		ctx = t.Context()
+		ctx, _ = event.NewRecord(ctx, "test")
 		db = setupDB(t)
 		id = uuid.Must(uuid.NewV7())
 		_, _ = db.CreateDepartment(ctx, id, "Test", "Test Dept")
@@ -130,6 +133,7 @@ func TestDeleteDepartment(t *testing.T) {
 func TestDepartmentByID(t *testing.T) {
 	setup := func(t *testing.T) (ctx context.Context, db *DB, id uuid.UUID) {
 		ctx = t.Context()
+		ctx, _ = event.NewRecord(ctx, "test")
 		db = setupDB(t)
 		id = uuid.Must(uuid.NewV7())
 		name := "Test"
@@ -159,6 +163,7 @@ func TestDepartmentByID(t *testing.T) {
 func TestDepartments(t *testing.T) {
 	setup := func(t *testing.T) (ctx context.Context, db *DB) {
 		ctx = t.Context()
+		ctx, _ = event.NewRecord(ctx, "test")
 		db = setupDB(t)
 		return ctx, db
 	}
@@ -207,6 +212,7 @@ func TestDepartments(t *testing.T) {
 func TestSaveUser(t *testing.T) {
 	setup := func(t *testing.T) (ctx context.Context, db *DB, depID uuid.UUID) {
 		ctx = t.Context()
+		ctx, _ = event.NewRecord(ctx, "test")
 		db = setupDB(t)
 		depID = uuid.Must(uuid.NewV7())
 		_, _ = db.CreateDepartment(ctx, depID, "Dep", "Dep")
@@ -290,6 +296,7 @@ func TestSaveUser(t *testing.T) {
 func TestUpdateDepartment(t *testing.T) {
 	setup := func(t *testing.T) (ctx context.Context, db *DB, id uuid.UUID) {
 		ctx = t.Context()
+		ctx, _ = event.NewRecord(ctx, "test")
 		db = setupDB(t)
 		id = uuid.Must(uuid.NewV7())
 		_, _ = db.CreateDepartment(ctx, id, "Old", "Old Desc")
@@ -321,6 +328,7 @@ func TestUpdateDepartment(t *testing.T) {
 func TestUpdateProfilePicture(t *testing.T) {
 	setup := func(t *testing.T) (ctx context.Context, db *DB, userID uuid.UUID) {
 		ctx = t.Context()
+		ctx, _ = event.NewRecord(ctx, "test")
 		db = setupDB(t)
 		userID = uuid.Must(uuid.NewV7())
 		db.c.User.Create().
@@ -363,6 +371,7 @@ func TestUpdateProfilePicture(t *testing.T) {
 func TestUpdateUser(t *testing.T) {
 	setup := func(t *testing.T) (ctx context.Context, db *DB, depID uuid.UUID, userID uuid.UUID) {
 		ctx = t.Context()
+		ctx, _ = event.NewRecord(ctx, "test")
 		db = setupDB(t)
 		depID = uuid.Must(uuid.NewV7())
 		_, _ = db.CreateDepartment(ctx, depID, "Dep", "Dep")
@@ -444,6 +453,7 @@ func TestUpdateUser(t *testing.T) {
 func TestUserByID(t *testing.T) {
 	setup := func(t *testing.T) (ctx context.Context, db *DB, userID uuid.UUID) {
 		ctx = t.Context()
+		ctx, _ = event.NewRecord(ctx, "test")
 		db = setupDB(t)
 		userID = uuid.Must(uuid.NewV7())
 		db.c.User.Create().
@@ -481,6 +491,7 @@ func TestUserByID(t *testing.T) {
 func TestUsers(t *testing.T) {
 	setup := func(t *testing.T) (ctx context.Context, db *DB) {
 		ctx = t.Context()
+		ctx, _ = event.NewRecord(ctx, "test")
 		db = setupDB(t)
 
 		user1ID := uuid.Must(uuid.NewV7())
