@@ -81,13 +81,24 @@ func (u User) HasPermission(permission Permission) bool {
 
 func (u User) UpdateOptions() UserUpdateOptions {
 	return UserUpdateOptions{
-		FirstName:    u.FirstName,
-		LastName:     u.LastName,
-		MiddleName:   u.MiddleName,
-		PictureURL:   u.PictureURL,
-		Suspended:    u.Suspended,
-		DepartmentID: u.Department.ID,
-		NewRoleID:    u.Role.ID,
+		FirstName:         u.FirstName,
+		LastName:          u.LastName,
+		MiddleName:        u.MiddleName,
+		PictureURL:        u.PictureURL,
+		Suspended:         u.Suspended,
+		DepartmentID:      u.Department.ID,
+		NewRoleID:         u.Role.ID,
+		Subdivision:       u.Subdivision,
+		JobTitle:          u.JobTitle,
+		EmploymentRate:    u.EmploymentRate,
+		PersonnelCategory: int(u.PersonnelCategory),
+		EmploymentType:    int(u.EmploymentType),
+		AcademicDegree:    int(u.AcademicDegree),
+		AcademicTitle:     u.AcademicTitle,
+		Honors:            u.Honors,
+		Category:          u.Category,
+		DateOfEmployment:  u.DateOfEmployment,
+		UnemploymentDate:  u.UnemploymentDate,
 	}
 }
 

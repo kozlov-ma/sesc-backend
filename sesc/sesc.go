@@ -59,7 +59,7 @@ func convertUser(u *ent.User) (User, error) {
 		JobTitle:          u.JobTitle,
 		EmploymentRate:    u.EmploymentRate,
 		PersonnelCategory: PersonnelCategory(u.PersonnelCategory),
-		EmploymentType:    EmploymentType(u.EmploymentRate),
+		EmploymentType:    EmploymentType(u.EmploymentType),
 		AcademicDegree:    AcademicDegree(u.AcademicDegree),
 		AcademicTitle:     u.AcademicTitle,
 		Honors:            u.Honors,
@@ -365,13 +365,24 @@ func (s *SESC) newUUID() (UUID, error) {
 
 // UserUpdateOptions represents the options for updating a user.
 type UserUpdateOptions struct {
-	FirstName    string
-	LastName     string
-	MiddleName   string
-	PictureURL   string
-	Suspended    bool
-	DepartmentID UUID
-	NewRoleID    int32
+	FirstName         string
+	LastName          string
+	MiddleName        string
+	PictureURL        string
+	Suspended         bool
+	DepartmentID      UUID
+	NewRoleID         int32
+	Subdivision       string
+	JobTitle          string
+	EmploymentRate    float64
+	PersonnelCategory int
+	EmploymentType    int
+	AcademicDegree    int
+	AcademicTitle     string
+	Honors            string
+	Category          string
+	DateOfEmployment  time.Time
+	UnemploymentDate  time.Time
 }
 
 func (u UserUpdateOptions) Validate() error {
@@ -586,13 +597,28 @@ func (s *SESC) updateUserRecord(
 	rec.Set("user_id", id)
 
 	statrec.Add(events.PostgresQueries, 1)
+
 	updater := tx.User.UpdateOneID(id).
 		SetFirstName(upd.FirstName).
 		SetLastName(upd.LastName).
 		SetMiddleName(upd.MiddleName).
 		SetPictureURL(upd.PictureURL).
 		SetSuspended(upd.Suspended).
-		SetRoleID(upd.NewRoleID)
+		SetRoleID(upd.NewRoleID).
+		SetSubdivision(upd.Subdivision).
+		SetJobTitle(upd.JobTitle).
+		SetEmploymentRate(upd.EmploymentRate).
+		SetPersonnelCategory(upd.PersonnelCategory).
+		SetEmploymentType(upd.EmploymentType).
+		SetAcademicDegree(upd.AcademicDegree).
+		SetAcademicTitle(upd.AcademicTitle).
+		SetHonors(upd.Honors).
+		SetCategory(upd.Category).
+		SetDateOfEmployment(upd.DateOfEmployment)
+
+	if !upd.UnemploymentDate.IsZero() {
+		updater = updater.SetUnemploymentDate(upd.UnemploymentDate)
+	}
 
 	if dept != nil {
 		updater = updater.SetDepartmentID(dept.ID)
@@ -756,14 +782,29 @@ func (s *SESC) createUserRecord(
 	rec := event.Get(ctx)
 
 	statrec.Add(events.PostgresQueries, 1)
+
 	cr := tx.User.Create().
 		SetFirstName(opt.FirstName).
 		SetLastName(opt.LastName).
 		SetMiddleName(opt.MiddleName).
 		SetPictureURL(opt.PictureURL).
-		SetRoleID(opt.NewRoleID)
+		SetRoleID(opt.NewRoleID).
+		SetSubdivision(opt.Subdivision).
+		SetJobTitle(opt.JobTitle).
+		SetEmploymentRate(opt.EmploymentRate).
+		SetPersonnelCategory(opt.PersonnelCategory).
+		SetEmploymentType(opt.EmploymentType).
+		SetAcademicDegree(opt.AcademicDegree).
+		SetAcademicTitle(opt.AcademicTitle).
+		SetHonors(opt.Honors).
+		SetCategory(opt.Category).
+		SetDateOfEmployment(opt.DateOfEmployment)
+
 	if dept != nil {
 		cr = cr.SetDepartment(dept)
+	}
+	if !opt.UnemploymentDate.IsZero() {
+		cr = cr.SetUnemploymentDate(opt.UnemploymentDate)
 	}
 
 	res, err := cr.Save(ctx)

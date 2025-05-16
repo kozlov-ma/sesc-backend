@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"time"
 
 	"github.com/gofrs/uuid/v5"
 	"github.com/kozlov-ma/sesc-backend/pkg/event"
@@ -12,14 +13,25 @@ import (
 )
 
 type UserResponse struct {
-	ID         uuid.UUID  `json:"id"                  example:"550e8400-e29b-41d4-a716-446655440000" validate:"required"`
-	FirstName  string     `json:"firstName"           example:"Ivan"                                 validate:"required"`
-	LastName   string     `json:"lastName"            example:"Petrov"                               validate:"required"`
-	MiddleName string     `json:"middleName"          example:"Sergeevich"`
-	PictureURL string     `json:"pictureUrl"          example:"/images/users/ivan.jpg"               validate:"required"`
-	Role       Role       `json:"role"                                                               validate:"required"`
-	Suspended  bool       `json:"suspended"                                                          validate:"required"`
-	Department Department `json:"department,omitzero"`
+	ID                uuid.UUID  `json:"id"                  example:"550e8400-e29b-41d4-a716-446655440000" validate:"required"`
+	FirstName         string     `json:"firstName"           example:"Ivan"                                 validate:"required"`
+	LastName          string     `json:"lastName"            example:"Petrov"                               validate:"required"`
+	MiddleName        string     `json:"middleName"          example:"Sergeevich"`
+	PictureURL        string     `json:"pictureUrl"          example:"/images/users/ivan.jpg"               validate:"required"`
+	Role              Role       `json:"role"                                                               validate:"required"`
+	Suspended         bool       `json:"suspended"                                                          validate:"required"`
+	Department        Department `json:"department,omitzero"`
+	Subdivision       string     `json:"subdivision"         example:"IT Department"`
+	JobTitle          string     `json:"jobTitle"            example:"Software Engineer"`
+	EmploymentRate    float64    `json:"employmentRate"      example:"1.0"`
+	PersonnelCategory int        `json:"personnelCategory"   example:"1"`
+	EmploymentType    int        `json:"employmentType"      example:"1"`
+	AcademicDegree    int        `json:"academicDegree"      example:"2"`
+	AcademicTitle     string     `json:"academicTitle"       example:"Professor"`
+	Honors            string     `json:"honors"              example:"PhD"`
+	Category          string     `json:"category"            example:"Senior"`
+	DateOfEmployment  time.Time  `json:"dateOfEmployment"    example:"2020-01-01T00:00:00Z"`
+	UnemploymentDate  time.Time  `json:"unemploymentDate,omitempty" example:"2025-01-01T00:00:00Z"`
 }
 
 type CreateUserRequest struct {
@@ -80,16 +92,8 @@ func (a *API) GetUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	a.writeJSON(ctx, w, UserResponse{
-		ID:         user.ID,
-		FirstName:  user.FirstName,
-		LastName:   user.LastName,
-		MiddleName: user.MiddleName,
-		PictureURL: user.PictureURL,
-		Role:       convertRole(user.Role),
-		Department: convertDepartment(user.Department),
-		Suspended:  user.Suspended,
-	}, http.StatusOK)
+	// GetUser final response
+	a.writeJSON(ctx, w, convertUser(user), http.StatusOK)
 }
 
 type UsersResponse struct {
@@ -183,14 +187,8 @@ func (a *API) CreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	a.writeJSON(ctx, w, UserResponse{
-		ID:         user.ID,
-		FirstName:  user.FirstName,
-		LastName:   user.LastName,
-		MiddleName: user.MiddleName,
-		PictureURL: user.PictureURL,
-		Role:       convertRole(user.Role),
-	}, http.StatusCreated)
+	// CreateUser final response
+	a.writeJSON(ctx, w, convertUser(user), http.StatusCreated)
 }
 
 // PatchUserRequest defines the fields that can be updated on a User.
@@ -334,28 +332,31 @@ func (a *API) PatchUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	a.writeJSON(ctx, w, UserResponse{
-		ID:         updated.ID,
-		FirstName:  updated.FirstName,
-		LastName:   updated.LastName,
-		MiddleName: updated.MiddleName,
-		PictureURL: updated.PictureURL,
-		Role:       convertRole(updated.Role),
-		Department: convertDepartment(updated.Department),
-		Suspended:  updated.Suspended,
-	}, http.StatusOK)
+	// PatchUser final response
+	a.writeJSON(ctx, w, convertUser(updated), http.StatusOK)
 }
 
 func convertUser(user sesc.User) UserResponse {
 	return UserResponse{
-		ID:         user.ID,
-		FirstName:  user.FirstName,
-		LastName:   user.LastName,
-		MiddleName: user.MiddleName,
-		PictureURL: user.PictureURL,
-		Role:       convertRole(user.Role),
-		Department: convertDepartment(user.Department),
-		Suspended:  user.Suspended,
+		ID:                user.ID,
+		FirstName:         user.FirstName,
+		LastName:          user.LastName,
+		MiddleName:        user.MiddleName,
+		PictureURL:        user.PictureURL,
+		Role:              convertRole(user.Role),
+		Department:        convertDepartment(user.Department),
+		Suspended:         user.Suspended,
+		Subdivision:       user.Subdivision,
+		JobTitle:          user.JobTitle,
+		EmploymentRate:    user.EmploymentRate,
+		PersonnelCategory: int(user.PersonnelCategory),
+		EmploymentType:    int(user.EmploymentType),
+		AcademicDegree:    int(user.AcademicDegree),
+		AcademicTitle:     user.AcademicTitle,
+		Honors:            user.Honors,
+		Category:          user.Category,
+		DateOfEmployment:  user.DateOfEmployment,
+		UnemploymentDate:  user.UnemploymentDate,
 	}
 }
 
@@ -384,15 +385,6 @@ func (a *API) GetCurrentUser(w http.ResponseWriter, r *http.Request) {
 
 	user, _ := GetUserFromContext(ctx)
 
-	// Return user data
-	a.writeJSON(ctx, w, UserResponse{
-		ID:         user.ID,
-		FirstName:  user.FirstName,
-		LastName:   user.LastName,
-		MiddleName: user.MiddleName,
-		PictureURL: user.PictureURL,
-		Role:       convertRole(user.Role),
-		Department: convertDepartment(user.Department),
-		Suspended:  user.Suspended,
-	}, http.StatusOK)
+	// GetCurrentUser final response
+	a.writeJSON(ctx, w, convertUser(user), http.StatusOK)
 }
