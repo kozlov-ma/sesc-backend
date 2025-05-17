@@ -90,7 +90,7 @@ func (a *API) UploadDocument(w http.ResponseWriter, r *http.Request) {
 	defer file.Close()
 
 	ext := filepath.Ext(header.Filename)
-	id, _ := uuid.NewV7()
+	id, _ := uuid.NewV4()
 	key := id.String() + ext
 
 	contentType := header.Header.Get("Content-Type")
