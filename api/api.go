@@ -43,13 +43,20 @@ func (a *API) writeJSON(ctx context.Context, w http.ResponseWriter, data any, st
 	}
 }
 
-func writeError[T SpecificError](ctx context.Context, w http.ResponseWriter, apiError T, statusCode int) {
+func writeError[T SpecificError](ctx context.Context, w http.ResponseWriter, apiError T) {
 	rec := event.Get(ctx)
+
+	genericError := ToError(apiError)
+
+	// Set default status code if not provided
+	statusCode := http.StatusInternalServerError
+	if genericError.StatusCode != 0 {
+		statusCode = genericError.StatusCode
+	}
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(statusCode)
 
-	genericError := ToError(apiError)
 	rec.Sub("http").Add("error_response", genericError)
 
 	err := json.NewEncoder(w).Encode(genericError)

@@ -2,7 +2,6 @@ package api
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -40,7 +39,7 @@ func (a *API) UnauthorizeSuspendedUsersMiddleware(next http.Handler) http.Handle
 		ctx := r.Context()
 		u, ok := GetUserFromContext(ctx)
 		if ok && u.Suspended {
-			writeError(ctx, w, ErrUnauthorized.WithDetails("you are suspended"), http.StatusUnauthorized)
+			writeError(ctx, w, ErrUnauthorized.WithDetails("you are suspended").WithStatus(http.StatusUnauthorized))
 			return
 		}
 		next.ServeHTTP(w, r.WithContext(ctx))
@@ -53,11 +52,10 @@ func (a *API) AuthMiddleware(next http.Handler) http.Handler {
 		ctx := r.Context()
 		rec := event.Get(ctx)
 
-		authHeader := r.Header.Get("Authorization")
-
 		rec.Sub("identity").Set("authorized", false)
 
 		// Skip auth check if no Authorization header
+		authHeader := r.Header.Get("Authorization")
 		if authHeader == "" {
 			next.ServeHTTP(w, r)
 			return
@@ -65,7 +63,7 @@ func (a *API) AuthMiddleware(next http.Handler) http.Handler {
 
 		// Validate Bearer token format
 		if !strings.HasPrefix(authHeader, "Bearer ") {
-			writeError(ctx, w, ErrInvalidAuthHeader, http.StatusUnauthorized)
+			next.ServeHTTP(w, r)
 			return
 		}
 
@@ -73,16 +71,9 @@ func (a *API) AuthMiddleware(next http.Handler) http.Handler {
 		token := authHeader[7:]
 		identity, err := a.iam.ImWatermelon(ctx, token)
 		if err != nil {
-			if errors.Is(err, iam.ErrInvalidToken) {
-				writeError(ctx, w, ErrInvalidToken, http.StatusUnauthorized)
-				return
-			}
-			if errors.Is(err, iam.ErrUserNotFound) {
-				writeError(ctx, w, ErrUnauthorized, http.StatusUnauthorized)
-				return
-			}
+			// For other errors, log but allow request to continue without auth
 			rec.Add(events.Error, err)
-			writeError(ctx, w, ErrServerError, http.StatusInternalServerError)
+			next.ServeHTTP(w, r)
 			return
 		}
 
@@ -111,14 +102,38 @@ func (a *API) RequireAuthMiddleware(next http.Handler) http.Handler {
 		if authHeader == "" {
 			writeError(ctx, w, UnauthorizedError{
 				Code:      "UNAUTHORIZED",
-				Message:   "Authentication required",
+				Message:   "Unauthorized access",
 				RuMessage: "Требуется аутентификация",
 				Details:   "Authentication required",
-			}, http.StatusUnauthorized)
+			}.WithStatus(http.StatusUnauthorized))
 			return
 		}
 
-		next.ServeHTTP(w, r)
+		// Validate Bearer token format
+		if !strings.HasPrefix(authHeader, "Bearer ") {
+			writeError(ctx, w, ErrInvalidAuthHeader.WithStatus(http.StatusUnauthorized))
+			return
+		}
+
+		// Extract token and validate
+		token := authHeader[7:]
+		identity, err := a.iam.ImWatermelon(ctx, token)
+		if err != nil {
+			rec.Add(events.Error, err)
+			writeError(ctx, w, iamError(err))
+			return
+		}
+
+		// Store the identity in the context
+		rec.Sub("identity").Set(
+			"authorized", true,
+			"auth_id", identity.AuthID,
+			"id", identity.ID,
+			"role", identity.Role,
+		)
+
+		ctx = context.WithValue(ctx, identityContextKey, identity)
+		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
 
@@ -139,13 +154,13 @@ func (a *API) RequireAdminRoleMiddleware(next http.Handler) http.Handler {
 				Message:   "Authentication required",
 				RuMessage: "Требуется аутентификация",
 				Details:   "Authentication required",
-			}, http.StatusUnauthorized)
+			}.WithStatus(http.StatusUnauthorized))
 			return
 		}
 
 		// Check if user has admin role
 		if string(identity.Role) != "admin" {
-			writeError(ctx, w, ErrForbidden, http.StatusForbidden)
+			writeError(ctx, w, ErrForbidden.WithStatus(http.StatusForbidden))
 			return
 		}
 
@@ -173,13 +188,13 @@ func (a *API) RoleMiddleware(role iam.Role) func(http.Handler) http.Handler {
 					Message:   "Authentication required",
 					RuMessage: "Требуется аутентификация",
 					Details:   "Authentication required",
-				}, http.StatusUnauthorized)
+				}.WithStatus(http.StatusUnauthorized))
 				return
 			}
 
 			// Check if user has required role
 			if identity.Role != role {
-				writeError(ctx, w, ErrForbidden, http.StatusForbidden)
+				writeError(ctx, w, ErrForbidden.WithStatus(http.StatusForbidden))
 				return
 			}
 
@@ -193,30 +208,24 @@ func (a *API) CurrentUserMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		rec := event.Get(ctx)
-		rec.Sub("http").Set("route_requires_auth", true)
 		rec.Sub("http").Set("route_requires_current_user", true)
 
 		identity, ok := GetIdentityFromContext(ctx)
 		if !ok {
-			writeError(ctx, w, ErrUnauthorized, http.StatusUnauthorized)
+			writeError(ctx, w, ErrUnauthorized.WithStatus(http.StatusUnauthorized))
 			return
 		}
 
 		if string(identity.Role) == "user" {
 			user, err := a.sesc.User(ctx, identity.ID)
 			if err != nil {
-				if errors.Is(err, sesc.ErrUserNotFound) {
-					writeError(ctx, w, ErrUnauthorized, http.StatusUnauthorized)
-					return
-				}
-
 				rec.Add(events.Error, fmt.Errorf("couldn't get user data: %w", err))
-				writeError(
-					ctx,
-					w,
-					ErrServerError.WithDetails("Error fetching user data"),
-					http.StatusInternalServerError,
-				)
+				writeError(ctx, w, sescError(err))
+				return
+			}
+
+			if user.Suspended {
+				writeError(ctx, w, ErrUnauthorized.WithDetails("you are suspended").WithStatus(http.StatusUnauthorized))
 				return
 			}
 

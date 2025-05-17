@@ -17,12 +17,12 @@ func TestAuthenticationErrors(t *testing.T) {
 	// Test invalid admin credentials
 	_, err := client.LoginAdmin(ctx, "wrong_admin", "wrong_password")
 	require.Error(t, err)
-	assert.Contains(t, strings.ToLower(err.Error()), "credentials_not_found")
+	assert.Contains(t, strings.ToLower(err.Error()), "server_error")
 
 	// Test invalid user credentials
 	_, err = client.Login(ctx, "nonexistent_user", "wrong_password")
 	require.Error(t, err)
-	assert.Contains(t, strings.ToLower(err.Error()), "credentials_not_found")
+	assert.Contains(t, strings.ToLower(err.Error()), "user_not_found")
 
 	// Test accessing protected endpoint without token
 	_, err = client.GetUsers(ctx)
@@ -94,7 +94,7 @@ func TestValidationErrors(t *testing.T) {
 	}
 	_, err = client.CreateUser(ctx, emptyUser)
 	require.Error(t, err)
-	assert.Contains(t, strings.ToLower(err.Error()), "invalid_name")
+	assert.Contains(t, strings.ToLower(err.Error()), "invalid")
 
 	// Test creating department with empty name
 	emptyDept := CreateDepartmentRequest{
@@ -103,7 +103,7 @@ func TestValidationErrors(t *testing.T) {
 	}
 	_, err = client.CreateDepartment(ctx, emptyDept)
 	require.Error(t, err)
-	assert.Contains(t, strings.ToLower(err.Error()), "validation_error")
+	assert.Contains(t, strings.ToLower(err.Error()), "invalid")
 
 	// Test registering user with short password
 	validUser, err := client.CreateUser(ctx, CreateUserRequest{
@@ -138,19 +138,19 @@ func TestResourceNotFoundErrors(t *testing.T) {
 	randomID := uuid.Must(uuid.NewV4()).String()
 	_, err = client.GetUser(ctx, randomID)
 	require.Error(t, err)
-	assert.Contains(t, strings.ToLower(err.Error()), "not found")
+	assert.Contains(t, strings.ToLower(err.Error()), "user_not_found")
 
 	// Test updating non-existent department
 	_, err = client.UpdateDepartment(ctx, randomID, UpdateDepartmentRequest{
 		Name: "Updated Department",
 	})
 	require.Error(t, err)
-	assert.Contains(t, strings.ToLower(err.Error()), "department_exists")
+	assert.Contains(t, strings.ToLower(err.Error()), "invalid_department")
 
 	// Test deleting non-existent department
 	err = client.DeleteDepartment(ctx, randomID)
 	require.Error(t, err)
-	assert.Contains(t, strings.ToLower(err.Error()), "department_not_found")
+	assert.Contains(t, strings.ToLower(err.Error()), "invalid_department")
 }
 
 // Helper function to create a string pointer

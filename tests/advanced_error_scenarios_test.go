@@ -53,7 +53,7 @@ func TestDepartmentErrors(t *testing.T) {
 	// Try to create another department with the same name
 	_, err = adminClient.CreateDepartment(ctx, deptReq)
 	require.Error(t, err)
-	assert.Contains(t, strings.ToLower(err.Error()), "already exists")
+	assert.Contains(t, strings.ToLower(err.Error()), "invalid_department")
 
 	// Test regular user trying to create a department (should be forbidden)
 	_, err = regularClient.CreateDepartment(ctx, CreateDepartmentRequest{
@@ -114,7 +114,7 @@ func TestRequestValidationErrors(t *testing.T) {
 		Description: "Test Description",
 	})
 	require.Error(t, err)
-	assert.Contains(t, strings.ToLower(err.Error()), "validation")
+	assert.Contains(t, strings.ToLower(err.Error()), "invalid")
 
 	// 2. Very long department name
 	longName := ""

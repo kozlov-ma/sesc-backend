@@ -2,14 +2,12 @@ package api
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net/http"
 
 	"github.com/gofrs/uuid/v5"
 	"github.com/kozlov-ma/sesc-backend/pkg/event"
 	"github.com/kozlov-ma/sesc-backend/pkg/event/events"
-	"github.com/kozlov-ma/sesc-backend/sesc"
 )
 
 type Department struct {
@@ -43,9 +41,15 @@ type DepartmentNotFoundError struct {
 	Details   string `json:"details,omitzero"`
 }
 
+// WithDetails adds detail information to the error
 func (e DepartmentNotFoundError) WithDetails(details string) DepartmentNotFoundError {
 	e.Details = details
 	return e
+}
+
+// WithStatus adds HTTP status code to the error
+func (e DepartmentNotFoundError) WithStatus(statusCode int) Error {
+	return ToError(e).WithStatus(statusCode)
 }
 
 type InvalidDepartmentIDError struct {
@@ -55,9 +59,15 @@ type InvalidDepartmentIDError struct {
 	Details   string `json:"details,omitzero"`
 }
 
+// WithDetails adds detail information to the error
 func (e InvalidDepartmentIDError) WithDetails(details string) InvalidDepartmentIDError {
 	e.Details = details
 	return e
+}
+
+// WithStatus adds HTTP status code to the error
+func (e InvalidDepartmentIDError) WithStatus(statusCode int) Error {
+	return ToError(e).WithStatus(statusCode)
 }
 
 type InvalidDepartmentError struct {
@@ -67,9 +77,15 @@ type InvalidDepartmentError struct {
 	Details   string `json:"details,omitzero"`
 }
 
+// WithDetails adds detail information to the error
 func (e InvalidDepartmentError) WithDetails(details string) InvalidDepartmentError {
 	e.Details = details
 	return e
+}
+
+// WithStatus adds HTTP status code to the error
+func (e InvalidDepartmentError) WithStatus(statusCode int) Error {
+	return ToError(e).WithStatus(statusCode)
 }
 
 type DepartmentExistsError struct {
@@ -79,9 +95,15 @@ type DepartmentExistsError struct {
 	Details   string `json:"details,omitzero"`
 }
 
+// WithDetails adds detail information to the error
 func (e DepartmentExistsError) WithDetails(details string) DepartmentExistsError {
 	e.Details = details
 	return e
+}
+
+// WithStatus adds HTTP status code to the error
+func (e DepartmentExistsError) WithStatus(statusCode int) Error {
+	return ToError(e).WithStatus(statusCode)
 }
 
 type CannotRemoveDepartmentError struct {
@@ -91,9 +113,15 @@ type CannotRemoveDepartmentError struct {
 	Details   string `json:"details,omitzero"`
 }
 
+// WithDetails adds detail information to the error
 func (e CannotRemoveDepartmentError) WithDetails(details string) CannotRemoveDepartmentError {
 	e.Details = details
 	return e
+}
+
+// WithStatus adds HTTP status code to the error
+func (e CannotRemoveDepartmentError) WithStatus(statusCode int) Error {
+	return ToError(e).WithStatus(statusCode)
 }
 
 var (
@@ -147,20 +175,14 @@ func (a *API) CreateDepartment(w http.ResponseWriter, r *http.Request) {
 	var req CreateDepartmentRequest
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		writeError(ctx, w, ErrInvalidRequest, http.StatusBadRequest)
+		writeError(ctx, w, ErrInvalidRequest.WithStatus(http.StatusBadRequest))
 		return
 	}
 
 	dep, err := a.sesc.CreateDepartment(ctx, req.Name, req.Description)
-	switch {
-	case errors.Is(err, sesc.ErrInvalidDepartment):
-		writeError(ctx, w, ErrDepartmentExists, http.StatusConflict)
-		return
-	case errors.Is(err, sesc.ErrInvalidName):
-		writeError(ctx, w, ErrValidation.WithDetails("invalid department name"), http.StatusBadRequest)
-	case err != nil:
-		writeError(ctx, w, ErrServerError, http.StatusInternalServerError)
+	if err != nil {
 		rec.Add(events.Error, fmt.Errorf("couldn't create department: %w", err))
+		writeError(ctx, w, sescError(err))
 		return
 	}
 
@@ -186,7 +208,7 @@ func (a *API) Departments(w http.ResponseWriter, r *http.Request) {
 	deps, err := a.sesc.Departments(ctx)
 	if err != nil {
 		rec.Add(events.Error, fmt.Errorf("couldn't get departments: %w", err))
-		writeError(ctx, w, ErrServerError, http.StatusInternalServerError)
+		writeError(ctx, w, ErrServerError.WithStatus(http.StatusInternalServerError))
 		return
 	}
 
@@ -230,24 +252,20 @@ func (a *API) UpdateDepartment(w http.ResponseWriter, r *http.Request) {
 
 	var id uuid.UUID
 	if err := (&id).Parse(idStr); err != nil {
-		writeError(ctx, w, ErrInvalidDepartmentID, http.StatusBadRequest)
+		writeError(ctx, w, ErrInvalidDepartmentID.WithStatus(http.StatusBadRequest))
 		return
 	}
 
 	var req UpdateDepartmentRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		writeError(ctx, w, ErrInvalidRequest, http.StatusBadRequest)
+		writeError(ctx, w, ErrInvalidRequest.WithStatus(http.StatusBadRequest))
 		return
 	}
 
 	err := a.sesc.UpdateDepartment(ctx, id, req.Name, req.Description)
-	switch {
-	case errors.Is(err, sesc.ErrInvalidDepartment):
-		writeError(ctx, w, ErrDepartmentExists, http.StatusConflict)
-		return
-	case err != nil:
+	if err != nil {
 		rec.Add(events.Error, err)
-		writeError(ctx, w, ErrServerError, http.StatusInternalServerError)
+		writeError(ctx, w, sescError(err))
 		return
 	}
 
@@ -280,25 +298,14 @@ func (a *API) DeleteDepartment(w http.ResponseWriter, r *http.Request) {
 
 	var id uuid.UUID
 	if err := (&id).Parse(idStr); err != nil {
-		writeError(ctx, w, ErrInvalidDepartmentID, http.StatusBadRequest)
+		writeError(ctx, w, ErrInvalidDepartmentID.WithStatus(http.StatusBadRequest))
 		return
 	}
 
 	err := a.sesc.DeleteDepartment(ctx, id)
-	switch {
-	case errors.Is(err, sesc.ErrInvalidDepartment):
-		writeError(ctx, w, ErrDepartmentNotFound, http.StatusNotFound)
-		return
-	case errors.Is(err, sesc.ErrCannotRemoveDepartment):
-		writeError(ctx, w, ErrCannotRemoveDepartment, http.StatusConflict)
-		return
-	case err != nil:
+	if err != nil {
 		rec.Add(events.Error, err)
-		writeError(ctx, w, ServerError{
-			Code:      "SERVER_ERROR",
-			Message:   "Failed to delete department",
-			RuMessage: "Ошибка удаления кафедры",
-		}, http.StatusInternalServerError)
+		writeError(ctx, w, sescError(err))
 		return
 	}
 

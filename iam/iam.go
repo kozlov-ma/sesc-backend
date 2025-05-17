@@ -21,6 +21,15 @@ var (
 	ErrCredentialsAlreadyExist = errors.New("user with similar credentials already exists")
 	ErrInvalidToken            = errors.New("invalid token")
 	ErrUserNotFound            = errors.New("user not found")
+	ErrEmptyUsername           = errors.New("empty username")
+	ErrEmptyPassword           = errors.New("empty password")
+	ErrInvalidUserID           = errors.New("invalid user ID")
+	ErrCredentialsNotFound     = errors.New("credentials not found")
+	ErrInvalidRole             = errors.New("invalid role")
+	ErrUnauthorized            = errors.New("unauthorized access")
+	ErrTokenExpired            = errors.New("token expired")
+	ErrInvalidTokenFormat      = errors.New("invalid token format")
+	ErrTokenSignature          = errors.New("invalid token signature")
 )
 
 type Credentials struct {
@@ -34,8 +43,11 @@ type AdminCredentials struct {
 }
 
 func (c Credentials) Validate() error {
-	if c.Username == "" || c.Password == "" {
-		return ErrInvalidCredentials
+	if c.Username == "" {
+		return ErrEmptyUsername
+	}
+	if c.Password == "" {
+		return ErrEmptyPassword
 	}
 	return nil
 }

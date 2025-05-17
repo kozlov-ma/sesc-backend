@@ -2,7 +2,6 @@ package api
 
 import (
 	"encoding/json"
-	"errors"
 	"net/http"
 
 	"github.com/gofrs/uuid/v5"
@@ -57,26 +56,14 @@ func (a *API) GetUser(w http.ResponseWriter, r *http.Request) {
 			Code:      "INVALID_UUID",
 			Message:   "Invalid user ID format",
 			RuMessage: "Некорректный формат ID пользователя",
-		}, http.StatusBadRequest)
+		}.WithStatus(http.StatusBadRequest))
 		return
 	}
 
 	user, err := a.sesc.User(ctx, userID)
-	switch {
-	case errors.Is(err, sesc.ErrUserNotFound):
-		writeError(ctx, w, UserNotFoundError{
-			Code:      "USER_NOT_FOUND",
-			Message:   "User not found",
-			RuMessage: "Пользователь не найден",
-		}, http.StatusNotFound)
-		return
-	case err != nil:
+	if err != nil {
 		rec.Add(events.Error, err)
-		writeError(ctx, w, ServerError{
-			Code:      "SERVER_ERROR",
-			Message:   "Failed to fetch user",
-			RuMessage: "Ошибка получения данных пользователя",
-		}, http.StatusInternalServerError)
+		writeError(ctx, w, sescError(err))
 		return
 	}
 
@@ -117,7 +104,7 @@ func (a *API) GetUsers(w http.ResponseWriter, r *http.Request) {
 			Code:      "SERVER_ERROR",
 			Message:   "Failed to fetch users",
 			RuMessage: "Ошибка получения данных пользователей",
-		}, http.StatusInternalServerError)
+		}.WithStatus(http.StatusInternalServerError))
 		return
 	}
 
@@ -150,7 +137,7 @@ func (a *API) CreateUser(w http.ResponseWriter, r *http.Request) {
 	var req CreateUserRequest
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		writeError(ctx, w, ErrInvalidRequest, http.StatusBadRequest)
+		writeError(ctx, w, ErrInvalidRequest.WithStatus(http.StatusBadRequest))
 		return
 	}
 
@@ -163,30 +150,9 @@ func (a *API) CreateUser(w http.ResponseWriter, r *http.Request) {
 		NewRoleID:    req.RoleID,
 	})
 
-	switch {
-	case errors.Is(err, sesc.ErrInvalidRole):
-		writeError(ctx, w, InvalidRoleError{
-			Code:      "INVALID_ROLE",
-			Message:   "Invalid role ID specified",
-			RuMessage: "Указана некорректная роль",
-		}, http.StatusBadRequest)
-		return
-	case errors.Is(err, sesc.ErrInvalidDepartment):
-		writeError(ctx, w, ErrInvalidDepartment, http.StatusBadRequest)
-	case errors.Is(err, sesc.ErrInvalidName):
-		writeError(ctx, w, InvalidNameError{
-			Code:      "INVALID_NAME",
-			Message:   "Invalid name specified",
-			RuMessage: "Указано некорректное имя",
-		}, http.StatusBadRequest)
-		return
-	case err != nil:
+	if err != nil {
 		rec.Add(events.Error, err)
-		writeError(ctx, w, ServerError{
-			Code:      "SERVER_ERROR",
-			Message:   "Failed to create user",
-			RuMessage: "Ошибка создания пользователя",
-		}, http.StatusInternalServerError)
+		writeError(ctx, w, sescError(err))
 		return
 	}
 
@@ -245,32 +211,20 @@ func (a *API) PatchUser(w http.ResponseWriter, r *http.Request) {
 			Code:      "INVALID_UUID",
 			Message:   "Invalid user ID format",
 			RuMessage: "Некорректный формат ID пользователя",
-		}, http.StatusBadRequest)
+		}.WithStatus(http.StatusBadRequest))
 		return
 	}
 
 	var req PatchUserRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		writeError(ctx, w, ErrInvalidRequest, http.StatusBadRequest)
+		writeError(ctx, w, ErrInvalidRequest.WithStatus(http.StatusBadRequest))
 		return
 	}
 
 	existing, err := a.sesc.User(ctx, userID)
-	if errors.Is(err, sesc.ErrUserNotFound) {
-		writeError(ctx, w, UserNotFoundError{
-			Code:      "USER_NOT_FOUND",
-			Message:   "User not found",
-			RuMessage: "Пользователь не найден",
-		}, http.StatusNotFound)
-		return
-	}
 	if err != nil {
 		rec.Add(events.Error, err)
-		writeError(ctx, w, ServerError{
-			Code:      "SERVER_ERROR",
-			Message:   "Failed to fetch user",
-			RuMessage: "Ошибка получения данных пользователя",
-		}, http.StatusInternalServerError)
+		writeError(ctx, w, sescError(err))
 		return
 	}
 
@@ -298,7 +252,7 @@ func (a *API) PatchUser(w http.ResponseWriter, r *http.Request) {
 				Code:      "INVALID_ROLE",
 				Message:   "Unable to assign department to selected role",
 				RuMessage: "Нельзя указать департамент для выбранной роли",
-			}, http.StatusBadRequest)
+			}.WithStatus(http.StatusBadRequest))
 			return
 		}
 
@@ -309,38 +263,9 @@ func (a *API) PatchUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	updated, err := a.sesc.UpdateUser(ctx, userID, upd)
-	switch {
-	case errors.Is(err, sesc.ErrUserNotFound):
-		writeError(ctx, w, UserNotFoundError{
-			Code:      "USER_NOT_FOUND",
-			Message:   "User not found",
-			RuMessage: "Пользователь не найден",
-		}, http.StatusNotFound)
-		return
-
-	case errors.Is(err, sesc.ErrInvalidRole):
-		writeError(ctx, w, InvalidRoleError{
-			Code:      "INVALID_ROLE",
-			Message:   "Invalid role ID specified",
-			RuMessage: "Указана некорректная роль",
-		}, http.StatusBadRequest)
-		return
-
-	case errors.Is(err, sesc.ErrInvalidName):
-		writeError(ctx, w, InvalidNameError{
-			Code:      "INVALID_NAME",
-			Message:   "Invalid first or last name",
-			RuMessage: "Указано некорректное имя",
-		}, http.StatusBadRequest)
-		return
-
-	case err != nil:
+	if err != nil {
 		rec.Add(events.Error, err)
-		writeError(ctx, w, ServerError{
-			Code:      "SERVER_ERROR",
-			Message:   "Failed to update user",
-			RuMessage: "Ошибка обновления пользователя",
-		}, http.StatusInternalServerError)
+		writeError(ctx, w, sescError(err))
 		return
 	}
 

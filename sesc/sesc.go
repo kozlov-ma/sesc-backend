@@ -92,7 +92,7 @@ func (s *SESC) CreateDepartment(
 	ctx = rec.Sub("create_department_record").Wrap(ctx)
 	department, err := s.createDepartmentRecord(ctx, statrec, id, name, description)
 	if ent.IsValidationError(err) {
-		return NoDepartment, ErrInvalidName
+		return NoDepartment, ErrInvalidDepartmentName
 	}
 	if err != nil {
 		return NoDepartment, err
@@ -366,7 +366,7 @@ type UserUpdateOptions struct {
 
 func (u UserUpdateOptions) Validate() error {
 	if u.FirstName == "" || u.LastName == "" {
-		return ErrInvalidName
+		return ErrInvalidUserName
 	}
 
 	if _, ok := RoleByID(u.NewRoleID); !ok {
@@ -516,7 +516,7 @@ func (s *SESC) validateName(ctx context.Context, firstName, lastName string) err
 
 	if firstName == "" || lastName == "" {
 		rec.Set("valid", false)
-		return ErrInvalidName
+		return ErrInvalidUserName
 	}
 
 	rec.Set("valid", true)

@@ -80,7 +80,7 @@ func TestRegisterCredentials(t *testing.T) {
 		ctx, iam, userID := setup(t)
 
 		_, err := iam.RegisterCredentials(ctx, userID, Credentials{})
-		require.ErrorIs(t, err, ErrInvalidCredentials)
+		require.ErrorIs(t, err, ErrEmptyUsername)
 	})
 
 	t.Run("non_existent_user", func(t *testing.T) {

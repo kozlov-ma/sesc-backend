@@ -37,11 +37,11 @@ type (
 		// UpdateUser updates user with the new fields.
 		//
 		// Returns an ErrInvalidRole if the new role id is invalid.
-		// Returns an ErrInvalidName if the first or last name is missing.
+		// Returns an ErrInvalidUserName if the first or last name is missing.
 		UpdateUser(ctx context.Context, id sesc.UUID, upd sesc.UserUpdateOptions) (sesc.User, error)
 		// CreateUser creates a new User with a specified role.
 		//
-		// Returns an ErrInvalidName if the first or last name is missing.z
+		// Returns an ErrInvalidUserName if the first or last name is missing.
 		CreateUser(ctx context.Context, opt sesc.UserUpdateOptions) (sesc.User, error)
 		// Return a sesc.DepartmentAlreadyExists if the department already exists
 		CreateDepartment(ctx context.Context, name, description string) (sesc.Department, error)
