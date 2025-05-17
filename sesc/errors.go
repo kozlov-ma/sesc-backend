@@ -9,5 +9,5 @@ var (
 	ErrInvalidDepartment      = errors.New("invalid department")
 	ErrInvalidPermission      = errors.New("invalid permission")
 	ErrInvalidRoleChange      = errors.New("invalid role change")
-	ErrInvalidName            = errors.New("invalid name (first or last name missing)")
+	ErrInvalidName            = errors.New("invalid or missing name")
 )

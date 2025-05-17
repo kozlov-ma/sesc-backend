@@ -1,6 +1,8 @@
 package api
 
-import "fmt"
+import (
+	"fmt"
+)
 
 // Error represents a structured error returned by the API.
 type Error struct {
@@ -27,7 +29,7 @@ type SpecificError interface {
 		UserExistsError | CredentialsNotFoundError | ServerError |
 		InvalidRoleError | InvalidNameError | DepartmentExistsError |
 		InvalidDepartmentIDError | InvalidDepartmentError | DepartmentNotFoundError |
-		CannotRemoveDepartmentError
+		CannotRemoveDepartmentError | Error
 }
 
 // ToError converts any specific error type to the generic Error type
@@ -234,6 +236,11 @@ func (e InvalidNameError) WithDetails(details string) InvalidNameError {
 }
 
 var (
+	ErrValidation = InvalidRequestError{
+		Code:      "VALIDATION_ERROR",
+		Message:   "Validation failed",
+		RuMessage: "Ошибка валидации",
+	}
 	ErrInvalidRequest = InvalidRequestError{
 		Code:      "INVALID_REQUEST",
 		Message:   "Invalid request body",

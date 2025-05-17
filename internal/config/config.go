@@ -17,15 +17,24 @@ const (
 	DefaultWriteTimeout      = 10 * time.Second
 )
 
+// DatabaseType represents the type of database to use
+type DatabaseType string
+
+const (
+	DatabaseTypePostgres DatabaseType = "postgres"
+	DatabaseTypeSQLite   DatabaseType = "sqlite3"
+)
+
 type Config struct {
-	Postgres         PostgresConfig          `mapstructure:"postgres"`
+	Database         DatabaseConfig          `mapstructure:"database"`
 	AdminCredentials []AdminCredentialConfig `mapstructure:"admin_credentials"`
 	HTTP             HTTPConfig              `mapstructure:"http"`
 	JWTSecret        string                  `mapstructure:"jwt_secret"`
 }
 
-type PostgresConfig struct {
-	Address string `mapstructure:"address"`
+type DatabaseConfig struct {
+	Type    DatabaseType `mapstructure:"type"`
+	Address string       `mapstructure:"address"`
 }
 
 type AdminCredentialConfig struct {
@@ -79,6 +88,10 @@ func setDefaults(v *viper.Viper) {
 	v.SetDefault("http.write_timeout", DefaultWriteTimeout)
 
 	v.SetDefault("jwt_secret", "default_secret_change_me_in_production")
+
+	// Default database configuration
+	v.SetDefault("database.type", string(DatabaseTypePostgres))
+	v.SetDefault("database.address", "postgres://postgres:postgres@localhost:5432/sesc?sslmode=disable")
 
 	v.SetDefault("admin_credentials", []AdminCredentialConfig{
 		{

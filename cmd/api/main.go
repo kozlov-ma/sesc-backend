@@ -3,24 +3,16 @@ package main
 import (
 	"context"
 	"log/slog"
-	"net/http"
 	"os"
 	"os/signal"
-	"time"
 
-	"github.com/go-chi/chi/v5"
-	"github.com/kozlov-ma/sesc-backend/api"
-	"github.com/kozlov-ma/sesc-backend/db/entdb/ent"
-	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/migrate"
-	"github.com/kozlov-ma/sesc-backend/iam"
+	"github.com/kozlov-ma/sesc-backend/internal/app"
 	"github.com/kozlov-ma/sesc-backend/internal/config"
-	"github.com/kozlov-ma/sesc-backend/internal/slogsink"
-	"github.com/kozlov-ma/sesc-backend/sesc"
-	_ "github.com/lib/pq"
 )
 
 func main() {
-	ctx, _ := signal.NotifyContext(context.Background(), os.Interrupt, os.Kill)
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, os.Kill)
+	defer stop()
 
 	log := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}))
 
@@ -30,54 +22,15 @@ func main() {
 		return
 	}
 
-	client, err := ent.Open("postgres", cfg.Postgres.Address)
+	application, err := app.New(ctx, cfg, log)
 	if err != nil {
-		log.ErrorContext(ctx, "failed to set up database", "error", err)
+		log.ErrorContext(ctx, "failed to create application", "error", err)
 		return
 	}
+	defer application.Close()
 
-	defer func() {
-		if err := client.Close(); err != nil {
-			log.Error("couldn't close db", "error", err)
-		}
-	}()
-
-	if err := client.Schema.Create(ctx, migrate.WithDropIndex(true), migrate.WithDropColumn(true)); err != nil {
-		log.Error("couldn't apply migrations", "error", err)
+	if err := application.Start(ctx); err != nil {
+		log.ErrorContext(ctx, "application error", "error", err)
 		return
-	}
-
-	adminCredentials, err := cfg.ToIAMAdminCredentials()
-	if err != nil {
-		log.ErrorContext(ctx, "failed to convert admin credentials", "error", err)
-		return
-	}
-
-	iamService := iam.New(client, 7*24*time.Hour, adminCredentials, []byte(cfg.JWTSecret))
-
-	sescService := sesc.New(client)
-	apiService := api.New(sescService, iamService, slogsink.New(log))
-
-	router := chi.NewRouter()
-	apiService.RegisterRoutes(router)
-
-	srv := &http.Server{
-		Addr:              cfg.HTTP.ServerAddress,
-		Handler:           router,
-		ReadHeaderTimeout: cfg.HTTP.ReadHeaderTimeout,
-		ReadTimeout:       cfg.HTTP.ReadTimeout,
-		WriteTimeout:      cfg.HTTP.WriteTimeout,
-	}
-
-	go func() {
-		<-ctx.Done()
-		if err := srv.Shutdown(ctx); err != nil {
-			log.Error("couldn't shut down server", "error", err)
-		}
-	}()
-
-	log.InfoContext(ctx, "starting server", "address", cfg.HTTP.ServerAddress)
-	if err := srv.ListenAndServe(); err != http.ErrServerClosed {
-		log.ErrorContext(ctx, "failed to start server", "error", err)
 	}
 }

@@ -156,6 +156,8 @@ func (a *API) CreateDepartment(w http.ResponseWriter, r *http.Request) {
 	case errors.Is(err, sesc.ErrInvalidDepartment):
 		writeError(ctx, w, ErrDepartmentExists, http.StatusConflict)
 		return
+	case errors.Is(err, sesc.ErrInvalidName):
+		writeError(ctx, w, ErrValidation.WithDetails("invalid department name"), http.StatusBadRequest)
 	case err != nil:
 		writeError(ctx, w, ErrServerError, http.StatusInternalServerError)
 		rec.Add(events.Error, fmt.Errorf("couldn't create department: %w", err))

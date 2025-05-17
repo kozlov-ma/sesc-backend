@@ -1,4 +1,5 @@
-postgres:
+database:
+  type: "postgres"
   address: "postgres://postgres:password@localhost:5432/postgres?sslmode=disable"
 
 http:

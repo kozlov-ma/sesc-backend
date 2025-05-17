@@ -91,6 +91,9 @@ func (s *SESC) CreateDepartment(
 	// Stage 2: Create department record
 	ctx = rec.Sub("create_department_record").Wrap(ctx)
 	department, err := s.createDepartmentRecord(ctx, statrec, id, name, description)
+	if ent.IsValidationError(err) {
+		return NoDepartment, ErrInvalidName
+	}
 	if err != nil {
 		return NoDepartment, err
 	}
@@ -863,7 +866,6 @@ func (s *SESC) UserByID(ctx context.Context, id UUID) (User, error) {
 		return User{}, err
 	}
 
-	rec.Set("user", userObj.EventRecord())
 	return userObj, nil
 }
 
