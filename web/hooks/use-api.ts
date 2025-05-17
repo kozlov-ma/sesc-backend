@@ -1,6 +1,7 @@
 import useSWR from "swr";
 import { apiClient } from "@/lib/api-client";
 import { useAuthStore } from "@/store/auth-store";
+import { parseApiError } from "@/lib/error-handler";
 
 // Функция для получения данных через API
 const fetcher = async (url: string) => {
@@ -12,14 +13,8 @@ const fetcher = async (url: string) => {
     });
     return response.data;
   } catch (error: any) {
-    // Extract error data from axios response
-    const errorData = error.response?.data;
-    // Throw a more detailed error with all available information
-    throw {
-      ...errorData,
-      message: errorData?.ruMessage || "Ошибка при получении данных",
-      originalError: error
-    };
+    // Use the standardized error that was added in our axios interceptor
+    throw error.standardError || parseApiError(error);
   }
 };
 
@@ -33,8 +28,20 @@ export function useApi<T>(path: string, options = {}) {
   }
 
   // Используем SWR для получения данных
-  return useSWR<T>(token ? path : null, fetcher, {
-    revalidateOnFocus: true,
-    ...options,
-  });
+  const { data, error, isLoading, isValidating, mutate } = useSWR<T>(
+    token ? path : null,
+    fetcher,
+    {
+      revalidateOnFocus: true,
+      ...options,
+    }
+  );
+
+  return {
+    data,
+    error,
+    isLoading,
+    isValidating,
+    mutate,
+  };
 }

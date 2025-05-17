@@ -4,6 +4,8 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
+import { ErrorProvider } from "@/context/error-context";
+import { GlobalErrorHandler } from "@/components/error-handler";
 
 const inter = Inter({ subsets: ["latin", "cyrillic"] });
 
@@ -31,12 +33,16 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <main>
-            {auth}
-            {user}
-            {children}
-          </main>
-          <Toaster />
+          <ErrorProvider>
+            <GlobalErrorHandler>
+              <main>
+                {auth}
+                {user}
+                {children}
+              </main>
+            </GlobalErrorHandler>
+            <Toaster />
+          </ErrorProvider>
         </ThemeProvider>
       </body>
     </html>

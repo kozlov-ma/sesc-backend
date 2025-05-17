@@ -46,7 +46,7 @@ func (a *API) writeJSON(ctx context.Context, w http.ResponseWriter, data any, st
 func writeError[T SpecificError](ctx context.Context, w http.ResponseWriter, apiError T) {
 	rec := event.Get(ctx)
 
-	genericError := ToError(apiError)
+	genericError := Error(apiError)
 
 	// Set default status code if not provided
 	statusCode := http.StatusInternalServerError
@@ -57,9 +57,9 @@ func writeError[T SpecificError](ctx context.Context, w http.ResponseWriter, api
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(statusCode)
 
-	rec.Sub("http").Add("error_response", genericError)
+	rec.Sub("http").Add("error_response", apiError)
 
-	err := json.NewEncoder(w).Encode(genericError)
+	err := json.NewEncoder(w).Encode(apiError)
 	if err != nil {
 		rec.Add(events.Error, fmt.Errorf("couldn't write json: %w", err))
 	}

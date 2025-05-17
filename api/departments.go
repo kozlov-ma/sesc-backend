@@ -35,10 +35,11 @@ type UpdateDepartmentRequest struct {
 type UpdateDepartmentResponse = Department
 
 type DepartmentNotFoundError struct {
-	Code      string `json:"code"             example:"DEPARTMENT_NOT_FOUND"`
-	Message   string `json:"message"          example:"Department not found"`
-	RuMessage string `json:"ruMessage"        example:"Кафедра не найдена"`
-	Details   string `json:"details,omitzero"`
+	Code       string `json:"code"             example:"DEPARTMENT_NOT_FOUND"`
+	Message    string `json:"message"          example:"Department not found"`
+	RuMessage  string `json:"ruMessage"        example:"Кафедра не найдена"`
+	Details    string `json:"details,omitzero"`
+	StatusCode int    `json:"-"`
 }
 
 // WithDetails adds detail information to the error
@@ -49,14 +50,16 @@ func (e DepartmentNotFoundError) WithDetails(details string) DepartmentNotFoundE
 
 // WithStatus adds HTTP status code to the error
 func (e DepartmentNotFoundError) WithStatus(statusCode int) Error {
-	return ToError(e).WithStatus(statusCode)
+	e.StatusCode = statusCode
+	return Error(e)
 }
 
 type InvalidDepartmentIDError struct {
-	Code      string `json:"code"             example:"INVALID_DEPARTMENT_ID"`
-	Message   string `json:"message"          example:"Invalid department ID"`
-	RuMessage string `json:"ruMessage"        example:"Некорректный идентификатор кафедры"`
-	Details   string `json:"details,omitzero"`
+	Code       string `json:"code"             example:"INVALID_DEPARTMENT_ID"`
+	Message    string `json:"message"          example:"Invalid department ID"`
+	RuMessage  string `json:"ruMessage"        example:"Некорректный идентификатор кафедры"`
+	Details    string `json:"details,omitzero"`
+	StatusCode int    `json:"-"`
 }
 
 // WithDetails adds detail information to the error
@@ -67,14 +70,16 @@ func (e InvalidDepartmentIDError) WithDetails(details string) InvalidDepartmentI
 
 // WithStatus adds HTTP status code to the error
 func (e InvalidDepartmentIDError) WithStatus(statusCode int) Error {
-	return ToError(e).WithStatus(statusCode)
+	e.StatusCode = statusCode
+	return Error(e)
 }
 
 type InvalidDepartmentError struct {
-	Code      string `json:"code"             example:"INVALID_DEPARTMENT"`
-	Message   string `json:"message"          example:"Invalid department data"`
-	RuMessage string `json:"ruMessage"        example:"Некорректные данные кафедры"`
-	Details   string `json:"details,omitzero"`
+	Code       string `json:"code"             example:"INVALID_DEPARTMENT"`
+	Message    string `json:"message"          example:"Invalid department data"`
+	RuMessage  string `json:"ruMessage"        example:"Некорректные данные кафедры"`
+	Details    string `json:"details,omitzero"`
+	StatusCode int    `json:"-"`
 }
 
 // WithDetails adds detail information to the error
@@ -85,14 +90,16 @@ func (e InvalidDepartmentError) WithDetails(details string) InvalidDepartmentErr
 
 // WithStatus adds HTTP status code to the error
 func (e InvalidDepartmentError) WithStatus(statusCode int) Error {
-	return ToError(e).WithStatus(statusCode)
+	e.StatusCode = statusCode
+	return Error(e)
 }
 
 type DepartmentExistsError struct {
-	Code      string `json:"code"             example:"DEPARTMENT_EXISTS"`
-	Message   string `json:"message"          example:"Department with this name already exists"`
-	RuMessage string `json:"ruMessage"        example:"Кафедра с таким названием уже существует"`
-	Details   string `json:"details,omitzero"`
+	Code       string `json:"code"             example:"DEPARTMENT_EXISTS"`
+	Message    string `json:"message"          example:"Department with this name already exists"`
+	RuMessage  string `json:"ruMessage"        example:"Кафедра с таким названием уже существует"`
+	Details    string `json:"details,omitzero"`
+	StatusCode int    `json:"-"`
 }
 
 // WithDetails adds detail information to the error
@@ -103,14 +110,16 @@ func (e DepartmentExistsError) WithDetails(details string) DepartmentExistsError
 
 // WithStatus adds HTTP status code to the error
 func (e DepartmentExistsError) WithStatus(statusCode int) Error {
-	return ToError(e).WithStatus(statusCode)
+	e.StatusCode = statusCode
+	return Error(e)
 }
 
 type CannotRemoveDepartmentError struct {
-	Code      string `json:"code"             example:"CANNOT_REMOVE_DEPARTMENT"`
-	Message   string `json:"message"          example:"Cannot remove department, it still has some users"`
-	RuMessage string `json:"ruMessage"        example:"Невозможно удалить кафедру, так как она содержит пользователей"`
-	Details   string `json:"details,omitzero"`
+	Code       string `json:"code"             example:"CANNOT_REMOVE_DEPARTMENT"`
+	Message    string `json:"message"          example:"Cannot remove department, it still has some users"`
+	RuMessage  string `json:"ruMessage"        example:"Невозможно удалить кафедру, так как она содержит пользователей"`
+	Details    string `json:"details,omitzero"`
+	StatusCode int    `json:"-"`
 }
 
 // WithDetails adds detail information to the error
@@ -121,7 +130,8 @@ func (e CannotRemoveDepartmentError) WithDetails(details string) CannotRemoveDep
 
 // WithStatus adds HTTP status code to the error
 func (e CannotRemoveDepartmentError) WithStatus(statusCode int) Error {
-	return ToError(e).WithStatus(statusCode)
+	e.StatusCode = statusCode
+	return Error(e)
 }
 
 var (

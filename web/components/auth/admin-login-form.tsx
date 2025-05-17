@@ -10,24 +10,33 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader2 } from "lucide-react";
+import { useFormError } from "@/hooks/use-error-handler";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 
 // Схема валидации для формы входа администратора
 const adminLoginSchema = z.object({
-  username: z.string().min(1, "Имя пользователя обязательно"),
-  password: z.string().min(1, "Пароль обязателен"),
+  username: z.string().min(1, {
+    message: "Имя пользователя обязательно",
+  }),
+  password: z.string().min(1, {
+    message: "Пароль обязателен",
+  }),
 });
 
 type AdminLoginFormValues = z.infer<typeof adminLoginSchema>;
 
 export function AdminLoginForm() {
-  const { loginAdmin, isLoading, loginAdminError, resetLoginAdminError } =
-    useAuth();
+  const { loginAdmin, isLoading, resetLoginAdminError } = useAuth();
+  const { formError, clearFormError, handleFormError } = useFormError();
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<AdminLoginFormValues>({
+  const form = useForm<AdminLoginFormValues>({
     resolver: zodResolver(adminLoginSchema),
     defaultValues: {
       username: "",
@@ -36,12 +45,18 @@ export function AdminLoginForm() {
   });
 
   const onSubmit = async (data: AdminLoginFormValues) => {
+    clearFormError();
     resetLoginAdminError();
-    const adminCreds: ApiCredentialsRequest = {
-      username: data.username,
-      password: data.password,
-    };
-    await loginAdmin(adminCreds);
+    
+    try {
+      const adminCreds: ApiCredentialsRequest = {
+        username: data.username,
+        password: data.password,
+      };
+      await loginAdmin(adminCreds);
+    } catch (error) {
+      handleFormError(error);
+    }
   };
 
   return (
@@ -51,50 +66,50 @@ export function AdminLoginForm() {
       transition={{ duration: 0.3 }}
       className="space-y-6"
     >
-      {loginAdminError && (
-        <ErrorMessage message={
-          loginAdminError.response?.data?.ruMessage ||
-          "Ошибка при входе в систему. Проверьте имя пользователя и пароль."
-        } />
-      )}
+      {formError && <ErrorMessage error={formError} />}
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="username">Имя пользователя</Label>
-          <Input
-            id="username"
-            placeholder="Введите имя пользователя"
-            {...register("username")}
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <FormField
+            control={form.control}
+            name="username"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Имя администратора</FormLabel>
+                <FormControl>
+                  <Input 
+                    placeholder="Имя администратора" 
+                    {...field} 
+                    disabled={isLoading}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
           />
-          {errors.username && (
-            <p className="text-sm text-red-500">{errors.username.message}</p>
-          )}
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="password">Пароль</Label>
-          <Input
-            id="password"
-            type="password"
-            placeholder="Введите пароль"
-            {...register("password")}
+          <FormField
+            control={form.control}
+            name="password"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Пароль</FormLabel>
+                <FormControl>
+                  <Input 
+                    type="password" 
+                    placeholder="Пароль администратора" 
+                    {...field}
+                    disabled={isLoading} 
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
           />
-          {errors.password && (
-            <p className="text-sm text-red-500">{errors.password.message}</p>
-          )}
-        </div>
-
-        <Button type="submit" className="w-full" disabled={isLoading}>
-          {isLoading ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Вход...
-            </>
-          ) : (
-            "Войти"
-          )}
-        </Button>
-      </form>
+          <Button type="submit" className="w-full" disabled={isLoading}>
+            {isLoading ? "Вход..." : "Войти как администратор"}
+          </Button>
+        </form>
+      </Form>
     </motion.div>
   );
 }

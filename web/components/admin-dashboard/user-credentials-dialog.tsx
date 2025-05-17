@@ -28,6 +28,9 @@ import { toast } from "sonner";
 import { Copy, RefreshCw, Eye, EyeOff, ClipboardCopy } from "lucide-react";
 import { ApiUserResponse } from "@/lib/Api";
 import { apiClient } from "@/lib/api-client";
+import { ErrorMessage } from "@/components/ui/error-message";
+import { useFormError } from "@/hooks/use-error-handler";
+import { hasErrorCode, getErrorMessage } from "@/lib/error-handler";
 
 const credentialsSchema = z.object({
   username: z
@@ -50,6 +53,7 @@ export function UserCredentialsDialog({
   user,
 }: UserCredentialsDialogProps) {
   const [showPassword, setShowPassword] = useState(false);
+  const { formError, clearFormError, handleFormError } = useFormError();
 
   const form = useForm<CredentialsFormValues>({
     resolver: zodResolver(credentialsSchema),
@@ -65,6 +69,7 @@ export function UserCredentialsDialog({
     data: credentials,
     isValidating,
     mutate: revalidate,
+    error: fetchError,
   } = useSWR(
     credentialsKey,
     async () => {
@@ -72,20 +77,10 @@ export function UserCredentialsDialog({
         const response = await apiClient.auth.credentialsDetail(user.id);
         return response.data;
       } catch (err: any) {
-        if (err.response?.data?.code === "CREDENTIALS_NOT_FOUND") {
+        if (hasErrorCode(err, "CREDENTIALS_NOT_FOUND")) {
           return null;
         }
-
-        let errorMessage = "Не удалось получить учетные данные пользователя.";
-        if (err.response?.data?.ruMessage) {
-          errorMessage = err.response.data.ruMessage;
-        }
-
-        toast.error("Ошибка", {
-          description: errorMessage,
-        });
-
-        return null;
+        throw err;
       }
     },
     {
@@ -100,7 +95,11 @@ export function UserCredentialsDialog({
             password: "",
           });
         }
+        clearFormError();
       },
+      onError: (err) => {
+        handleFormError(err);
+      }
     },
   );
 
@@ -117,18 +116,16 @@ export function UserCredentialsDialog({
       {
         onSuccess: () => {
           revalidate();
+          clearFormError();
           onOpenChange(false);
           toast("Учетные данные обновлены", {
             description: "Учетные данные пользователя успешно обновлены.",
           });
         },
         onError: (err) => {
-          const errorMessage =
-            err.response?.data?.ruMessage ||
-            "Не удалось обновить учетные данные пользователя.";
-
+          handleFormError(err);
           toast.error("Ошибка", {
-            description: errorMessage,
+            description: getErrorMessage(err),
           });
         },
         throwOnError: false,
@@ -142,28 +139,29 @@ export function UserCredentialsDialog({
         await apiClient.auth.credentialsDelete(user.id);
         return true;
       } catch (err: any) {
-        const errorMessage =
-          err.response?.data?.ruMessage ||
-          "Не удалось удалить учетные данные пользователя.";
-
-        toast.error("Ошибка", {
-          description: errorMessage,
-        });
-        return null;
+        throw err;
       }
     },
     {
       onSuccess: () => {
         revalidate();
+        clearFormError();
         onOpenChange(false);
         toast("Учетные данные удалены", {
           description: "Учетные данные пользователя успешно удалены.",
+        });
+      },
+      onError: (err) => {
+        handleFormError(err);
+        toast.error("Ошибка", {
+          description: getErrorMessage(err),
         });
       },
     },
   );
 
   const handleSubmit = async (values: CredentialsFormValues) => {
+    clearFormError();
     await submitCredentials(values);
   };
 
@@ -171,6 +169,7 @@ export function UserCredentialsDialog({
     if (
       confirm("Вы уверены, что хотите удалить учетные данные пользователя?")
     ) {
+      clearFormError();
       await deleteCredentials();
     }
   };
@@ -212,6 +211,8 @@ export function UserCredentialsDialog({
             {user.firstName}
           </DialogDescription>
         </DialogHeader>
+
+        {formError && <ErrorMessage error={formError} className="mt-4" />}
 
         <Form {...form}>
           <form

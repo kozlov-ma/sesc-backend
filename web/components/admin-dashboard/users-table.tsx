@@ -30,6 +30,8 @@ import { UserFormDialog } from "./user-form-dialog";
 import { UserCredentialsDialog } from "./user-credentials-dialog";
 import { toast } from "sonner";
 import { apiClient } from "@/lib/api-client";
+import { useErrorHandler } from "@/hooks/use-error-handler";
+import { getErrorMessage } from "@/lib/error-handler";
 
 export function UsersTable() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -38,61 +40,73 @@ export function UsersTable() {
   const [selectedUser, setSelectedUser] = useState<ApiUserResponse | undefined>(
     undefined,
   );
+  
+  const { error: tableError, handleError, clearError } = useErrorHandler();
 
   const {
     data,
     error,
     isLoading,
     mutate: mutateUsers,
-  } = useSWR<ApiUsersResponse>("/users", async () => {
-    const response = await apiClient.users.usersList();
-    return response.data;
-  });
+  } = useSWR<ApiUsersResponse>("/users", 
+    async () => {
+      try {
+        const response = await apiClient.users.usersList();
+        clearError();
+        return response.data;
+      } catch (err) {
+        handleError(err);
+        throw err;
+      }
+    },
+    {
+      onError: (err) => {
+        handleError(err);
+      },
+    }
+  );
 
   // Toggle user suspended status with SWR mutation
   const { trigger: toggleSuspend } = useSWRMutation(
     "toggle-suspend",
     async (_key: string, { arg }: { arg: ApiUserResponse }) => {
-      const response = await apiClient.users.usersPartialUpdate(arg.id, {
-        firstName: arg.firstName,
-        lastName: arg.lastName,
-        middleName: arg.middleName,
-        roleId: arg.role.id,
-        departmentId: arg.department?.id,
-        pictureUrl: arg.pictureUrl,
-        suspended: !arg.suspended,
-      });
+      try {
+        const response = await apiClient.users.usersPartialUpdate(arg.id, {
+          firstName: arg.firstName,
+          lastName: arg.lastName,
+          middleName: arg.middleName,
+          roleId: arg.role.id,
+          departmentId: arg.department?.id,
+          pictureUrl: arg.pictureUrl,
+          suspended: !arg.suspended,
+        });
 
-      // Also handle success here instead of using callbacks
-      toast(
-        arg.suspended
-          ? "Пользователь разблокирован"
-          : "Пользователь заблокирован",
-        {
-          description: `Пользователь успешно ${arg.suspended ? "разблокирован" : "заблокирован"}.`,
-        },
-      );
+        // Also handle success here instead of using callbacks
+        toast(
+          arg.suspended
+            ? "Пользователь разблокирован"
+            : "Пользователь заблокирован",
+          {
+            description: `Пользователь успешно ${arg.suspended ? "разблокирован" : "заблокирован"}.`,
+          },
+        );
 
-      mutateUsers();
-      return response.data;
+        mutateUsers();
+        return response.data;
+      } catch (err) {
+        handleError(err);
+        toast.error("Ошибка", {
+          description: getErrorMessage(err),
+        });
+        throw err;
+      }
     },
   );
 
   const handleToggleSuspend = async (user: ApiUserResponse) => {
-    await toggleSuspend(user).catch((error) => {
-      console.error("Error toggling suspend status:", error);
-      const errorMessage =
-        error.response?.data?.ruMessage ||
-        `Не удалось ${user.suspended ? "разблокировать" : "заблокировать"} пользователя.`;
-
-      toast.error("Ошибка", {
-        description: errorMessage,
-      });
-    });
+    clearError();
+    await toggleSuspend(user);
   };
-
-  // These functions are not needed anymore since we moved them inside credentials dialog
-  // Delete them and their references in the component
 
   const openCreateUserDialog = () => {
     setSelectedUser(undefined);
@@ -129,21 +143,12 @@ export function UsersTable() {
     );
   }
 
-  if (error) {
-    let errorMessage = "Не удалось загрузить список пользователей.";
-    if (error.response?.data?.ruMessage) {
-      errorMessage = error.response.data.ruMessage;
-    }
-
-    return (
-      <div className="p-4">
-        <ErrorMessage message={errorMessage} />
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-4">
+      {(error || tableError) && (
+        <ErrorMessage error={error || tableError} />
+      )}
+      
       <div className="flex justify-between">
         <div className="relative w-full md:w-72">
           <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />

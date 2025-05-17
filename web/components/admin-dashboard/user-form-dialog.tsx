@@ -41,6 +41,9 @@ import {
   ApiCreateUserRequest,
   ApiPatchUserRequest,
 } from "@/lib/Api";
+import { ErrorMessage } from "@/components/ui/error-message";
+import { useFormError } from "@/hooks/use-error-handler";
+import { getErrorMessage } from "@/lib/error-handler";
 
 const userFormSchema = z.object({
   firstName: z.string().min(1, "Введите имя"),
@@ -70,6 +73,7 @@ export function UserFormDialog({
   const { data: rolesData } = useApi<ApiRolesResponse>("/roles");
   const { data: departmentsData } =
     useApi<ApiDepartmentsResponse>("/departments");
+  const { formError, clearFormError, handleFormError } = useFormError();
 
   const form = useForm<UserFormValues>({
     resolver: zodResolver(userFormSchema),
@@ -88,40 +92,38 @@ export function UserFormDialog({
   const { trigger: createUser, isMutating: isCreating } = useSWRMutation(
     "create-user",
     async (_key, { arg }: { arg: UserFormValues }) => {
-      const userData: ApiCreateUserRequest = {
-        firstName: arg.firstName,
-        lastName: arg.lastName,
-        middleName: arg.middleName || undefined,
-        departmentId: arg.departmentId || undefined,
-        pictureUrl: arg.pictureUrl || undefined,
-        roleId: arg.roleId,
-      };
+      try {
+        const userData: ApiCreateUserRequest = {
+          firstName: arg.firstName,
+          lastName: arg.lastName,
+          middleName: arg.middleName || undefined,
+          departmentId: arg.departmentId || undefined,
+          pictureUrl: arg.pictureUrl || undefined,
+          roleId: arg.roleId,
+        };
 
-      const response = await apiClient.users
-        .usersCreate(userData)
-        .catch((error) => {
-          console.error("Error creating user:", error);
-          const errorMessage =
-            error.response?.data?.ruMessage ||
-            "Не удалось создать пользователя.";
+        const response = await apiClient.users.usersCreate(userData);
 
-          toast.error("Ошибка", {
-            description: errorMessage,
-          });
-
-          throw error;
+        toast("Пользователь создан", {
+          description: "Новый пользователь успешно создан.",
         });
 
-      toast("Пользователь создан", {
-        description: "Новый пользователь успешно создан.",
-      });
-
-      onOpenChange(false);
-      if (onSuccess) onSuccess();
-      return response.data;
+        onOpenChange(false);
+        if (onSuccess) onSuccess();
+        return response.data;
+      } catch (error) {
+        handleFormError(error);
+        toast.error("Ошибка", {
+          description: getErrorMessage(error),
+        });
+        throw error;
+      }
     },
     {
       throwOnError: false,
+      onSuccess: () => {
+        clearFormError();
+      },
     },
   );
 
@@ -129,43 +131,41 @@ export function UserFormDialog({
   const { trigger: updateUser, isMutating: isUpdating } = useSWRMutation(
     "update-user",
     async (_key, { arg }: { arg: UserFormValues }) => {
-      if (!user) throw new Error("User not defined");
+      try {
+        if (!user) throw new Error("User not defined");
 
-      const userData: ApiPatchUserRequest = {
-        firstName: arg.firstName,
-        lastName: arg.lastName,
-        middleName: arg.middleName || undefined,
-        departmentId: arg.departmentId || undefined,
-        pictureUrl: arg.pictureUrl || undefined,
-        roleId: arg.roleId,
-        suspended: arg.suspended,
-      };
+        const userData: ApiPatchUserRequest = {
+          firstName: arg.firstName,
+          lastName: arg.lastName,
+          middleName: arg.middleName || undefined,
+          departmentId: arg.departmentId || undefined,
+          pictureUrl: arg.pictureUrl || undefined,
+          roleId: arg.roleId,
+          suspended: arg.suspended,
+        };
 
-      const response = await apiClient.users
-        .usersPartialUpdate(user.id, userData)
-        .catch((error) => {
-          console.error("Ошибка обновления пользователя:", error);
-          const errorMessage =
-            error.response?.data?.ruMessage ||
-            "Не удалось обновить данные пользователя.";
+        const response = await apiClient.users.usersPartialUpdate(user.id, userData);
 
-          toast.error("Ошибка", {
-            description: errorMessage,
-          });
-
-          throw error;
+        toast("Пользователь обновлен", {
+          description: "Данные пользователя успешно обновлены.",
         });
 
-      toast("Пользователь обновлен", {
-        description: "Данные пользователя успешно обновлены.",
-      });
-
-      onOpenChange(false);
-      if (onSuccess) onSuccess();
-      return response.data;
+        onOpenChange(false);
+        if (onSuccess) onSuccess();
+        return response.data;
+      } catch (error) {
+        handleFormError(error);
+        toast.error("Ошибка", {
+          description: getErrorMessage(error),
+        });
+        throw error;
+      }
     },
     {
       throwOnError: false,
+      onSuccess: () => {
+        clearFormError();
+      },
     },
   );
 
@@ -192,9 +192,11 @@ export function UserFormDialog({
         suspended: false,
       });
     }
-  }, [user, form]);
+    clearFormError();
+  }, [user, form, clearFormError]);
 
   const handleSubmit = async (values: UserFormValues) => {
+    clearFormError();
     if (user) {
       await updateUser(values);
     } else {
@@ -217,6 +219,8 @@ export function UserFormDialog({
               : "Заполните данные нового пользователя."}
           </DialogDescription>
         </DialogHeader>
+
+        {formError && <ErrorMessage error={formError} className="mb-4" />}
 
         <Form {...form}>
           <form

@@ -31,6 +31,9 @@ import {
   ApiCreateDepartmentRequest,
   ApiUpdateDepartmentRequest,
 } from "@/lib/Api";
+import { ErrorMessage } from "@/components/ui/error-message";
+import { useFormError } from "@/hooks/use-error-handler";
+import { getErrorMessage } from "@/lib/error-handler";
 
 const departmentFormSchema = z.object({
   name: z.string().min(1, "Введите название кафедры"),
@@ -52,6 +55,8 @@ export function DepartmentFormDialog({
   department,
   onSuccess,
 }: DepartmentFormDialogProps) {
+  const { formError, clearFormError, handleFormError } = useFormError();
+
   const form = useForm<DepartmentFormValues>({
     resolver: zodResolver(departmentFormSchema),
     defaultValues: {
@@ -64,36 +69,34 @@ export function DepartmentFormDialog({
   const { trigger: createDepartment, isMutating: isCreating } = useSWRMutation(
     "create-department",
     async (_key, { arg }: { arg: DepartmentFormValues }) => {
-      const departmentData: ApiCreateDepartmentRequest = {
-        name: arg.name,
-        description: arg.description,
-      };
+      try {
+        const departmentData: ApiCreateDepartmentRequest = {
+          name: arg.name,
+          description: arg.description,
+        };
 
-      const response = await apiClient.departments
-        .departmentsCreate(departmentData)
-        .catch((error) => {
-          console.error("Error creating department:", error);
-          const errorMessage =
-            error.response?.data?.ruMessage ||
-            "Не удалось создать кафедру.";
+        const response = await apiClient.departments.departmentsCreate(departmentData);
 
-          toast.error("Ошибка", {
-            description: errorMessage,
-          });
-
-          throw error;
+        toast("Кафедра создана", {
+          description: "Новая кафедра успешно создана.",
         });
 
-      toast("Кафедра создана", {
-        description: "Новая кафедра успешно создана.",
-      });
-
-      onOpenChange(false);
-      if (onSuccess) onSuccess();
-      return response.data;
+        onOpenChange(false);
+        if (onSuccess) onSuccess();
+        return response.data;
+      } catch (error) {
+        handleFormError(error);
+        toast.error("Ошибка", {
+          description: getErrorMessage(error),
+        });
+        throw error;
+      }
     },
     {
       throwOnError: false,
+      onSuccess: () => {
+        clearFormError();
+      },
     },
   );
 
@@ -101,38 +104,36 @@ export function DepartmentFormDialog({
   const { trigger: updateDepartment, isMutating: isUpdating } = useSWRMutation(
     "update-department",
     async (_key, { arg }: { arg: DepartmentFormValues }) => {
-      if (!department) throw new Error("Department not defined");
+      try {
+        if (!department) throw new Error("Department not defined");
 
-      const departmentData: ApiUpdateDepartmentRequest = {
-        name: arg.name,
-        description: arg.description,
-      };
+        const departmentData: ApiUpdateDepartmentRequest = {
+          name: arg.name,
+          description: arg.description,
+        };
 
-      const response = await apiClient.departments
-        .departmentsUpdate(department.id, departmentData)
-        .catch((error) => {
-          console.error("Ошибка обновления кафедры:", error);
-          const errorMessage =
-            error.response?.data?.ruMessage ||
-            "Не удалось обновить данные кафедры.";
+        const response = await apiClient.departments.departmentsUpdate(department.id, departmentData);
 
-          toast.error("Ошибка", {
-            description: errorMessage,
-          });
-
-          throw error;
+        toast("Кафедра обновлена", {
+          description: "Данные кафедры успешно обновлены.",
         });
 
-      toast("Кафедра обновлена", {
-        description: "Данные кафедры успешно обновлены.",
-      });
-
-      onOpenChange(false);
-      if (onSuccess) onSuccess();
-      return response.data;
+        onOpenChange(false);
+        if (onSuccess) onSuccess();
+        return response.data;
+      } catch (error) {
+        handleFormError(error);
+        toast.error("Ошибка", {
+          description: getErrorMessage(error),
+        });
+        throw error;
+      }
     },
     {
       throwOnError: false,
+      onSuccess: () => {
+        clearFormError();
+      },
     },
   );
 
@@ -149,9 +150,11 @@ export function DepartmentFormDialog({
         description: "",
       });
     }
-  }, [department, form]);
+    clearFormError();
+  }, [department, form, clearFormError]);
 
   const handleSubmit = async (values: DepartmentFormValues) => {
+    clearFormError();
     if (department) {
       await updateDepartment(values);
     } else {
@@ -174,6 +177,8 @@ export function DepartmentFormDialog({
               : "Заполните данные новой кафедры."}
           </DialogDescription>
         </DialogHeader>
+
+        {formError && <ErrorMessage error={formError} className="mb-4" />}
 
         <Form {...form}>
           <form

@@ -28,6 +28,8 @@ import { toast } from "sonner";
 import { apiClient } from "@/lib/api-client";
 import { DepartmentFormDialog } from "./department-form-dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { useErrorHandler } from "@/hooks/use-error-handler";
+import { getErrorMessage } from "@/lib/error-handler";
 
 export function DepartmentsTable() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -35,42 +37,57 @@ export function DepartmentsTable() {
   const [selectedDepartment, setSelectedDepartment] = useState<ApiDepartment | undefined>(undefined);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [departmentToDelete, setDepartmentToDelete] = useState<ApiDepartment | undefined>(undefined);
+  
+  const { error: tableError, handleError, clearError } = useErrorHandler();
 
   const {
     data,
     error,
     isLoading,
     mutate: mutateDepartments,
-  } = useSWR<ApiDepartmentsResponse>("/departments", async () => {
-    const response = await apiClient.departments.departmentsList();
-    return response.data;
-  });
+  } = useSWR<ApiDepartmentsResponse>("/departments", 
+    async () => {
+      try {
+        const response = await apiClient.departments.departmentsList();
+        clearError();
+        return response.data;
+      } catch (err) {
+        handleError(err);
+        throw err;
+      }
+    },
+    {
+      onError: (err) => {
+        handleError(err);
+      },
+    }
+  );
 
   // Delete department with SWR mutation
   const { trigger: deleteDepartment, isMutating: isDeleting } = useSWRMutation(
     "delete-department",
     async (_key: string, { arg }: { arg: string }) => {
-      await apiClient.departments.departmentsDelete(arg).catch((error) => {
-        console.error("Error deleting department:", error);
-        const errorMessage =
-          error.response?.data?.ruMessage ||
-          "Не удалось удалить кафедру.";
+      try {
+        await apiClient.departments.departmentsDelete(arg);
 
-        toast.error("Ошибка", {
-          description: errorMessage,
+        toast("Кафедра удалена", {
+          description: "Кафедра успешно удалена.",
         });
 
+        mutateDepartments();
+      } catch (error) {
+        handleError(error);
+        toast.error("Ошибка", {
+          description: getErrorMessage(error),
+        });
         throw error;
-      });
-
-      toast("Кафедра удалена", {
-        description: "Кафедра успешно удалена.",
-      });
-
-      mutateDepartments();
+      }
     },
     {
       throwOnError: false,
+      onSuccess: () => {
+        clearError();
+      },
     }
   );
 
@@ -91,6 +108,7 @@ export function DepartmentsTable() {
 
   const handleDeleteDepartment = async () => {
     if (departmentToDelete) {
+      clearError();
       await deleteDepartment(departmentToDelete.id);
       setDeleteDialogOpen(false);
     }
@@ -113,21 +131,12 @@ export function DepartmentsTable() {
     );
   }
 
-  if (error) {
-    let errorMessage = "Не удалось загрузить список кафедр.";
-    if (error.response?.data?.ruMessage) {
-      errorMessage = error.response.data.ruMessage;
-    }
-
-    return (
-      <div className="p-4">
-        <ErrorMessage message={errorMessage} />
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-4">
+      {(error || tableError) && (
+        <ErrorMessage error={error || tableError} />
+      )}
+
       <div className="flex justify-between">
         <div className="relative w-full md:w-72">
           <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
