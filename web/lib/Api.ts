@@ -27,19 +27,41 @@ export interface ApiCreateDepartmentRequest {
   name: string;
 }
 
-export interface ApiCreateUserRequest {
-  /** @example "550e8400-e29b-41d4-a716-446655440000" */
-  departmentId?: string;
-  /** @example "Anna" */
-  firstName: string;
-  /** @example "Smirnova" */
-  lastName: string;
-  /** @example "Olegovna" */
-  middleName?: string;
-  /** @example "/images/users/ivan.jpg" */
-  pictureUrl?: string;
-  /** @example 2 */
-  roleId: number;
+export interface ApiCreateUserRequest {  
+  /** @example "550e8400-e29b-41d4-a716-446655440000" */  
+  departmentId?: string;  
+  /** @example "Anna" */  
+  firstName: string;  
+  /** @example "Smirnova" */  
+  lastName: string;  
+  /** @example "Olegovna" */  
+  middleName?: string;  
+  /** @example "/images/users/ivan.jpg" */  
+  pictureUrl?: string;  
+  /** @example 2 */  
+  roleId: number;  
+  /** @example "Кафдера математики" */  
+  subdivision?: string;  
+  /** @example "Учитель" */  
+  jobTitle?: string;  
+  /** @example 1.0 */  
+  employmentRate?: number;  
+  /** @example 1 */  
+  personnelCategory?: number;  
+  /** @example 1 */  
+  employmentType?: number;  
+  /** @example 2 */  
+  academicDegree?: number;  
+  /** @example "Профессор" */  
+  academicTitle?: string;  
+  /** @example "Профессор" */  
+  honors?: string;  
+  /** @example "Высшая" */  
+  category?: string;  
+  /** @example "2020-01-01T00:00:00Z" */  
+  dateOfEmployment?: string;  
+  /** @example "2025-01-01T00:00:00Z" */  
+  unemploymentDate?: string;
 }
 
 export interface ApiCredentialsNotFoundError {
@@ -191,21 +213,43 @@ export interface ApiInvalidUUIDError {
   ruMessage?: string;
 }
 
-export interface ApiPatchUserRequest {
-  /** @example "550e8400-e29b-41d4-a716-446655440000" */
-  departmentId?: string;
-  /** @example "Ivan" */
-  firstName: string;
-  /** @example "Petrov" */
-  lastName: string;
-  /** @example "Sergeevich" */
-  middleName?: string;
-  /** @example "/images/users/ivan.jpg" */
-  pictureUrl?: string;
-  /** @example 1 */
-  roleId: number;
-  /** @example false */
-  suspended: boolean;
+export interface ApiPatchUserRequest {  
+  /** @example "550e8400-e29b-41d4-a716-446655440000" */  
+  departmentId?: string;  
+  /** @example "Ivan" */  
+  firstName: string;  
+  /** @example "Petrov" */  
+  lastName: string;  
+  /** @example "Sergeevich" */  
+  middleName?: string;  
+  /** @example "/images/users/ivan.jpg" */  
+  pictureUrl?: string;  
+  /** @example 1 */  
+  roleId: number;  
+  /** @example false */  
+  suspended: boolean;  
+  /** @example "Кафдера математики" */  
+  subdivision?: string;  
+  /** @example "Учитель" */  
+  jobTitle?: string;  
+  /** @example 1.0 */  
+  employmentRate?: number;  
+  /** @example 1 */  
+  personnelCategory?: number;  
+  /** @example 1 */  
+  employmentType?: number;  
+  /** @example 2 */  
+  academicDegree?: number;  
+  /** @example "Профессор" */  
+  academicTitle?: string;  
+  /** @example "Профессор" */  
+  honors?: string;  
+  /** @example "Высшая" */  
+  category?: string;  
+  /** @example "2020-01-01T00:00:00Z" */  
+  dateOfEmployment?: string;  
+  /** @example "2025-01-01T00:00:00Z" */  
+  unemploymentDate?: string;
 }
 
 export interface ApiPermission {
@@ -285,20 +329,42 @@ export interface ApiUserNotFoundError {
   ruMessage?: string;
 }
 
-export interface ApiUserResponse {
-  department?: ApiDepartment;
-  /** @example "Ivan" */
-  firstName: string;
-  /** @example "550e8400-e29b-41d4-a716-446655440000" */
-  id: string;
-  /** @example "Petrov" */
-  lastName: string;
-  /** @example "Sergeevich" */
-  middleName?: string;
-  /** @example "/images/users/ivan.jpg" */
-  pictureUrl: string;
-  role: ApiRole;
-  suspended: boolean;
+export interface ApiUserResponse {  
+  department?: ApiDepartment;  
+  /** @example "Ivan" */  
+  firstName: string;  
+  /** @example "550e8400-e29b-41d4-a716-446655440000" */  
+  id: string;  
+  /** @example "Petrov" */  
+  lastName: string;  
+  /** @example "Sergeevich" */  
+  middleName?: string;  
+  /** @example "/images/users/ivan.jpg" */  
+  pictureUrl: string;  
+  role: ApiRole;  
+  suspended: boolean;  
+  /** @example "Кафдера математики" */  
+  subdivision: string;  
+  /** @example "Учитель" */  
+  jobTitle: string;  
+  /** @example 1.0 */  
+  employmentRate: number;  
+  /** @example 1 */  
+  personnelCategory: number;  
+  /** @example 1 */  
+  employmentType: number;  
+  /** @example 2 */  
+  academicDegree: number;  
+  /** @example "Профессор" */  
+  academicTitle: string;  
+  /** @example "Профессор" */  
+  honors: string;  
+  /** @example "Высшая" */  
+  category: string;  
+  /** @example "2020-01-01T00:00:00Z" */  
+  dateOfEmployment: string;  
+  /** @example "2025-01-01T00:00:00Z" */  
+  unemploymentDate?: string;
 }
 
 export interface ApiUsersResponse {

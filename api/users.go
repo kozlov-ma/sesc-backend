@@ -21,26 +21,37 @@ type UserResponse struct {
 	Role              Role       `json:"role"                                                               validate:"required"`
 	Suspended         bool       `json:"suspended"                                                          validate:"required"`
 	Department        Department `json:"department,omitzero"`
-	Subdivision       string     `json:"subdivision"         example:"IT Department"`
-	JobTitle          string     `json:"jobTitle"            example:"Software Engineer"`
+	Subdivision       string     `json:"subdivision"         example:"Кафдера математики"`
+	JobTitle          string     `json:"jobTitle"            example:"Учитель"`
 	EmploymentRate    float64    `json:"employmentRate"      example:"1.0"`
 	PersonnelCategory int        `json:"personnelCategory"   example:"1"`
 	EmploymentType    int        `json:"employmentType"      example:"1"`
 	AcademicDegree    int        `json:"academicDegree"      example:"2"`
-	AcademicTitle     string     `json:"academicTitle"       example:"Professor"`
-	Honors            string     `json:"honors"              example:"PhD"`
-	Category          string     `json:"category"            example:"Senior"`
+	AcademicTitle     string     `json:"academicTitle"       example:"Профессор"`
+	Honors            string     `json:"honors"              example:"Профессор"`
+	Category          string     `json:"category"            example:"Высшая"`
 	DateOfEmployment  time.Time  `json:"dateOfEmployment"    example:"2020-01-01T00:00:00Z"`
 	UnemploymentDate  time.Time  `json:"unemploymentDate,omitempty" example:"2025-01-01T00:00:00Z"`
 }
 
 type CreateUserRequest struct {
-	FirstName    string    `json:"firstName"             example:"Anna"                                 validate:"required"`
-	LastName     string    `json:"lastName"              example:"Smirnova"                             validate:"required"`
-	MiddleName   string    `json:"middleName"            example:"Olegovna"`
-	RoleID       int32     `json:"roleId"                example:"2"                                    validate:"required"`
-	PictureURL   string    `json:"pictureUrl,omitzero"   example:"/images/users/ivan.jpg"`
-	DepartmentID uuid.UUID `json:"departmentId,omitzero" example:"550e8400-e29b-41d4-a716-446655440000"`
+	FirstName         string    `json:"firstName"             example:"Anna"                                 validate:"required"`
+	LastName          string    `json:"lastName"              example:"Smirnova"                             validate:"required"`
+	MiddleName        string    `json:"middleName"            example:"Olegovna"`
+	RoleID            int32     `json:"roleId"                example:"2"                                    validate:"required"`
+	PictureURL        string    `json:"pictureUrl,omitzero"   example:"/images/users/ivan.jpg"`
+	DepartmentID      uuid.UUID `json:"departmentId,omitzero" example:"550e8400-e29b-41d4-a716-446655440000"`
+	Subdivision       string    `json:"subdivision"           example:"Кафдера математики"`
+	JobTitle          string    `json:"jobTitle"              example:"Учитель"`
+	EmploymentRate    float64   `json:"employmentRate"        example:"1.0"`
+	PersonnelCategory int       `json:"personnelCategory"     example:"1"`
+	EmploymentType    int       `json:"employmentType"        example:"1"`
+	AcademicDegree    int       `json:"academicDegree"        example:"2"`
+	AcademicTitle     string    `json:"academicTitle"         example:"Профессор"`
+	Honors            string    `json:"honors"                example:"Профессор"`
+	Category          string    `json:"category"              example:"Высшая"`
+	DateOfEmployment  time.Time `json:"dateOfEmployment"      example:"2020-01-01T00:00:00Z"`
+	UnemploymentDate  time.Time `json:"unemploymentDate,omitempty" example:"2025-01-01T00:00:00Z"`
 }
 
 // GetUser godoc
@@ -154,14 +165,7 @@ func (a *API) CreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := a.sesc.CreateUser(ctx, sesc.UserUpdateOptions{
-		FirstName:    req.FirstName,
-		LastName:     req.LastName,
-		MiddleName:   req.MiddleName,
-		PictureURL:   req.PictureURL,
-		DepartmentID: req.DepartmentID,
-		NewRoleID:    req.RoleID,
-	})
+	user, err := a.sesc.CreateUser(ctx, sesc.UserUpdateOptions{FirstName: req.FirstName, LastName: req.LastName, MiddleName: req.MiddleName, PictureURL: req.PictureURL, DepartmentID: req.DepartmentID, NewRoleID: req.RoleID, Subdivision: req.Subdivision, JobTitle: req.JobTitle, EmploymentRate: req.EmploymentRate, PersonnelCategory: req.PersonnelCategory, EmploymentType: req.EmploymentType, AcademicDegree: req.AcademicDegree, AcademicTitle: req.AcademicTitle, Honors: req.Honors, Category: req.Category, DateOfEmployment: req.DateOfEmployment, UnemploymentDate: req.UnemploymentDate})
 
 	switch {
 	case errors.Is(err, sesc.ErrInvalidRole):
@@ -195,13 +199,24 @@ func (a *API) CreateUser(w http.ResponseWriter, r *http.Request) {
 // Fields are pointers so that only non‑nil values are applied to the user record.
 // DepartmentID is only allowed to be set if the user's role is Teacher or Dephead.
 type PatchUserRequest struct {
-	FirstName    *string    `json:"firstName"             example:"Ivan"                                 validate:"required"`
-	LastName     *string    `json:"lastName"              example:"Petrov"                               validate:"required"`
-	MiddleName   *string    `json:"middleName,omitzero"   example:"Sergeevich"`
-	PictureURL   *string    `json:"pictureUrl,omitzero"   example:"/images/users/ivan.jpg"`
-	Suspended    *bool      `json:"suspended,omitzero"    example:"false"                                validate:"required"`
-	DepartmentID *uuid.UUID `json:"departmentId,omitzero" example:"550e8400-e29b-41d4-a716-446655440000"`
-	RoleID       *int32     `json:"roleId,omitzero"       example:"1"                                    validate:"required"`
+	FirstName         *string    `json:"firstName"             example:"Ivan"                                 validate:"required"`
+	LastName          *string    `json:"lastName"              example:"Petrov"                               validate:"required"`
+	MiddleName        *string    `json:"middleName,omitzero"   example:"Sergeevich"`
+	PictureURL        *string    `json:"pictureUrl,omitzero"   example:"/images/users/ivan.jpg"`
+	Suspended         *bool      `json:"suspended,omitzero"    example:"false"                                validate:"required"`
+	DepartmentID      *uuid.UUID `json:"departmentId,omitzero" example:"550e8400-e29b-41d4-a716-446655440000"`
+	RoleID            *int32     `json:"roleId,omitzero"       example:"1"                                    validate:"required"`
+	Subdivision       *string    `json:"subdivision,omitzero"  example:"Кафдера математики"`
+	JobTitle          *string    `json:"jobTitle,omitzero"     example:"Учитель"`
+	EmploymentRate    *float64   `json:"employmentRate,omitzero" example:"1.0"`
+	PersonnelCategory *int       `json:"personnelCategory,omitzero" example:"1"`
+	EmploymentType    *int       `json:"employmentType,omitzero" example:"1"`
+	AcademicDegree    *int       `json:"academicDegree,omitzero" example:"2"`
+	AcademicTitle     *string    `json:"academicTitle,omitzero" example:"Профессор"`
+	Honors            *string    `json:"honors,omitzero"       example:"Профессор"`
+	Category          *string    `json:"category,omitzero"     example:"Высшая"`
+	DateOfEmployment  *time.Time `json:"dateOfEmployment,omitzero" example:"2020-01-01T00:00:00Z"`
+	UnemploymentDate  *time.Time `json:"unemploymentDate,omitzero" example:"2025-01-01T00:00:00Z"`
 }
 
 // PatchUser godoc
