@@ -77,7 +77,7 @@ export function UserCredentialsDialog({
         const response = await apiClient.auth.credentialsDetail(user.id);
         return response.data;
       } catch (err: any) {
-        if (hasErrorCode(err, "CREDENTIALS_NOT_FOUND")) {
+        if (hasErrorCode(err, "USER_NOT_FOUND")) {
           return null;
         }
         throw err;
@@ -99,7 +99,7 @@ export function UserCredentialsDialog({
       },
       onError: (err) => {
         handleFormError(err);
-      }
+      },
     },
   );
 
@@ -107,11 +107,8 @@ export function UserCredentialsDialog({
     useSWRMutation(
       `credentials-update-${user.id}`,
       async (_key, { arg }: { arg: CredentialsFormValues }) => {
-          const response = await apiClient.users.credentialsUpdate(
-            user.id,
-            arg,
-          );
-          return response.data;
+        const response = await apiClient.users.credentialsUpdate(user.id, arg);
+        return response.data;
       },
       {
         onSuccess: () => {
