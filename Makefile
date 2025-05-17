@@ -2,15 +2,15 @@
 
 # Spin up the development database
 dev-db:
-	docker-compose up -d postgres
+	docker compose up -d postgres
 
 # Spin up both database and backend
 dev-backend:
-	docker-compose up -d --build
+	docker compose up -d --build
 
 # Stop and remove all containers
 down:
-	docker-compose down
+	docker compose down
 
 # Stop and remove all containers and volumes
 clean:
