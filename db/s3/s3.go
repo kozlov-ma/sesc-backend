@@ -3,6 +3,7 @@ package s3
 import (
 	"context"
 	"fmt"
+	"io"
 	"log/slog"
 	"net/url"
 
@@ -15,10 +16,11 @@ import (
 
 // Client wraps a MinIO client for S3 operations.
 type Client struct {
-	minio    *minio.Client
-	bucket   string
-	logger   *slog.Logger
-	endpoint string
+	minio          *minio.Client
+	bucket         string
+	logger         *slog.Logger
+	endpoint       string
+	publicEndpoint string
 }
 
 // ListObjects returns a list of object keys in the bucket with the given prefix.
@@ -44,6 +46,12 @@ func New(logger *slog.Logger, cfg config.S3Config) (*Client, error) {
 	if endpoint == "" {
 		return nil, fmt.Errorf("s3 endpoint not set")
 	}
+
+	publicEndpoint := cfg.PublicEndpoint
+	if publicEndpoint == "" {
+		publicEndpoint = endpoint
+	}
+
 	accessKey := cfg.AccessKey
 	if accessKey == "" {
 		return nil, fmt.Errorf("s3 access key not set")
@@ -81,34 +89,27 @@ func New(logger *slog.Logger, cfg config.S3Config) (*Client, error) {
 	}
 
 	return &Client{
-		minio:    minioClient,
-		bucket:   bucket,
-		logger:   logger,
-		endpoint: endpoint,
+		minio:          minioClient,
+		bucket:         bucket,
+		logger:         logger,
+		endpoint:       endpoint,
+		publicEndpoint: publicEndpoint,
 	}, nil
 }
 
 // Store uploads the given reader as an object with the provided key and content type.
-// Returns a presigned URL for accessing the object.
 func (c *Client) Store(ctx context.Context, key string, reader interface {
 	Read(p []byte) (n int, err error)
-}, size int64, contentType string, expiry time.Duration) (*url.URL, error) {
-	// Upload object
+}, size int64, contentType string, expiry time.Duration) error {
 	_, err := c.minio.PutObject(ctx, c.bucket, key, reader, size, minio.PutObjectOptions{
 		ContentType: contentType,
 	})
 	if err != nil {
 		c.logger.Error("failed to upload object", "bucket", c.bucket, "key", key, "error", err)
-		return nil, fmt.Errorf("upload error: %w", err)
+		return fmt.Errorf("upload error: %w", err)
 	}
 
-	// Generate presigned URL
-	presignedURL, err := c.minio.PresignedGetObject(ctx, c.bucket, key, expiry, nil)
-	if err != nil {
-		c.logger.Error("failed to presign object", "bucket", c.bucket, "key", key, "error", err)
-		return nil, fmt.Errorf("presign error: %w", err)
-	}
-	return presignedURL, nil
+	return nil
 }
 
 // PresignGet returns a presigned GET URL for the specified key and expiry.
@@ -118,6 +119,10 @@ func (c *Client) PresignGet(ctx context.Context, key string, expiry time.Duratio
 		c.logger.Error("failed to presign GET object", "bucket", c.bucket, "key", key, "error", err)
 		return nil, fmt.Errorf("presign GET error: %w", err)
 	}
+	if c.publicEndpoint != c.endpoint {
+		url.Host = c.publicEndpoint
+	}
+
 	return url, nil
 }
 
@@ -129,4 +134,23 @@ func (c *Client) DeleteObject(ctx context.Context, key string) error {
 		return fmt.Errorf("delete error: %w", err)
 	}
 	return nil
+}
+
+// GetObject retrieves an object with the given key from the bucket.
+// Returns an io.ReadCloser for the object data, the object info, and an error if any.
+func (c *Client) GetObject(ctx context.Context, key string) (io.ReadCloser, minio.ObjectInfo, error) {
+	obj, err := c.minio.GetObject(ctx, c.bucket, key, minio.GetObjectOptions{})
+	if err != nil {
+		c.logger.Error("failed to get object", "bucket", c.bucket, "key", key, "error", err)
+		return nil, minio.ObjectInfo{}, fmt.Errorf("get object error: %w", err)
+	}
+
+	info, err := obj.Stat()
+	if err != nil {
+		obj.Close()
+		c.logger.Error("failed to get object stats", "bucket", c.bucket, "key", key, "error", err)
+		return nil, minio.ObjectInfo{}, fmt.Errorf("get object stats error: %w", err)
+	}
+
+	return obj, info, nil
 }

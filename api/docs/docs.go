@@ -692,14 +692,14 @@ const docTemplate = `{
         },
         "/documents/{id}": {
             "get": {
-                "description": "Retrieves a presigned URL for a document by key",
+                "description": "Streams document content directly to client",
                 "produces": [
-                    "application/json"
+                    "*/*"
                 ],
                 "tags": [
                     "documents"
                 ],
-                "summary": "Get document URL",
+                "summary": "Download document",
                 "parameters": [
                     {
                         "type": "string",
@@ -711,15 +711,21 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "Document content",
                         "schema": {
-                            "$ref": "#/definitions/api.DocumentResponse"
+                            "type": "file"
                         }
                     },
                     "400": {
                         "description": "Invalid document key",
                         "schema": {
                             "$ref": "#/definitions/api.InvalidRequestError"
+                        }
+                    },
+                    "404": {
+                        "description": "Document not found",
+                        "schema": {
+                            "$ref": "#/definitions/api.Error"
                         }
                     },
                     "500": {
@@ -1370,7 +1376,7 @@ const docTemplate = `{
                 },
                 "url": {
                     "type": "string",
-                    "example": "http://localhost:9000/documents/123e4567-e89b-12d3-a456-426614174000.pdf?X-Amz-Algorithm=..."
+                    "example": "http://api-server:8080/documents/123e4567-e89b-12d3-a456-426614174000.pdf"
                 }
             }
         },

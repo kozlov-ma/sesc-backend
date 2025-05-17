@@ -95,7 +95,7 @@ export interface ApiDepartmentsResponse {
 export interface ApiDocumentResponse {
   /** @example "123e4567-e89b-12d3-a456-426614174000.pdf" */
   key?: string;
-  /** @example "http://localhost:9000/documents/123e4567-e89b-12d3-a456-426614174000.pdf?X-Amz-Algorithm=..." */
+  /** @example "http://api-server:8080/documents/123e4567-e89b-12d3-a456-426614174000.pdf" */
   url?: string;
 }
 
@@ -805,18 +805,17 @@ export class Api<
       }),
 
     /**
-     * @description Retrieves a presigned URL for a document by key
+     * @description Streams document content directly to client
      *
      * @tags documents
      * @name DocumentsDetail
-     * @summary Get document URL
+     * @summary Download document
      * @request GET:/documents/{id}
      */
     documentsDetail: (id: string, params: RequestParams = {}) =>
-      this.request<ApiDocumentResponse, ApiInvalidRequestError | ApiError>({
+      this.request<File, ApiInvalidRequestError | ApiError>({
         path: `/documents/${id}`,
         method: "GET",
-        format: "json",
         ...params,
       }),
   };

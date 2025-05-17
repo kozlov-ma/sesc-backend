@@ -1,6 +1,7 @@
 package api
 
 import (
+	"fmt"
 	"io"
 	"mime"
 	"net/http"
@@ -15,10 +16,21 @@ import (
 	"github.com/kozlov-ma/sesc-backend/pkg/event/events"
 )
 
-// DocumentResponse represents a document key and its accessible URL.
+// getScheme returns the scheme (http or https) from the request
+func getScheme(r *http.Request) string {
+	if r.TLS != nil {
+		return "https"
+	}
+	if scheme := r.Header.Get("X-Forwarded-Proto"); scheme != "" {
+		return scheme
+	}
+	return "http"
+}
+
+// DocumentResponse represents a document key and download URL.
 type DocumentResponse struct {
 	Key string `json:"key" example:"123e4567-e89b-12d3-a456-426614174000.pdf"`
-	URL string `json:"url" example:"http://localhost:9000/documents/123e4567-e89b-12d3-a456-426614174000.pdf?X-Amz-Algorithm=..."`
+	URL string `json:"url" example:"http://api-server:8080/documents/123e4567-e89b-12d3-a456-426614174000.pdf"`
 }
 
 // DocumentsResponse is the response payload for listing documents.
@@ -52,15 +64,12 @@ func (a *API) ListDocuments(w http.ResponseWriter, r *http.Request) {
 		if query != "" && !strings.Contains(key, query) {
 			continue
 		}
-		url, err := a.s3.PresignGet(ctx, key, 15*time.Minute)
-		if err != nil {
-			rec.Add(events.Error, err)
-			writeError(ctx, w, ErrServerError.WithDetails(err.Error()).WithStatus(http.StatusInternalServerError))
-			return
-		}
+		// Build direct API endpoint URL instead of using presigned URLs
+		downloadURL := fmt.Sprintf("%s://%s/documents/%s",
+			getScheme(r), r.Host, key)
 		docs = append(docs, DocumentResponse{
 			Key: key,
-			URL: url.String(),
+			URL: downloadURL,
 		})
 	}
 
@@ -102,14 +111,17 @@ func (a *API) UploadDocument(w http.ResponseWriter, r *http.Request) {
 	}
 
 	size := header.Size
-	url, err := a.s3.Store(ctx, key, file.(io.Reader), size, contentType, 24*time.Hour)
+	err = a.s3.Store(ctx, key, file.(io.Reader), size, contentType, 24*time.Hour)
 	if err != nil {
 		rec.Add(events.Error, err)
 		writeError(ctx, w, ErrServerError.WithDetails(err.Error()).WithStatus(http.StatusInternalServerError))
 		return
 	}
 
-	a.writeJSON(ctx, w, DocumentResponse{Key: key, URL: url.String()}, http.StatusCreated)
+	// Build direct API endpoint URL instead of using presigned URLs
+	downloadURL := fmt.Sprintf("%s://%s/documents/%s",
+		getScheme(r), r.Host, key)
+	a.writeJSON(ctx, w, DocumentResponse{Key: key, URL: downloadURL}, http.StatusCreated)
 }
 
 // DeleteDocument godoc
@@ -141,13 +153,14 @@ func (a *API) DeleteDocument(w http.ResponseWriter, r *http.Request) {
 }
 
 // GetDocument godoc
-// @Summary Get document URL
-// @Description Retrieves a presigned URL for a document by key
+// @Summary Download document
+// @Description Streams document content directly to client
 // @Tags documents
-// @Produce json
+// @Produce */*
 // @Param id path string true "Document key"
-// @Success 200 {object} DocumentResponse
+// @Success 200 {file} binary "Document content"
 // @Failure 400 {object} InvalidRequestError "Invalid document key"
+// @Failure 404 {object} Error "Document not found"
 // @Failure 500 {object} Error "Internal server error"
 // @Router /documents/{id} [get]
 func (a *API) GetDocument(w http.ResponseWriter, r *http.Request) {
@@ -160,12 +173,21 @@ func (a *API) GetDocument(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	url, err := a.s3.PresignGet(ctx, key, 15*time.Minute)
+	obj, info, err := a.s3.GetObject(ctx, key)
 	if err != nil {
 		rec.Add(events.Error, err)
 		writeError(ctx, w, ErrServerError.WithDetails(err.Error()).WithStatus(http.StatusInternalServerError))
 		return
 	}
+	defer obj.Close()
 
-	a.writeJSON(ctx, w, DocumentResponse{Key: key, URL: url.String()}, http.StatusOK)
+	filename := key
+	w.Header().Set("Content-Type", info.ContentType)
+	w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=\"%s\"", filename))
+	w.Header().Set("Content-Length", fmt.Sprintf("%d", info.Size))
+
+	if _, err := io.Copy(w, obj); err != nil {
+		rec.Add(events.Error, err)
+		writeError(ctx, w, ErrInvalidRequest.WithDetails(err.Error()))
+	}
 }
