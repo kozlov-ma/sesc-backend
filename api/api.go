@@ -11,6 +11,7 @@ import (
 	_ "github.com/kozlov-ma/sesc-backend/api/docs" // This blank import is needed to serve the swagger scheme.
 	"github.com/kozlov-ma/sesc-backend/pkg/event"
 	"github.com/kozlov-ma/sesc-backend/pkg/event/events"
+	s3store "github.com/kozlov-ma/sesc-backend/db/s3"
 	"github.com/kozlov-ma/sesc-backend/sesc"
 	httpSwagger "github.com/swaggo/http-swagger"
 )
@@ -24,13 +25,14 @@ import (
 // @description Enter 'Bearer ' followed by your token
 
 type API struct {
-	sesc      SESC
-	iam       IAMService
-	eventSink EventSink
+    sesc      SESC
+    iam       IAMService
+    eventSink EventSink
+    s3        *s3store.Client
 }
 
-func New(sesc SESC, iam IAMService, eventSink EventSink) *API {
-	return &API{sesc: sesc, iam: iam, eventSink: eventSink}
+func New(sesc SESC, iam IAMService, eventSink EventSink, s3Client *s3store.Client) *API {
+    return &API{sesc: sesc, iam: iam, eventSink: eventSink, s3: s3Client}
 }
 
 // Helper functions
@@ -161,6 +163,12 @@ func (a *API) RegisterRoutes(r chi.Router) {
 		// User management
 		r.Post("/users", a.CreateUser)
 		r.Patch("/users/{id}", a.PatchUser)
+
+		        // Documents management
+		        r.Get("/documents", a.ListDocuments)
+		        r.Post("/documents", a.UploadDocument)
+		        r.Delete("/documents", a.DeleteDocument)
+		        r.Get("/documents/{id}", a.GetDocument)
 
 		// Credential management
 		r.Delete("/auth/credentials/{id}", a.DeleteCredentials)
