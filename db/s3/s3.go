@@ -5,9 +5,10 @@ import (
 	"fmt"
 	"log/slog"
 	"net/url"
-	"os"
+
 	"time"
 
+	"github.com/kozlov-ma/sesc-backend/internal/config"
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
 )
@@ -37,27 +38,25 @@ func (c *Client) ListObjects(ctx context.Context, prefix string, recursive bool)
 	return keys, nil
 }
 
-// New initializes a new S3 client.
-// It reads configuration from environment variables:
-// MINIO_ENDPOINT, MINIO_ACCESS_KEY, MINIO_SECRET_KEY, MINIO_BUCKET, MINIO_USE_SSL.
-func New(logger *slog.Logger) (*Client, error) {
-	endpoint := os.Getenv("MINIO_ENDPOINT")
+// New initializes a new S3 client using provided configuration.
+func New(logger *slog.Logger, cfg config.S3Config) (*Client, error) {
+	endpoint := cfg.Endpoint
 	if endpoint == "" {
-		return nil, fmt.Errorf("MINIO_ENDPOINT not set")
+		return nil, fmt.Errorf("s3 endpoint not set")
 	}
-	accessKey := os.Getenv("MINIO_ACCESS_KEY")
+	accessKey := cfg.AccessKey
 	if accessKey == "" {
-		return nil, fmt.Errorf("MINIO_ACCESS_KEY not set")
+		return nil, fmt.Errorf("s3 access key not set")
 	}
-	secretKey := os.Getenv("MINIO_SECRET_KEY")
+	secretKey := cfg.SecretKey
 	if secretKey == "" {
-		return nil, fmt.Errorf("MINIO_SECRET_KEY not set")
+		return nil, fmt.Errorf("s3 secret key not set")
 	}
-	bucket := os.Getenv("MINIO_BUCKET")
+	bucket := cfg.Bucket
 	if bucket == "" {
-		return nil, fmt.Errorf("MINIO_BUCKET not set")
+		return nil, fmt.Errorf("s3 bucket not set")
 	}
-	useSSL := os.Getenv("MINIO_USE_SSL") == "true"
+	useSSL := cfg.UseSSL
 
 	minioClient, err := minio.New(endpoint, &minio.Options{
 		Creds:  credentials.NewStaticV4(accessKey, secretKey, ""),
@@ -91,7 +90,9 @@ func New(logger *slog.Logger) (*Client, error) {
 
 // Store uploads the given reader as an object with the provided key and content type.
 // Returns a presigned URL for accessing the object.
-func (c *Client) Store(ctx context.Context, key string, reader interface{ Read(p []byte) (n int, err error) }, size int64, contentType string, expiry time.Duration) (*url.URL, error) {
+func (c *Client) Store(ctx context.Context, key string, reader interface {
+	Read(p []byte) (n int, err error)
+}, size int64, contentType string, expiry time.Duration) (*url.URL, error) {
 	// Upload object
 	_, err := c.minio.PutObject(ctx, c.bucket, key, reader, size, minio.PutObjectOptions{
 		ContentType: contentType,

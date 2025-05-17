@@ -18,3 +18,10 @@ admin_credentials:
   # - id: "00000000-0000-0000-0000-000000000000"
   #   username: "another_admin"
   #   password: "secure_password"
+
+s3:
+  endpoint: "minio:9000"
+  access_key: "minio"
+  secret_key: "minio123"
+  bucket: "documents"
+  use_ssl: false

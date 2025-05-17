@@ -2,7 +2,7 @@
 
 # Spin up the development database
 dev-db:
-	docker-compose up -d postgres
+	docker-compose up -d postgres minio
 
 # Spin up both database and backend
 dev-backend:

@@ -42,12 +42,8 @@ services:
       postgres:
         condition: service_healthy
     environment:
-      POSTGRES_ADDRESS: postgres://postgres:password@postgres:5432/postgres?sslmode=disable
-      MINIO_ENDPOINT: minio:9000
-      MINIO_ACCESS_KEY: minio
-      MINIO_SECRET_KEY: minio123
-      MINIO_BUCKET: documents
-      MINIO_USE_SSL: "false"
+      SESC_DATABASE_ADDRESS: postgres://postgres:password@postgres:5432/postgres?sslmode=disable
+
 
 volumes:
   postgres:

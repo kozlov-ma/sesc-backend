@@ -3,6 +3,7 @@ package config
 import (
 	"errors"
 	"fmt"
+
 	"strings"
 	"time"
 
@@ -30,6 +31,7 @@ type Config struct {
 	AdminCredentials []AdminCredentialConfig `mapstructure:"admin_credentials"`
 	HTTP             HTTPConfig              `mapstructure:"http"`
 	JWTSecret        string                  `mapstructure:"jwt_secret"`
+	S3               S3Config                `mapstructure:"s3"`
 }
 
 type DatabaseConfig struct {
@@ -48,6 +50,14 @@ type HTTPConfig struct {
 	ReadHeaderTimeout time.Duration `mapstructure:"read_header_timeout"`
 	ReadTimeout       time.Duration `mapstructure:"read_timeout"`
 	WriteTimeout      time.Duration `mapstructure:"write_timeout"`
+}
+
+type S3Config struct {
+	Endpoint  string `mapstructure:"endpoint"`
+	AccessKey string `mapstructure:"access_key"`
+	SecretKey string `mapstructure:"secret_key"`
+	Bucket    string `mapstructure:"bucket"`
+	UseSSL    bool   `mapstructure:"use_ssl"`
 }
 
 func LoadConfig() (*Config, error) {
