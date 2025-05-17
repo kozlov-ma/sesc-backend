@@ -17,7 +17,7 @@ func TestAuthenticationErrors(t *testing.T) {
 	// Test invalid admin credentials
 	_, err := client.LoginAdmin(ctx, "wrong_admin", "wrong_password")
 	require.Error(t, err)
-	assert.Contains(t, strings.ToLower(err.Error()), "server_error")
+	assert.Contains(t, strings.ToLower(err.Error()), "user_not_found")
 
 	// Test invalid user credentials
 	_, err = client.Login(ctx, "nonexistent_user", "wrong_password")

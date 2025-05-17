@@ -2,7 +2,6 @@ package api
 
 import (
 	"encoding/json"
-	"errors"
 	"net/http"
 
 	"github.com/gofrs/uuid/v5"
@@ -147,19 +146,7 @@ func (a *API) LoginAdmin(w http.ResponseWriter, r *http.Request) {
 	token, err := a.iam.LoginAdmin(ctx, iam.Credentials(req))
 	if err != nil {
 		rec.Add(events.Error, err)
-		if errors.Is(err, iam.ErrInvalidRole) || errors.Is(err, iam.ErrCredentialsNotFound) {
-			writeError(
-				ctx,
-				w,
-				ErrCredentialsNotFound.WithDetails("Invalid admin credentials").WithStatus(http.StatusUnauthorized),
-			)
-			return
-		}
-		writeError(
-			ctx,
-			w,
-			ErrServerError.WithDetails("Failed to login as admin").WithStatus(http.StatusInternalServerError),
-		)
+		writeError(ctx, w, iamError(err))
 		return
 	}
 

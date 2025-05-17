@@ -436,6 +436,8 @@ func (i *IAM) LoginAdmin(ctx context.Context, creds Credentials) (string, error)
 
 	rec.Sub("params").Set("username", creds.Username)
 
+	ctx = rec.Wrap(ctx)
+
 	// Stage 1: Verify admin credentials
 	id, err := i.verifyAdminCredentials(ctx, creds)
 	if err != nil {
