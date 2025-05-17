@@ -70,11 +70,22 @@ func LoadConfig() (*Config, error) {
 	v.AddConfigPath(".")
 	v.AddConfigPath("./config")
 
-	v.AutomaticEnv()
-
 	v.SetEnvPrefix("SESC")
 	replacer := strings.NewReplacer(".", "_")
 	v.SetEnvKeyReplacer(replacer)
+	v.AutomaticEnv()
+	// v.BindEnv("database.address", "SESC_DATABASE_ADDRESS")
+	// v.BindEnv("database.type", "SESC_DATABASE_TYPE")
+	// v.BindEnv("jwt_secret", "SESC_JWT_SECRET")
+	// v.BindEnv("http.server_address", "SESC_HTTP_SERVER_ADDRESS")
+	// v.BindEnv("http.read_header_timeout", "SESC_HTTP_READ_HEADER_TIMEOUT")
+	// v.BindEnv("http.read_timeout", "SESC_HTTP_READ_TIMEOUT")
+	// v.BindEnv("http.write_timeout", "SESC_HTTP_WRITE_TIMEOUT")
+	// v.BindEnv("s3.endpoint", "SESC_S3_ENDPOINT")
+	// v.BindEnv("s3.access_key", "SESC_S3_ACCESS_KEY")
+	// v.BindEnv("s3.secret_key", "SESC_S3_SECRET_KEY")
+	// v.BindEnv("s3.bucket", "SESC_S3_BUCKET")
+	// v.BindEnv("s3.use_ssl", "SESC_S3_USE_SSL")
 
 	if err := v.ReadInConfig(); err != nil {
 		var configFileNotFoundError viper.ConfigFileNotFoundError

@@ -129,6 +129,24 @@ definitions:
     required:
     - departments
     type: object
+  api.DocumentResponse:
+    properties:
+      key:
+        example: 123e4567-e89b-12d3-a456-426614174000.pdf
+        type: string
+      url:
+        example: http://localhost:9000/documents/123e4567-e89b-12d3-a456-426614174000.pdf?X-Amz-Algorithm=...
+        type: string
+    type: object
+  api.DocumentsResponse:
+    properties:
+      documents:
+        items:
+          $ref: '#/definitions/api.DocumentResponse'
+        type: array
+    required:
+    - documents
+    type: object
   api.Error:
     properties:
       code:
@@ -834,6 +852,105 @@ paths:
       summary: Create a lot of fake data (for testing and development purposes)
       tags:
       - dev
+  /documents:
+    delete:
+      description: Deletes a document by its key
+      parameters:
+      - description: Document key
+        in: query
+        name: key
+        required: true
+        type: string
+      responses:
+        "204":
+          description: No content
+        "400":
+          description: Missing document key
+          schema:
+            $ref: '#/definitions/api.InvalidRequestError'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/api.Error'
+      summary: Delete document
+      tags:
+      - documents
+    get:
+      description: Retrieves a list of documents; supports optional substring search
+      parameters:
+      - description: Search query
+        in: query
+        name: query
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.DocumentsResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/api.Error'
+      summary: List documents
+      tags:
+      - documents
+    post:
+      consumes:
+      - multipart/form-data
+      description: Uploads a new document to storage
+      parameters:
+      - description: Document file
+        in: formData
+        name: file
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/api.DocumentResponse'
+        "400":
+          description: Invalid request format
+          schema:
+            $ref: '#/definitions/api.InvalidRequestError'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/api.Error'
+      summary: Upload document
+      tags:
+      - documents
+  /documents/{id}:
+    get:
+      description: Retrieves a presigned URL for a document by key
+      parameters:
+      - description: Document key
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.DocumentResponse'
+        "400":
+          description: Invalid document key
+          schema:
+            $ref: '#/definitions/api.InvalidRequestError'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/api.Error'
+      summary: Get document URL
+      tags:
+      - documents
   /permissions:
     get:
       description: Retrieves all available system permissions

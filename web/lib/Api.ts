@@ -92,6 +92,17 @@ export interface ApiDepartmentsResponse {
   departments: ApiDepartment[];
 }
 
+export interface ApiDocumentResponse {
+  /** @example "123e4567-e89b-12d3-a456-426614174000.pdf" */
+  key?: string;
+  /** @example "http://localhost:9000/documents/123e4567-e89b-12d3-a456-426614174000.pdf?X-Amz-Algorithm=..." */
+  url?: string;
+}
+
+export interface ApiDocumentsResponse {
+  documents: ApiDocumentResponse[];
+}
+
 export interface ApiError {
   /** @example "INVALID_REQUEST" */
   code: string;
@@ -717,6 +728,95 @@ export class Api<
         path: `/dev/fakedata`,
         method: "POST",
         secure: true,
+        ...params,
+      }),
+  };
+  documents = {
+    /**
+     * @description Retrieves a list of documents; supports optional substring search
+     *
+     * @tags documents
+     * @name DocumentsList
+     * @summary List documents
+     * @request GET:/documents
+     */
+    documentsList: (
+      query?: {
+        /** Search query */
+        query?: string;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<ApiDocumentsResponse, ApiError>({
+        path: `/documents`,
+        method: "GET",
+        query: query,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Uploads a new document to storage
+     *
+     * @tags documents
+     * @name DocumentsCreate
+     * @summary Upload document
+     * @request POST:/documents
+     */
+    documentsCreate: (
+      data: {
+        /**
+         * Document file
+         * @format binary
+         */
+        file: File;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<ApiDocumentResponse, ApiInvalidRequestError | ApiError>({
+        path: `/documents`,
+        method: "POST",
+        body: data,
+        type: ContentType.FormData,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Deletes a document by its key
+     *
+     * @tags documents
+     * @name DocumentsDelete
+     * @summary Delete document
+     * @request DELETE:/documents
+     */
+    documentsDelete: (
+      query: {
+        /** Document key */
+        key: string;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<void, ApiInvalidRequestError | ApiError>({
+        path: `/documents`,
+        method: "DELETE",
+        query: query,
+        ...params,
+      }),
+
+    /**
+     * @description Retrieves a presigned URL for a document by key
+     *
+     * @tags documents
+     * @name DocumentsDetail
+     * @summary Get document URL
+     * @request GET:/documents/{id}
+     */
+    documentsDetail: (id: string, params: RequestParams = {}) =>
+      this.request<ApiDocumentResponse, ApiInvalidRequestError | ApiError>({
+        path: `/documents/${id}`,
+        method: "GET",
+        format: "json",
         ...params,
       }),
   };
