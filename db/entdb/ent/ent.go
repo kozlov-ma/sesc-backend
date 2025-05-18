@@ -14,6 +14,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/authuser"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/department"
+	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/file"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/user"
 )
 
@@ -77,6 +78,7 @@ func checkColumn(table, column string) error {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
 			authuser.Table:   authuser.ValidColumn,
 			department.Table: department.ValidColumn,
+			file.Table:       file.ValidColumn,
 			user.Table:       user.ValidColumn,
 		})
 	})

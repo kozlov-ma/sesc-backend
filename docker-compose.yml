@@ -16,6 +16,26 @@ services:
       start_period: 30s
       timeout: 10s
 
+  minio:
+    image: minio/minio
+    container_name: minio
+    restart: unless-stopped
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    volumes:
+      - minio-data:/data
+    command: server /data --console-address ":9001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 10s
+      retries: 5
+      start_period: 30s
+      timeout: 10s
+
   backend:
     build:
       context: .
@@ -27,8 +47,80 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      minio:
+        condition: service_healthy
     environment:
-      POSTGRES_ADDRESS: postgres://postgres:password@postgres:5432/postgres?sslmode=disable
+      SESC_DATABASE_ADDRESS: postgres://postgres:password@postgres:5432/postgres?sslmode=disable
+      SESC_MINIO_ENDPOINT: minio:9000
+      SESC_MINIO_ACCESS_KEY: minioadmin
+      SESC_MINIO_SECRET_KEY: minioadmin
+      SESC_MINIO_USE_SSL: "false"
+      SESC_MINIO_BUCKET_NAME: sesc-files
+      SESC_MINIO_BASE_URL: http://minio:9000/sesc-files
+
+  test-postgres:
+    image: postgres
+    container_name: test-postgres
+    restart: "no"
+    environment:
+      POSTGRES_PASSWORD: test-password
+      POSTGRES_DB: test-db
+    healthcheck:
+      test: ["CMD", "pg_isready"]
+      interval: 5s
+      retries: 5
+      start_period: 10s
+      timeout: 5s
+
+  test-minio:
+    image: minio/minio
+    container_name: test-minio
+    restart: "no"
+    environment:
+      MINIO_ROOT_USER: test-minioadmin
+      MINIO_ROOT_PASSWORD: test-minioadmin
+    command: server /data --console-address ":9001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 5s
+      retries: 5
+      start_period: 10s
+      timeout: 5s
+
+  test-api:
+    build:
+      context: .
+      dockerfile: Dockerfile.test-api
+    container_name: sesc-test-api
+    restart: "no"
+    ports:
+      - "8081:8080"
+    depends_on:
+      test-postgres:
+        condition: service_healthy
+      test-minio:
+        condition: service_healthy
+    environment:
+      SESC_DATABASE_ADDRESS: postgres://postgres:test-password@test-postgres:5432/test-db?sslmode=disable
+      SESC_MINIO_ENDPOINT: test-minio:9000
+      SESC_MINIO_ACCESS_KEY: test-minioadmin
+      SESC_MINIO_SECRET_KEY: test-minioadmin
+      SESC_MINIO_USE_SSL: "false"
+      SESC_MINIO_BUCKET_NAME: test-sesc-files
+      SESC_MINIO_BASE_URL: http://test-minio:9000/test-sesc-files
+
+  # Integration tests service
+  integration-tests:
+    build:
+      context: .
+      dockerfile: Dockerfile.integration
+    container_name: sesc-integration-tests
+    depends_on:
+      test-api:
+        condition: service_started
+    environment:
+      TEST_API_URL: http://test-api:8080
 
 volumes:
   postgres:
+  minio-data:

@@ -1,9 +1,6 @@
 "use client";
 
-import {
-  User,
-  Home
-} from "lucide-react";
+import { User, Home, FolderPlus, FolderOpen } from "lucide-react";
 
 import { Separator } from "@/components/ui/separator";
 import {
@@ -21,10 +18,15 @@ import { apiClient } from "@/lib/api-client";
 const groups = [
   {
     name: "Личный кабинет",
+    routes: [{ name: "Обо мне", url: "/u/profile", icon: User }],
+  },
+  {
+    name: "Документы",
     routes: [
-      {"name": "Обо мне", "url": "/u/profile", "icon": User}
-    ]
-  }
+      { name: "Мои Документы", url: "/u/documents/my", icon: FolderPlus },
+      { name: "Общие Документы", url: "/u/documents/shared", icon: FolderOpen },
+    ],
+  },
 ];
 
 export default function DashboardLayout({
@@ -35,11 +37,11 @@ export default function DashboardLayout({
   const { isAuthenticated, isLoading, role } = useAuth();
 
   const { data: user } = useSWR<ApiUserResponse>(
-    isAuthenticated ? '/users/me' : null,
+    isAuthenticated ? "/users/me" : null,
     async () => {
       const response = await apiClient.users.getUsers();
       return response.data;
-    }
+    },
   );
 
   if (!isAuthenticated || isLoading || role === "admin") {
@@ -48,13 +50,21 @@ export default function DashboardLayout({
 
   return (
     <SidebarProvider>
-      <AppSidebar title={"Личный кабинет"} groups={groups} user={{
-              name: user?.firstName && user?.lastName ? `${user.firstName} ${user.lastName}` : "Пользователь",
-              email: user?.role.name || "",
-              avatar: user?.pictureUrl || ""
-          }} ico={{
-              icon: Home
-          }}/>
+      <AppSidebar
+        title={"Личный кабинет"}
+        groups={groups}
+        user={{
+          name:
+            user?.firstName && user?.lastName
+              ? `${user.firstName} ${user.lastName}`
+              : "Пользователь",
+          email: user?.role.name || "",
+          avatar: user?.pictureUrl || "",
+        }}
+        ico={{
+          icon: Home,
+        }}
+      />
       <SidebarInset>
         <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
           <div className="flex items-center gap-2 px-4">

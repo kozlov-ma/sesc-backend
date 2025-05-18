@@ -18,3 +18,11 @@ admin_credentials:
   # - id: "00000000-0000-0000-0000-000000000000"
   #   username: "another_admin"
   #   password: "secure_password"
+
+minio:
+  endpoint: "localhost:9000"
+  access_key: "minioadmin"
+  secret_key: "minioadmin"
+  use_ssl: false
+  bucket_name: "sesc-files"
+  base_url: "http://localhost:9000/sesc-files"

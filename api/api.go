@@ -26,11 +26,12 @@ import (
 type API struct {
 	sesc      SESC
 	iam       IAMService
+	file      FileService
 	eventSink EventSink
 }
 
-func New(sesc SESC, iam IAMService, eventSink EventSink) *API {
-	return &API{sesc: sesc, iam: iam, eventSink: eventSink}
+func New(sesc SESC, iam IAMService, file FileService, eventSink EventSink) *API {
+	return &API{sesc: sesc, iam: iam, file: file, eventSink: eventSink}
 }
 
 // Helper functions
@@ -140,6 +141,13 @@ func (a *API) RegisterRoutes(r chi.Router) {
 			r.With(a.CurrentUserMiddleware).Get("/me", a.GetCurrentUser)
 			r.Get("/", a.GetUsers)
 			r.Get("/{id}", a.GetUser)
+		})
+
+		// File routes
+		r.Route("/files", func(r chi.Router) {
+			r.Get("/", a.SearchFiles)
+			r.Post("/", a.UploadFile)
+			r.With(a.FileAccessMiddleware).Delete("/{id}", a.DeleteFile)
 		})
 	})
 

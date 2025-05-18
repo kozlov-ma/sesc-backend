@@ -41,7 +41,7 @@ type SpecificError interface {
 		UserExistsError | CredentialsNotFoundError | ServerError |
 		InvalidRoleError | InvalidNameError | DepartmentExistsError |
 		InvalidDepartmentIDError | InvalidDepartmentError | DepartmentNotFoundError |
-		CannotRemoveDepartmentError | Error
+		CannotRemoveDepartmentError | FileNotFoundError | BadRequestError | Error
 }
 
 // InvalidRequestError represents an invalid request error
@@ -457,6 +457,31 @@ func sescError(err error) Error {
 		return ErrInvalidUUID.WithDetails("Invalid user ID").WithStatus(http.StatusBadRequest)
 	case errors.Is(err, sesc.ErrInvalidDepartmentID):
 		return ErrInvalidDepartmentID.WithStatus(http.StatusBadRequest)
+	// File related errors
+	case errors.Is(err, sesc.ErrFileNotFound):
+		return FileNotFoundError{
+			Code:      "FILE_NOT_FOUND",
+			Message:   "File not found",
+			RuMessage: "Файл не найден",
+		}.WithStatus(http.StatusNotFound)
+	case errors.Is(err, sesc.ErrInvalidFileName):
+		return BadRequestError{
+			Code:      "BAD_REQUEST",
+			Message:   "Invalid file name",
+			RuMessage: "Неверное имя файла",
+		}.WithStatus(http.StatusBadRequest)
+	case errors.Is(err, sesc.ErrInvalidFileSize):
+		return BadRequestError{
+			Code:      "BAD_REQUEST",
+			Message:   "Invalid file size",
+			RuMessage: "Неверный размер файла",
+		}.WithStatus(http.StatusBadRequest)
+	case errors.Is(err, sesc.ErrInvalidFile):
+		return BadRequestError{
+			Code:      "BAD_REQUEST",
+			Message:   "Invalid file",
+			RuMessage: "Неверный файл",
+		}.WithStatus(http.StatusBadRequest)
 	default:
 		return ErrServerError.WithDetails(err.Error()).WithStatus(http.StatusInternalServerError)
 	}

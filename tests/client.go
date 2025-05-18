@@ -6,9 +6,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"mime/multipart"
 	"net/http"
 	"net/url"
+	"os"
 	"path"
+	"strconv"
 )
 
 // Client is the HTTP client for API testing
@@ -26,6 +29,15 @@ func NewClient(baseURL string) *Client {
 	}
 }
 
+// NewTestClient creates a new client for the test API
+func NewTestClient() *Client {
+	baseURL := os.Getenv("TEST_API_URL")
+	if baseURL == "" {
+		baseURL = "http://localhost:8081" // Default for local development
+	}
+	return NewClient(baseURL)
+}
+
 // SetToken sets the authorization token for subsequent requests
 func (c *Client) SetToken(token string) {
 	c.token = token
@@ -36,7 +48,6 @@ func (c *Client) makeRequest(
 	ctx context.Context,
 	method, endpoint string,
 	body any,
-	//nolint:unparam // this can be needed in the future.
 	query url.Values,
 ) (*http.Response, error) {
 	u, err := url.Parse(c.baseURL)
@@ -311,4 +322,131 @@ func (c *Client) GetPermissions(ctx context.Context) ([]Permission, error) {
 		return nil, err
 	}
 	return permissionsResp.Permissions, nil
+}
+
+// SearchFilesOptions represents the options for searching files
+type SearchFilesOptions struct {
+	Name    string
+	OwnerID string
+	Common  bool
+	Limit   int
+	Offset  int
+}
+
+// FileResponse represents a file response from the API
+type FileResponse struct {
+	ID          string  `json:"id"`
+	OwnerID     *string `json:"ownerId,omitempty"`
+	FileName    string  `json:"fileName"`
+	FileSize    int     `json:"fileSize"`
+	DownloadURL string  `json:"downloadUrl"`
+}
+
+// FileListResponse represents a list of files response from the API
+type FileListResponse struct {
+	Items      []FileResponse `json:"items"`
+	TotalCount int            `json:"totalCount"`
+}
+
+// UploadFile uploads a file to the server
+func (c *Client) UploadFile(ctx context.Context, fileContent []byte, fileName string) (*FileResponse, error) {
+	// Create a buffer to hold the multipart form data
+	body := &bytes.Buffer{}
+	writer := multipart.NewWriter(body)
+
+	// Create a form file field
+	part, err := writer.CreateFormFile("file", fileName)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create form file: %w", err)
+	}
+
+	// Write the file content to the form field
+	_, err = part.Write(fileContent)
+	if err != nil {
+		return nil, fmt.Errorf("failed to write file content: %w", err)
+	}
+
+	// Close the writer to finalize the form data
+	err = writer.Close()
+	if err != nil {
+		return nil, fmt.Errorf("failed to close multipart writer: %w", err)
+	}
+
+	// Create the request
+	u, err := url.Parse(c.baseURL)
+	if err != nil {
+		return nil, err
+	}
+	u.Path = path.Join(u.Path, "/files")
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, u.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	// Set the content type header to the multipart form content type
+	req.Header.Set("Content-Type", writer.FormDataContentType())
+
+	if c.token != "" {
+		req.Header.Set("Authorization", "Bearer "+c.token)
+	}
+
+	// Send the request
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	// Parse the response
+	var fileResp FileResponse
+	if err := parseResponse(resp, &fileResp); err != nil {
+		return nil, err
+	}
+
+	return &fileResp, nil
+}
+
+// SearchFiles searches for files based on specified options
+func (c *Client) SearchFiles(ctx context.Context, opts SearchFilesOptions) ([]FileResponse, int, error) {
+	// Prepare the query parameters
+	query := url.Values{}
+	if opts.Name != "" {
+		query.Set("name", opts.Name)
+	}
+	if opts.OwnerID != "" {
+		query.Set("owner_id", opts.OwnerID)
+	}
+	if opts.Common {
+		query.Set("common", "true")
+	}
+	if opts.Limit > 0 {
+		query.Set("limit", strconv.Itoa(opts.Limit))
+	}
+	if opts.Offset > 0 {
+		query.Set("offset", strconv.Itoa(opts.Offset))
+	}
+
+	// Make the request
+	resp, err := c.makeRequest(ctx, http.MethodGet, "/files", nil, query)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	// Parse the response
+	var listResp FileListResponse
+	if err := parseResponse(resp, &listResp); err != nil {
+		return nil, 0, err
+	}
+
+	return listResp.Items, listResp.TotalCount, nil
+}
+
+// DeleteFile deletes a file by ID
+func (c *Client) DeleteFile(ctx context.Context, fileID string) error {
+	resp, err := c.makeRequest(ctx, http.MethodDelete, "/files/"+fileID, nil, nil)
+	if err != nil {
+		return err
+	}
+
+	return parseResponse(resp, nil)
 }

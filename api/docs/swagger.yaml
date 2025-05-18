@@ -148,6 +148,28 @@ definitions:
     - message
     - ruMessage
     type: object
+  api.FileListResponse:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/api.FileResponse'
+        type: array
+      totalCount:
+        type: integer
+    type: object
+  api.FileResponse:
+    properties:
+      downloadUrl:
+        type: string
+      fileName:
+        type: string
+      fileSize:
+        type: integer
+      id:
+        type: string
+      ownerId:
+        type: string
+    type: object
   api.ForbiddenError:
     properties:
       code:
@@ -834,6 +856,130 @@ paths:
       summary: Create a lot of fake data (for testing and development purposes)
       tags:
       - dev
+  /files:
+    get:
+      consumes:
+      - application/json
+      description: Returns a list of files based on search criteria
+      parameters:
+      - description: File name to search for
+        in: query
+        name: name
+        type: string
+      - description: Owner ID to filter by
+        in: query
+        name: owner_id
+        type: string
+      - description: If true, return only common files
+        in: query
+        name: common
+        type: boolean
+      - default: 0
+        description: Pagination offset
+        in: query
+        name: offset
+        type: integer
+      - default: 50
+        description: Pagination limit
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.FileListResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api.Error'
+      security:
+      - BearerAuth: []
+      summary: Search files
+      tags:
+      - files
+    post:
+      consumes:
+      - multipart/form-data
+      description: Uploads a new file. Admin users create common files, regular users
+        create files owned by themselves.
+      parameters:
+      - description: File to upload
+        in: formData
+        name: file
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/api.FileResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api.Error'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/api.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api.Error'
+      security:
+      - BearerAuth: []
+      summary: Upload a file
+      tags:
+      - files
+  /files/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Deletes a file by ID
+      parameters:
+      - description: File ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api.Error'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/api.Error'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/api.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/api.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api.Error'
+      security:
+      - BearerAuth: []
+      summary: Delete file
+      tags:
+      - files
   /permissions:
     get:
       description: Retrieves all available system permissions

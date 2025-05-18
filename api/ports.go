@@ -2,6 +2,7 @@ package api
 
 import (
 	"context"
+	"io"
 
 	"github.com/gofrs/uuid/v5"
 	"github.com/kozlov-ma/sesc-backend/iam"
@@ -33,33 +34,38 @@ type (
 		Credentials(ctx context.Context, userID uuid.UUID) (iam.Credentials, error)
 	}
 
+	// SESC defines the business logic interface required by the API
 	SESC interface {
-		// UpdateUser updates user with the new fields.
-		//
-		// Returns an ErrInvalidRole if the new role id is invalid.
-		// Returns an ErrInvalidUserName if the first or last name is missing.
-		UpdateUser(ctx context.Context, id sesc.UUID, upd sesc.UserUpdateOptions) (sesc.User, error)
-		// CreateUser creates a new User with a specified role.
-		//
-		// Returns an ErrInvalidUserName if the first or last name is missing.
-		CreateUser(ctx context.Context, opt sesc.UserUpdateOptions) (sesc.User, error)
-		// Return a sesc.DepartmentAlreadyExists if the department already exists
-		CreateDepartment(ctx context.Context, name, description string) (sesc.Department, error)
-		UpdateDepartment(ctx context.Context, id sesc.UUID, name, description string) error
-		// User returns a User by ID. If the user does not exist, returns a sesc.ErrUserNotFound.
-		User(ctx context.Context, id sesc.UUID) (sesc.User, error)
-
-		// Users returns all the users currently registered within the system.
-		Users(ctx context.Context) ([]sesc.User, error)
-
-		// Departments returns all the departments currently registered within the system.
+		// Department operations
 		Departments(ctx context.Context) ([]sesc.Department, error)
-		DepartmentByID(ctx context.Context, id sesc.UUID) (sesc.Department, error)
-		DeleteDepartment(ctx context.Context, id sesc.UUID) error
-		UpdateProfilePicture(ctx context.Context, id sesc.UUID, pictureURL string) error
+		DepartmentByID(ctx context.Context, id uuid.UUID) (sesc.Department, error)
+		CreateDepartment(ctx context.Context, name string, description string) (sesc.Department, error)
+		UpdateDepartment(ctx context.Context, id uuid.UUID, name string, description string) error
+		DeleteDepartment(ctx context.Context, id uuid.UUID) error
+
+		// User operations
+		Users(ctx context.Context) ([]sesc.User, error)
+		User(ctx context.Context, id uuid.UUID) (sesc.User, error)
+		UserByID(ctx context.Context, id uuid.UUID) (sesc.User, error)
+		CreateUser(ctx context.Context, options sesc.UserUpdateOptions) (sesc.User, error)
+		UpdateUser(ctx context.Context, id uuid.UUID, options sesc.UserUpdateOptions) (sesc.User, error)
+		UpdateProfilePicture(ctx context.Context, id uuid.UUID, pictureURL string) error
 	}
 
+	// FileService defines the file operations interface required by the API
+	FileService interface {
+		// Search searches for files with the given options
+		Search(ctx context.Context, opts sesc.FileSearchOptions) ([]sesc.File, int, error)
+		// Create uploads a new file
+		Create(ctx context.Context, reader io.Reader, opts sesc.FileCreateOptions) (sesc.File, error)
+		// Delete deletes a file
+		Delete(ctx context.Context, id uuid.UUID) error
+		// ByID returns a file by its ID
+		ByID(ctx context.Context, id uuid.UUID) (sesc.File, error)
+	}
+
+	// EventSink is used by the API to log events
 	EventSink interface {
-		ProcessEvent(*event.Record)
+		RecordHTTPRequest(ctx context.Context, event *event.Record)
 	}
 )

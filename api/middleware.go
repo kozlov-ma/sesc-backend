@@ -247,7 +247,7 @@ func (a *API) EventMiddleware(next http.Handler) http.Handler {
 			if r := recover(); r != nil {
 				rec.Set("panic", r)
 				rec.Set("panic_message", fmt.Sprintf("%v", r))
-				a.eventSink.ProcessEvent(rec)
+				a.eventSink.RecordHTTPRequest(ctx, rec)
 				panic(r)
 			}
 		}()
@@ -289,7 +289,11 @@ func (a *API) EventMiddleware(next http.Handler) http.Handler {
 			),
 		)
 
-		a.eventSink.ProcessEvent(rec)
+		if m.Code >= http.StatusInternalServerError {
+			rec.Set(events.Critical, true)
+		}
+
+		a.eventSink.RecordHTTPRequest(ctx, rec)
 	})
 }
 

@@ -15,4 +15,10 @@ var (
 	ErrDepartmentNotFound     = errors.New("department not found")
 	ErrInvalidUserID          = errors.New("invalid user ID")
 	ErrInvalidDepartmentID    = errors.New("invalid department ID")
+
+	ErrInvalidFile          = errors.New("invalid file")
+	ErrInvalidFileName      = errors.New("invalid file name")
+	ErrInvalidFileSize      = errors.New("invalid file size")
+	ErrInvalidFileObjectKey = errors.New("invalid file object key")
+	ErrFileNotFound         = errors.New("file not found")
 )

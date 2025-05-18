@@ -1,12 +1,12 @@
 "use client";
 
-
 import {
   Computer,
   Building,
+  FolderPlus,
+  FolderOpen,
+  Users,
 } from "lucide-react";
-
-
 
 import { Separator } from "@/components/ui/separator";
 import {
@@ -15,30 +15,40 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { useAuth } from "@/hooks/use-auth";
-import {
-  Users,
-} from "lucide-react";
 import React from "react";
 import { AppSidebar } from "@/components/app-sidebar";
-
-
 
 const groups = [
   {
     name: "Организация",
     routes: [
-      {"name": "Пользователи", "url": "/admin/users", "icon": Users},
-      {"name": "Кафедры", "url": "/admin/departments", "icon": Building}
-    ]
-  }
-]
+      { name: "Пользователи", url: "/admin/users", icon: Users },
+      { name: "Кафедры", url: "/admin/departments", icon: Building },
+    ],
+  },
+  {
+    name: "Документы",
+    routes: [
+      {
+        name: "Общие Документы",
+        url: "/admin/documents/shared",
+        icon: FolderOpen,
+      },
+      {
+        name: "Документы Пользователей",
+        url: "/admin/documents/users",
+        icon: FolderPlus,
+      },
+    ],
+  },
+];
 
 export default function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const { isAuthenticated, role, isLoading} = useAuth();
+  const { isAuthenticated, role, isLoading } = useAuth();
 
   if (!isAuthenticated || isLoading || role !== "admin") {
     return null;
@@ -46,13 +56,18 @@ export default function AdminLayout({
 
   return (
     <SidebarProvider>
-      <AppSidebar title={"Панель Управления"} groups={groups} user={{
-              name: "Администратор",
-              email: "",
-              avatar: ""
-          }} ico={{
-              icon: Computer
-          }}/>
+      <AppSidebar
+        title={"Панель Управления"}
+        groups={groups}
+        user={{
+          name: "Администратор",
+          email: "",
+          avatar: "",
+        }}
+        ico={{
+          icon: Computer,
+        }}
+      />
       <SidebarInset>
         <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
           <div className="flex items-center gap-2 px-4">

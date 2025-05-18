@@ -10,7 +10,7 @@ RUN go mod download
 COPY . .
 
 # Build the application
-RUN CGO_ENABLED=0 go build -o /app/main ./cmd/api
+RUN CGO_ENABLED=0 go build --tags=viper_bind_struct -o /app/main ./cmd/api
 
 # Create final lightweight image
 FROM alpine:3.18

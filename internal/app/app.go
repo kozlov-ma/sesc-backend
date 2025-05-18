@@ -12,7 +12,9 @@ import (
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/migrate"
 	"github.com/kozlov-ma/sesc-backend/internal/config"
+	"github.com/kozlov-ma/sesc-backend/internal/filesvc"
 	"github.com/kozlov-ma/sesc-backend/internal/iamsvc"
+	"github.com/kozlov-ma/sesc-backend/internal/s3svc"
 	"github.com/kozlov-ma/sesc-backend/internal/sescsvc"
 	"github.com/kozlov-ma/sesc-backend/internal/slogsink"
 	// database driver
@@ -22,12 +24,13 @@ import (
 )
 
 type App struct {
-	Router  *chi.Mux
-	Server  *http.Server
-	Client  *ent.Client
-	API     *api.API
-	Log     *slog.Logger
-	Cleanup func()
+	Router      *chi.Mux
+	Server      *http.Server
+	Client      *ent.Client
+	API         *api.API
+	Log         *slog.Logger
+	FileService *filesvc.FileService
+	Cleanup     func()
 }
 
 // DBOptions contains options for database initialization
@@ -88,10 +91,32 @@ func NewWithDBOptions(ctx context.Context, cfg *config.Config, log *slog.Logger,
 		return nil, fmt.Errorf("failed to convert admin credentials: %w", err)
 	}
 
+	// Initialize services
 	iamService := iamsvc.New(client, 7*24*time.Hour, adminCredentials, []byte(cfg.JWTSecret))
 	sescService := sescsvc.New(client)
 
-	apiService := api.New(sescService, iamService, slogsink.New(log))
+	// Initialize S3 storage
+	s3Storage, err := s3svc.NewStorage(
+		cfg.MinIO.Endpoint,
+		cfg.MinIO.AccessKey,
+		cfg.MinIO.SecretKey,
+		cfg.MinIO.BucketName,
+		cfg.MinIO.UseSSL,
+	)
+	if err != nil {
+		cleanup()
+		return nil, fmt.Errorf("failed to create S3 storage: %w", err)
+	}
+
+	// Initialize file service
+	fileService := filesvc.New(
+		client,
+		s3Storage,
+		cfg.MinIO.BucketName,
+		cfg.MinIO.BaseURL,
+	)
+
+	apiService := api.New(sescService, iamService, fileService, slogsink.New(log))
 
 	router := chi.NewRouter()
 	apiService.RegisterRoutes(router)
@@ -105,12 +130,13 @@ func NewWithDBOptions(ctx context.Context, cfg *config.Config, log *slog.Logger,
 	}
 
 	return &App{
-		Router:  router,
-		Server:  server,
-		Client:  client,
-		API:     apiService,
-		Log:     log,
-		Cleanup: cleanup,
+		Router:      router,
+		Server:      server,
+		Client:      client,
+		API:         apiService,
+		Log:         log,
+		FileService: fileService,
+		Cleanup:     cleanup,
 	}, nil
 }
 

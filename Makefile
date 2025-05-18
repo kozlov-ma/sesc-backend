@@ -1,16 +1,20 @@
-.PHONY: dev-db dev-backend down lint test
+.PHONY: dev-db dev-backend down lint test integration-tests
 
 # Spin up the development database
 dev-db:
-	docker compose up -d postgres
+	docker compose up -d postgres minio
 
 # Spin up both database and backend
 dev-backend:
-	docker compose up -d --build
+	docker compose up -d --build postgres backend
 
 # Stop and remove all containers
 down:
 	docker compose down
+
+# Format the go files
+fmt:
+	golangci-lint fmt ./...
 
 # Stop and remove all containers and volumes
 clean:
@@ -22,4 +26,12 @@ lint:
 
 # Run tests
 test:
-	go test -v ./...
+	go test -v -coverprofile=c.out ./...
+
+# Can you push and open a PR?
+can-i-push:
+	@make lint && make test && make integration-tests
+
+# Run integration tests in docker
+integration-tests:
+	docker compose up --build --abort-on-container-exit --exit-code-from integration-tests integration-tests

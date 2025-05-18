@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/kozlov-ma/sesc-backend/pkg/event"
 	"github.com/stretchr/testify/require"
@@ -119,5 +120,66 @@ func TestContextOperations(t *testing.T) {
 		}
 
 		require.Subset(t, vals, expected)
+	})
+}
+
+func TestRecord_Operation(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		_, rec := event.NewRecord(t.Context(), "test")
+
+		var executed bool
+		err := rec.Operation("test_op", func(opRec *event.Record) error {
+			executed = true
+			opRec.Set("custom_field", "custom_value")
+			return nil
+		})
+
+		require.NoError(t, err)
+		require.True(t, executed)
+
+		// Verify operation record fields
+		opRec := rec.Sub("test_op")
+		require.Equal(t, "custom_value", opRec.Value("custom_field"))
+		require.Equal(t, true, opRec.Value("$success"))
+		require.NotNil(t, opRec.Value("$start_time"))
+		require.NotNil(t, opRec.Value("$end_time"))
+		require.NotNil(t, opRec.Value("$duration_ms"))
+	})
+
+	t.Run("error", func(t *testing.T) {
+		_, rec := event.NewRecord(t.Context(), "test")
+
+		testErr := errors.New("operation failed")
+		err := rec.Operation("test_op", func(opRec *event.Record) error {
+			opRec.Set("custom_field", "custom_value")
+			return testErr
+		})
+
+		require.Error(t, err)
+		require.Equal(t, testErr, err)
+
+		// Verify operation record fields
+		opRec := rec.Sub("test_op")
+		require.Equal(t, "custom_value", opRec.Value("custom_field"))
+		require.Equal(t, false, opRec.Value("$success"))
+		require.NotNil(t, opRec.Value("$start_time"))
+		require.NotNil(t, opRec.Value("$end_time"))
+		require.NotNil(t, opRec.Value("$duration_ms"))
+	})
+
+	t.Run("duration", func(t *testing.T) {
+		_, rec := event.NewRecord(t.Context(), "test")
+
+		err := rec.Operation("test_op", func(*event.Record) error {
+			time.Sleep(10 * time.Millisecond)
+			return nil
+		})
+
+		require.NoError(t, err)
+
+		// Verify duration is reasonable
+		opRec := rec.Sub("test_op")
+		duration := opRec.Value("$duration_ms").(int64)
+		require.GreaterOrEqual(t, duration, int64(10))
 	})
 }

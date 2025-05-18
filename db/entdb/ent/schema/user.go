@@ -38,5 +38,8 @@ func (User) Edges() []ent.Edge {
 		edge.To("auth", AuthUser.Type).
 			Unique().
 			Annotations(entsql.OnDelete(entsql.Cascade)),
+
+		edge.To("files", File.Type).
+			Annotations(entsql.OnDelete(entsql.SetNull)),
 	}
 }

@@ -1,18 +1,20 @@
 package tests
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 
-	"github.com/kozlov-ma/sesc-backend/internal/testutil"
+	"github.com/gofrs/uuid/v5"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestDepartmentErrors(t *testing.T) {
-	app := testutil.StartTestApp(t)
-	adminClient := NewClient(app.URL)
-	regularClient := NewClient(app.URL)
+	// Skip if test API URL is not set
+	SkipIfNoTestAPI(t)
+
+	adminClient := NewTestClient()
 	ctx := t.Context()
 
 	// Login as admin
@@ -21,9 +23,10 @@ func TestDepartmentErrors(t *testing.T) {
 	adminClient.SetToken(adminToken)
 
 	// Create a regular user for permission testing
+	randomSuffix := uuid.Must(uuid.NewV7()).String()
 	userData := CreateUserRequest{
-		FirstName: "Regular",
-		LastName:  "User",
+		FirstName: fmt.Sprintf("Regular_%s", randomSuffix),
+		LastName:  fmt.Sprintf("User_%s", randomSuffix),
 		RoleID:    2,
 	}
 	user, err := adminClient.CreateUser(ctx, userData)
@@ -31,20 +34,16 @@ func TestDepartmentErrors(t *testing.T) {
 
 	// Register credentials for the user
 	err = adminClient.RegisterUser(ctx, user.ID.String(), RegisterUserRequest{
-		Username: "regular_user",
+		Username: fmt.Sprintf("regular_user_%s", uuid.Must(uuid.NewV7()).String()),
 		Password: "password123",
 	})
 	require.NoError(t, err)
 
-	// Login as regular user
-	regularToken, err := regularClient.Login(ctx, "regular_user", "password123")
-	require.NoError(t, err)
-	regularClient.SetToken(regularToken)
-
 	// Test duplicate department name
+	uniqueID := uuid.Must(uuid.NewV7()).String()
 	deptReq := CreateDepartmentRequest{
-		Name:        "Unique Department",
-		Description: "This should be unique",
+		Name:        fmt.Sprintf("Unique Department %s", uniqueID),
+		Description: fmt.Sprintf("This should be unique %s", uniqueID),
 	}
 
 	dept, err := adminClient.CreateDepartment(ctx, deptReq)
@@ -55,31 +54,12 @@ func TestDepartmentErrors(t *testing.T) {
 	require.Error(t, err)
 	assert.Contains(t, strings.ToLower(err.Error()), "invalid_department")
 
-	// Test regular user trying to create a department (should be forbidden)
-	_, err = regularClient.CreateDepartment(ctx, CreateDepartmentRequest{
-		Name:        "User Created Dept",
-		Description: "Should fail due to permissions",
-	})
-	require.Error(t, err)
-	assert.Contains(t, strings.ToLower(err.Error()), "forbidden")
-
-	// Test regular user trying to update a department
-	_, err = regularClient.UpdateDepartment(ctx, dept.ID.String(), UpdateDepartmentRequest{
-		Name: "Modified by User",
-	})
-	require.Error(t, err)
-	assert.Contains(t, strings.ToLower(err.Error()), "forbidden")
-
-	// Test regular user trying to delete a department
-	err = regularClient.DeleteDepartment(ctx, dept.ID.String())
-	require.Error(t, err)
-	assert.Contains(t, strings.ToLower(err.Error()), "forbidden")
-
 	// Test deleting a department that has associated users
 	// First create a user associated with the department
+	randomSuffix2 := uuid.Must(uuid.NewV7()).String()
 	userWithDept := CreateUserRequest{
-		FirstName:    "Department",
-		LastName:     "User",
+		FirstName:    fmt.Sprintf("Department_%s", randomSuffix2),
+		LastName:     fmt.Sprintf("User_%s", randomSuffix2),
 		DepartmentID: dept.ID,
 		RoleID:       2,
 	}
@@ -93,8 +73,10 @@ func TestDepartmentErrors(t *testing.T) {
 }
 
 func TestRequestValidationErrors(t *testing.T) {
-	app := testutil.StartTestApp(t)
-	client := NewClient(app.URL)
+	// Skip if test API URL is not set
+	SkipIfNoTestAPI(t)
+
+	client := NewTestClient()
 	ctx := t.Context()
 
 	// Login as admin
@@ -146,4 +128,182 @@ func TestRequestValidationErrors(t *testing.T) {
 		RoleID:    999, // Non-existent role ID
 	})
 	require.Error(t, err)
+}
+
+func TestUserRoleBasedAccess(t *testing.T) {
+	// Skip if test API URL is not set
+	SkipIfNoTestAPI(t)
+
+	adminClient := NewTestClient()
+	regularClient := NewTestClient()
+	ctx := t.Context()
+
+	// Login as admin
+	adminToken, err := adminClient.LoginAdmin(ctx, "admin", "admin")
+	require.NoError(t, err)
+	adminClient.SetToken(adminToken)
+
+	// Create a regular user for permission testing
+	randomSuffix := uuid.Must(uuid.NewV7()).String()
+	username := fmt.Sprintf("regular_user_%s", uuid.Must(uuid.NewV7()).String())
+	userData := CreateUserRequest{
+		FirstName: fmt.Sprintf("Regular_%s", randomSuffix),
+		LastName:  fmt.Sprintf("User_%s", randomSuffix),
+		RoleID:    2,
+	}
+	user, err := adminClient.CreateUser(ctx, userData)
+	require.NoError(t, err)
+
+	// Register credentials for the user
+	err = adminClient.RegisterUser(ctx, user.ID.String(), RegisterUserRequest{
+		Username: username,
+		Password: "password123",
+	})
+	require.NoError(t, err)
+
+	// Login as regular user
+	regularToken, err := regularClient.Login(ctx, username, "password123")
+	require.NoError(t, err)
+	regularClient.SetToken(regularToken)
+
+	// Test duplicate department name
+	uniqueID := uuid.Must(uuid.NewV7()).String()
+	deptReq := CreateDepartmentRequest{
+		Name:        fmt.Sprintf("Unique Department %s", uniqueID),
+		Description: fmt.Sprintf("This should be unique %s", uniqueID),
+	}
+
+	dept, err := adminClient.CreateDepartment(ctx, deptReq)
+	require.NoError(t, err)
+
+	// Try to create another department with the same name
+	_, err = adminClient.CreateDepartment(ctx, deptReq)
+	require.Error(t, err)
+	assert.Contains(t, strings.ToLower(err.Error()), "invalid_department")
+
+	// Test regular user trying to create a department (should be forbidden)
+	_, err = regularClient.CreateDepartment(ctx, CreateDepartmentRequest{
+		Name:        fmt.Sprintf("User Created Dept %s", uuid.Must(uuid.NewV7()).String()),
+		Description: "Should fail due to permissions",
+	})
+	require.Error(t, err)
+	assert.Contains(t, strings.ToLower(err.Error()), "forbidden")
+
+	// Test regular user trying to update a department
+	_, err = regularClient.UpdateDepartment(ctx, dept.ID.String(), UpdateDepartmentRequest{
+		Name: fmt.Sprintf("Modified by User %s", uuid.Must(uuid.NewV7()).String()),
+	})
+	require.Error(t, err)
+	assert.Contains(t, strings.ToLower(err.Error()), "forbidden")
+
+	// Test regular user trying to delete a department
+	err = regularClient.DeleteDepartment(ctx, dept.ID.String())
+	require.Error(t, err)
+	assert.Contains(t, strings.ToLower(err.Error()), "forbidden")
+
+	// Test deleting a department that has associated users
+	// First create a user associated with the department
+	randomSuffix2 := uuid.Must(uuid.NewV7()).String()
+	userWithDept := CreateUserRequest{
+		FirstName:    fmt.Sprintf("Department_%s", randomSuffix2),
+		LastName:     fmt.Sprintf("User_%s", randomSuffix2),
+		DepartmentID: dept.ID,
+		RoleID:       2,
+	}
+	_, err = adminClient.CreateUser(ctx, userWithDept)
+	require.NoError(t, err)
+
+	// Now try to delete the department
+	err = adminClient.DeleteDepartment(ctx, dept.ID.String())
+	require.Error(t, err)
+	assert.Contains(t, strings.ToLower(err.Error()), "cannot_remove_department")
+}
+
+func TestAccessControlAdvanced(t *testing.T) {
+	// Skip if test API URL is not set
+	SkipIfNoTestAPI(t)
+
+	adminClient := NewTestClient()
+	regularClient := NewTestClient()
+	ctx := t.Context()
+
+	// Login as admin
+	adminToken, err := adminClient.LoginAdmin(ctx, "admin", "admin")
+	require.NoError(t, err)
+	adminClient.SetToken(adminToken)
+
+	// Create a regular user for permission testing
+	randomSuffix := uuid.Must(uuid.NewV7()).String()
+	username := fmt.Sprintf("regular_user_%s", uuid.Must(uuid.NewV7()).String())
+	userData := CreateUserRequest{
+		FirstName: fmt.Sprintf("Regular_%s", randomSuffix),
+		LastName:  fmt.Sprintf("User_%s", randomSuffix),
+		RoleID:    2,
+	}
+	user, err := adminClient.CreateUser(ctx, userData)
+	require.NoError(t, err)
+
+	// Register credentials for the user
+	err = adminClient.RegisterUser(ctx, user.ID.String(), RegisterUserRequest{
+		Username: username,
+		Password: "password123",
+	})
+	require.NoError(t, err)
+
+	// Login as regular user
+	regularToken, err := regularClient.Login(ctx, username, "password123")
+	require.NoError(t, err)
+	regularClient.SetToken(regularToken)
+
+	// Test duplicate department name
+	uniqueID := uuid.Must(uuid.NewV7()).String()
+	deptReq := CreateDepartmentRequest{
+		Name:        fmt.Sprintf("Unique Department %s", uniqueID),
+		Description: fmt.Sprintf("This should be unique %s", uniqueID),
+	}
+
+	dept, err := adminClient.CreateDepartment(ctx, deptReq)
+	require.NoError(t, err)
+
+	// Try to create another department with the same name
+	_, err = adminClient.CreateDepartment(ctx, deptReq)
+	require.Error(t, err)
+	assert.Contains(t, strings.ToLower(err.Error()), "invalid_department")
+
+	// Test regular user trying to create a department (should be forbidden)
+	_, err = regularClient.CreateDepartment(ctx, CreateDepartmentRequest{
+		Name:        fmt.Sprintf("User Created Dept %s", uuid.Must(uuid.NewV7()).String()),
+		Description: "Should fail due to permissions",
+	})
+	require.Error(t, err)
+	assert.Contains(t, strings.ToLower(err.Error()), "forbidden")
+
+	// Test regular user trying to update a department
+	_, err = regularClient.UpdateDepartment(ctx, dept.ID.String(), UpdateDepartmentRequest{
+		Name: fmt.Sprintf("Modified by User %s", uuid.Must(uuid.NewV7()).String()),
+	})
+	require.Error(t, err)
+	assert.Contains(t, strings.ToLower(err.Error()), "forbidden")
+
+	// Test regular user trying to delete a department
+	err = regularClient.DeleteDepartment(ctx, dept.ID.String())
+	require.Error(t, err)
+	assert.Contains(t, strings.ToLower(err.Error()), "forbidden")
+
+	// Test deleting a department that has associated users
+	// First create a user associated with the department
+	randomSuffix2 := uuid.Must(uuid.NewV7()).String()
+	userWithDept := CreateUserRequest{
+		FirstName:    fmt.Sprintf("Department_%s", randomSuffix2),
+		LastName:     fmt.Sprintf("User_%s", randomSuffix2),
+		DepartmentID: dept.ID,
+		RoleID:       2,
+	}
+	_, err = adminClient.CreateUser(ctx, userWithDept)
+	require.NoError(t, err)
+
+	// Now try to delete the department
+	err = adminClient.DeleteDepartment(ctx, dept.ID.String())
+	require.Error(t, err)
+	assert.Contains(t, strings.ToLower(err.Error()), "cannot_remove_department")
 }

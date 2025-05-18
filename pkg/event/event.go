@@ -8,6 +8,7 @@ import (
 	"reflect"
 	"strings"
 	"sync"
+	"time"
 	"unicode"
 	"unique"
 
@@ -334,4 +335,38 @@ func Root(from context.Context) *Record {
 	r, _ := ev.(*Record)
 
 	return r
+}
+
+// Operation is a helper method that creates a sub-record, executes the operation,
+// and records results including success/failure, duration, and error if any.
+// This method provides a standardized way to record execution details across the codebase.
+func (r *Record) Operation(name string, operation func(rec *Record) error) error {
+	rec := r.Sub(name)
+	rec.Set("$start_time", time.Now())
+
+	err := operation(rec)
+
+	endTime := time.Now()
+	st, ok := rec.Value("$start_time").(time.Time)
+	if !ok {
+		panic("$start_time key was overwritten or did not exist")
+	}
+	duration := time.Since(st)
+
+	if err != nil {
+		rec.Set(
+			"$success", false,
+			"$duration_ms", duration.Milliseconds(),
+			"$end_time", endTime,
+		)
+		return err
+	}
+
+	rec.Set(
+		"$success", true,
+		"$duration_ms", duration.Milliseconds(),
+		"$end_time", endTime,
+	)
+
+	return nil
 }

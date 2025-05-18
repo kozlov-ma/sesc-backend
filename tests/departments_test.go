@@ -1,20 +1,20 @@
 package tests
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/gofrs/uuid/v5"
-	"github.com/kozlov-ma/sesc-backend/internal/testutil"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestDepartmentCRUD(t *testing.T) {
-	// Start a test application
-	app := testutil.StartTestApp(t)
+	// Skip if test API URL is not set
+	SkipIfNoTestAPI(t)
 
-	// Create a client and login as admin
-	client := NewClient(app.URL)
+	// Create a client for the test API
+	client := NewTestClient()
 	ctx := t.Context()
 
 	adminToken, err := client.LoginAdmin(ctx, "admin", "admin")
@@ -26,10 +26,11 @@ func TestDepartmentCRUD(t *testing.T) {
 	require.NoError(t, err)
 	initialCount := len(initialDepts)
 
-	// 2. Create a department
+	// 2. Create a department with a unique random name
+	uniqueID := uuid.Must(uuid.NewV7()).String()
 	createReq := CreateDepartmentRequest{
-		Name:        "Test Department",
-		Description: "This is a test department",
+		Name:        fmt.Sprintf("Test Department %s", uniqueID),
+		Description: fmt.Sprintf("This is a test department %s", uniqueID),
 	}
 
 	createdDept, err := client.CreateDepartment(ctx, createReq)
@@ -60,8 +61,8 @@ func TestDepartmentCRUD(t *testing.T) {
 
 	// 4. Update the department
 	updateReq := UpdateDepartmentRequest{
-		Name:        "Updated Department",
-		Description: "This department has been updated",
+		Name:        fmt.Sprintf("Updated Department %s", uniqueID),
+		Description: fmt.Sprintf("This department has been updated %s", uniqueID),
 	}
 
 	updatedDept, err := client.UpdateDepartment(ctx, createdDept.ID.String(), updateReq)

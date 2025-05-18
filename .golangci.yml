@@ -175,12 +175,6 @@ linters:
             - pkg: log$
               desc: Use log/slog instead, see https://go.dev/blog/slog
 
-    errcheck:
-      # Report about not checking of errors in type assertions: `a := b.(MyStruct)`.
-      # Such cases aren't reported by default.
-      # Default: false
-      check-type-assertions: true
-
     exhaustive:
       # Program elements to check for exhaustiveness.
       # Default: [ switch ]

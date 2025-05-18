@@ -6,6 +6,7 @@ import (
 	uuid "github.com/gofrs/uuid/v5"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/authuser"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/department"
+	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/file"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/schema"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/user"
 )
@@ -30,6 +31,12 @@ func init() {
 	departmentDescName := departmentFields[1].Descriptor()
 	// department.NameValidator is a validator for the "name" field. It is called by the builders before save.
 	department.NameValidator = departmentDescName.Validators[0].(func(string) error)
+	fileFields := schema.File{}.Fields()
+	_ = fileFields
+	// fileDescID is the schema descriptor for id field.
+	fileDescID := fileFields[0].Descriptor()
+	// file.DefaultID holds the default value on creation for the id field.
+	file.DefaultID = fileDescID.Default.(func() uuid.UUID)
 	userFields := schema.User{}.Fields()
 	_ = userFields
 	// userDescMiddleName is the schema descriptor for middle_name field.

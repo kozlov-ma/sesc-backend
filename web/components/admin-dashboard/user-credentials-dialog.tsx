@@ -69,19 +69,18 @@ export function UserCredentialsDialog({
     data: credentials,
     isValidating,
     mutate: revalidate,
-    error: fetchError,
   } = useSWR(
     credentialsKey,
     async () => {
-      try {
-        const response = await apiClient.auth.credentialsDetail(user.id);
-        return response.data;
-      } catch (err: any) {
-        if (hasErrorCode(err, "USER_NOT_FOUND")) {
-          return null;
-        }
-        throw err;
-      }
+      const response = await apiClient.auth
+        .credentialsDetail(user.id)
+        .catch((err) => {
+          if (hasErrorCode(err, "USER_NOT_FOUND")) {
+            return { data: { username: "", password: "" } };
+          }
+          throw err;
+        });
+      return response.data;
     },
     {
       revalidateOnFocus: false,
@@ -132,12 +131,8 @@ export function UserCredentialsDialog({
   const { trigger: deleteCredentials, isMutating: isDeleting } = useSWRMutation(
     `credentials-delete-${user.id}`,
     async () => {
-      try {
-        await apiClient.auth.credentialsDelete(user.id);
-        return true;
-      } catch (err: any) {
-        throw err;
-      }
+      await apiClient.auth.credentialsDelete(user.id);
+      return true;
     },
     {
       onSuccess: () => {

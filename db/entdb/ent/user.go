@@ -45,9 +45,11 @@ type UserEdges struct {
 	Department *Department `json:"department,omitempty"`
 	// Auth holds the value of the auth edge.
 	Auth *AuthUser `json:"auth,omitempty"`
+	// Files holds the value of the files edge.
+	Files []*File `json:"files,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [3]bool
 }
 
 // DepartmentOrErr returns the Department value or an error if the edge
@@ -70,6 +72,15 @@ func (e UserEdges) AuthOrErr() (*AuthUser, error) {
 		return nil, &NotFoundError{label: authuser.Label}
 	}
 	return nil, &NotLoadedError{edge: "auth"}
+}
+
+// FilesOrErr returns the Files value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) FilesOrErr() ([]*File, error) {
+	if e.loadedTypes[2] {
+		return e.Files, nil
+	}
+	return nil, &NotLoadedError{edge: "files"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -172,6 +183,11 @@ func (u *User) QueryDepartment() *DepartmentQuery {
 // QueryAuth queries the "auth" edge of the User entity.
 func (u *User) QueryAuth() *AuthUserQuery {
 	return NewUserClient(u.config).QueryAuth(u)
+}
+
+// QueryFiles queries the "files" edge of the User entity.
+func (u *User) QueryFiles() *FileQuery {
+	return NewUserClient(u.config).QueryFiles(u)
 }
 
 // Update returns a builder for updating this User.

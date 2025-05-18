@@ -12,6 +12,7 @@ import (
 	uuid "github.com/gofrs/uuid/v5"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/authuser"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/department"
+	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/file"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/user"
 )
 
@@ -132,6 +133,21 @@ func (uc *UserCreate) SetNillableAuthID(id *int) *UserCreate {
 // SetAuth sets the "auth" edge to the AuthUser entity.
 func (uc *UserCreate) SetAuth(a *AuthUser) *UserCreate {
 	return uc.SetAuthID(a.ID)
+}
+
+// AddFileIDs adds the "files" edge to the File entity by IDs.
+func (uc *UserCreate) AddFileIDs(ids ...uuid.UUID) *UserCreate {
+	uc.mutation.AddFileIDs(ids...)
+	return uc
+}
+
+// AddFiles adds the "files" edges to the File entity.
+func (uc *UserCreate) AddFiles(f ...*File) *UserCreate {
+	ids := make([]uuid.UUID, len(f))
+	for i := range f {
+		ids[i] = f[i].ID
+	}
+	return uc.AddFileIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -285,6 +301,22 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(authuser.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := uc.mutation.FilesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.FilesTable,
+			Columns: []string{user.FilesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(file.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

@@ -103,6 +103,19 @@ export interface ApiError {
   ruMessage: string;
 }
 
+export interface ApiFileListResponse {
+  items?: ApiFileResponse[];
+  totalCount?: number;
+}
+
+export interface ApiFileResponse {
+  downloadUrl?: string;
+  fileName?: string;
+  fileSize?: number;
+  id?: string;
+  ownerId?: string;
+}
+
 export interface ApiForbiddenError {
   /** @example "FORBIDDEN" */
   code?: string;
@@ -717,6 +730,94 @@ export class Api<
         path: `/dev/fakedata`,
         method: "POST",
         secure: true,
+        ...params,
+      }),
+  };
+  files = {
+    /**
+     * @description Returns a list of files based on search criteria
+     *
+     * @tags files
+     * @name FilesList
+     * @summary Search files
+     * @request GET:/files
+     * @secure
+     */
+    filesList: (
+      query?: {
+        /** File name to search for */
+        name?: string;
+        /** Owner ID to filter by */
+        owner_id?: string;
+        /** If true, return only common files */
+        common?: boolean;
+        /**
+         * Pagination offset
+         * @default 0
+         */
+        offset?: number;
+        /**
+         * Pagination limit
+         * @default 50
+         */
+        limit?: number;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<ApiFileListResponse, ApiError>({
+        path: `/files`,
+        method: "GET",
+        query: query,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Uploads a new file. Admin users create common files, regular users create files owned by themselves.
+     *
+     * @tags files
+     * @name FilesCreate
+     * @summary Upload a file
+     * @request POST:/files
+     * @secure
+     */
+    filesCreate: (
+      data: {
+        /**
+         * File to upload
+         * @format binary
+         */
+        file: File;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<ApiFileResponse, ApiError>({
+        path: `/files`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.FormData,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Deletes a file by ID
+     *
+     * @tags files
+     * @name FilesDelete
+     * @summary Delete file
+     * @request DELETE:/files/{id}
+     * @secure
+     */
+    filesDelete: (id: string, params: RequestParams = {}) =>
+      this.request<void, ApiError>({
+        path: `/files/${id}`,
+        method: "DELETE",
+        secure: true,
+        type: ContentType.Json,
         ...params,
       }),
   };

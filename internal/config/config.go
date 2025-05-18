@@ -30,6 +30,7 @@ type Config struct {
 	AdminCredentials []AdminCredentialConfig `mapstructure:"admin_credentials"`
 	HTTP             HTTPConfig              `mapstructure:"http"`
 	JWTSecret        string                  `mapstructure:"jwt_secret"`
+	MinIO            MinIOConfig             `mapstructure:"minio"`
 }
 
 type DatabaseConfig struct {
@@ -48,6 +49,15 @@ type HTTPConfig struct {
 	ReadHeaderTimeout time.Duration `mapstructure:"read_header_timeout"`
 	ReadTimeout       time.Duration `mapstructure:"read_timeout"`
 	WriteTimeout      time.Duration `mapstructure:"write_timeout"`
+}
+
+type MinIOConfig struct {
+	Endpoint   string `mapstructure:"endpoint"`
+	AccessKey  string `mapstructure:"access_key"`
+	SecretKey  string `mapstructure:"secret_key"`
+	UseSSL     bool   `mapstructure:"use_ssl"`
+	BucketName string `mapstructure:"bucket_name"`
+	BaseURL    string `mapstructure:"base_url"`
 }
 
 func LoadConfig() (*Config, error) {
@@ -92,6 +102,14 @@ func setDefaults(v *viper.Viper) {
 	// Default database configuration
 	v.SetDefault("database.type", string(DatabaseTypePostgres))
 	v.SetDefault("database.address", "postgres://postgres:postgres@localhost:5432/sesc?sslmode=disable")
+
+	// Default MinIO configuration
+	v.SetDefault("minio.endpoint", "localhost:9000")
+	v.SetDefault("minio.access_key", "minioadmin")
+	v.SetDefault("minio.secret_key", "minioadmin")
+	v.SetDefault("minio.use_ssl", false)
+	v.SetDefault("minio.bucket_name", "sesc-files")
+	v.SetDefault("minio.base_url", "http://localhost:9000/sesc-files")
 
 	v.SetDefault("admin_credentials", []AdminCredentialConfig{
 		{

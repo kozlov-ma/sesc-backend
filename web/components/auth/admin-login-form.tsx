@@ -8,8 +8,6 @@ import { useAuth } from "@/hooks/use-auth";
 import { ErrorMessage } from "@/components/ui/error-message";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Loader2 } from "lucide-react";
 import { useFormError } from "@/hooks/use-error-handler";
 import {
   Form,
@@ -47,7 +45,7 @@ export function AdminLoginForm() {
   const onSubmit = async (data: AdminLoginFormValues) => {
     clearFormError();
     resetLoginAdminError();
-    
+
     try {
       const adminCreds: ApiCredentialsRequest = {
         username: data.username,
@@ -77,9 +75,9 @@ export function AdminLoginForm() {
               <FormItem>
                 <FormLabel>Имя администратора</FormLabel>
                 <FormControl>
-                  <Input 
-                    placeholder="Имя администратора" 
-                    {...field} 
+                  <Input
+                    placeholder="Имя администратора"
+                    {...field}
                     disabled={isLoading}
                   />
                 </FormControl>
@@ -94,11 +92,11 @@ export function AdminLoginForm() {
               <FormItem>
                 <FormLabel>Пароль</FormLabel>
                 <FormControl>
-                  <Input 
-                    type="password" 
-                    placeholder="Пароль администратора" 
+                  <Input
+                    type="password"
+                    placeholder="Пароль администратора"
                     {...field}
-                    disabled={isLoading} 
+                    disabled={isLoading}
                   />
                 </FormControl>
                 <FormMessage />

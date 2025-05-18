@@ -1,19 +1,31 @@
 package tests
 
 import (
+	"fmt"
+	"math/rand/v2"
 	"testing"
 
-	"github.com/kozlov-ma/sesc-backend/internal/testutil"
+	"github.com/gofrs/uuid/v5"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-func TestAdminLogin(t *testing.T) {
-	// Start a test application
-	app := testutil.StartTestApp(t)
+// generateRandomString returns a random string of specified length
+func generateRandomString(length int) string {
+	const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+	result := make([]byte, length)
+	for i := range result {
+		result[i] = charset[rand.IntN(len(charset))]
+	}
+	return string(result)
+}
 
-	// Create a client
-	client := NewClient(app.URL)
+func TestAdminLogin(t *testing.T) {
+	// Skip if test API URL is not set
+	SkipIfNoTestAPI(t)
+
+	// Create a client for the test API
+	client := NewTestClient()
 
 	// Test admin login with correct credentials
 	ctx := t.Context()
@@ -31,11 +43,11 @@ func TestAdminLogin(t *testing.T) {
 }
 
 func TestLoginFlow(t *testing.T) {
-	// Start a test application
-	app := testutil.StartTestApp(t)
+	// Skip if test API URL is not set
+	SkipIfNoTestAPI(t)
 
-	// Create a client and login as admin
-	client := NewClient(app.URL)
+	// Create a client for the test API
+	client := NewTestClient()
 	ctx := t.Context()
 
 	// Login as admin
@@ -44,21 +56,22 @@ func TestLoginFlow(t *testing.T) {
 	assert.NotEmpty(t, adminToken)
 	client.SetToken(adminToken)
 
-	// Create a test user
+	// Create a test user with unique data
+	randomSuffix := generateRandomString(8)
 	userData := CreateUserRequest{
-		FirstName:  "Test",
-		LastName:   "User",
+		FirstName:  fmt.Sprintf("Test_%s", randomSuffix),
+		LastName:   fmt.Sprintf("User_%s", randomSuffix),
 		RoleID:     2,
-		PictureURL: "/test.jpg",
+		PictureURL: fmt.Sprintf("/test_%s.jpg", randomSuffix),
 	}
 
 	user, err := client.CreateUser(ctx, userData)
 	require.NoError(t, err)
 	require.NotNil(t, user)
 
-	// Register credentials for the user
+	// Register credentials for the user with unique username
 	credentialsData := RegisterUserRequest{
-		Username: "testuser",
+		Username: fmt.Sprintf("testuser_%s", uuid.Must(uuid.NewV7()).String()),
 		Password: "password123",
 	}
 
@@ -66,7 +79,7 @@ func TestLoginFlow(t *testing.T) {
 	require.NoError(t, err)
 
 	// Now try to login as the new user
-	userClient := NewClient(app.URL)
+	userClient := NewTestClient()
 	userToken, err := userClient.Login(ctx, credentialsData.Username, credentialsData.Password)
 	require.NoError(t, err)
 	assert.NotEmpty(t, userToken)

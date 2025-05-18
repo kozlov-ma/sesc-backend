@@ -1,20 +1,20 @@
 package tests
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/gofrs/uuid/v5"
-	"github.com/kozlov-ma/sesc-backend/internal/testutil"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestUserCRUD(t *testing.T) {
-	// Start a test application
-	app := testutil.StartTestApp(t)
+	// Skip if test API URL is not set
+	SkipIfNoTestAPI(t)
 
-	// Create a client and login as admin
-	client := NewClient(app.URL)
+	// Create a client for the test API
+	client := NewTestClient()
 	ctx := t.Context()
 
 	adminToken, err := client.LoginAdmin(ctx, "admin", "admin")
@@ -26,23 +26,25 @@ func TestUserCRUD(t *testing.T) {
 	require.NoError(t, err)
 	initialCount := len(initialUsers)
 
-	// 2. Create a test department to assign to the user
+	// 2. Create a test department to assign to the user with a unique name
+	uniqueID := uuid.Must(uuid.NewV7()).String()
 	deptReq := CreateDepartmentRequest{
-		Name:        "Test Department",
-		Description: "Department for test users",
+		Name:        fmt.Sprintf("Test Department %s", uniqueID),
+		Description: fmt.Sprintf("Department for test users %s", uniqueID),
 	}
 
 	dept, err := client.CreateDepartment(ctx, deptReq)
 	require.NoError(t, err)
 	require.NotNil(t, dept)
 
-	// 3. Create a new user
+	// 3. Create a new user with unique data
+	randomSuffix := uuid.Must(uuid.NewV7()).String()
 	userData := CreateUserRequest{
-		FirstName:    "John",
-		LastName:     "Doe",
-		MiddleName:   "Smith",
+		FirstName:    fmt.Sprintf("John_%s", randomSuffix),
+		LastName:     fmt.Sprintf("Doe_%s", randomSuffix),
+		MiddleName:   fmt.Sprintf("Smith_%s", randomSuffix),
 		RoleID:       2, // Assuming 2 is a regular user role
-		PictureURL:   "/images/users/john.jpg",
+		PictureURL:   fmt.Sprintf("/images/users/john_%s.jpg", randomSuffix),
 		DepartmentID: dept.ID,
 	}
 
@@ -71,7 +73,7 @@ func TestUserCRUD(t *testing.T) {
 
 	// 5. Update the user with patch
 	suspended := true
-	newFirstName := "Jane"
+	newFirstName := fmt.Sprintf("Jane_%s", randomSuffix)
 	patchReq := PatchUserRequest{
 		FirstName: &newFirstName,
 		Suspended: &suspended,
@@ -88,9 +90,9 @@ func TestUserCRUD(t *testing.T) {
 	assert.Equal(t, user.LastName, patchedUser.LastName)
 	assert.Equal(t, user.MiddleName, patchedUser.MiddleName)
 
-	// 6. Register credentials for the user
+	// 6. Register credentials for the user with unique username
 	credentialsReq := RegisterUserRequest{
-		Username: "johndoe",
+		Username: fmt.Sprintf("johndoe_%s", uuid.Must(uuid.NewV7()).String()),
 		Password: "password123",
 	}
 
@@ -98,7 +100,7 @@ func TestUserCRUD(t *testing.T) {
 	require.NoError(t, err)
 
 	// 7. Test login with the new credentials
-	userClient := NewClient(app.URL)
+	userClient := NewTestClient()
 	token, err := userClient.Login(ctx, credentialsReq.Username, credentialsReq.Password)
 	require.NoError(t, err)
 	assert.NotEmpty(t, token)

@@ -42,6 +42,28 @@ var (
 		Columns:    DepartmentsColumns,
 		PrimaryKey: []*schema.Column{DepartmentsColumns[0]},
 	}
+	// FilesColumns holds the columns for the "files" table.
+	FilesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Unique: true},
+		{Name: "s3_object_key", Type: field.TypeString, Unique: true},
+		{Name: "file_name", Type: field.TypeString},
+		{Name: "file_size", Type: field.TypeInt},
+		{Name: "owner_id", Type: field.TypeUUID, Nullable: true},
+	}
+	// FilesTable holds the schema information for the "files" table.
+	FilesTable = &schema.Table{
+		Name:       "files",
+		Columns:    FilesColumns,
+		PrimaryKey: []*schema.Column{FilesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "files_users_files",
+				Columns:    []*schema.Column{FilesColumns[4]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+	}
 	// UsersColumns holds the columns for the "users" table.
 	UsersColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID, Unique: true},
@@ -71,11 +93,13 @@ var (
 	Tables = []*schema.Table{
 		AuthUsersTable,
 		DepartmentsTable,
+		FilesTable,
 		UsersTable,
 	}
 )
 
 func init() {
 	AuthUsersTable.ForeignKeys[0].RefTable = UsersTable
+	FilesTable.ForeignKeys[0].RefTable = UsersTable
 	UsersTable.ForeignKeys[0].RefTable = DepartmentsTable
 }

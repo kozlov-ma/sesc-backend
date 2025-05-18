@@ -16,6 +16,8 @@ type Tx struct {
 	AuthUser *AuthUserClient
 	// Department is the client for interacting with the Department builders.
 	Department *DepartmentClient
+	// File is the client for interacting with the File builders.
+	File *FileClient
 	// User is the client for interacting with the User builders.
 	User *UserClient
 
@@ -151,6 +153,7 @@ func (tx *Tx) Client() *Client {
 func (tx *Tx) init() {
 	tx.AuthUser = NewAuthUserClient(tx.config)
 	tx.Department = NewDepartmentClient(tx.config)
+	tx.File = NewFileClient(tx.config)
 	tx.User = NewUserClient(tx.config)
 }
 
