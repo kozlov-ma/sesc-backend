@@ -11,10 +11,11 @@ import (
 	"github.com/kozlov-ma/sesc-backend/api"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/migrate"
-	"github.com/kozlov-ma/sesc-backend/iam"
 	"github.com/kozlov-ma/sesc-backend/internal/config"
+	"github.com/kozlov-ma/sesc-backend/internal/iamsvc"
+	"github.com/kozlov-ma/sesc-backend/internal/sescsvc"
 	"github.com/kozlov-ma/sesc-backend/internal/slogsink"
-	"github.com/kozlov-ma/sesc-backend/sesc"
+
 	// database driver
 	_ "github.com/lib/pq"
 	// database driver
@@ -88,8 +89,12 @@ func NewWithDBOptions(ctx context.Context, cfg *config.Config, log *slog.Logger,
 		return nil, fmt.Errorf("failed to convert admin credentials: %w", err)
 	}
 
-	iamService := iam.New(client, 7*24*time.Hour, adminCredentials, []byte(cfg.JWTSecret))
-	sescService := sesc.New(client)
+	iamService := iamsvc.New(client, 7*24*time.Hour, adminCredentials, []byte(cfg.JWTSecret))
+	sescService := sescsvc.New(client)
+	if err != nil {
+		cleanup()
+		return nil, fmt.Errorf("failed to initialize S3 client: %w", err)
+	}
 	apiService := api.New(sescService, iamService, slogsink.New(log))
 
 	router := chi.NewRouter()

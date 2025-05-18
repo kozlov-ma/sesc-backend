@@ -43,6 +43,29 @@ func (u User) HasPermission(permission Permission) bool {
 	return u.Role.HasPermission(permission)
 }
 
+// UserUpdateOptions represents the options for updating a user.
+type UserUpdateOptions struct {
+	FirstName    string
+	LastName     string
+	MiddleName   string
+	PictureURL   string
+	Suspended    bool
+	DepartmentID UUID
+	NewRoleID    int32
+}
+
+func (u UserUpdateOptions) Validate() error {
+	if u.FirstName == "" || u.LastName == "" {
+		return ErrInvalidUserName
+	}
+
+	if _, ok := RoleByID(u.NewRoleID); !ok {
+		return ErrInvalidRole
+	}
+
+	return nil
+}
+
 func (u User) UpdateOptions() UserUpdateOptions {
 	return UserUpdateOptions{
 		FirstName:    u.FirstName,

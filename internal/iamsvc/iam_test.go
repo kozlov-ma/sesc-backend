@@ -1,4 +1,4 @@
-package iam
+package iamsvc
 
 import (
 	"context"
@@ -8,6 +8,7 @@ import (
 	"github.com/gofrs/uuid/v5"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/enttest"
+	iamd "github.com/kozlov-ma/sesc-backend/iam"
 	"github.com/kozlov-ma/sesc-backend/pkg/event"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/stretchr/testify/require"
@@ -80,7 +81,7 @@ func TestRegisterCredentials(t *testing.T) {
 		ctx, iam, userID := setup(t)
 
 		_, err := iam.RegisterCredentials(ctx, userID, Credentials{})
-		require.ErrorIs(t, err, ErrEmptyUsername)
+		require.ErrorIs(t, err, iamd.ErrEmptyUsername)
 	})
 
 	t.Run("non_existent_user", func(t *testing.T) {
@@ -91,7 +92,7 @@ func TestRegisterCredentials(t *testing.T) {
 			Username: "testuser2",
 			Password: "password123",
 		})
-		require.ErrorIs(t, err, ErrUserNotFound)
+		require.ErrorIs(t, err, iamd.ErrUserNotFound)
 	})
 
 	t.Run("duplicate_username", func(t *testing.T) {
@@ -108,7 +109,7 @@ func TestRegisterCredentials(t *testing.T) {
 		anotherUserID := createTestUser(ctx, t, iam.client)
 
 		_, err = iam.RegisterCredentials(ctx, anotherUserID, creds)
-		require.ErrorIs(t, err, ErrCredentialsAlreadyExist)
+		require.ErrorIs(t, err, iamd.ErrCredentialsAlreadyExist)
 	})
 }
 
@@ -146,13 +147,13 @@ func TestLogin(t *testing.T) {
 			Username: "logintest",
 			Password: "wrongpassword",
 		})
-		require.ErrorIs(t, err, ErrUserNotFound)
+		require.ErrorIs(t, err, iamd.ErrUserNotFound)
 
 		_, err = iam.Login(ctx, Credentials{
 			Username: "nonexistent",
 			Password: "password123",
 		})
-		require.ErrorIs(t, err, ErrUserNotFound)
+		require.ErrorIs(t, err, iamd.ErrUserNotFound)
 	})
 }
 
@@ -167,7 +168,7 @@ func TestLoginAdmin(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		ctx, iam := setup(t)
 
-		token, err := iam.LoginAdmin(ctx, Credentials{"admin", "admin"})
+		token, err := iam.LoginAdmin(ctx, Credentials{Username: "admin", Password: "admin"})
 		require.NoError(t, err)
 		require.NotEmpty(t, token)
 
@@ -179,8 +180,8 @@ func TestLoginAdmin(t *testing.T) {
 	t.Run("invalid_token", func(t *testing.T) {
 		ctx, iam := setup(t)
 
-		_, err := iam.LoginAdmin(ctx, Credentials{"hell", "nah"})
-		require.ErrorIs(t, err, ErrUserNotFound)
+		_, err := iam.LoginAdmin(ctx, Credentials{Username: "hell", Password: "nah"})
+		require.ErrorIs(t, err, iamd.ErrUserNotFound)
 	})
 }
 
@@ -206,7 +207,7 @@ func TestDropCredentials(t *testing.T) {
 		require.NoError(t, err)
 
 		_, err = iam.Credentials(ctx, userID)
-		require.ErrorIs(t, err, ErrUserNotFound)
+		require.ErrorIs(t, err, iamd.ErrUserNotFound)
 	})
 
 	t.Run("non_existent_user", func(t *testing.T) {
@@ -214,7 +215,7 @@ func TestDropCredentials(t *testing.T) {
 
 		nonExistentID := uuid.Must(uuid.NewV7())
 		err := iam.DropCredentials(ctx, nonExistentID)
-		require.ErrorIs(t, err, ErrUserNotFound)
+		require.ErrorIs(t, err, iamd.ErrUserNotFound)
 	})
 
 	t.Run("no_credentials", func(t *testing.T) {
@@ -223,7 +224,7 @@ func TestDropCredentials(t *testing.T) {
 		userID := createTestUser(ctx, t, iam.client)
 
 		err := iam.DropCredentials(ctx, userID)
-		require.ErrorIs(t, err, ErrUserNotFound)
+		require.ErrorIs(t, err, iamd.ErrUserNotFound)
 	})
 }
 
@@ -257,7 +258,7 @@ func TestImWatermelon(t *testing.T) {
 		ctx, iam, _, _ := setup(t)
 
 		_, err := iam.ImWatermelon(ctx, "invalid-token")
-		require.ErrorIs(t, err, ErrInvalidToken)
+		require.ErrorIs(t, err, iamd.ErrInvalidToken)
 	})
 }
 
@@ -290,7 +291,7 @@ func TestCredentials(t *testing.T) {
 
 		nonExistentID := uuid.Must(uuid.NewV7())
 		_, err := iam.Credentials(ctx, nonExistentID)
-		require.ErrorIs(t, err, ErrUserNotFound)
+		require.ErrorIs(t, err, iamd.ErrUserNotFound)
 	})
 
 	t.Run("no_credentials", func(t *testing.T) {
@@ -299,6 +300,6 @@ func TestCredentials(t *testing.T) {
 		userID := createTestUser(ctx, t, iam.client)
 
 		_, err := iam.Credentials(ctx, userID)
-		require.ErrorIs(t, err, ErrUserNotFound)
+		require.ErrorIs(t, err, iamd.ErrUserNotFound)
 	})
 }

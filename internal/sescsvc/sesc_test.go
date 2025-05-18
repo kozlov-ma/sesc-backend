@@ -1,4 +1,4 @@
-package sesc
+package sescsvc
 
 import (
 	"context"
@@ -8,6 +8,7 @@ import (
 	"github.com/gofrs/uuid/v5"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/enttest"
 	"github.com/kozlov-ma/sesc-backend/pkg/event"
+	"github.com/kozlov-ma/sesc-backend/sesc"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/stretchr/testify/require"
 )
@@ -80,7 +81,7 @@ func TestCreateDepartment(t *testing.T) {
 		_, _ = svc.CreateDepartment(ctx, "IT", "IT Dept")
 		// Trying to create another department with the same name
 		_, err := svc.CreateDepartment(ctx, "IT", "Duplicate Dept")
-		require.ErrorIs(t, err, ErrInvalidDepartment)
+		require.ErrorIs(t, err, sesc.ErrInvalidDepartment)
 	})
 }
 
@@ -100,14 +101,14 @@ func TestDeleteDepartment(t *testing.T) {
 		require.NoError(t, err, "DeleteDepartment failed")
 
 		_, err = svc.DepartmentByID(ctx, id)
-		require.ErrorIs(t, err, ErrInvalidDepartment)
+		require.ErrorIs(t, err, sesc.ErrInvalidDepartment)
 	})
 
 	t.Run("non-existent department", func(t *testing.T) {
 		ctx, svc, _ := setup(t)
 
 		err := svc.DeleteDepartment(ctx, uuid.Must(uuid.NewV7()))
-		require.ErrorIs(t, err, ErrInvalidDepartment)
+		require.ErrorIs(t, err, sesc.ErrInvalidDepartment)
 	})
 
 	t.Run("with dependent users", func(t *testing.T) {
@@ -124,7 +125,7 @@ func TestDeleteDepartment(t *testing.T) {
 		require.NoError(t, err)
 
 		err = svc.DeleteDepartment(ctx, depID)
-		require.ErrorIs(t, err, ErrCannotRemoveDepartment)
+		require.ErrorIs(t, err, sesc.ErrCannotRemoveDepartment)
 	})
 }
 
@@ -153,7 +154,7 @@ func TestDepartmentByID(t *testing.T) {
 		ctx, svc, _ := setup(t)
 
 		_, err := svc.DepartmentByID(ctx, uuid.Must(uuid.NewV7()))
-		require.ErrorIs(t, err, ErrInvalidDepartment)
+		require.ErrorIs(t, err, sesc.ErrInvalidDepartment)
 	})
 }
 
@@ -262,7 +263,7 @@ func TestCreateUser(t *testing.T) {
 			ID:         user.ID, // Use the ID returned by CreateUser
 			FirstName:  opts.FirstName,
 			LastName:   opts.LastName,
-			Department: NoDepartment,
+			Department: Department{},
 			Role:       Role{ID: 1},
 		}
 		requireUserMatches(t, expected, user)
@@ -285,7 +286,7 @@ func TestCreateUser(t *testing.T) {
 
 		_, err := svc.CreateUser(ctx, opts)
 		require.Error(t, err)
-		require.ErrorIs(t, err, ErrInvalidDepartment)
+		require.ErrorIs(t, err, sesc.ErrInvalidDepartment)
 	})
 }
 
@@ -317,7 +318,7 @@ func TestUpdateDepartment(t *testing.T) {
 		ctx, svc, _ := setup(t)
 
 		err := svc.UpdateDepartment(ctx, uuid.Must(uuid.NewV7()), "Name", "Desc")
-		require.ErrorIs(t, err, ErrInvalidDepartment)
+		require.ErrorIs(t, err, sesc.ErrInvalidDepartment)
 	})
 }
 
@@ -364,7 +365,7 @@ func TestUpdateProfilePicture(t *testing.T) {
 		ctx, svc, _ := setup(t)
 
 		err := svc.UpdateProfilePicture(ctx, uuid.Must(uuid.NewV7()), "url")
-		require.ErrorIs(t, err, ErrUserNotFound)
+		require.ErrorIs(t, err, sesc.ErrUserNotFound)
 	})
 }
 
@@ -417,7 +418,7 @@ func TestUpdateUser(t *testing.T) {
 	t.Run("non-existent user", func(t *testing.T) {
 		ctx, svc, _, _ := setup(t)
 		_, err := svc.UpdateUser(ctx, uuid.Must(uuid.NewV7()), UserUpdateOptions{})
-		require.ErrorIs(t, err, ErrUserNotFound)
+		require.ErrorIs(t, err, sesc.ErrUserNotFound)
 	})
 
 	t.Run("invalid department", func(t *testing.T) {
@@ -429,7 +430,7 @@ func TestUpdateUser(t *testing.T) {
 			NewRoleID:    1,
 		}
 		_, err := svc.UpdateUser(ctx, userID, opts)
-		require.ErrorIs(t, err, ErrInvalidDepartment)
+		require.ErrorIs(t, err, sesc.ErrInvalidDepartment)
 	})
 
 	t.Run("remove department", func(t *testing.T) {
@@ -446,7 +447,7 @@ func TestUpdateUser(t *testing.T) {
 			ID:         userID,
 			FirstName:  opts.FirstName,
 			LastName:   opts.LastName,
-			Department: NoDepartment,
+			Department: Department{},
 			Role:       Role{ID: opts.NewRoleID},
 		}
 		requireUserMatches(t, expected, res)
@@ -460,7 +461,7 @@ func TestUpdateUser(t *testing.T) {
 			NewRoleID: 999,
 		}
 		_, err := svc.UpdateUser(ctx, userID, opts)
-		require.ErrorIs(t, err, ErrInvalidRole)
+		require.ErrorIs(t, err, sesc.ErrInvalidRole)
 	})
 }
 
@@ -502,7 +503,7 @@ func TestUserByID(t *testing.T) {
 		ctx, svc, _ := setup(t)
 
 		_, err := svc.UserByID(ctx, uuid.Must(uuid.NewV7()))
-		require.ErrorIs(t, err, ErrUserNotFound)
+		require.ErrorIs(t, err, sesc.ErrUserNotFound)
 	})
 }
 
