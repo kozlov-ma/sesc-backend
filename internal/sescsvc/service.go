@@ -24,7 +24,6 @@ type (
 	UserUpdateOptions = sesc.UserUpdateOptions
 )
 
-// Service represents the organization's structure and provides methods to interact with it.
 type SESC struct {
 	client *ent.Client
 }

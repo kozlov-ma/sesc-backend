@@ -15,7 +15,6 @@ import (
 	"github.com/kozlov-ma/sesc-backend/internal/iamsvc"
 	"github.com/kozlov-ma/sesc-backend/internal/sescsvc"
 	"github.com/kozlov-ma/sesc-backend/internal/slogsink"
-
 	// database driver
 	_ "github.com/lib/pq"
 	// database driver
@@ -91,10 +90,7 @@ func NewWithDBOptions(ctx context.Context, cfg *config.Config, log *slog.Logger,
 
 	iamService := iamsvc.New(client, 7*24*time.Hour, adminCredentials, []byte(cfg.JWTSecret))
 	sescService := sescsvc.New(client)
-	if err != nil {
-		cleanup()
-		return nil, fmt.Errorf("failed to initialize S3 client: %w", err)
-	}
+
 	apiService := api.New(sescService, iamService, slogsink.New(log))
 
 	router := chi.NewRouter()

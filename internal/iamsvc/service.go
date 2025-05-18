@@ -1,4 +1,4 @@
-// Package iam provides services for identity and access management.
+// Package iamsvc provides services for identity and access management.
 package iamsvc
 
 import (
