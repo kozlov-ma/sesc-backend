@@ -43,6 +43,45 @@ func requireUserMatches(t *testing.T, expected, actual User) {
 	if expected.PictureURL != "" {
 		require.Equal(t, expected.PictureURL, actual.PictureURL, "User PictureURL mismatch")
 	}
+
+	// Only check new fields if they are set in expected
+	if expected.Subdivision != "" {
+		require.Equal(t, expected.Subdivision, actual.Subdivision, "User Subdivision mismatch")
+	}
+
+	if expected.JobTitle != "" {
+		require.Equal(t, expected.JobTitle, actual.JobTitle, "User JobTitle mismatch")
+	}
+
+	if expected.EmploymentRate != 0 {
+		require.Equal(t, expected.EmploymentRate, actual.EmploymentRate, "User EmploymentRate mismatch")
+	}
+
+	if expected.PersonnelCategory != 0 {
+		require.Equal(t, expected.PersonnelCategory, actual.PersonnelCategory, "User PersonnelCategory mismatch")
+	}
+
+	if expected.EmploymentType != 0 {
+		require.Equal(t, expected.EmploymentType, actual.EmploymentType, "User EmploymentType mismatch")
+	}
+
+	if expected.AcademicDegree != 0 {
+		require.Equal(t, expected.AcademicDegree, actual.AcademicDegree, "User AcademicDegree mismatch")
+	}
+
+	if expected.AcademicTitle != "" {
+		require.Equal(t, expected.AcademicTitle, actual.AcademicTitle, "User AcademicTitle mismatch")
+	}
+
+	if expected.Honors != "" {
+		require.Equal(t, expected.Honors, actual.Honors, "User Honors mismatch")
+	}
+
+	if expected.Category != "" {
+		require.Equal(t, expected.Category, actual.Category, "User Category mismatch")
+	}
+
+	// Time fields are not checked in tests unless explicitly needed
 }
 
 func setupSESC(t *testing.T) *SESC {

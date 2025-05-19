@@ -3,6 +3,7 @@ package api
 import (
 	"encoding/json"
 	"net/http"
+	"time"
 
 	"github.com/gofrs/uuid/v5"
 	"github.com/kozlov-ma/sesc-backend/pkg/event"
@@ -19,6 +20,21 @@ type UserResponse struct {
 	Role       Role       `json:"role"                                                               validate:"required"`
 	Suspended  bool       `json:"suspended"                                                          validate:"required"`
 	Department Department `json:"department,omitzero"`
+
+	Subdivision       string  `json:"subdivision,omitempty"       example:"Teaching division"`
+	JobTitle          string  `json:"jobTitle,omitempty"          example:"Senior Lecturer"`
+	EmploymentRate    float64 `json:"employmentRate,omitempty"    example:"1.0"`
+	PersonnelCategory int     `json:"personnelCategory,omitempty" example:"1"`
+	EmploymentType    int     `json:"employmentType,omitempty"    example:"1"`
+	AcademicDegree    int     `json:"academicDegree,omitempty"    example:"1"`
+	AcademicTitle     string  `json:"academicTitle,omitempty"     example:"Associate Professor"`
+	Honors            string  `json:"honors,omitempty"            example:"Honored Teacher of Russian Federation"`
+	Category          string  `json:"category,omitempty"          example:"First Category"`
+
+	DateOfEmployment string `json:"dateOfEmployment,omitempty" example:"2020-01-01T00:00:00Z"`
+	UnemploymentDate string `json:"unemploymentDate,omitempty" example:"2025-01-01T00:00:00Z"`
+	CreateDate       string `json:"createDate,omitempty"       example:"2022-01-01T00:00:00Z"`
+	UpdateDate       string `json:"updateDate,omitempty"       example:"2022-02-01T00:00:00Z"`
 }
 
 type CreateUserRequest struct {
@@ -28,6 +44,19 @@ type CreateUserRequest struct {
 	RoleID       int32     `json:"roleId"                example:"2"                                    validate:"required"`
 	PictureURL   string    `json:"pictureUrl,omitzero"   example:"/images/users/ivan.jpg"`
 	DepartmentID uuid.UUID `json:"departmentId,omitzero" example:"550e8400-e29b-41d4-a716-446655440000"`
+
+	Subdivision       string  `json:"subdivision,omitempty"       example:"Teaching division"`
+	JobTitle          string  `json:"jobTitle,omitempty"          example:"Senior Lecturer"`
+	EmploymentRate    float64 `json:"employmentRate,omitempty"    example:"1.0"`
+	PersonnelCategory int     `json:"personnelCategory,omitempty" example:"1"`
+	EmploymentType    int     `json:"employmentType,omitempty"    example:"1"`
+	AcademicDegree    int     `json:"academicDegree,omitempty"    example:"1"`
+	AcademicTitle     string  `json:"academicTitle,omitempty"     example:"Associate Professor"`
+	Honors            string  `json:"honors,omitempty"            example:"Honored Teacher of Russian Federation"`
+	Category          string  `json:"category,omitempty"          example:"First Category"`
+
+	DateOfEmployment string `json:"dateOfEmployment,omitempty" example:"2020-01-01T00:00:00Z"`
+	UnemploymentDate string `json:"unemploymentDate,omitempty" example:"2025-01-01T00:00:00Z"`
 }
 
 // GetUser godoc
@@ -67,16 +96,7 @@ func (a *API) GetUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	a.writeJSON(ctx, w, UserResponse{
-		ID:         user.ID,
-		FirstName:  user.FirstName,
-		LastName:   user.LastName,
-		MiddleName: user.MiddleName,
-		PictureURL: user.PictureURL,
-		Role:       convertRole(user.Role),
-		Department: convertDepartment(user.Department),
-		Suspended:  user.Suspended,
-	}, http.StatusOK)
+	a.writeJSON(ctx, w, convertUser(user), http.StatusOK)
 }
 
 type UsersResponse struct {
@@ -141,6 +161,32 @@ func (a *API) CreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Parse time fields if they are not empty
+	var dateOfEmployment, unemploymentDate time.Time
+	var err error
+	if req.DateOfEmployment != "" {
+		dateOfEmployment, err = time.Parse(time.RFC3339, req.DateOfEmployment)
+		if err != nil {
+			writeError(ctx, w, InvalidRequestError{
+				Code:      "INVALID_DATE_FORMAT",
+				Message:   "Invalid date format for dateOfEmployment",
+				RuMessage: "Некорректный формат даты начала работы",
+			}.WithStatus(http.StatusBadRequest))
+			return
+		}
+	}
+	if req.UnemploymentDate != "" {
+		unemploymentDate, err = time.Parse(time.RFC3339, req.UnemploymentDate)
+		if err != nil {
+			writeError(ctx, w, InvalidRequestError{
+				Code:      "INVALID_DATE_FORMAT",
+				Message:   "Invalid date format for unemploymentDate",
+				RuMessage: "Некорректный формат даты окончания работы",
+			}.WithStatus(http.StatusBadRequest))
+			return
+		}
+	}
+
 	user, err := a.sesc.CreateUser(ctx, sesc.UserUpdateOptions{
 		FirstName:    req.FirstName,
 		LastName:     req.LastName,
@@ -148,6 +194,19 @@ func (a *API) CreateUser(w http.ResponseWriter, r *http.Request) {
 		PictureURL:   req.PictureURL,
 		DepartmentID: req.DepartmentID,
 		NewRoleID:    req.RoleID,
+
+		Subdivision:       req.Subdivision,
+		JobTitle:          req.JobTitle,
+		EmploymentRate:    req.EmploymentRate,
+		PersonnelCategory: sesc.PersonnelCategory(req.PersonnelCategory),
+		EmploymentType:    sesc.EmploymentType(req.EmploymentType),
+		AcademicDegree:    sesc.AcademicDegree(req.AcademicDegree),
+		AcademicTitle:     req.AcademicTitle,
+		Honors:            req.Honors,
+		Category:          req.Category,
+
+		DateOfEmployment: dateOfEmployment,
+		UnemploymentDate: unemploymentDate,
 	})
 
 	if err != nil {
@@ -163,6 +222,23 @@ func (a *API) CreateUser(w http.ResponseWriter, r *http.Request) {
 		MiddleName: user.MiddleName,
 		PictureURL: user.PictureURL,
 		Role:       convertRole(user.Role),
+		Department: convertDepartment(user.Department),
+		Suspended:  user.Suspended,
+
+		Subdivision:       user.Subdivision,
+		JobTitle:          user.JobTitle,
+		EmploymentRate:    user.EmploymentRate,
+		PersonnelCategory: int(user.PersonnelCategory),
+		EmploymentType:    int(user.EmploymentType),
+		AcademicDegree:    int(user.AcademicDegree),
+		AcademicTitle:     user.AcademicTitle,
+		Honors:            user.Honors,
+		Category:          user.Category,
+
+		DateOfEmployment: user.DateOfEmployment.Format(time.RFC3339),
+		UnemploymentDate: user.UnemploymentDate.Format(time.RFC3339),
+		CreateDate:       user.CreateDate.Format(time.RFC3339),
+		UpdateDate:       user.UpdateDate.Format(time.RFC3339),
 	}, http.StatusCreated)
 }
 
@@ -177,6 +253,19 @@ type PatchUserRequest struct {
 	Suspended    *bool      `json:"suspended,omitzero"    example:"false"                                validate:"required"`
 	DepartmentID *uuid.UUID `json:"departmentId,omitzero" example:"550e8400-e29b-41d4-a716-446655440000"`
 	RoleID       *int32     `json:"roleId,omitzero"       example:"1"                                    validate:"required"`
+
+	Subdivision       *string  `json:"subdivision,omitempty"       example:"Teaching division"`
+	JobTitle          *string  `json:"jobTitle,omitempty"          example:"Senior Lecturer"`
+	EmploymentRate    *float64 `json:"employmentRate,omitempty"    example:"1.0"`
+	PersonnelCategory *int     `json:"personnelCategory,omitempty" example:"1"`
+	EmploymentType    *int     `json:"employmentType,omitempty"    example:"1"`
+	AcademicDegree    *int     `json:"academicDegree,omitempty"    example:"1"`
+	AcademicTitle     *string  `json:"academicTitle,omitempty"     example:"Associate Professor"`
+	Honors            *string  `json:"honors,omitempty"            example:"Honored Teacher of Russian Federation"`
+	Category          *string  `json:"category,omitempty"          example:"First Category"`
+
+	DateOfEmployment *string `json:"dateOfEmployment,omitempty" example:"2020-01-01T00:00:00Z"`
+	UnemploymentDate *string `json:"unemploymentDate,omitempty" example:"2025-01-01T00:00:00Z"`
 }
 
 // PatchUser godoc
@@ -262,6 +351,62 @@ func (a *API) PatchUser(w http.ResponseWriter, r *http.Request) {
 		upd.NewRoleID = *req.RoleID
 	}
 
+	// Handle new fields
+	if req.Subdivision != nil {
+		upd.Subdivision = *req.Subdivision
+	}
+	if req.JobTitle != nil {
+		upd.JobTitle = *req.JobTitle
+	}
+	if req.EmploymentRate != nil {
+		upd.EmploymentRate = *req.EmploymentRate
+	}
+	if req.PersonnelCategory != nil {
+		upd.PersonnelCategory = sesc.PersonnelCategory(*req.PersonnelCategory)
+	}
+	if req.EmploymentType != nil {
+		upd.EmploymentType = sesc.EmploymentType(*req.EmploymentType)
+	}
+	if req.AcademicDegree != nil {
+		upd.AcademicDegree = sesc.AcademicDegree(*req.AcademicDegree)
+	}
+	if req.AcademicTitle != nil {
+		upd.AcademicTitle = *req.AcademicTitle
+	}
+	if req.Honors != nil {
+		upd.Honors = *req.Honors
+	}
+	if req.Category != nil {
+		upd.Category = *req.Category
+	}
+
+	// Handle time fields
+	if req.DateOfEmployment != nil {
+		dateOfEmployment, err := time.Parse(time.RFC3339, *req.DateOfEmployment)
+		if err != nil {
+			writeError(ctx, w, InvalidRequestError{
+				Code:      "INVALID_DATE_FORMAT",
+				Message:   "Invalid date format for dateOfEmployment",
+				RuMessage: "Некорректный формат даты начала работы",
+			}.WithStatus(http.StatusBadRequest))
+			return
+		}
+		upd.DateOfEmployment = dateOfEmployment
+	}
+
+	if req.UnemploymentDate != nil {
+		unemploymentDate, err := time.Parse(time.RFC3339, *req.UnemploymentDate)
+		if err != nil {
+			writeError(ctx, w, InvalidRequestError{
+				Code:      "INVALID_DATE_FORMAT",
+				Message:   "Invalid date format for unemploymentDate",
+				RuMessage: "Некорректный формат даты окончания работы",
+			}.WithStatus(http.StatusBadRequest))
+			return
+		}
+		upd.UnemploymentDate = unemploymentDate
+	}
+
 	updated, err := a.sesc.UpdateUser(ctx, userID, upd)
 	if err != nil {
 		rec.Add(events.Error, err)
@@ -269,16 +414,7 @@ func (a *API) PatchUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	a.writeJSON(ctx, w, UserResponse{
-		ID:         updated.ID,
-		FirstName:  updated.FirstName,
-		LastName:   updated.LastName,
-		MiddleName: updated.MiddleName,
-		PictureURL: updated.PictureURL,
-		Role:       convertRole(updated.Role),
-		Department: convertDepartment(updated.Department),
-		Suspended:  updated.Suspended,
-	}, http.StatusOK)
+	a.writeJSON(ctx, w, convertUser(updated), http.StatusOK)
 }
 
 func convertUser(user sesc.User) UserResponse {
@@ -291,6 +427,21 @@ func convertUser(user sesc.User) UserResponse {
 		Role:       convertRole(user.Role),
 		Department: convertDepartment(user.Department),
 		Suspended:  user.Suspended,
+
+		Subdivision:       user.Subdivision,
+		JobTitle:          user.JobTitle,
+		EmploymentRate:    user.EmploymentRate,
+		PersonnelCategory: int(user.PersonnelCategory),
+		EmploymentType:    int(user.EmploymentType),
+		AcademicDegree:    int(user.AcademicDegree),
+		AcademicTitle:     user.AcademicTitle,
+		Honors:            user.Honors,
+		Category:          user.Category,
+
+		DateOfEmployment: user.DateOfEmployment.Format(time.RFC3339),
+		UnemploymentDate: user.UnemploymentDate.Format(time.RFC3339),
+		CreateDate:       user.CreateDate.Format(time.RFC3339),
+		UpdateDate:       user.UpdateDate.Format(time.RFC3339),
 	}
 }
 
@@ -320,14 +471,5 @@ func (a *API) GetCurrentUser(w http.ResponseWriter, r *http.Request) {
 	user, _ := GetUserFromContext(ctx)
 
 	// Return user data
-	a.writeJSON(ctx, w, UserResponse{
-		ID:         user.ID,
-		FirstName:  user.FirstName,
-		LastName:   user.LastName,
-		MiddleName: user.MiddleName,
-		PictureURL: user.PictureURL,
-		Role:       convertRole(user.Role),
-		Department: convertDepartment(user.Department),
-		Suspended:  user.Suspended,
-	}, http.StatusOK)
+	a.writeJSON(ctx, w, convertUser(user), http.StatusOK)
 }
