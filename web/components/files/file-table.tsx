@@ -17,6 +17,16 @@ import { cn } from "@/lib/utils";
 import useSWRInfinite from "swr/infinite";
 import { apiClient } from "@/lib/api-client";
 import { useInfiniteScroll } from "@/hooks/use-infinite-scroll";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface FileTableProps {
   showOwner?: boolean;
@@ -27,6 +37,7 @@ interface FileTableProps {
     ownerId?: string;
     common?: boolean;
   };
+  allowDeleteCommon?: boolean;
 }
 
 export function FileTable({
@@ -34,9 +45,13 @@ export function FileTable({
   className,
   emptyMessage = "Файлов не найдено",
   initialFilters = {},
+  allowDeleteCommon = false,
 }: FileTableProps) {
   const [searchQuery, setSearchQuery] = useState(initialFilters.name || "");
   const [isUploading, setIsUploading] = useState(false);
+  const [fileToDelete, setFileToDelete] = useState<ApiFileResponse | null>(
+    null,
+  );
 
   const { data, error, isLoading, size, setSize, isValidating, mutate } =
     useSWRInfinite<ApiFileListResponse>(
@@ -79,7 +94,8 @@ export function FileTable({
         .flatMap((page: ApiFileListResponse) => page.items || [])
         .filter((file): file is ApiFileResponse => file !== undefined)
     : [];
-  const hasMore = data && data.length > 0 && data[data.length - 1]?.items?.length === 20;
+  const hasMore =
+    data && data.length > 0 && data[data.length - 1]?.items?.length === 20;
 
   const { ref } = useInfiniteScroll({
     onLoadMore: () => {
@@ -110,13 +126,37 @@ export function FileTable({
     }
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (file: ApiFileResponse) => {
+    setFileToDelete(file);
+  };
+
+  const confirmDelete = async () => {
+    if (!fileToDelete?.id) return;
+
     try {
-      await apiClient.files.filesDelete(id);
+      await apiClient.files.filesDelete(fileToDelete.id);
       mutate(); // Refresh the file list
     } catch (error) {
       console.error("Error deleting file:", error);
+    } finally {
+      setFileToDelete(null);
     }
+  };
+
+  const handleDownload = (file: ApiFileResponse) => {
+    if (!file.downloadUrl) return;
+
+    // Create a temporary link element
+    const link = document.createElement("a");
+    link.href = file.downloadUrl;
+    link.download = file.fileName || "download";
+    link.target = "_blank";
+    link.rel = "noopener noreferrer";
+
+    // Append to body, click, and remove
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   if (error) return <span className="text-destructive">Ошибка</span>;
@@ -211,21 +251,21 @@ export function FileTable({
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() =>
-                            window.open(file.downloadUrl, "_blank")
-                          }
+                          onClick={() => handleDownload(file)}
                           disabled={!file.downloadUrl}
                         >
                           <Download className="h-4 w-4" />
                         </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="text-destructive hover:text-destructive"
-                          onClick={() => file.id && handleDelete(file.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                        {(allowDeleteCommon || file.ownerId) && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="text-destructive hover:text-destructive"
+                            onClick={() => handleDelete(file)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        )}
                       </div>
                     </TableCell>
                   </TableRow>
@@ -233,19 +273,39 @@ export function FileTable({
               </TableBody>
             </Table>
           </div>
-          <div
-            ref={ref as React.RefObject<HTMLDivElement>}
-            className="h-10 flex items-center justify-center"
-          >
-            {isValidating && (
-              <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
-            )}
-            {!hasMore && files.length > 0 && (
-              <p className="text-sm text-muted-foreground">Больше файлов нет</p>
-            )}
-          </div>
+          {hasMore && (
+            <div ref={ref} className="h-8 flex items-center justify-center">
+              {isValidating && (
+                <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
+              )}
+            </div>
+          )}
         </>
       )}
+
+      <AlertDialog
+        open={!!fileToDelete}
+        onOpenChange={() => setFileToDelete(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Удалить файл?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Вы уверены, что хотите удалить файл &quot;{fileToDelete?.fileName}
+              &quot;? Это действие нельзя отменить.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Отмена</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Удалить
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

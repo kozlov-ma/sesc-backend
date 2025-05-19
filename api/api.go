@@ -147,7 +147,7 @@ func (a *API) RegisterRoutes(r chi.Router) {
 		r.Route("/files", func(r chi.Router) {
 			r.Get("/", a.SearchFiles)
 			r.Post("/", a.UploadFile)
-			r.With(a.FileAccessMiddleware).Delete("/{id}", a.DeleteFile)
+			r.With(a.FileEditAccessMiddleware).Delete("/{id}", a.DeleteFile)
 		})
 	})
 

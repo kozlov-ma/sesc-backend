@@ -10,7 +10,7 @@ COPY go.mod go.sum ./
 RUN go mod download
 
 # Copy the rest of the source code
-COPY . .
+COPY ./tests .
 
 # Run the tests when the container starts - with verbose output and coverage reporting
-CMD ["go", "test", "-v", "-coverprofile=coverage.out", "./tests/..."] 
+CMD ["go", "test", "-v", "-coverprofile=coverage.out", "./..."]

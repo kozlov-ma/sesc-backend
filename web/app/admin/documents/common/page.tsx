@@ -29,8 +29,9 @@ export default function CommonDocumentsPage() {
         <CardContent>
           <FileTable
             showOwner={true}
-            emptyMessage="Общих файлов пока нет"
+            emptyMessage="Нет общих файлов"
             initialFilters={{ common: true }}
+            allowDeleteCommon={true}
           />
         </CardContent>
       </Card>

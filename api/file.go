@@ -229,6 +229,53 @@ func (a *API) FileAccessMiddleware(next http.Handler) http.Handler {
 	})
 }
 
+func (a *API) FileEditAccessMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+		rec := event.Get(ctx).Sub("file_access_check")
+
+		// Extract file ID from URL
+		fileID, err := uuid.FromString(chi.URLParam(r, "id"))
+		if err != nil {
+			writeError(ctx, w, ErrBadRequest.WithDetails("invalid file ID").WithStatus(http.StatusBadRequest))
+			return
+		}
+
+		// Get identity from context
+		identity, identityOk := GetIdentityFromContext(ctx)
+		if !identityOk {
+			writeError(ctx, w, ErrUnauthorized.WithStatus(http.StatusUnauthorized))
+			return
+		}
+
+		// Get file details to check ownership
+		file, err := a.file.ByID(ctx, fileID)
+		if err != nil {
+			if errors.Is(err, sesc.ErrFileNotFound) {
+				writeError(ctx, w, ErrNotFound.WithDetails("file not found").WithStatus(http.StatusNotFound))
+				return
+			}
+			rec.Add(events.Error, err)
+			writeError(ctx, w, fileError(err))
+			return
+		}
+
+		isAdmin := identity.Role == iam.Role("admin")
+		isOwner := file.OwnerID != nil && identity.ID == *file.OwnerID
+
+		if isAdmin || isOwner {
+			// User has access, continue to the actual handler
+			next.ServeHTTP(w, r)
+			return
+		}
+
+		// Access denied
+		rec.Add("access_denied", true)
+		rec.Add("reason", "user is not owner, not admin, and file is not common")
+		writeError(ctx, w, ErrFileForbidden.WithStatus(http.StatusForbidden))
+	})
+}
+
 // convertFile converts a sesc.File to a FileResponse
 func convertFile(f sesc.File) FileResponse {
 	var ownerID *string
