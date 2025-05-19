@@ -1,6 +1,10 @@
 package sesc
 
-import "github.com/kozlov-ma/sesc-backend/pkg/event"
+import (
+	"time"
+
+	"github.com/kozlov-ma/sesc-backend/pkg/event"
+)
 
 // User represents a SESC employee that participates in the achievement list
 // filling and review processes.
@@ -25,6 +29,23 @@ type User struct {
 	Department Department
 
 	Role Role
+
+	Subdivision    string
+	JobTitle       string
+	EmploymentRate float64
+
+	PersonnelCategory PersonnelCategory
+	EmploymentType    EmploymentType
+	AcademicDegree    AcademicDegree
+
+	AcademicTitle string
+	Honors        string
+	Category      string
+
+	DateOfEmployment time.Time
+	UnemploymentDate time.Time
+	CreateDate       time.Time
+	UpdateDate       time.Time
 }
 
 func (u User) EventRecord() *event.Record {
@@ -77,3 +98,28 @@ func (u User) UpdateOptions() UserUpdateOptions {
 		NewRoleID:    u.Role.ID,
 	}
 }
+
+type PersonnelCategory int
+
+const (
+	ProfessorialPedagogical PersonnelCategory = iota + 1
+	Pedagogical
+	EducationalSupport
+	AdministrativeManagerial
+)
+
+type EmploymentType int
+
+const (
+	Main EmploymentType = iota + 1
+	InternalPartTime
+	ExternalPartTime
+)
+
+type AcademicDegree int
+
+const (
+	NoDegree AcademicDegree = iota
+	Candidate
+	Doctor
+)
