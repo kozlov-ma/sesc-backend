@@ -252,6 +252,7 @@ func convertFile(f sesc.File) FileResponse {
 // @Tags files
 // @Accept json
 // @Produce json
+// @Param Authorization header string false "Bearer JWT token"
 // @Param name query string false "File name to search for"
 // @Param owner_id query string false "Owner ID to filter by"
 // @Param common query bool false "If true, return only common files"
@@ -339,6 +340,7 @@ const maxFormSizeBytes = 32 << 20 // 32 megabytes
 // @Tags files
 // @Accept multipart/form-data
 // @Produce json
+// @Param Authorization header string false "Bearer JWT token"
 // @Param file formData file true "File to upload"
 // @Success 201 {object} FileResponse
 // @Failure 400 {object} Error
@@ -405,6 +407,7 @@ func (a *API) UploadFile(w http.ResponseWriter, r *http.Request) {
 // @Tags files
 // @Accept json
 // @Produce json
+// @Param Authorization header string false "Bearer JWT token"
 // @Param id path string true "File ID"
 // @Success 204 "No Content"
 // @Failure 400 {object} Error

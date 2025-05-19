@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/brianvoe/gofakeit/v7"
@@ -37,6 +38,15 @@ type File struct {
 	Name        string `json:"name"`
 	Description string `json:"description"`
 	Common      bool   `json:"common"`
+}
+
+type LoginResponse struct {
+	Token string `json:"token"`
+}
+
+type UserWithCreds struct {
+	User        User
+	Credentials Credentials
 }
 
 var fakeDepartments = []Department{
@@ -74,27 +84,27 @@ var fakeDepartments = []Department{
 	},
 }
 
-type LoginResponse struct {
-	Token string `json:"token"`
+// duplicateChannel creates two channels that receive the same values from the input channel
+func duplicateChannel[T any](in <-chan T) (<-chan T, <-chan T) {
+	out1 := make(chan T)
+	out2 := make(chan T)
+
+	go func() {
+		defer close(out1)
+		defer close(out2)
+		for v := range in {
+			out1 <- v
+			out2 <- v
+		}
+	}()
+
+	return out1, out2
 }
 
-//nolint:funlen,gocognit // it should be long.
-func main() {
-	if len(os.Args) != 3 {
-		log.Fatal("Usage: fakedata <base_url> <admin_token>")
-	}
-
-	baseURL := os.Args[1]
-	adminToken := os.Args[2]
-
-	client := resty.New().
-		SetBaseURL(baseURL).
-		SetHeader("Authorization", "Bearer "+adminToken).
-		SetTimeout(3 * time.Second)
-
-	// Create departments
-	departments := make([]Department, 0, len(fakeDepartments))
-	for _, d := range fakeDepartments {
+// createDepartments creates departments and sends them through the output channel
+func createDepartments(client *resty.Client, departments []Department, out chan<- Department) {
+	defer close(out)
+	for _, d := range departments {
 		var resp struct {
 			ID string `json:"id"`
 		}
@@ -107,15 +117,14 @@ func main() {
 			continue
 		}
 		d.ID = resp.ID
-		departments = append(departments, d)
+		out <- d
 	}
+}
 
-	// Create users
-	users := make([]User, 0)
-	userCredentials := make(map[string]Credentials)
-
-	// Create department heads
-	for _, d := range departments {
+// createDepartmentHeads creates department heads for each department
+func createDepartmentHeads(client *resty.Client, departments <-chan Department, out chan<- UserWithCreds) {
+	defer close(out)
+	for d := range departments {
 		user := User{
 			FirstName:    gofakeit.FirstName(),
 			LastName:     gofakeit.LastName(),
@@ -135,7 +144,7 @@ func main() {
 			continue
 		}
 		user.ID = resp.ID
-		users = append(users, user)
+
 		creds := Credentials{
 			Username: gofakeit.Username(),
 			Password: "password",
@@ -147,13 +156,17 @@ func main() {
 			Put(fmt.Sprintf("/users/%s/credentials", user.ID))
 		if err != nil || !r.IsSuccess() {
 			log.Printf("Failed to create credentials for user %s: %v (%s)", user.ID, err, r.String())
+			continue
 		}
 
-		userCredentials[user.ID] = creds
+		out <- UserWithCreds{user, creds}
 	}
+}
 
-	// Create teachers
-	for _, d := range departments {
+// createTeachers creates teachers for each department
+func createTeachers(client *resty.Client, departments <-chan Department, out chan<- UserWithCreds) {
+	defer close(out)
+	for d := range departments {
 		numTeachers := gofakeit.Number(7, 27)
 		for range numTeachers {
 			user := User{
@@ -175,25 +188,29 @@ func main() {
 				continue
 			}
 			user.ID = resp.ID
-			users = append(users, user)
 
 			creds := Credentials{
 				Username: gofakeit.Username(),
 				Password: "password",
 			}
+
 			// Create credentials
 			r, err = client.R().
 				SetBody(creds).
 				Put(fmt.Sprintf("/users/%s/credentials", user.ID))
 			if err != nil || !r.IsSuccess() {
-				log.Printf("Failed to create credentials for user %s: %v (%s)", user.ID, err, r)
+				log.Printf("Failed to create credentials for user %s: %v (%s)", user.ID, err, r.String())
+				continue
 			}
 
-			userCredentials[user.ID] = creds
+			out <- UserWithCreds{user, creds}
 		}
 	}
+}
 
-	// Create deputies
+// createDeputies creates deputies with different roles
+func createDeputies(client *resty.Client, out chan<- UserWithCreds) {
+	defer close(out)
 	deputyRoles := []int32{3, 4, 5} // ContestDeputy, ScientificDeputy, DevelopmentDeputy
 	for _, roleID := range deputyRoles {
 		user := User{
@@ -210,31 +227,33 @@ func main() {
 			SetResult(&resp).
 			Post("/users")
 		if err != nil || !r.IsSuccess() {
-			log.Printf("Failed to create deputy with role %d: %v (%s)", roleID, err, r)
+			log.Printf("Failed to create deputy with role %d: %v (%s)", roleID, err, r.String())
 			continue
 		}
 		user.ID = resp.ID
-		users = append(users, user)
 
 		creds := Credentials{
 			Username: gofakeit.Username(),
 			Password: "password",
 		}
+
 		// Create credentials
 		r, err = client.R().
 			SetBody(creds).
 			Put(fmt.Sprintf("/users/%s/credentials", user.ID))
 		if err != nil || !r.IsSuccess() {
-			log.Printf("Failed to create credentials for user %s: %v (%s)", user.ID, err, r)
+			log.Printf("Failed to create credentials for user %s: %v (%s)", user.ID, err, r.String())
+			continue
 		}
 
-		userCredentials[user.ID] = creds
+		out <- UserWithCreds{user, creds}
 	}
+}
 
-	const commonFiles = 150
-	// Create common files
-	for range commonFiles {
-		// Create a simple text file
+// createCommonFiles creates common files
+func createCommonFiles(client *resty.Client, jobs <-chan struct{}, wg *sync.WaitGroup) {
+	defer wg.Done()
+	for range jobs {
 		content := gofakeit.LoremIpsumParagraph(5, 25, 400, "\n")
 		name := gofakeit.MovieName() + ".txt"
 		r, err := client.R().
@@ -244,18 +263,21 @@ func main() {
 			}).
 			Post("/files")
 		if err != nil || !r.IsSuccess() {
-			log.Printf("Failed to create common file %s: %v (%s)", name, err, r)
+			log.Printf("Failed to create common file %s: %v (%s)", name, err, r.String())
 		}
 	}
+}
 
+// createUserFiles creates files for each user
+func createUserFiles(client *resty.Client, users <-chan UserWithCreds, wg *sync.WaitGroup) {
+	defer wg.Done()
 	const filesPerUser = 8
-	// Create user files
-	for _, user := range users {
+	for user := range users {
 		for range filesPerUser {
 			var resp LoginResponse
-			r, err := client.R().SetBody(userCredentials[user.ID]).SetResult(&resp).Post("/auth/login")
+			r, err := client.R().SetBody(user.Credentials).SetResult(&resp).Post("/auth/login")
 			if err != nil || !r.IsSuccess() {
-				log.Printf("couldn't login as user %v: %v (%s)", user, err, r)
+				log.Printf("couldn't login as user %v: %v (%s)", user.User, err, r.String())
 				continue
 			}
 
@@ -269,10 +291,84 @@ func main() {
 				}).
 				Post("/files")
 			if err != nil || !r.IsSuccess() {
-				log.Printf("Failed to create common file %s: %v (%s)", name, err, r)
+				log.Printf("Failed to create user file %s: %v (%s)", name, err, r.String())
 			}
 		}
 	}
+}
+
+//nolint:funlen,gocognit // it should be long.
+func main() {
+	if len(os.Args) != 3 {
+		log.Fatal("Usage: fakedata <base_url> <admin_token>")
+	}
+
+	baseURL := os.Args[1]
+	adminToken := os.Args[2]
+
+	client := resty.New().
+		SetBaseURL(baseURL).
+		SetHeader("Authorization", "Bearer "+adminToken).
+		SetTimeout(3 * time.Second)
+
+	const numWorkers = 8
+
+	// Create channels
+	departmentsChan := make(chan Department)
+	departmentsForHeads, departmentsForTeachers := duplicateChannel(departmentsChan)
+	departmentHeadsChan := make(chan UserWithCreds)
+	teachersChan := make(chan UserWithCreds)
+	deputiesChan := make(chan UserWithCreds)
+	commonFilesJobs := make(chan struct{}, 150)
+
+	// Start department creation
+	go createDepartments(client, fakeDepartments, departmentsChan)
+
+	// Start department heads creation
+	go createDepartmentHeads(client, departmentsForHeads, departmentHeadsChan)
+
+	// Start teachers creation
+	go createTeachers(client, departmentsForTeachers, teachersChan)
+
+	// Start deputies creation
+	go createDeputies(client, deputiesChan)
+
+	// Create common files with worker pool
+	var wg sync.WaitGroup
+	for range numWorkers {
+		wg.Add(1)
+		go createCommonFiles(client, commonFilesJobs, &wg)
+	}
+
+	// Send jobs for common files
+	for range 150 {
+		commonFilesJobs <- struct{}{}
+	}
+	close(commonFilesJobs)
+	wg.Wait()
+
+	// Create user files with worker pools
+	wg = sync.WaitGroup{}
+
+	// Department heads files
+	for range numWorkers {
+		wg.Add(1)
+		go createUserFiles(client, departmentHeadsChan, &wg)
+	}
+
+	// Teachers files
+	for range numWorkers {
+		wg.Add(1)
+		go createUserFiles(client, teachersChan, &wg)
+	}
+
+	// Deputies files
+	for range numWorkers {
+		wg.Add(1)
+		go createUserFiles(client, deputiesChan, &wg)
+	}
+
+	wg.Wait()
 
 	log.Println("Fake data generation completed")
 }

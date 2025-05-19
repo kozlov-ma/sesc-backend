@@ -548,39 +548,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/dev/fakedata": {
-            "post": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Creates departments, users, credentials, ...",
-                "tags": [
-                    "dev"
-                ],
-                "summary": "Create a lot of fake data (for testing and development purposes)",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer JWT token",
-                        "name": "Authorization",
-                        "in": "header"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK"
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "$ref": "#/definitions/api.ServerError"
-                        }
-                    }
-                }
-            }
-        },
         "/files": {
             "get": {
                 "security": [
@@ -600,6 +567,12 @@ const docTemplate = `{
                 ],
                 "summary": "Search files",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer JWT token",
+                        "name": "Authorization",
+                        "in": "header"
+                    },
                     {
                         "type": "string",
                         "description": "File name to search for",
@@ -673,6 +646,12 @@ const docTemplate = `{
                 "summary": "Upload a file",
                 "parameters": [
                     {
+                        "type": "string",
+                        "description": "Bearer JWT token",
+                        "name": "Authorization",
+                        "in": "header"
+                    },
+                    {
                         "type": "file",
                         "description": "File to upload",
                         "name": "file",
@@ -727,6 +706,12 @@ const docTemplate = `{
                 ],
                 "summary": "Delete file",
                 "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer JWT token",
+                        "name": "Authorization",
+                        "in": "header"
+                    },
                     {
                         "type": "string",
                         "description": "File ID",
