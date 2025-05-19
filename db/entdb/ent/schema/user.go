@@ -5,6 +5,7 @@ import (
 	"entgo.io/ent/dialect/entsql"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
+	"entgo.io/ent/schema/index"
 	"github.com/gofrs/uuid/v5"
 )
 
@@ -41,5 +42,14 @@ func (User) Edges() []ent.Edge {
 
 		edge.To("files", File.Type).
 			Annotations(entsql.OnDelete(entsql.SetNull)),
+	}
+}
+
+// Indexes of the User.
+func (User) Indexes() []ent.Index {
+	return []ent.Index{
+		index.Fields("department_id"),
+		index.Fields("role_id"),
+		index.Fields("first_name", "last_name"),
 	}
 }

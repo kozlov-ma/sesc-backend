@@ -5,6 +5,7 @@ import (
 	"entgo.io/ent/dialect/entsql"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
+	"entgo.io/ent/schema/index"
 	"github.com/gofrs/uuid/v5"
 )
 
@@ -27,5 +28,12 @@ func (Department) Fields() []ent.Field {
 func (Department) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("users", User.Type).Annotations(entsql.OnDelete(entsql.Restrict)),
+	}
+}
+
+// Indexes of the Department.
+func (Department) Indexes() []ent.Index {
+	return []ent.Index{
+		index.Fields("name"),
 	}
 }

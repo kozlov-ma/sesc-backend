@@ -29,6 +29,23 @@ var (
 				OnDelete:   schema.Cascade,
 			},
 		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "authuser_user_id",
+				Unique:  false,
+				Columns: []*schema.Column{AuthUsersColumns[4]},
+			},
+			{
+				Name:    "authuser_username_password",
+				Unique:  false,
+				Columns: []*schema.Column{AuthUsersColumns[1], AuthUsersColumns[2]},
+			},
+			{
+				Name:    "authuser_auth_id",
+				Unique:  false,
+				Columns: []*schema.Column{AuthUsersColumns[3]},
+			},
+		},
 	}
 	// DepartmentsColumns holds the columns for the "departments" table.
 	DepartmentsColumns = []*schema.Column{
@@ -41,6 +58,13 @@ var (
 		Name:       "departments",
 		Columns:    DepartmentsColumns,
 		PrimaryKey: []*schema.Column{DepartmentsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "department_name",
+				Unique:  false,
+				Columns: []*schema.Column{DepartmentsColumns[1]},
+			},
+		},
 	}
 	// FilesColumns holds the columns for the "files" table.
 	FilesColumns = []*schema.Column{
@@ -61,6 +85,23 @@ var (
 				Columns:    []*schema.Column{FilesColumns[4]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "file_owner_id",
+				Unique:  false,
+				Columns: []*schema.Column{FilesColumns[4]},
+			},
+			{
+				Name:    "file_file_name",
+				Unique:  false,
+				Columns: []*schema.Column{FilesColumns[2]},
+			},
+			{
+				Name:    "file_s3_object_key",
+				Unique:  false,
+				Columns: []*schema.Column{FilesColumns[1]},
 			},
 		},
 	}
@@ -86,6 +127,23 @@ var (
 				Columns:    []*schema.Column{UsersColumns[7]},
 				RefColumns: []*schema.Column{DepartmentsColumns[0]},
 				OnDelete:   schema.Restrict,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "user_department_id",
+				Unique:  false,
+				Columns: []*schema.Column{UsersColumns[7]},
+			},
+			{
+				Name:    "user_role_id",
+				Unique:  false,
+				Columns: []*schema.Column{UsersColumns[6]},
+			},
+			{
+				Name:    "user_first_name_last_name",
+				Unique:  false,
+				Columns: []*schema.Column{UsersColumns[1], UsersColumns[2]},
 			},
 		},
 	}

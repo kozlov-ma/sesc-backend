@@ -4,6 +4,7 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
+	"entgo.io/ent/schema/index"
 	"github.com/gofrs/uuid/v5"
 )
 
@@ -36,5 +37,14 @@ func (AuthUser) Edges() []ent.Edge {
 			Field("user_id").
 			Unique().
 			Required(),
+	}
+}
+
+// Indexes of the AuthUser.
+func (AuthUser) Indexes() []ent.Index {
+	return []ent.Index{
+		index.Fields("user_id"),
+		index.Fields("username", "password"),
+		index.Fields("auth_id"),
 	}
 }
