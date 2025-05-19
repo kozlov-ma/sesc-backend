@@ -108,7 +108,7 @@ func (i *IAM) RegisterCredentials(
 
 	// Stage 3: Check if username is free
 	ctx = rec.Sub("check_username_free").Wrap(ctx)
-	if err := i.checkUsernameFree(ctx, tx, creds.Username); err != nil {
+	if err := i.checkUsernameFree(ctx, tx, creds.Username, userID); err != nil {
 		return rollback(err)
 	}
 
@@ -189,6 +189,7 @@ func (i *IAM) checkUsernameFree(
 	ctx context.Context,
 	tx *ent.Tx,
 	username string,
+	forUserID UUID,
 ) error {
 	rec := event.Get(ctx)
 	rootRec := event.Root(ctx)
@@ -199,7 +200,10 @@ func (i *IAM) checkUsernameFree(
 	statrec.Add(events.PostgresQueries, 1)
 	exists, err := tx.AuthUser.
 		Query().
-		Where(authuser.UsernameEQ(username)).
+		Where(
+			authuser.UsernameEQ(username),
+			authuser.UserIDNEQ(forUserID),
+		).
 		Exist(ctx)
 	if err != nil {
 		err := fmt.Errorf("failed to check if username exists: %w", err)

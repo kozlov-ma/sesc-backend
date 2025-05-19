@@ -11,6 +11,7 @@ import (
 	iamd "github.com/kozlov-ma/sesc-backend/iam"
 	"github.com/kozlov-ma/sesc-backend/pkg/event"
 	_ "github.com/mattn/go-sqlite3"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -77,7 +78,51 @@ func TestRegisterCredentials(t *testing.T) {
 		require.Equal(t, creds.Password, savedCreds.Password)
 	})
 
-	t.Run("invalid_credentials", func(t *testing.T) {
+	t.Run("no_change", func(t *testing.T) {
+		ctx, iam, userID := setup(t)
+
+		creds := Credentials{
+			Username: "testuser",
+			Password: "password123",
+		}
+
+		_, err := iam.RegisterCredentials(ctx, userID, creds)
+		require.NoError(t, err)
+
+		_, err = iam.Credentials(ctx, userID)
+		require.NoError(t, err)
+
+		_, err = iam.RegisterCredentials(ctx, userID, creds)
+		require.NoError(t, err)
+	})
+
+	t.Run("change_only_password", func(t *testing.T) {
+		ctx, iam, userID := setup(t)
+
+		creds := Credentials{
+			Username: "testuser",
+			Password: "password123",
+		}
+
+		_, err := iam.RegisterCredentials(ctx, userID, creds)
+		require.NoError(t, err)
+
+		_, err = iam.Credentials(ctx, userID)
+		require.NoError(t, err)
+
+		_, err = iam.RegisterCredentials(ctx, userID, Credentials{
+			Username: creds.Username,
+			Password: "new",
+		})
+		require.NoError(t, err)
+
+		updated, err := iam.Credentials(ctx, userID)
+		require.NoError(t, err)
+		assert.Equal(t, "new", updated.Password)
+		assert.Equal(t, creds.Username, updated.Username)
+	})
+
+	t.Run("empty_credentials", func(t *testing.T) {
 		ctx, iam, userID := setup(t)
 
 		_, err := iam.RegisterCredentials(ctx, userID, Credentials{})
@@ -177,7 +222,7 @@ func TestLoginAdmin(t *testing.T) {
 		require.Equal(t, RoleAdmin, identity.Role)
 	})
 
-	t.Run("invalid_token", func(t *testing.T) {
+	t.Run("invalid_credentials", func(t *testing.T) {
 		ctx, iam := setup(t)
 
 		_, err := iam.LoginAdmin(ctx, Credentials{Username: "hell", Password: "nah"})
