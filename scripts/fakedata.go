@@ -1,10 +1,8 @@
-//nolint:cyclop // it should be high.
 package main
 
 import (
 	"fmt"
-	//nolint:depguard // this is a main file.
-	"log"
+	"log/slog"
 	"os"
 	"strings"
 	"sync"
@@ -103,6 +101,7 @@ func duplicateChannel[T any](in <-chan T) (<-chan T, <-chan T) {
 
 // createDepartments creates departments and sends them through the output channel
 func createDepartments(client *resty.Client, departments []Department, out chan<- Department) {
+	logger := slog.Default()
 	defer close(out)
 	for _, d := range departments {
 		var resp struct {
@@ -113,7 +112,7 @@ func createDepartments(client *resty.Client, departments []Department, out chan<
 			SetResult(&resp).
 			Post("/departments")
 		if err != nil || !r.IsSuccess() {
-			log.Printf("Failed to create department %s: %v (%s)", d.Name, err, r.String())
+			logger.Error("Failed to create department", "name", d.Name, "error", err, "response", r.String())
 			continue
 		}
 		d.ID = resp.ID
@@ -121,137 +120,92 @@ func createDepartments(client *resty.Client, departments []Department, out chan<
 	}
 }
 
+// createUser creates a user with the given role and department ID
+func createUser(client *resty.Client, roleID int32, departmentID string) (UserWithCreds, error) {
+	user := User{
+		FirstName:    gofakeit.FirstName(),
+		LastName:     gofakeit.LastName(),
+		MiddleName:   gofakeit.MiddleName(),
+		DepartmentID: departmentID,
+		RoleID:       roleID,
+	}
+	var resp struct {
+		ID string `json:"id"`
+	}
+	r, err := client.R().
+		SetBody(user).
+		SetResult(&resp).
+		Post("/users")
+	if err != nil || !r.IsSuccess() {
+		return UserWithCreds{}, fmt.Errorf("failed to create user: %w (%s)", err, r.String())
+	}
+	user.ID = resp.ID
+
+	creds := Credentials{
+		Username: gofakeit.Username(),
+		Password: "password",
+	}
+
+	// Create credentials
+	r, err = client.R().
+		SetBody(creds).
+		Put(fmt.Sprintf("/users/%s/credentials", user.ID))
+	if err != nil || !r.IsSuccess() {
+		return UserWithCreds{}, fmt.Errorf("failed to create credentials: %w (%s)", err, r.String())
+	}
+
+	return UserWithCreds{user, creds}, nil
+}
+
 // createDepartmentHeads creates department heads for each department
 func createDepartmentHeads(client *resty.Client, departments <-chan Department, out chan<- UserWithCreds) {
+	logger := slog.Default()
 	defer close(out)
 	for d := range departments {
-		user := User{
-			FirstName:    gofakeit.FirstName(),
-			LastName:     gofakeit.LastName(),
-			MiddleName:   gofakeit.MiddleName(),
-			DepartmentID: d.ID,
-			RoleID:       2, // Dephead role
-		}
-		var resp struct {
-			ID string `json:"id"`
-		}
-		r, err := client.R().
-			SetBody(user).
-			SetResult(&resp).
-			Post("/users")
-		if err != nil || !r.IsSuccess() {
-			log.Printf("Failed to create department head for %s: %v (%s)", d.Name, err, r.String())
+		userWithCreds, err := createUser(client, 2, d.ID) // Dephead role
+		if err != nil {
+			logger.Error("Failed to create department head", "department", d.Name, "error", err)
 			continue
 		}
-		user.ID = resp.ID
-
-		creds := Credentials{
-			Username: gofakeit.Username(),
-			Password: "password",
-		}
-
-		// Create credentials
-		r, err = client.R().
-			SetBody(creds).
-			Put(fmt.Sprintf("/users/%s/credentials", user.ID))
-		if err != nil || !r.IsSuccess() {
-			log.Printf("Failed to create credentials for user %s: %v (%s)", user.ID, err, r.String())
-			continue
-		}
-
-		out <- UserWithCreds{user, creds}
+		out <- userWithCreds
 	}
 }
 
 // createTeachers creates teachers for each department
 func createTeachers(client *resty.Client, departments <-chan Department, out chan<- UserWithCreds) {
+	logger := slog.Default()
 	defer close(out)
 	for d := range departments {
 		numTeachers := gofakeit.Number(7, 27)
 		for range numTeachers {
-			user := User{
-				FirstName:    gofakeit.FirstName(),
-				LastName:     gofakeit.LastName(),
-				MiddleName:   gofakeit.MiddleName(),
-				DepartmentID: d.ID,
-				RoleID:       1, // Teacher role
-			}
-			var resp struct {
-				ID string `json:"id"`
-			}
-			r, err := client.R().
-				SetBody(user).
-				SetResult(&resp).
-				Post("/users")
-			if err != nil || !r.IsSuccess() {
-				log.Printf("Failed to create teacher for %s: %v (%s)", d.Name, err, r.String())
+			userWithCreds, err := createUser(client, 1, d.ID) // Teacher role
+			if err != nil {
+				logger.Error("Failed to create teacher", "department", d.Name, "error", err)
 				continue
 			}
-			user.ID = resp.ID
-
-			creds := Credentials{
-				Username: gofakeit.Username(),
-				Password: "password",
-			}
-
-			// Create credentials
-			r, err = client.R().
-				SetBody(creds).
-				Put(fmt.Sprintf("/users/%s/credentials", user.ID))
-			if err != nil || !r.IsSuccess() {
-				log.Printf("Failed to create credentials for user %s: %v (%s)", user.ID, err, r.String())
-				continue
-			}
-
-			out <- UserWithCreds{user, creds}
+			out <- userWithCreds
 		}
 	}
 }
 
 // createDeputies creates deputies with different roles
 func createDeputies(client *resty.Client, out chan<- UserWithCreds) {
+	logger := slog.Default()
 	defer close(out)
 	deputyRoles := []int32{3, 4, 5} // ContestDeputy, ScientificDeputy, DevelopmentDeputy
 	for _, roleID := range deputyRoles {
-		user := User{
-			FirstName:  gofakeit.FirstName(),
-			LastName:   gofakeit.LastName(),
-			MiddleName: gofakeit.MiddleName(),
-			RoleID:     roleID,
-		}
-		var resp struct {
-			ID string `json:"id"`
-		}
-		r, err := client.R().
-			SetBody(user).
-			SetResult(&resp).
-			Post("/users")
-		if err != nil || !r.IsSuccess() {
-			log.Printf("Failed to create deputy with role %d: %v (%s)", roleID, err, r.String())
+		userWithCreds, err := createUser(client, roleID, "")
+		if err != nil {
+			logger.Error("Failed to create deputy", "role", roleID, "error", err)
 			continue
 		}
-		user.ID = resp.ID
-
-		creds := Credentials{
-			Username: gofakeit.Username(),
-			Password: "password",
-		}
-
-		// Create credentials
-		r, err = client.R().
-			SetBody(creds).
-			Put(fmt.Sprintf("/users/%s/credentials", user.ID))
-		if err != nil || !r.IsSuccess() {
-			log.Printf("Failed to create credentials for user %s: %v (%s)", user.ID, err, r.String())
-			continue
-		}
-
-		out <- UserWithCreds{user, creds}
+		out <- userWithCreds
 	}
 }
 
 // createCommonFiles creates common files
 func createCommonFiles(client *resty.Client, jobs <-chan struct{}, wg *sync.WaitGroup) {
+	logger := slog.Default()
 	defer wg.Done()
 	for range jobs {
 		content := gofakeit.LoremIpsumParagraph(5, 25, 400, "\n")
@@ -263,13 +217,14 @@ func createCommonFiles(client *resty.Client, jobs <-chan struct{}, wg *sync.Wait
 			}).
 			Post("/files")
 		if err != nil || !r.IsSuccess() {
-			log.Printf("Failed to create common file %s: %v (%s)", name, err, r.String())
+			logger.Error("Failed to create common file", "name", name, "error", err, "response", r.String())
 		}
 	}
 }
 
 // createUserFiles creates files for each user
 func createUserFiles(client *resty.Client, users <-chan UserWithCreds, wg *sync.WaitGroup) {
+	logger := slog.Default()
 	defer wg.Done()
 	const filesPerUser = 8
 	for user := range users {
@@ -277,7 +232,7 @@ func createUserFiles(client *resty.Client, users <-chan UserWithCreds, wg *sync.
 			var resp LoginResponse
 			r, err := client.R().SetBody(user.Credentials).SetResult(&resp).Post("/auth/login")
 			if err != nil || !r.IsSuccess() {
-				log.Printf("couldn't login as user %v: %v (%s)", user.User, err, r.String())
+				logger.Error("Failed to login as user", "user", user.User, "error", err, "response", r.String())
 				continue
 			}
 
@@ -291,16 +246,17 @@ func createUserFiles(client *resty.Client, users <-chan UserWithCreds, wg *sync.
 				}).
 				Post("/files")
 			if err != nil || !r.IsSuccess() {
-				log.Printf("Failed to create user file %s: %v (%s)", name, err, r.String())
+				logger.Error("Failed to create user file", "name", name, "error", err, "response", r.String())
 			}
 		}
 	}
 }
 
-//nolint:funlen,gocognit // it should be long.
 func main() {
+	logger := slog.Default()
 	if len(os.Args) != 3 {
-		log.Fatal("Usage: fakedata <base_url> <admin_token>")
+		logger.Error("Usage: fakedata <base_url> <admin_token>")
+		os.Exit(1)
 	}
 
 	baseURL := os.Args[1]
@@ -370,5 +326,5 @@ func main() {
 
 	wg.Wait()
 
-	log.Println("Fake data generation completed")
+	logger.Info("Fake data generation completed")
 }
