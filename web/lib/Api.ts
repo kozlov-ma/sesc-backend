@@ -715,24 +715,6 @@ export class Api<
         ...params,
       }),
   };
-  dev = {
-    /**
-     * @description Creates departments, users, credentials, ...
-     *
-     * @tags dev
-     * @name FakedataCreate
-     * @summary Create a lot of fake data (for testing and development purposes)
-     * @request POST:/dev/fakedata
-     * @secure
-     */
-    fakedataCreate: (params: RequestParams = {}) =>
-      this.request<void, ApiServerError>({
-        path: `/dev/fakedata`,
-        method: "POST",
-        secure: true,
-        ...params,
-      }),
-  };
   files = {
     /**
      * @description Returns a list of files based on search criteria

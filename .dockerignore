@@ -5,3 +5,6 @@ README.md
 Makefile
 docker-compose.yml
 .golangci.yml
+scripts
+*.out
+*.test

@@ -19,6 +19,7 @@ import (
 type Storage struct {
 	client     *minio.Client
 	bucketName string
+	endpoint   string
 }
 
 // NewStorage creates a new S3 storage instance.
@@ -81,6 +82,7 @@ func NewStorage(endpoint, accessKey, secretKey, bucketName string, useSSL bool) 
 	return &Storage{
 		client:     minioClient,
 		bucketName: bucketName,
+		endpoint:   endpoint,
 	}, nil
 }
 

@@ -113,7 +113,6 @@ func NewWithDBOptions(ctx context.Context, cfg *config.Config, log *slog.Logger,
 		client,
 		s3Storage,
 		cfg.MinIO.BucketName,
-		cfg.MinIO.BaseURL,
 	)
 
 	apiService := api.New(sescService, iamService, fileService, slogsink.New(log))

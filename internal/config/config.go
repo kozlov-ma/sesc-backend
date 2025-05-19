@@ -57,7 +57,6 @@ type MinIOConfig struct {
 	SecretKey  string `mapstructure:"secret_key"`
 	UseSSL     bool   `mapstructure:"use_ssl"`
 	BucketName string `mapstructure:"bucket_name"`
-	BaseURL    string `mapstructure:"base_url"`
 }
 
 func LoadConfig() (*Config, error) {

@@ -71,4 +71,5 @@ require (
 	github.com/swaggo/swag v1.16.4
 	go.uber.org/mock v0.5.2
 	golang.org/x/exp v0.0.0-20250506013437-ce4c2cf36ca6
+	resty.dev/v3 v3.0.0-beta.3
 )

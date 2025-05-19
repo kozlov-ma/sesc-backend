@@ -29,16 +29,14 @@ type FileService struct {
 	client     *ent.Client
 	storage    ObjectStorage
 	bucketName string
-	baseURL    string
 }
 
 // New creates a new FileService instance.
-func New(client *ent.Client, storage ObjectStorage, bucketName, baseURL string) *FileService {
+func New(client *ent.Client, storage ObjectStorage, bucketName string) *FileService {
 	return &FileService{
 		client:     client,
 		storage:    storage,
 		bucketName: bucketName,
-		baseURL:    baseURL,
 	}
 }
 

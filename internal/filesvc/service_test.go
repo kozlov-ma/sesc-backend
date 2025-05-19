@@ -61,7 +61,7 @@ func setupFileService(t *testing.T) (*FileService, *mocks.MockObjectStorage, *en
 		Return("https://example.com/test-url", nil).
 		AnyTimes()
 
-	return New(client, mockStorage, "test-bucket", "https://example.com"), mockStorage, client
+	return New(client, mockStorage, "test-bucket"), mockStorage, client
 }
 
 // createTestUser creates a test user in the database

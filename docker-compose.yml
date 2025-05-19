@@ -56,7 +56,6 @@ services:
       SESC_MINIO_SECRET_KEY: minioadmin
       SESC_MINIO_USE_SSL: "false"
       SESC_MINIO_BUCKET_NAME: sesc-files
-      SESC_MINIO_BASE_URL: http://minio:9000/sesc-files
 
   test-postgres:
     image: postgres
