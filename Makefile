@@ -1,11 +1,15 @@
 .PHONY: dev-db dev-backend down lint test integration-tests
 
+# Generate Go code and frontend API client
+generate:
+	go generate ./... && cp ./api/docs/swagger.json ./web/lib/swagger.json && cd web/lib && npx swagger-typescript-api generate --axios --path ./swagger.json
+
 # Spin up the development database
 dev-db:
 	docker compose up -d postgres minio
 
 # Spin up both database and backend
-dev-backend:
+dev-backend: generate
 	docker compose up -d --build postgres backend
 
 # Stop and remove all containers
