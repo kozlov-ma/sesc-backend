@@ -114,6 +114,19 @@ var (
 		{Name: "picture_url", Type: field.TypeString, Nullable: true},
 		{Name: "suspended", Type: field.TypeBool, Default: false},
 		{Name: "role_id", Type: field.TypeInt32},
+		{Name: "subdivision", Type: field.TypeString},
+		{Name: "job_title", Type: field.TypeString},
+		{Name: "employment_rate", Type: field.TypeFloat64, Default: 1},
+		{Name: "academic_degree", Type: field.TypeInt, Nullable: true},
+		{Name: "personnel_category", Type: field.TypeInt},
+		{Name: "employment_type", Type: field.TypeInt},
+		{Name: "academic_title", Type: field.TypeString, Nullable: true},
+		{Name: "honors", Type: field.TypeString, Nullable: true},
+		{Name: "category", Type: field.TypeString, Nullable: true},
+		{Name: "date_of_employment", Type: field.TypeTime},
+		{Name: "unemployment_date", Type: field.TypeTime, Nullable: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
 		{Name: "department_id", Type: field.TypeUUID, Nullable: true},
 	}
 	// UsersTable holds the schema information for the "users" table.
@@ -124,7 +137,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "users_departments_users",
-				Columns:    []*schema.Column{UsersColumns[7]},
+				Columns:    []*schema.Column{UsersColumns[20]},
 				RefColumns: []*schema.Column{DepartmentsColumns[0]},
 				OnDelete:   schema.Restrict,
 			},

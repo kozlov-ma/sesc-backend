@@ -3,6 +3,8 @@
 package ent
 
 import (
+	"time"
+
 	uuid "github.com/gofrs/uuid/v5"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/authuser"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/department"
@@ -47,6 +49,18 @@ func init() {
 	userDescSuspended := userFields[5].Descriptor()
 	// user.DefaultSuspended holds the default value on creation for the suspended field.
 	user.DefaultSuspended = userDescSuspended.Default.(bool)
+	// userDescEmploymentRate is the schema descriptor for employment_rate field.
+	userDescEmploymentRate := userFields[10].Descriptor()
+	// user.DefaultEmploymentRate holds the default value on creation for the employment_rate field.
+	user.DefaultEmploymentRate = userDescEmploymentRate.Default.(float64)
+	// userDescCreatedAt is the schema descriptor for created_at field.
+	userDescCreatedAt := userFields[19].Descriptor()
+	// user.DefaultCreatedAt holds the default value on creation for the created_at field.
+	user.DefaultCreatedAt = userDescCreatedAt.Default.(func() time.Time)
+	// userDescUpdatedAt is the schema descriptor for updated_at field.
+	userDescUpdatedAt := userFields[20].Descriptor()
+	// user.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	user.DefaultUpdatedAt = userDescUpdatedAt.Default.(func() time.Time)
 	// userDescID is the schema descriptor for id field.
 	userDescID := userFields[0].Descriptor()
 	// user.DefaultID holds the default value on creation for the id field.
