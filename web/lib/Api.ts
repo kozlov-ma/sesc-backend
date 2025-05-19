@@ -98,6 +98,19 @@ export interface ApiCreateUserRequest {
   pictureUrl?: string;
   /** @example 2 */
   roleId: number;
+  
+  subdivision?: string;
+  jobTitle?: string;
+  employmentRate?: number;
+  personnelCategory?: number;
+  employmentType?: number;
+  academicDegree?: number;
+  academicTitle?: string;
+  honors?: string;
+  category?: string;
+  
+  dateOfEmployment?: string;
+  unemploymentDate?: string;
 }
 
 export interface ApiCredentialsNotFoundError {
@@ -311,6 +324,19 @@ export interface ApiPatchUserRequest {
   roleId: number;
   /** @example false */
   suspended: boolean;
+  
+  subdivision?: string;
+  jobTitle?: string;
+  employmentRate?: number;
+  personnelCategory?: number;
+  employmentType?: number;
+  academicDegree?: number;
+  academicTitle?: string;
+  honors?: string;
+  category?: string;
+  
+  dateOfEmployment?: string;
+  unemploymentDate?: string;
 }
 
 export interface ApiPermission {
@@ -404,6 +430,19 @@ export interface ApiUserResponse {
   pictureUrl: string;
   role: ApiRole;
   suspended: boolean;
+  
+  subdivision?: string;
+  jobTitle?: string;
+  employmentRate?: number;
+  personnelCategory?: number;
+  employmentType?: number;
+  academicDegree?: number;
+  academicTitle?: string;
+  honors?: string;
+  category?: string;
+  
+  dateOfEmployment?: string;
+  unemploymentDate?: string;
 }
 
 export interface ApiUsersResponse {

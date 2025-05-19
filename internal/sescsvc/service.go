@@ -54,14 +54,27 @@ func convertUser(u *ent.User) (User, error) {
 	}
 
 	return User{
-		ID:         u.ID,
-		FirstName:  u.FirstName,
-		LastName:   u.LastName,
-		MiddleName: u.MiddleName,
-		PictureURL: u.PictureURL,
-		Suspended:  u.Suspended,
-		Department: dept,
-		Role:       role,
+		ID:                u.ID,
+		FirstName:         u.FirstName,
+		LastName:          u.LastName,
+		MiddleName:        u.MiddleName,
+		PictureURL:        u.PictureURL,
+		Suspended:         u.Suspended,
+		Department:        dept,
+		Role:              role,
+		Subdivision:       u.Subdivision,
+		JobTitle:          u.JobTitle,
+		EmploymentRate:    u.EmploymentRate,
+		PersonnelCategory: sesc.PersonnelCategory(u.PersonnelCategory),
+		EmploymentType:    sesc.EmploymentType(u.EmploymentType),
+		AcademicDegree:    sesc.AcademicDegree(u.AcademicDegree),
+		AcademicTitle:     u.AcademicTitle,
+		Honors:            u.Honors,
+		Category:          u.Category,
+		DateOfEmployment:  u.DateOfEmployment,
+		UnemploymentDate:  u.UnemploymentDate,
+		CreateDate:        u.CreatedAt,
+		UpdateDate:        u.UpdatedAt,
 	}, nil
 }
 
@@ -566,7 +579,44 @@ func (s *SESC) updateUserRecord(
 		SetMiddleName(upd.MiddleName).
 		SetPictureURL(upd.PictureURL).
 		SetSuspended(upd.Suspended).
-		SetRoleID(upd.NewRoleID)
+		SetRoleID(upd.NewRoleID).
+		SetSubdivision(upd.Subdivision).
+		SetJobTitle(upd.JobTitle).
+		SetEmploymentRate(upd.EmploymentRate).
+		SetPersonnelCategory(int(upd.PersonnelCategory)).
+		SetEmploymentType(int(upd.EmploymentType))
+
+	if upd.AcademicDegree != sesc.NoDegree {
+		updater = updater.SetAcademicDegree(int(upd.AcademicDegree))
+	} else {
+		updater = updater.ClearAcademicDegree()
+	}
+
+	if upd.AcademicTitle != "" {
+		updater = updater.SetAcademicTitle(upd.AcademicTitle)
+	} else {
+		updater = updater.ClearAcademicTitle()
+	}
+
+	if upd.Honors != "" {
+		updater = updater.SetHonors(upd.Honors)
+	} else {
+		updater = updater.ClearHonors()
+	}
+
+	if upd.Category != "" {
+		updater = updater.SetCategory(upd.Category)
+	} else {
+		updater = updater.ClearCategory()
+	}
+
+	updater = updater.SetDateOfEmployment(upd.DateOfEmployment)
+
+	if !upd.UnemploymentDate.IsZero() {
+		updater = updater.SetUnemploymentDate(upd.UnemploymentDate)
+	} else {
+		updater = updater.ClearUnemploymentDate()
+	}
 
 	if dept != nil {
 		updater = updater.SetDepartmentID(dept.ID)
@@ -735,7 +785,35 @@ func (s *SESC) createUserRecord(
 		SetLastName(opt.LastName).
 		SetMiddleName(opt.MiddleName).
 		SetPictureURL(opt.PictureURL).
-		SetRoleID(opt.NewRoleID)
+		SetRoleID(opt.NewRoleID).
+		SetSubdivision(opt.Subdivision).
+		SetJobTitle(opt.JobTitle).
+		SetEmploymentRate(opt.EmploymentRate).
+		SetPersonnelCategory(int(opt.PersonnelCategory)).
+		SetEmploymentType(int(opt.EmploymentType))
+
+	if opt.AcademicDegree != sesc.NoDegree {
+		cr = cr.SetAcademicDegree(int(opt.AcademicDegree))
+	}
+
+	if opt.AcademicTitle != "" {
+		cr = cr.SetAcademicTitle(opt.AcademicTitle)
+	}
+
+	if opt.Honors != "" {
+		cr = cr.SetHonors(opt.Honors)
+	}
+
+	if opt.Category != "" {
+		cr = cr.SetCategory(opt.Category)
+	}
+
+	cr = cr.SetDateOfEmployment(opt.DateOfEmployment)
+
+	if !opt.UnemploymentDate.IsZero() {
+		cr = cr.SetUnemploymentDate(opt.UnemploymentDate)
+	}
+
 	if dept != nil {
 		cr = cr.SetDepartment(dept)
 	}

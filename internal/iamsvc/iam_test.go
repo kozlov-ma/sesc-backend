@@ -46,6 +46,12 @@ func createTestUser(ctx context.Context, t *testing.T, client *ent.Client) uuid.
 		SetFirstName("Test").
 		SetLastName("User").
 		SetRoleID(1).
+		SetSubdivision("Test Subdivision").
+		SetJobTitle("Test Job").
+		SetEmploymentRate(1.0).
+		SetPersonnelCategory(1). // ProfessorialPedagogical
+		SetEmploymentType(1).    // Main
+		SetDateOfEmployment(time.Now()).
 		Save(ctx)
 	require.NoError(t, err)
 	return user.ID

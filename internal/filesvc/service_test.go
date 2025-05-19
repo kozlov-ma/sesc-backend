@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"math/rand/v2"
 	"testing"
+	"time"
 
 	"github.com/gofrs/uuid/v5"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent"
@@ -67,25 +68,29 @@ func setupFileService(t *testing.T) (*FileService, *mocks.MockObjectStorage, *en
 // createTestUser creates a test user in the database
 func createTestUser(ctx context.Context, t *testing.T, client *ent.Client) uuid.UUID {
 	t.Helper()
-	userID := uuid.Must(uuid.NewV7())
-
-	// Create a department with a unique name
+	// Create a random department first
 	deptID := uuid.Must(uuid.NewV7())
-	deptName := "Test Department " + deptID.String()
 	_, err := client.Department.Create().
 		SetID(deptID).
-		SetName(deptName).
-		SetDescription("For Testing").
+		SetName("Test Department").
+		SetDescription("Test Description").
 		Save(ctx)
 	require.NoError(t, err)
 
 	// Then create the user with that department
+	userID := uuid.Must(uuid.NewV7())
 	user, err := client.User.Create().
 		SetID(userID).
 		SetFirstName("Test").
 		SetLastName("User").
 		SetRoleID(1).
 		SetDepartmentID(deptID).
+		SetSubdivision("Test Subdivision").
+		SetJobTitle("Test Job").
+		SetEmploymentRate(1.0).
+		SetPersonnelCategory(1). // ProfessorialPedagogical
+		SetEmploymentType(1).    // Main
+		SetDateOfEmployment(time.Now()).
 		Save(ctx)
 	require.NoError(t, err)
 

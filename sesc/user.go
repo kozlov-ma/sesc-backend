@@ -73,6 +73,19 @@ type UserUpdateOptions struct {
 	Suspended    bool
 	DepartmentID UUID
 	NewRoleID    int32
+
+	Subdivision       string
+	JobTitle          string
+	EmploymentRate    float64
+	PersonnelCategory PersonnelCategory
+	EmploymentType    EmploymentType
+	AcademicDegree    AcademicDegree
+	AcademicTitle     string
+	Honors            string
+	Category          string
+
+	DateOfEmployment time.Time
+	UnemploymentDate time.Time
 }
 
 func (u UserUpdateOptions) Validate() error {
@@ -96,6 +109,19 @@ func (u User) UpdateOptions() UserUpdateOptions {
 		Suspended:    u.Suspended,
 		DepartmentID: u.Department.ID,
 		NewRoleID:    u.Role.ID,
+
+		Subdivision:       u.Subdivision,
+		JobTitle:          u.JobTitle,
+		EmploymentRate:    u.EmploymentRate,
+		PersonnelCategory: u.PersonnelCategory,
+		EmploymentType:    u.EmploymentType,
+		AcademicDegree:    u.AcademicDegree,
+		AcademicTitle:     u.AcademicTitle,
+		Honors:            u.Honors,
+		Category:          u.Category,
+
+		DateOfEmployment: u.DateOfEmployment,
+		UnemploymentDate: u.UnemploymentDate,
 	}
 }
 
