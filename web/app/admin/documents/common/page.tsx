@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FileText } from "lucide-react";
 import { FileTable } from "@/components/files/file-table";
 
-export default function SharedDocumentsPage() {
+export default function CommonDocumentsPage() {
   const { isAuthenticated, isLoading } = useAuth();
 
   // Only render if user is authenticated
@@ -36,4 +36,4 @@ export default function SharedDocumentsPage() {
       </Card>
     </div>
   );
-}
+} 

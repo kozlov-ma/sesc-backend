@@ -767,10 +767,7 @@ export class Api<
      */
     filesCreate: (
       data: {
-        /**
-         * File to upload
-         * @format binary
-         */
+        /** File to upload */
         file: File;
       },
       params: RequestParams = {},

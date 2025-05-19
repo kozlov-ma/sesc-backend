@@ -3,9 +3,6 @@
 import { useAuth } from "@/hooks/use-auth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FileText } from "lucide-react";
-import useSWR from "swr";
-import { ApiFileListResponse } from "@/lib/Api";
-import { apiClient } from "@/lib/api-client";
 import { FileTable } from "@/components/files/file-table";
 
 export default function SharedDocumentsPage() {
@@ -30,35 +27,13 @@ export default function SharedDocumentsPage() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <SharedFilesTable />
+          <FileTable
+            showOwner={false}
+            emptyMessage="Общих файлов пока нет"
+            initialFilters={{ common: true }}
+          />
         </CardContent>
       </Card>
     </div>
-  );
-}
-
-// Custom hook to fetch shared files data
-async function fetchSharedFiles() {
-  const response = await apiClient.files.filesList({ common: true });
-  return response.data;
-}
-
-// Component that displays shared files in a table
-function SharedFilesTable() {
-  const { data, isLoading, error } = useSWR<ApiFileListResponse>(
-    "/files?common=true",
-    fetchSharedFiles,
-  );
-
-  if (error) return <span className="text-destructive">Ошибка</span>;
-  if (isLoading)
-    return <span className="text-muted-foreground">Загрузка...</span>;
-
-  return (
-    <FileTable
-      files={data?.items || []}
-      isLoading={isLoading}
-      emptyMessage="Общих файлов пока нет"
-    />
   );
 }

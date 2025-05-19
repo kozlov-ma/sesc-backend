@@ -353,10 +353,16 @@
     },
     "/departments/{id}": {
       "put": {
-        "consumes": [
-          "application/json"
+        "security": [
+          {
+            "BearerAuth": []
+          }
         ],
         "description": "Updates an existing department with new details",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["departments"],
+        "summary": "Update department details",
         "parameters": [
           {
             "type": "string",
@@ -380,9 +386,6 @@
               "$ref": "#/definitions/api.UpdateDepartmentRequest"
             }
           }
-        ],
-        "produces": [
-          "application/json"
         ],
         "responses": {
           "200": {
@@ -427,16 +430,7 @@
               "$ref": "#/definitions/api.ServerError"
             }
           }
-        },
-        "security": [
-          {
-            "BearerAuth": []
-          }
-        ],
-        "summary": "Update department details",
-        "tags": [
-          "departments"
-        ]
+        }
       },
       "delete": {
         "security": [
@@ -520,6 +514,12 @@
         "parameters": [
           {
             "type": "string",
+            "description": "Bearer JWT token",
+            "name": "Authorization",
+            "in": "header"
+          },
+          {
+            "type": "string",
             "description": "File name to search for",
             "name": "name",
             "in": "query"
@@ -585,6 +585,12 @@
         "summary": "Upload a file",
         "parameters": [
           {
+            "type": "string",
+            "description": "Bearer JWT token",
+            "name": "Authorization",
+            "in": "header"
+          },
+          {
             "type": "file",
             "description": "File to upload",
             "name": "file",
@@ -633,6 +639,12 @@
         "tags": ["files"],
         "summary": "Delete file",
         "parameters": [
+          {
+            "type": "string",
+            "description": "Bearer JWT token",
+            "name": "Authorization",
+            "in": "header"
+          },
           {
             "type": "string",
             "description": "File ID",

@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { ApiFileResponse } from "@/lib/Api";
+import { ApiFileListResponse, ApiFileResponse } from "@/lib/Api";
 import { formatFileSize } from "@/lib/utils";
-import { Download, FileText, Search, Trash2, X } from "lucide-react";
+import { Download, FileText, Search, Trash2, Upload, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -14,44 +14,112 @@ import {
 } from "@/components/ui/table";
 import { UserAvatar } from "@/components/ui/user-avatar";
 import { cn } from "@/lib/utils";
-import { Checkbox } from "@/components/ui/checkbox";
+import useSWRInfinite from "swr/infinite";
+import { apiClient } from "@/lib/api-client";
+import { useInfiniteScroll } from "@/hooks/use-infinite-scroll";
 
 interface FileTableProps {
-  files: ApiFileResponse[];
-  isLoading: boolean;
-  onDelete?: (id: string) => Promise<void>;
   showOwner?: boolean;
   className?: string;
   emptyMessage?: string;
+  initialFilters?: {
+    name?: string;
+    ownerId?: string;
+    common?: boolean;
+  };
 }
 
 export function FileTable({
-  files,
-  isLoading,
-  onDelete,
   showOwner = false,
   className,
   emptyMessage = "Файлов не найдено",
+  initialFilters = {},
 }: FileTableProps) {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [filterCommon, setFilterCommon] = useState(false);
+  const [searchQuery, setSearchQuery] = useState(initialFilters.name || "");
+  const [isUploading, setIsUploading] = useState(false);
 
-  const filteredFiles = files.filter((file) => {
-    // Apply search filter
-    const matchesSearch =
-      searchQuery === "" ||
-      (file.fileName?.toLowerCase().includes(searchQuery.toLowerCase()) ??
-        false);
+  const { data, error, isLoading, size, setSize, isValidating, mutate } =
+    useSWRInfinite<ApiFileListResponse>(
+      (index: number) => {
+        const params = new URLSearchParams({
+          offset: String(index * 20),
+          limit: "20",
+        });
 
-    // Apply common filter
-    const matchesCommon = !filterCommon || file.ownerId === null;
+        if (searchQuery) {
+          params.append("name", searchQuery);
+        }
+        if (initialFilters.ownerId) {
+          params.append("owner_id", initialFilters.ownerId);
+        }
+        if (initialFilters.common) {
+          params.append("common", "true");
+        }
 
-    return matchesSearch && matchesCommon;
+        return `/files?${params.toString()}`;
+      },
+      async (url: string) => {
+        const response = await apiClient.files.filesList({
+          offset: parseInt(url.split("offset=")[1].split("&")[0]),
+          limit: 20,
+          name: searchQuery || undefined,
+          owner_id: initialFilters.ownerId,
+          common: initialFilters.common || undefined,
+        });
+        return response.data;
+      },
+      {
+        revalidateFirstPage: false,
+        revalidateOnFocus: false,
+      },
+    );
+
+  const files = data
+    ? data
+        .flatMap((page: ApiFileListResponse) => page.items || [])
+        .filter((file): file is ApiFileResponse => file !== undefined)
+    : [];
+  const hasMore = data && data.length > 0 && data[data.length - 1]?.items?.length === 20;
+
+  const { ref } = useInfiniteScroll({
+    onLoadMore: () => {
+      if (hasMore && !isValidating) {
+        setSize(size + 1);
+      }
+    },
   });
 
   const handleSearchClear = () => {
     setSearchQuery("");
   };
+
+  const handleFileChange = async (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setIsUploading(true);
+      await apiClient.files.filesCreate({ file });
+      mutate(); // Refresh the file list
+    } catch (error) {
+      console.error("Error uploading file:", error);
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    try {
+      await apiClient.files.filesDelete(id);
+      mutate(); // Refresh the file list
+    } catch (error) {
+      console.error("Error deleting file:", error);
+    }
+  };
+
+  if (error) return <span className="text-destructive">Ошибка</span>;
 
   return (
     <div className={cn("space-y-4", className)}>
@@ -77,31 +145,31 @@ export function FileTable({
             </Button>
           )}
         </div>
-        <div className="flex items-center space-x-4">
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id="filterCommon"
-              checked={filterCommon}
-              onCheckedChange={(checked) => setFilterCommon(checked as boolean)}
+        <div className="flex items-center gap-4">
+          <div className="relative">
+            <input
+              type="file"
+              id="fileUpload"
+              className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+              onChange={handleFileChange}
+              disabled={isUploading}
             />
-            <label
-              htmlFor="filterCommon"
-              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-            >
-              Только общие
-            </label>
+            <Button className="flex items-center gap-2" disabled={isUploading}>
+              <Upload className="h-4 w-4" />
+              {isUploading ? "Загрузка..." : "Загрузить файл"}
+            </Button>
           </div>
         </div>
       </div>
 
-      {isLoading ? (
+      {isLoading && files.length === 0 ? (
         <div className="h-64 flex items-center justify-center">
           <div className="flex flex-col items-center gap-2">
             <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
             <p className="text-sm text-muted-foreground">Загрузка файлов...</p>
           </div>
         </div>
-      ) : filteredFiles.length === 0 ? (
+      ) : files.length === 0 ? (
         <div className="h-48 flex items-center justify-center border border-dashed rounded-lg">
           <div className="flex flex-col items-center gap-2 text-muted-foreground">
             <FileText className="h-8 w-8" />
@@ -109,59 +177,74 @@ export function FileTable({
           </div>
         </div>
       ) : (
-        <div className="rounded-md border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Имя файла</TableHead>
-                {showOwner && <TableHead>Владелец</TableHead>}
-                <TableHead>Размер</TableHead>
-                <TableHead className="text-right">Действия</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredFiles.map((file) => (
-                <TableRow key={file.id}>
-                  <TableCell className="font-medium">{file.fileName}</TableCell>
-                  {showOwner && (
-                    <TableCell>
-                      {file.ownerId ? (
-                        <UserAvatar userId={file.ownerId} size="sm" />
-                      ) : (
-                        <span className="text-sm text-muted-foreground">
-                          Общий файл
-                        </span>
-                      )}
+        <>
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Имя файла</TableHead>
+                  {showOwner && <TableHead>Владелец</TableHead>}
+                  <TableHead>Размер</TableHead>
+                  <TableHead className="text-right">Действия</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {files.map((file) => (
+                  <TableRow key={file.id}>
+                    <TableCell className="font-medium">
+                      {file.fileName}
                     </TableCell>
-                  )}
-                  <TableCell>{formatFileSize(file.fileSize || 0)}</TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => window.open(file.downloadUrl, "_blank")}
-                        disabled={!file.downloadUrl}
-                      >
-                        <Download className="h-4 w-4" />
-                      </Button>
-                      {onDelete && (
+                    {showOwner && (
+                      <TableCell>
+                        {file.ownerId ? (
+                          <UserAvatar userId={file.ownerId} size="sm" />
+                        ) : (
+                          <span className="text-sm text-muted-foreground">
+                            Общий файл
+                          </span>
+                        )}
+                      </TableCell>
+                    )}
+                    <TableCell>{formatFileSize(file.fileSize || 0)}</TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() =>
+                            window.open(file.downloadUrl, "_blank")
+                          }
+                          disabled={!file.downloadUrl}
+                        >
+                          <Download className="h-4 w-4" />
+                        </Button>
                         <Button
                           variant="outline"
                           size="sm"
                           className="text-destructive hover:text-destructive"
-                          onClick={() => file.id && onDelete(file.id)}
+                          onClick={() => file.id && handleDelete(file.id)}
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
-                      )}
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+          <div
+            ref={ref as React.RefObject<HTMLDivElement>}
+            className="h-10 flex items-center justify-center"
+          >
+            {isValidating && (
+              <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
+            )}
+            {!hasMore && files.length > 0 && (
+              <p className="text-sm text-muted-foreground">Больше файлов нет</p>
+            )}
+          </div>
+        </>
       )}
     </div>
   );
