@@ -30,6 +30,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { FileNameDisplay } from "@/components/files/file-name-display";
 
 interface FileTableProps {
   showOwner?: boolean;
@@ -246,7 +247,7 @@ export function FileTable({
                 {files.map((file) => (
                   <TableRow key={file.id}>
                     <TableCell className="font-medium">
-                      {file.fileName}
+                      <FileNameDisplay file={file} />
                     </TableCell>
                     {showOwner && (
                       <TableCell>
