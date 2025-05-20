@@ -1,3 +1,5 @@
+"use client";
+
 import { useState } from "react";
 import { ApiFileListResponse, ApiFileResponse } from "@/lib/Api";
 import { formatFileSize } from "@/lib/utils";
@@ -15,6 +17,7 @@ import {
 import { UserAvatar } from "@/components/ui/user-avatar";
 import { cn } from "@/lib/utils";
 import useSWRInfinite from "swr/infinite";
+import useSWRMutation from "swr/mutation";
 import { apiClient } from "@/lib/api-client";
 import { useInfiniteScroll } from "@/hooks/use-infinite-scroll";
 import {
@@ -38,6 +41,7 @@ interface FileTableProps {
     common?: boolean;
   };
   allowDeleteCommon?: boolean;
+  allowUpload?: boolean;
 }
 
 export function FileTable({
@@ -46,9 +50,9 @@ export function FileTable({
   emptyMessage = "Файлов не найдено",
   initialFilters = {},
   allowDeleteCommon = false,
+  allowUpload = true,
 }: FileTableProps) {
   const [searchQuery, setSearchQuery] = useState(initialFilters.name || "");
-  const [isUploading, setIsUploading] = useState(false);
   const [fileToDelete, setFileToDelete] = useState<ApiFileResponse | null>(
     null,
   );
@@ -89,6 +93,14 @@ export function FileTable({
       },
     );
 
+  const { trigger: uploadFile, isMutating: isUploading } = useSWRMutation(
+    "/files/upload",
+    async (url: string, { arg: file }: { arg: File }) => {
+      const response = await apiClient.files.filesCreate({ file });
+      return response.data;
+    },
+  );
+
   const files = data
     ? data
         .flatMap((page: ApiFileListResponse) => page.items || [])
@@ -116,13 +128,10 @@ export function FileTable({
     if (!file) return;
 
     try {
-      setIsUploading(true);
-      await apiClient.files.filesCreate({ file });
+      await uploadFile(file);
       mutate(); // Refresh the file list
     } catch (error) {
       console.error("Error uploading file:", error);
-    } finally {
-      setIsUploading(false);
     }
   };
 
@@ -135,7 +144,7 @@ export function FileTable({
 
     try {
       await apiClient.files.filesDelete(fileToDelete.id);
-      mutate(); // Refresh the file list
+      mutate();
     } catch (error) {
       console.error("Error deleting file:", error);
     } finally {
@@ -194,10 +203,15 @@ export function FileTable({
               onChange={handleFileChange}
               disabled={isUploading}
             />
-            <Button className="flex items-center gap-2" disabled={isUploading}>
-              <Upload className="h-4 w-4" />
-              {isUploading ? "Загрузка..." : "Загрузить файл"}
-            </Button>
+            {allowUpload && (
+              <Button
+                className="flex items-center gap-2"
+                disabled={isUploading}
+              >
+                <Upload className="h-4 w-4" />
+                {isUploading ? "Загрузка..." : "Загрузить файл"}
+              </Button>
+            )}
           </div>
         </div>
       </div>

@@ -31,6 +31,7 @@ export default function SharedDocumentsPage() {
             showOwner={true}
             emptyMessage="Общих файлов пока нет"
             initialFilters={{ common: true }}
+            allowDeleteCommon={true}
           />
         </CardContent>
       </Card>

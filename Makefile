@@ -36,6 +36,10 @@ test:
 can-i-push:
 	@make lint && make test && make integration-tests
 
+# Can you push and open a PR for frontend changes?
+can-i-push-web:
+	cd web && pnpm lint && pnpm build
+
 # Run integration tests in docker
 integration-tests:
 	docker compose up --build --abort-on-container-exit --exit-code-from integration-tests integration-tests
