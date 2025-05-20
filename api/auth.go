@@ -61,14 +61,6 @@ func (a *API) RegisterUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// First check that the user exists
-	_, err = a.sesc.User(ctx, userID)
-	if err != nil {
-		rec.Add(events.Error, err)
-		writeError(ctx, w, sescError(err))
-		return
-	}
-
 	creds := iam.Credentials{
 		Username: credsReq.Username,
 		Password: credsReq.Password,

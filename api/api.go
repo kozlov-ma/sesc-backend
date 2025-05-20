@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/http/pprof"
 	"net/url"
 
 	"github.com/go-chi/chi/v5"
@@ -175,4 +176,16 @@ func (a *API) RegisterRoutes(r chi.Router) {
 
 	// Swagger UI
 	r.Get("/swagger/*", httpSwagger.WrapHandler)
+
+	// Profiler
+	r.Group(func(r chi.Router) {
+		// TODO admin is not very safe here. Should add a Developer role.
+		r.Use(a.RequireAdminRoleMiddleware)
+
+		r.Get("/debug/pprof/", pprof.Index)
+		r.Get("/debug/pprof/cmdline", pprof.Cmdline)
+		r.Get("/debug/pprof/profile", pprof.Profile)
+		r.Get("/debug/pprof/symbol", pprof.Symbol)
+		r.Get("/debug/pprof/trace", pprof.Trace)
+	})
 }
