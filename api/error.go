@@ -535,3 +535,66 @@ func iamError(err error) Error {
 
 	return ErrServerError.WithDetails(err.Error()).WithStatus(http.StatusInternalServerError)
 }
+
+// GroupNotFoundError represents a group not found error
+type GroupNotFoundError struct {
+	Code       string `json:"code"             example:"GROUP_NOT_FOUND"`
+	Message    string `json:"message"          example:"Achievement group not found"`
+	RuMessage  string `json:"ruMessage"        example:"Группа достижений не найдена"`
+	Details    string `json:"details,omitzero"`
+	StatusCode int    `json:"-"`
+}
+
+// WithDetails adds detail information to the error
+func (e GroupNotFoundError) WithDetails(details string) GroupNotFoundError {
+	e.Details = details
+	return e
+}
+
+// WithStatus adds HTTP status code to the error
+func (e GroupNotFoundError) WithStatus(statusCode int) Error {
+	e.StatusCode = statusCode
+	return Error(e)
+}
+
+// AchievementTemplateNotFoundError represents an achievement template not found error
+type AchievementTemplateNotFoundError struct {
+	Code       string `json:"code"             example:"ACHIEVEMENT_TEMPLATE_NOT_FOUND"`
+	Message    string `json:"message"          example:"Achievement template not found"`
+	RuMessage  string `json:"ruMessage"        example:"Шаблон достижения не найден"`
+	Details    string `json:"details,omitzero"`
+	StatusCode int    `json:"-"`
+}
+
+// WithDetails adds detail information to the error
+func (e AchievementTemplateNotFoundError) WithDetails(details string) AchievementTemplateNotFoundError {
+	e.Details = details
+	return e
+}
+
+// WithStatus adds HTTP status code to the error
+func (e AchievementTemplateNotFoundError) WithStatus(statusCode int) Error {
+	e.StatusCode = statusCode
+	return Error(e)
+}
+
+// ValidationError represents a validation error
+type ValidationError struct {
+	Code       string `json:"code"             example:"VALIDATION_ERROR"`
+	Message    string `json:"message"          example:"Validation error"`
+	RuMessage  string `json:"ruMessage"        example:"Ошибка валидации"`
+	Details    string `json:"details,omitzero"`
+	StatusCode int    `json:"-"`
+}
+
+// WithDetails adds detail information to the error
+func (e ValidationError) WithDetails(details string) ValidationError {
+	e.Details = details
+	return e
+}
+
+// WithStatus adds HTTP status code to the error
+func (e ValidationError) WithStatus(statusCode int) Error {
+	e.StatusCode = statusCode
+	return Error(e)
+}

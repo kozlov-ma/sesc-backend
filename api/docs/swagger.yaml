@@ -1,4 +1,74 @@
 definitions:
+  api.AchievementGroupResponse:
+    properties:
+      active:
+        example: true
+        type: boolean
+      description:
+        example: Достижения в научной деятельности
+        type: string
+      id:
+        example: 550e8400-e29b-41d4-a716-446655440000
+        type: string
+      name:
+        example: Научная деятельность
+        type: string
+    required:
+    - active
+    - description
+    - id
+    - name
+    type: object
+  api.AchievementTemplateNotFoundError:
+    properties:
+      code:
+        example: ACHIEVEMENT_TEMPLATE_NOT_FOUND
+        type: string
+      details:
+        type: string
+      message:
+        example: Achievement template not found
+        type: string
+      ruMessage:
+        example: Шаблон достижения не найден
+        type: string
+    type: object
+  api.AchievementTemplateResponse:
+    properties:
+      active:
+        example: true
+        type: boolean
+      description:
+        example: Публикация статьи в научном журнале
+        type: string
+      groupId:
+        example: 550e8400-e29b-41d4-a716-446655440000
+        type: string
+      id:
+        example: 550e8400-e29b-41d4-a716-446655440000
+        type: string
+      kind:
+        enum:
+        - olympiad
+        - development
+        - scientific
+        example: scientific
+        type: string
+      name:
+        example: Публикация в журнале
+        type: string
+      pointsLimit:
+        example: 10
+        type: integer
+    required:
+    - active
+    - description
+    - groupId
+    - id
+    - kind
+    - name
+    - pointsLimit
+    type: object
   api.CannotRemoveDepartmentError:
     properties:
       code:
@@ -12,6 +82,46 @@ definitions:
       ruMessage:
         example: Невозможно удалить кафедру, так как она содержит пользователей
         type: string
+    type: object
+  api.CreateAchievementGroupRequest:
+    properties:
+      description:
+        example: Достижения в научной деятельности
+        type: string
+      name:
+        example: Научная деятельность
+        type: string
+    required:
+    - description
+    - name
+    type: object
+  api.CreateAchievementTemplateRequest:
+    properties:
+      description:
+        example: Публикация статьи в научном журнале
+        type: string
+      groupId:
+        example: 550e8400-e29b-41d4-a716-446655440000
+        type: string
+      kind:
+        enum:
+        - olympiad
+        - development
+        - scientific
+        example: scientific
+        type: string
+      name:
+        example: Публикация в журнале
+        type: string
+      pointsLimit:
+        example: 10
+        type: integer
+    required:
+    - description
+    - groupId
+    - kind
+    - name
+    - pointsLimit
     type: object
   api.CreateDepartmentRequest:
     properties:
@@ -184,6 +294,20 @@ definitions:
         example: Доступ запрещен - недостаточно прав
         type: string
     type: object
+  api.GroupNotFoundError:
+    properties:
+      code:
+        example: GROUP_NOT_FOUND
+        type: string
+      details:
+        type: string
+      message:
+        example: Achievement group not found
+        type: string
+      ruMessage:
+        example: Группа достижений не найдена
+        type: string
+    type: object
   api.IdentityResponse:
     properties:
       id:
@@ -294,6 +418,43 @@ definitions:
       ruMessage:
         example: Некорректный формат UUID
         type: string
+    type: object
+  api.PatchAchievementGroupRequest:
+    properties:
+      active:
+        example: true
+        type: boolean
+      description:
+        example: Достижения в научной деятельности
+        type: string
+      name:
+        example: Научная деятельность
+        type: string
+    type: object
+  api.PatchAchievementTemplateRequest:
+    properties:
+      active:
+        example: true
+        type: boolean
+      description:
+        example: Публикация статьи в научном журнале
+        type: string
+      groupId:
+        example: 550e8400-e29b-41d4-a716-446655440000
+        type: string
+      kind:
+        enum:
+        - olympiad
+        - development
+        - scientific
+        example: scientific
+        type: string
+      name:
+        example: Публикация в журнале
+        type: string
+      pointsLimit:
+        example: 10
+        type: integer
     type: object
   api.PatchUserRequest:
     properties:
@@ -492,6 +653,280 @@ definitions:
 info:
   contact: {}
 paths:
+  /achievement-groups:
+    get:
+      description: Retrieves all achievement groups
+      parameters:
+      - description: Bearer JWT token
+        in: header
+        name: Authorization
+        type: string
+      - default: false
+        description: Show inactive groups
+        in: query
+        name: show_inactive
+        type: boolean
+      - description: Search by name
+        in: query
+        name: search
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/api.AchievementGroupResponse'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/api.UnauthorizedError'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/api.ServerError'
+      security:
+      - BearerAuth: []
+      summary: Get all achievement groups
+      tags:
+      - achievement-groups
+    post:
+      consumes:
+      - application/json
+      description: Creates a new achievement group
+      parameters:
+      - description: Bearer JWT token
+        in: header
+        name: Authorization
+        type: string
+      - description: Group details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/api.CreateAchievementGroupRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/api.AchievementGroupResponse'
+        "400":
+          description: Invalid request format
+          schema:
+            $ref: '#/definitions/api.InvalidRequestError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/api.UnauthorizedError'
+        "403":
+          description: Forbidden - admin role required
+          schema:
+            $ref: '#/definitions/api.ForbiddenError'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/api.ServerError'
+      security:
+      - BearerAuth: []
+      summary: Create new achievement group
+      tags:
+      - achievement-groups
+  /achievement-groups/{id}:
+    patch:
+      consumes:
+      - application/json
+      description: Updates an achievement group
+      parameters:
+      - description: Bearer JWT token
+        in: header
+        name: Authorization
+        type: string
+      - description: Group UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Group fields to update
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/api.PatchAchievementGroupRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.AchievementGroupResponse'
+        "400":
+          description: Invalid request format
+          schema:
+            $ref: '#/definitions/api.InvalidRequestError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/api.UnauthorizedError'
+        "403":
+          description: Forbidden - admin role required
+          schema:
+            $ref: '#/definitions/api.ForbiddenError'
+        "404":
+          description: Group not found
+          schema:
+            $ref: '#/definitions/api.GroupNotFoundError'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/api.ServerError'
+      security:
+      - BearerAuth: []
+      summary: Update achievement group
+      tags:
+      - achievement-groups
+  /achievement-templates:
+    get:
+      description: Retrieves all achievement templates
+      parameters:
+      - description: Bearer JWT token
+        in: header
+        name: Authorization
+        type: string
+      - default: false
+        description: Show inactive templates
+        in: query
+        name: show_inactive
+        type: boolean
+      - description: Search by name
+        in: query
+        name: search
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/api.AchievementTemplateResponse'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/api.UnauthorizedError'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/api.ServerError'
+      security:
+      - BearerAuth: []
+      summary: Get all achievement templates
+      tags:
+      - achievement-templates
+    post:
+      consumes:
+      - application/json
+      description: Creates a new achievement template
+      parameters:
+      - description: Bearer JWT token
+        in: header
+        name: Authorization
+        type: string
+      - description: Template details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/api.CreateAchievementTemplateRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/api.AchievementTemplateResponse'
+        "400":
+          description: Invalid request format
+          schema:
+            $ref: '#/definitions/api.InvalidRequestError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/api.UnauthorizedError'
+        "403":
+          description: Forbidden - admin role required
+          schema:
+            $ref: '#/definitions/api.ForbiddenError'
+        "404":
+          description: Group not found
+          schema:
+            $ref: '#/definitions/api.GroupNotFoundError'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/api.ServerError'
+      security:
+      - BearerAuth: []
+      summary: Create new achievement template
+      tags:
+      - achievement-templates
+  /achievement-templates/{id}:
+    patch:
+      consumes:
+      - application/json
+      description: Updates an achievement template
+      parameters:
+      - description: Bearer JWT token
+        in: header
+        name: Authorization
+        type: string
+      - description: Template UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Template fields to update
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/api.PatchAchievementTemplateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.AchievementTemplateResponse'
+        "400":
+          description: Invalid request format
+          schema:
+            $ref: '#/definitions/api.InvalidRequestError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/api.UnauthorizedError'
+        "403":
+          description: Forbidden - admin role required
+          schema:
+            $ref: '#/definitions/api.ForbiddenError'
+        "404":
+          description: Template not found
+          schema:
+            $ref: '#/definitions/api.AchievementTemplateNotFoundError'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/api.ServerError'
+      security:
+      - BearerAuth: []
+      summary: Update achievement template
+      tags:
+      - achievement-templates
   /auth/admin/login:
     post:
       consumes:

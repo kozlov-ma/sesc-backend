@@ -10,6 +10,44 @@
  * ---------------------------------------------------------------
  */
 
+export interface ApiAchievementGroupResponse {
+  /** @example true */
+  active: boolean;
+  /** @example "Достижения в научной деятельности" */
+  description: string;
+  /** @example "550e8400-e29b-41d4-a716-446655440000" */
+  id: string;
+  /** @example "Научная деятельность" */
+  name: string;
+}
+
+export interface ApiAchievementTemplateNotFoundError {
+  /** @example "ACHIEVEMENT_TEMPLATE_NOT_FOUND" */
+  code?: string;
+  details?: string;
+  /** @example "Achievement template not found" */
+  message?: string;
+  /** @example "Шаблон достижения не найден" */
+  ruMessage?: string;
+}
+
+export interface ApiAchievementTemplateResponse {
+  /** @example true */
+  active: boolean;
+  /** @example "Публикация статьи в научном журнале" */
+  description: string;
+  /** @example "550e8400-e29b-41d4-a716-446655440000" */
+  groupId: string;
+  /** @example "550e8400-e29b-41d4-a716-446655440000" */
+  id: string;
+  /** @example "scientific" */
+  kind: "olympiad" | "development" | "scientific";
+  /** @example "Публикация в журнале" */
+  name: string;
+  /** @example 10 */
+  pointsLimit: number;
+}
+
 export interface ApiCannotRemoveDepartmentError {
   /** @example "CANNOT_REMOVE_DEPARTMENT" */
   code?: string;
@@ -18,6 +56,26 @@ export interface ApiCannotRemoveDepartmentError {
   message?: string;
   /** @example "Невозможно удалить кафедру, так как она содержит пользователей" */
   ruMessage?: string;
+}
+
+export interface ApiCreateAchievementGroupRequest {
+  /** @example "Достижения в научной деятельности" */
+  description: string;
+  /** @example "Научная деятельность" */
+  name: string;
+}
+
+export interface ApiCreateAchievementTemplateRequest {
+  /** @example "Публикация статьи в научном журнале" */
+  description: string;
+  /** @example "550e8400-e29b-41d4-a716-446655440000" */
+  groupId: string;
+  /** @example "scientific" */
+  kind: "olympiad" | "development" | "scientific";
+  /** @example "Публикация в журнале" */
+  name: string;
+  /** @example 10 */
+  pointsLimit: number;
 }
 
 export interface ApiCreateDepartmentRequest {
@@ -126,6 +184,16 @@ export interface ApiForbiddenError {
   ruMessage?: string;
 }
 
+export interface ApiGroupNotFoundError {
+  /** @example "GROUP_NOT_FOUND" */
+  code?: string;
+  details?: string;
+  /** @example "Achievement group not found" */
+  message?: string;
+  /** @example "Группа достижений не найдена" */
+  ruMessage?: string;
+}
+
 export interface ApiIdentityResponse {
   /** @example "550e8400-e29b-41d4-a716-446655440000" */
   id: string;
@@ -202,6 +270,30 @@ export interface ApiInvalidUUIDError {
   message?: string;
   /** @example "Некорректный формат UUID" */
   ruMessage?: string;
+}
+
+export interface ApiPatchAchievementGroupRequest {
+  /** @example true */
+  active?: boolean;
+  /** @example "Достижения в научной деятельности" */
+  description?: string;
+  /** @example "Научная деятельность" */
+  name?: string;
+}
+
+export interface ApiPatchAchievementTemplateRequest {
+  /** @example true */
+  active?: boolean;
+  /** @example "Публикация статьи в научном журнале" */
+  description?: string;
+  /** @example "550e8400-e29b-41d4-a716-446655440000" */
+  groupId?: string;
+  /** @example "scientific" */
+  kind?: "olympiad" | "development" | "scientific";
+  /** @example "Публикация в журнале" */
+  name?: string;
+  /** @example 10 */
+  pointsLimit?: number;
 }
 
 export interface ApiPatchUserRequest {
@@ -499,6 +591,195 @@ export class HttpClient<SecurityDataType = unknown> {
 export class Api<
   SecurityDataType extends unknown,
 > extends HttpClient<SecurityDataType> {
+  achievementGroups = {
+    /**
+     * @description Retrieves all achievement groups
+     *
+     * @tags achievement-groups
+     * @name AchievementGroupsList
+     * @summary Get all achievement groups
+     * @request GET:/achievement-groups
+     * @secure
+     */
+    achievementGroupsList: (
+      query?: {
+        /**
+         * Show inactive groups
+         * @default false
+         */
+        show_inactive?: boolean;
+        /** Search by name */
+        search?: string;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        ApiAchievementGroupResponse[],
+        ApiUnauthorizedError | ApiServerError
+      >({
+        path: `/achievement-groups`,
+        method: "GET",
+        query: query,
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Creates a new achievement group
+     *
+     * @tags achievement-groups
+     * @name AchievementGroupsCreate
+     * @summary Create new achievement group
+     * @request POST:/achievement-groups
+     * @secure
+     */
+    achievementGroupsCreate: (
+      request: ApiCreateAchievementGroupRequest,
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        ApiAchievementGroupResponse,
+        | ApiInvalidRequestError
+        | ApiUnauthorizedError
+        | ApiForbiddenError
+        | ApiServerError
+      >({
+        path: `/achievement-groups`,
+        method: "POST",
+        body: request,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Updates an achievement group
+     *
+     * @tags achievement-groups
+     * @name AchievementGroupsPartialUpdate
+     * @summary Update achievement group
+     * @request PATCH:/achievement-groups/{id}
+     * @secure
+     */
+    achievementGroupsPartialUpdate: (
+      id: string,
+      request: ApiPatchAchievementGroupRequest,
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        ApiAchievementGroupResponse,
+        | ApiInvalidRequestError
+        | ApiUnauthorizedError
+        | ApiForbiddenError
+        | ApiGroupNotFoundError
+        | ApiServerError
+      >({
+        path: `/achievement-groups/${id}`,
+        method: "PATCH",
+        body: request,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+  };
+  achievementTemplates = {
+    /**
+     * @description Retrieves all achievement templates
+     *
+     * @tags achievement-templates
+     * @name AchievementTemplatesList
+     * @summary Get all achievement templates
+     * @request GET:/achievement-templates
+     * @secure
+     */
+    achievementTemplatesList: (
+      query?: {
+        /**
+         * Show inactive templates
+         * @default false
+         */
+        show_inactive?: boolean;
+        /** Search by name */
+        search?: string;
+      },
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        ApiAchievementTemplateResponse[],
+        ApiUnauthorizedError | ApiServerError
+      >({
+        path: `/achievement-templates`,
+        method: "GET",
+        query: query,
+        secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Creates a new achievement template
+     *
+     * @tags achievement-templates
+     * @name AchievementTemplatesCreate
+     * @summary Create new achievement template
+     * @request POST:/achievement-templates
+     * @secure
+     */
+    achievementTemplatesCreate: (
+      request: ApiCreateAchievementTemplateRequest,
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        ApiAchievementTemplateResponse,
+        | ApiInvalidRequestError
+        | ApiUnauthorizedError
+        | ApiForbiddenError
+        | ApiGroupNotFoundError
+        | ApiServerError
+      >({
+        path: `/achievement-templates`,
+        method: "POST",
+        body: request,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * @description Updates an achievement template
+     *
+     * @tags achievement-templates
+     * @name AchievementTemplatesPartialUpdate
+     * @summary Update achievement template
+     * @request PATCH:/achievement-templates/{id}
+     * @secure
+     */
+    achievementTemplatesPartialUpdate: (
+      id: string,
+      request: ApiPatchAchievementTemplateRequest,
+      params: RequestParams = {},
+    ) =>
+      this.request<
+        ApiAchievementTemplateResponse,
+        | ApiInvalidRequestError
+        | ApiUnauthorizedError
+        | ApiForbiddenError
+        | ApiAchievementTemplateNotFoundError
+        | ApiServerError
+      >({
+        path: `/achievement-templates/${id}`,
+        method: "PATCH",
+        body: request,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+  };
   auth = {
     /**
      * @description Verifies admin token and returns a JWT token with admin privileges

@@ -144,6 +144,10 @@ func (a *API) RegisterRoutes(r chi.Router) {
 			r.Get("/{id}", a.GetUser)
 		})
 
+		// Achievement groups and templates (read-only for regular users)
+		r.Get("/achievement-groups", a.GetAchievementGroups)
+		r.Get("/achievement-templates", a.GetAchievementTemplates)
+
 		// File routes
 		r.Route("/files", func(r chi.Router) {
 			r.Get("/", a.SearchFiles)
@@ -168,6 +172,14 @@ func (a *API) RegisterRoutes(r chi.Router) {
 		// User management
 		r.Post("/users", a.CreateUser)
 		r.Patch("/users/{id}", a.PatchUser)
+
+		// Achievement groups management (admin only)
+		r.Post("/achievement-groups", a.CreateAchievementGroup)
+		r.Patch("/achievement-groups/{id}", a.PatchAchievementGroup)
+
+		// Achievement templates management (admin only)
+		r.Post("/achievement-templates", a.CreateAchievementTemplate)
+		r.Patch("/achievement-templates/{id}", a.PatchAchievementTemplate)
 
 		// Credential management
 		r.Delete("/auth/credentials/{id}", a.DeleteCredentials)

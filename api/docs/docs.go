@@ -15,6 +15,432 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/achievement-groups": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieves all achievement groups",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "achievement-groups"
+                ],
+                "summary": "Get all achievement groups",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer JWT token",
+                        "name": "Authorization",
+                        "in": "header"
+                    },
+                    {
+                        "type": "boolean",
+                        "default": false,
+                        "description": "Show inactive groups",
+                        "name": "show_inactive",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Search by name",
+                        "name": "search",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/api.AchievementGroupResponse"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/api.UnauthorizedError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/api.ServerError"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Creates a new achievement group",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "achievement-groups"
+                ],
+                "summary": "Create new achievement group",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer JWT token",
+                        "name": "Authorization",
+                        "in": "header"
+                    },
+                    {
+                        "description": "Group details",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/api.CreateAchievementGroupRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/api.AchievementGroupResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request format",
+                        "schema": {
+                            "$ref": "#/definitions/api.InvalidRequestError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/api.UnauthorizedError"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden - admin role required",
+                        "schema": {
+                            "$ref": "#/definitions/api.ForbiddenError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/api.ServerError"
+                        }
+                    }
+                }
+            }
+        },
+        "/achievement-groups/{id}": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Updates an achievement group",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "achievement-groups"
+                ],
+                "summary": "Update achievement group",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer JWT token",
+                        "name": "Authorization",
+                        "in": "header"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Group UUID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Group fields to update",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/api.PatchAchievementGroupRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api.AchievementGroupResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request format",
+                        "schema": {
+                            "$ref": "#/definitions/api.InvalidRequestError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/api.UnauthorizedError"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden - admin role required",
+                        "schema": {
+                            "$ref": "#/definitions/api.ForbiddenError"
+                        }
+                    },
+                    "404": {
+                        "description": "Group not found",
+                        "schema": {
+                            "$ref": "#/definitions/api.GroupNotFoundError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/api.ServerError"
+                        }
+                    }
+                }
+            }
+        },
+        "/achievement-templates": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieves all achievement templates",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "achievement-templates"
+                ],
+                "summary": "Get all achievement templates",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer JWT token",
+                        "name": "Authorization",
+                        "in": "header"
+                    },
+                    {
+                        "type": "boolean",
+                        "default": false,
+                        "description": "Show inactive templates",
+                        "name": "show_inactive",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Search by name",
+                        "name": "search",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/api.AchievementTemplateResponse"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/api.UnauthorizedError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/api.ServerError"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Creates a new achievement template",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "achievement-templates"
+                ],
+                "summary": "Create new achievement template",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer JWT token",
+                        "name": "Authorization",
+                        "in": "header"
+                    },
+                    {
+                        "description": "Template details",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/api.CreateAchievementTemplateRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/api.AchievementTemplateResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request format",
+                        "schema": {
+                            "$ref": "#/definitions/api.InvalidRequestError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/api.UnauthorizedError"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden - admin role required",
+                        "schema": {
+                            "$ref": "#/definitions/api.ForbiddenError"
+                        }
+                    },
+                    "404": {
+                        "description": "Group not found",
+                        "schema": {
+                            "$ref": "#/definitions/api.GroupNotFoundError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/api.ServerError"
+                        }
+                    }
+                }
+            }
+        },
+        "/achievement-templates/{id}": {
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Updates an achievement template",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "achievement-templates"
+                ],
+                "summary": "Update achievement template",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer JWT token",
+                        "name": "Authorization",
+                        "in": "header"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Template UUID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Template fields to update",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/api.PatchAchievementTemplateRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api.AchievementTemplateResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request format",
+                        "schema": {
+                            "$ref": "#/definitions/api.InvalidRequestError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/api.UnauthorizedError"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden - admin role required",
+                        "schema": {
+                            "$ref": "#/definitions/api.ForbiddenError"
+                        }
+                    },
+                    "404": {
+                        "description": "Template not found",
+                        "schema": {
+                            "$ref": "#/definitions/api.AchievementTemplateNotFoundError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/api.ServerError"
+                        }
+                    }
+                }
+            }
+        },
         "/auth/admin/login": {
             "post": {
                 "description": "Verifies admin token and returns a JWT token with admin privileges",
@@ -1203,6 +1629,100 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "api.AchievementGroupResponse": {
+            "type": "object",
+            "required": [
+                "active",
+                "description",
+                "id",
+                "name"
+            ],
+            "properties": {
+                "active": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "description": {
+                    "type": "string",
+                    "example": "Достижения в научной деятельности"
+                },
+                "id": {
+                    "type": "string",
+                    "example": "550e8400-e29b-41d4-a716-446655440000"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "Научная деятельность"
+                }
+            }
+        },
+        "api.AchievementTemplateNotFoundError": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string",
+                    "example": "ACHIEVEMENT_TEMPLATE_NOT_FOUND"
+                },
+                "details": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "Achievement template not found"
+                },
+                "ruMessage": {
+                    "type": "string",
+                    "example": "Шаблон достижения не найден"
+                }
+            }
+        },
+        "api.AchievementTemplateResponse": {
+            "type": "object",
+            "required": [
+                "active",
+                "description",
+                "groupId",
+                "id",
+                "kind",
+                "name",
+                "pointsLimit"
+            ],
+            "properties": {
+                "active": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "description": {
+                    "type": "string",
+                    "example": "Публикация статьи в научном журнале"
+                },
+                "groupId": {
+                    "type": "string",
+                    "example": "550e8400-e29b-41d4-a716-446655440000"
+                },
+                "id": {
+                    "type": "string",
+                    "example": "550e8400-e29b-41d4-a716-446655440000"
+                },
+                "kind": {
+                    "type": "string",
+                    "enum": [
+                        "olympiad",
+                        "development",
+                        "scientific"
+                    ],
+                    "example": "scientific"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "Публикация в журнале"
+                },
+                "pointsLimit": {
+                    "type": "integer",
+                    "example": 10
+                }
+            }
+        },
         "api.CannotRemoveDepartmentError": {
             "type": "object",
             "properties": {
@@ -1220,6 +1740,60 @@ const docTemplate = `{
                 "ruMessage": {
                     "type": "string",
                     "example": "Невозможно удалить кафедру, так как она содержит пользователей"
+                }
+            }
+        },
+        "api.CreateAchievementGroupRequest": {
+            "type": "object",
+            "required": [
+                "description",
+                "name"
+            ],
+            "properties": {
+                "description": {
+                    "type": "string",
+                    "example": "Достижения в научной деятельности"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "Научная деятельность"
+                }
+            }
+        },
+        "api.CreateAchievementTemplateRequest": {
+            "type": "object",
+            "required": [
+                "description",
+                "groupId",
+                "kind",
+                "name",
+                "pointsLimit"
+            ],
+            "properties": {
+                "description": {
+                    "type": "string",
+                    "example": "Публикация статьи в научном журнале"
+                },
+                "groupId": {
+                    "type": "string",
+                    "example": "550e8400-e29b-41d4-a716-446655440000"
+                },
+                "kind": {
+                    "type": "string",
+                    "enum": [
+                        "olympiad",
+                        "development",
+                        "scientific"
+                    ],
+                    "example": "scientific"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "Публикация в журнале"
+                },
+                "pointsLimit": {
+                    "type": "integer",
+                    "example": 10
                 }
             }
         },
@@ -1467,6 +2041,26 @@ const docTemplate = `{
                 }
             }
         },
+        "api.GroupNotFoundError": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string",
+                    "example": "GROUP_NOT_FOUND"
+                },
+                "details": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "Achievement group not found"
+                },
+                "ruMessage": {
+                    "type": "string",
+                    "example": "Группа достижений не найдена"
+                }
+            }
+        },
         "api.IdentityResponse": {
             "type": "object",
             "required": [
@@ -1622,6 +2216,57 @@ const docTemplate = `{
                 "ruMessage": {
                     "type": "string",
                     "example": "Некорректный формат UUID"
+                }
+            }
+        },
+        "api.PatchAchievementGroupRequest": {
+            "type": "object",
+            "properties": {
+                "active": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "description": {
+                    "type": "string",
+                    "example": "Достижения в научной деятельности"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "Научная деятельность"
+                }
+            }
+        },
+        "api.PatchAchievementTemplateRequest": {
+            "type": "object",
+            "properties": {
+                "active": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "description": {
+                    "type": "string",
+                    "example": "Публикация статьи в научном журнале"
+                },
+                "groupId": {
+                    "type": "string",
+                    "example": "550e8400-e29b-41d4-a716-446655440000"
+                },
+                "kind": {
+                    "type": "string",
+                    "enum": [
+                        "olympiad",
+                        "development",
+                        "scientific"
+                    ],
+                    "example": "scientific"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "Публикация в журнале"
+                },
+                "pointsLimit": {
+                    "type": "integer",
+                    "example": 10
                 }
             }
         },

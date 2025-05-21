@@ -6,6 +6,7 @@ import {
   FolderPlus,
   FolderOpen,
   Users,
+  Award,
 } from "lucide-react";
 
 import { Separator } from "@/components/ui/separator";
@@ -24,6 +25,12 @@ const groups = [
     routes: [
       { name: "Пользователи", url: "/admin/users", icon: Users },
       { name: "Кафедры", url: "/admin/departments", icon: Building },
+    ],
+  },
+  {
+    name: "Достижения",
+    routes: [
+      { name: "Шаблоны достижений", url: "/admin/achievement-templates", icon: Award },
     ],
   },
   {
