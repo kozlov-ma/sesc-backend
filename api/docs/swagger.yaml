@@ -137,11 +137,35 @@ definitions:
     type: object
   api.CreateUserRequest:
     properties:
+      academicDegree:
+        example: 1
+        type: integer
+      academicTitle:
+        example: Associate Professor
+        type: string
+      category:
+        example: First Category
+        type: string
+      dateOfEmployment:
+        example: "2020-01-01T00:00:00Z"
+        type: string
       departmentId:
         example: 550e8400-e29b-41d4-a716-446655440000
         type: string
+      employmentRate:
+        example: 1
+        type: number
+      employmentType:
+        example: 1
+        type: integer
       firstName:
         example: Anna
+        type: string
+      honors:
+        example: Honored Teacher of Russian Federation
+        type: string
+      jobTitle:
+        example: Senior Lecturer
         type: string
       lastName:
         example: Smirnova
@@ -149,12 +173,21 @@ definitions:
       middleName:
         example: Olegovna
         type: string
+      personnelCategory:
+        example: 1
+        type: integer
       pictureUrl:
         example: /images/users/ivan.jpg
         type: string
       roleId:
         example: 2
         type: integer
+      subdivision:
+        example: Teaching division
+        type: string
+      unemploymentDate:
+        example: "2025-01-01T00:00:00Z"
+        type: string
     required:
     - firstName
     - lastName
@@ -458,11 +491,35 @@ definitions:
     type: object
   api.PatchUserRequest:
     properties:
+      academicDegree:
+        example: 1
+        type: integer
+      academicTitle:
+        example: Associate Professor
+        type: string
+      category:
+        example: First Category
+        type: string
+      dateOfEmployment:
+        example: "2020-01-01T00:00:00Z"
+        type: string
       departmentId:
         example: 550e8400-e29b-41d4-a716-446655440000
         type: string
+      employmentRate:
+        example: 1
+        type: number
+      employmentType:
+        example: 1
+        type: integer
       firstName:
         example: Ivan
+        type: string
+      honors:
+        example: Honored Teacher of Russian Federation
+        type: string
+      jobTitle:
+        example: Senior Lecturer
         type: string
       lastName:
         example: Petrov
@@ -470,15 +527,24 @@ definitions:
       middleName:
         example: Sergeevich
         type: string
+      personnelCategory:
+        example: 1
+        type: integer
       pictureUrl:
         example: /images/users/ivan.jpg
         type: string
       roleId:
         example: 1
         type: integer
+      subdivision:
+        example: Teaching division
+        type: string
       suspended:
         example: false
         type: boolean
+      unemploymentDate:
+        example: "2025-01-01T00:00:00Z"
+        type: string
     required:
     - firstName
     - lastName
@@ -612,13 +678,40 @@ definitions:
     type: object
   api.UserResponse:
     properties:
+      academicDegree:
+        example: 1
+        type: integer
+      academicTitle:
+        example: Associate Professor
+        type: string
+      category:
+        example: First Category
+        type: string
+      createDate:
+        example: "2022-01-01T00:00:00Z"
+        type: string
+      dateOfEmployment:
+        example: "2020-01-01T00:00:00Z"
+        type: string
       department:
         $ref: '#/definitions/api.Department'
+      employmentRate:
+        example: 1
+        type: number
+      employmentType:
+        example: 1
+        type: integer
       firstName:
         example: Ivan
         type: string
+      honors:
+        example: Honored Teacher of Russian Federation
+        type: string
       id:
         example: 550e8400-e29b-41d4-a716-446655440000
+        type: string
+      jobTitle:
+        example: Senior Lecturer
         type: string
       lastName:
         example: Petrov
@@ -626,13 +719,25 @@ definitions:
       middleName:
         example: Sergeevich
         type: string
+      personnelCategory:
+        example: 1
+        type: integer
       pictureUrl:
         example: /images/users/ivan.jpg
         type: string
       role:
         $ref: '#/definitions/api.Role'
+      subdivision:
+        example: Teaching division
+        type: string
       suspended:
         type: boolean
+      unemploymentDate:
+        example: "2025-01-01T00:00:00Z"
+        type: string
+      updateDate:
+        example: "2022-02-01T00:00:00Z"
+        type: string
     required:
     - firstName
     - id

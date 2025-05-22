@@ -4,8 +4,10 @@ import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/gofrs/uuid/v5"
+	"github.com/kozlov-ma/sesc-backend/db/entdb/ent"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/enttest"
 	"github.com/kozlov-ma/sesc-backend/pkg/event"
 	"github.com/kozlov-ma/sesc-backend/sesc"
@@ -93,6 +95,35 @@ func setupSESC(t *testing.T) *SESC {
 	return New(client)
 }
 
+// createTestUser creates a test user with all required fields
+func createTestUser(ctx context.Context, t *testing.T, client *ent.Client, depID uuid.UUID) *ent.User {
+	t.Helper()
+	userID := uuid.Must(uuid.NewV7())
+	now := time.Now()
+
+	userBuilder := client.User.Create().
+		SetID(userID).
+		SetFirstName("Test").
+		SetLastName("User").
+		SetRoleID(1).
+		SetSubdivision("Test Subdivision").
+		SetJobTitle("Test Job").
+		SetEmploymentRate(1.0).
+		SetPersonnelCategory(1). // ProfessorialPedagogical
+		SetEmploymentType(1).    // Main
+		SetDateOfEmployment(time.Now()).
+		SetCreatedAt(now).
+		SetUpdatedAt(now)
+
+	if depID != uuid.Nil {
+		userBuilder = userBuilder.SetDepartmentID(depID)
+	}
+
+	user, err := userBuilder.Save(ctx)
+	require.NoError(t, err)
+	return user
+}
+
 func TestCreateDepartment(t *testing.T) {
 	setup := func(t *testing.T) (ctx context.Context, svc *SESC) {
 		ctx = t.Context()
@@ -154,16 +185,9 @@ func TestDeleteDepartment(t *testing.T) {
 		ctx, svc, depID := setup(t)
 
 		// Create a user with this department
-		opt := UserUpdateOptions{
-			FirstName:    "John",
-			LastName:     "Doe",
-			DepartmentID: depID,
-			NewRoleID:    1,
-		}
-		_, err := svc.CreateUser(ctx, opt)
-		require.NoError(t, err)
+		createTestUser(ctx, t, svc.client, depID)
 
-		err = svc.DeleteDepartment(ctx, depID)
+		err := svc.DeleteDepartment(ctx, depID)
 		require.ErrorIs(t, err, sesc.ErrCannotRemoveDepartment)
 	})
 }

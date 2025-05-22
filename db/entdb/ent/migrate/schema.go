@@ -146,7 +146,7 @@ var (
 			{
 				Name:    "user_department_id",
 				Unique:  false,
-				Columns: []*schema.Column{UsersColumns[7]},
+				Columns: []*schema.Column{UsersColumns[20]},
 			},
 			{
 				Name:    "user_role_id",

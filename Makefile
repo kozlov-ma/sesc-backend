@@ -2,7 +2,7 @@
 
 # Generate Go code and frontend API client
 generate:
-	go generate ./... && cp ./api/docs/swagger.json ./web/lib/swagger.json && cd web/lib && npx swagger-typescript-api generate --axios --path ./swagger.json
+	go generate ./... && cp ./api/docs/swagger.json ./web/lib/swagger.json && cd web/lib && ./node_modules/.bin/openapi --input ./swagger.json --output ./generated --client axios
 
 # Spin up the development database
 dev-db:

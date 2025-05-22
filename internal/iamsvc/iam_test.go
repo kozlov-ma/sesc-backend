@@ -41,6 +41,7 @@ func setupIAM(t *testing.T) *IAM {
 func createTestUser(ctx context.Context, t *testing.T, client *ent.Client) uuid.UUID {
 	t.Helper()
 	userID := uuid.Must(uuid.NewV7())
+	now := time.Now()
 	user, err := client.User.Create().
 		SetID(userID).
 		SetFirstName("Test").
@@ -52,6 +53,8 @@ func createTestUser(ctx context.Context, t *testing.T, client *ent.Client) uuid.
 		SetPersonnelCategory(1). // ProfessorialPedagogical
 		SetEmploymentType(1).    // Main
 		SetDateOfEmployment(time.Now()).
+		SetCreatedAt(now).
+		SetUpdatedAt(now).
 		Save(ctx)
 	require.NoError(t, err)
 	return user.ID

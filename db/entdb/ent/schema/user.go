@@ -40,8 +40,8 @@ func (User) Fields() []ent.Field {
 
 		field.Time("date_of_employment"),
 		field.Time("unemployment_date").Optional(),
-		field.Time("created_at").Default(time.Now),
-		field.Time("updated_at").Default(time.Now),
+		field.Time("created_at").Default(time.Now).Immutable(),
+		field.Time("updated_at").UpdateDefault(time.Now),
 	}
 }
 

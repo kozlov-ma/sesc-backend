@@ -584,7 +584,8 @@ func (s *SESC) updateUserRecord(
 		SetJobTitle(upd.JobTitle).
 		SetEmploymentRate(upd.EmploymentRate).
 		SetPersonnelCategory(int(upd.PersonnelCategory)).
-		SetEmploymentType(int(upd.EmploymentType))
+		SetEmploymentType(int(upd.EmploymentType)).
+		SetUpdatedAt(time.Now())
 
 	if upd.AcademicDegree != sesc.NoDegree {
 		updater = updater.SetAcademicDegree(int(upd.AcademicDegree))
@@ -779,6 +780,7 @@ func (s *SESC) createUserRecord(
 ) (UUID, error) {
 	rec := event.Get(ctx)
 
+	now := time.Now()
 	statrec.Add(events.PostgresQueries, 1)
 	cr := tx.User.Create().
 		SetFirstName(opt.FirstName).
@@ -790,7 +792,9 @@ func (s *SESC) createUserRecord(
 		SetJobTitle(opt.JobTitle).
 		SetEmploymentRate(opt.EmploymentRate).
 		SetPersonnelCategory(int(opt.PersonnelCategory)).
-		SetEmploymentType(int(opt.EmploymentType))
+		SetEmploymentType(int(opt.EmploymentType)).
+		SetCreatedAt(now).
+		SetUpdatedAt(now)
 
 	if opt.AcademicDegree != sesc.NoDegree {
 		cr = cr.SetAcademicDegree(int(opt.AcademicDegree))
@@ -886,7 +890,10 @@ func (s *SESC) updateProfilePictureRecord(ctx context.Context, id UUID, pictureU
 
 	startTime := time.Now()
 	statrec.Add(events.PostgresQueries, 1)
-	err := s.client.User.UpdateOneID(id).SetPictureURL(pictureURL).Exec(ctx)
+	err := s.client.User.UpdateOneID(id).
+		SetPictureURL(pictureURL).
+		SetUpdatedAt(time.Now()).
+		Exec(ctx)
 	statrec.Add(events.PostgresTime, time.Since(startTime))
 
 	switch {
