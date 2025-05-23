@@ -1,8 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import useSWR from "swr";
-import useSWRMutation from "swr/mutation";
 import {
   Table,
   TableBody,
@@ -21,7 +19,11 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ApiUsersResponse, ApiUserResponse } from "@/lib/Api";
+import type {
+  ApiUserResponse,
+  ApiPatchUserRequest,
+  PatchUsersByIdError,
+} from "@/lib/api/types.gen";
 import { ErrorMessage } from "@/components/ui/error-message";
 import { Badge } from "@/components/ui/badge";
 import { MoreHorizontal, Search, UserPlus, Key } from "lucide-react";
@@ -29,9 +31,14 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { UserFormDialog } from "./user-form-dialog";
 import { UserCredentialsDialog } from "./user-credentials-dialog";
 import { toast } from "sonner";
-import { apiClient } from "@/lib/api-client";
 import { useErrorHandler } from "@/hooks/use-error-handler";
 import { getErrorMessage } from "@/lib/error-handler";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  getUsersOptions,
+  patchUsersByIdMutation,
+} from "@/lib/api/@tanstack/react-query.gen";
+import type { AxiosError } from "axios";
 
 export function UsersTable() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -40,72 +47,51 @@ export function UsersTable() {
   const [selectedUser, setSelectedUser] = useState<ApiUserResponse | undefined>(
     undefined,
   );
-  
+
   const { error: tableError, handleError, clearError } = useErrorHandler();
+  const queryClient = useQueryClient();
 
-  const {
-    data,
-    error,
-    isLoading,
-    mutate: mutateUsers,
-  } = useSWR<ApiUsersResponse>("/users", 
-    async () => {
-      try {
-        const response = await apiClient.users.usersList();
-        clearError();
-        return response.data;
-      } catch (err) {
-        handleError(err);
-        throw err;
-      }
+  const usersOpt = getUsersOptions();
+  const { data, error, isLoading } = useQuery(usersOpt);
+
+  const toggleSuspendMutation = useMutation({
+    ...patchUsersByIdMutation(),
+    onSuccess: (response) => {
+      queryClient.invalidateQueries({ queryKey: usersOpt.queryKey });
+      toast(
+        response.suspended
+          ? "Пользователь разблокирован"
+          : "Пользователь заблокирован",
+        {
+          description: `Пользователь успешно ${response.suspended ? "разблокирован" : "заблокирован"}.`,
+        },
+      );
     },
-    {
-      onError: (err) => {
-        handleError(err);
-      },
-    }
-  );
-
-  // Toggle user suspended status with SWR mutation
-  const { trigger: toggleSuspend } = useSWRMutation(
-    "toggle-suspend",
-    async (_key: string, { arg }: { arg: ApiUserResponse }) => {
-      try {
-        const response = await apiClient.users.usersPartialUpdate(arg.id, {
-          firstName: arg.firstName,
-          lastName: arg.lastName,
-          middleName: arg.middleName,
-          roleId: arg.role.id,
-          departmentId: arg.department?.id,
-          pictureUrl: arg.pictureUrl,
-          suspended: !arg.suspended,
-        });
-
-        // Also handle success here instead of using callbacks
-        toast(
-          arg.suspended
-            ? "Пользователь разблокирован"
-            : "Пользователь заблокирован",
-          {
-            description: `Пользователь успешно ${arg.suspended ? "разблокирован" : "заблокирован"}.`,
-          },
-        );
-
-        mutateUsers();
-        return response.data;
-      } catch (err) {
-        handleError(err);
-        toast.error("Ошибка", {
-          description: getErrorMessage(err),
-        });
-        throw err;
-      }
+    onError: (err: AxiosError<PatchUsersByIdError>) => {
+      handleError(err);
+      toast.error("Ошибка", {
+        description: getErrorMessage(err),
+      });
     },
-  );
+  });
 
   const handleToggleSuspend = async (user: ApiUserResponse) => {
     clearError();
-    await toggleSuspend(user);
+    const userData: ApiPatchUserRequest = {
+      firstName: user.firstName,
+      lastName: user.lastName,
+      middleName: user.middleName,
+      roleId: user.role.id,
+      departmentId: user.department?.id,
+      pictureUrl: user.pictureUrl,
+      suspended: !user.suspended,
+    };
+    await toggleSuspendMutation.mutateAsync({
+      path: {
+        id: user.id,
+      },
+      body: userData,
+    });
   };
 
   const openCreateUserDialog = () => {
@@ -145,10 +131,8 @@ export function UsersTable() {
 
   return (
     <div className="space-y-4">
-      {(error || tableError) && (
-        <ErrorMessage error={error || tableError} />
-      )}
-      
+      {(error || tableError) && <ErrorMessage error={error || tableError} />}
+
       <div className="flex justify-between">
         <div className="relative w-full md:w-72">
           <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -251,16 +235,8 @@ export function UsersTable() {
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={6} className="h-24 text-center">
-                  {searchTerm ? (
-                    <span className="text-muted-foreground">
-                      Пользователи не найдены
-                    </span>
-                  ) : (
-                    <span className="text-muted-foreground">
-                      В системе нет пользователей
-                    </span>
-                  )}
+                <TableCell colSpan={5} className="h-24 text-center">
+                  Пользователи не найдены
                 </TableCell>
               </TableRow>
             )}
@@ -273,17 +249,15 @@ export function UsersTable() {
         onOpenChange={setUserFormOpen}
         user={selectedUser}
         onSuccess={() => {
-          mutateUsers();
+          queryClient.invalidateQueries({ queryKey: usersOpt.queryKey });
         }}
       />
 
-      {selectedUser && (
-        <UserCredentialsDialog
-          open={userCredentialsOpen}
-          onOpenChange={setUserCredentialsOpen}
-          user={selectedUser}
-        />
-      )}
+      <UserCredentialsDialog
+        open={userCredentialsOpen}
+        onOpenChange={setUserCredentialsOpen}
+        user={selectedUser!}
+      />
     </div>
   );
 }

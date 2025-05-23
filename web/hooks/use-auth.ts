@@ -1,79 +1,60 @@
 "use client";
 
-import useSWRMutation from "swr/mutation";
-import { apiClient } from "@/lib/api-client";
-import { useAuthStore } from "@/store/auth-store";
-import type { ApiCredentialsRequest } from "@/lib/Api";
 import { useRouter } from "next/navigation";
-
-
-
-// Функция для проверки токена
-async function validateTokenFetcher() {
-  const response = await apiClient.auth.validateList();
-  return {
-    role: response.data.role,
-  };
-}
+import { useAuthStore } from "@/store/auth-store";
+import type { ApiCredentialsRequest } from "@/lib/api";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import {
+  postAuthLoginMutation,
+  postAuthAdminLoginMutation,
+  getAuthValidateOptions,
+} from "@/lib/api/@tanstack/react-query.gen";
+import type {
+  ApiIdentityResponse,
+  ApiTokenResponse,
+} from "@/lib/api/types.gen";
 
 export function useAuth() {
-  const { push } = useRouter()
-
+  const { push } = useRouter();
   const { token, role, setAuth, clearAuth } = useAuthStore();
 
-  async function loginUserFetcher(
-    url: string,
-    { arg }: { arg: ApiCredentialsRequest },
-  ) {
-    const response = await apiClient.auth.loginCreate(arg);
-    const token = response.data.token;
-    setAuth(token, "user")
-  }
-
-  async function loginAdminFetcher(
-    url: string,
-    { arg }: { arg: ApiCredentialsRequest },
-  ) {
-    const response = await apiClient.auth.adminLoginCreate(arg);
-    const token = response.data.token;
-    setAuth(token, "admin")
-  }
-
-  const {
-    trigger: loginUser,
-    isMutating: isLoginUserLoading,
-    error: loginUserError,
-    reset: resetLoginUserError,
-  } = useSWRMutation("/auth/login", loginUserFetcher, {}
-  );
-
-  const {
-    trigger: loginAdmin,
-    isMutating: isLoginAdminLoading,
-    error: loginAdminError,
-    reset: resetLoginAdminError,
-  } = useSWRMutation("/auth/admin/login", loginAdminFetcher, {
-  });
-
-  const {
-    trigger: validateToken,
-    isMutating: isValidatingToken,
-    error: validateError,
-  } = useSWRMutation("/auth/validate", validateTokenFetcher, {
-    onError: () => {
-      clearAuth();
+  const loginUserMutation = useMutation({
+    ...postAuthLoginMutation(),
+    onSuccess: (response: ApiTokenResponse) => {
+      setAuth(response.token, "user");
     },
   });
 
+  const loginAdminMutation = useMutation({
+    ...postAuthAdminLoginMutation(),
+    onSuccess: (response: ApiTokenResponse) => {
+      setAuth(response.token, "admin");
+    },
+  });
+
+  const validateTokenQuery = useQuery({
+    ...getAuthValidateOptions({
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }),
+    enabled: !!token,
+  });
+
+  // Handle validation errors
+  if (validateTokenQuery.isError) {
+    clearAuth();
+  }
+
   const logout = () => {
     clearAuth();
-    push("/")
+    push("/");
   };
 
   const checkAuth = async () => {
     if (token) {
       try {
-        await validateToken();
+        await validateTokenQuery.refetch();
         return true;
       } catch (error) {
         clearAuth();
@@ -87,16 +68,22 @@ export function useAuth() {
     token,
     role,
     isAuthenticated: !!token,
-    isLoading: isLoginUserLoading || isLoginAdminLoading || isValidatingToken,
-    loginUserError,
-    loginAdminError,
-    validateError,
-    loginUser,
-    loginAdmin,
+    isLoading:
+      loginUserMutation.isPending ||
+      loginAdminMutation.isPending ||
+      validateTokenQuery.isLoading,
+    loginUserError: loginUserMutation.error,
+    loginAdminError: loginAdminMutation.error,
+    validateError: validateTokenQuery.error,
+    loginUser: (credentials: ApiCredentialsRequest) =>
+      loginUserMutation.mutate({ body: credentials }),
+    loginAdmin: (credentials: ApiCredentialsRequest) =>
+      loginAdminMutation.mutate({ body: credentials }),
     logout,
-    validateToken,
-    resetLoginUserError,
-    resetLoginAdminError,
+    validateToken: validateTokenQuery.refetch,
+    resetLoginUserError: loginUserMutation.reset,
+    resetLoginAdminError: loginAdminMutation.reset,
     checkAuth,
+    setAuth,
   };
 }

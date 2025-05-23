@@ -2,17 +2,12 @@ import type React from "react";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import { ThemeProvider } from "@/components/theme-provider";
-import { Toaster } from "@/components/ui/sonner";
-import { ErrorProvider } from "@/context/error-context";
-import { GlobalErrorHandler } from "@/components/error-handler";
+import Providers from "./providers";
 
 const inter = Inter({ subsets: ["latin", "cyrillic"] });
 
 export const metadata: Metadata = {
-  title: "Система управления",
-  description:
-    "Система управления с авторизацией пользователей и администраторов",
+  title: "Стимулирование Работников СУНЦ УрФУ",
 };
 
 export default function RootLayout({
@@ -27,23 +22,13 @@ export default function RootLayout({
   return (
     <html lang="ru" suppressHydrationWarning>
       <body className={inter.className}>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <ErrorProvider>
-            <GlobalErrorHandler>
-              <main>
-                {auth}
-                {user}
-                {children}
-              </main>
-            </GlobalErrorHandler>
-            <Toaster />
-          </ErrorProvider>
-        </ThemeProvider>
+        <Providers>
+          <main>
+            {auth}
+            {user}
+            {children}
+          </main>
+        </Providers>
       </body>
     </html>
   );

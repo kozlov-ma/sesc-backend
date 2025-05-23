@@ -19,10 +19,12 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
+import type {
   ApiAchievementTemplateResponse,
   ApiAchievementGroupResponse,
-} from "@/lib/Api";
+  PatchAchievementGroupsByIdError,
+  PatchAchievementTemplatesByIdError,
+} from "@/lib/api/types.gen";
 import { ErrorMessage } from "@/components/ui/error-message";
 import {
   MoreHorizontal,
@@ -34,7 +36,6 @@ import {
   Loader2,
 } from "lucide-react";
 import { toast } from "sonner";
-import { apiClient } from "@/lib/api-client";
 import { AchievementTemplateFormDialog } from "./achievement-template-form-dialog";
 import { AchievementGroupFormDialog } from "./achievement-group-form-dialog";
 import {
@@ -49,8 +50,14 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useErrorHandler } from "@/hooks/use-error-handler";
 import { getErrorMessage } from "@/lib/error-handler";
-import { useApi } from "@/hooks/use-api";
-import useSWRMutation from "swr/mutation";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  getAchievementGroupsOptions,
+  getAchievementTemplatesOptions,
+  patchAchievementGroupsByIdMutation,
+  patchAchievementTemplatesByIdMutation,
+} from "@/lib/api/@tanstack/react-query.gen";
+import type { AxiosError } from "axios";
 import React from "react";
 
 export function AchievementTemplatesTable() {
@@ -73,73 +80,62 @@ export function AchievementTemplatesTable() {
   );
 
   const { error: tableError, handleError, clearError } = useErrorHandler();
+  const queryClient = useQueryClient();
+
+  const groupsOpt = getAchievementGroupsOptions();
+  const templatesOpt = getAchievementTemplatesOptions();
 
   // Fetch achievement groups
   const {
     data: groups,
     error: groupsError,
     isLoading: isLoadingGroups,
-    mutate: mutateGroups,
-  } = useApi<ApiAchievementGroupResponse[]>("/achievement-groups");
+  } = useQuery(groupsOpt);
 
   // Fetch achievement templates
   const {
     data: templates,
     error: templatesError,
     isLoading: isLoadingTemplates,
-    mutate: mutateTemplates,
-  } = useApi<ApiAchievementTemplateResponse[]>("/achievement-templates");
+  } = useQuery(templatesOpt);
 
-  // Deactivate item with SWR mutation
-  const { trigger: deactivateItem, isMutating: isDeactivating } =
-    useSWRMutation(
-      "deactivate-item",
-      async (
-        _key: string,
-        {
-          arg,
-        }: { arg: { id: string; active: boolean; type: "group" | "template" } },
-      ) => {
-        try {
-          if (arg.type === "group") {
-            await apiClient.achievementGroups.achievementGroupsPartialUpdate(
-              arg.id,
-              {
-                active: arg.active,
-              },
-            );
-          } else {
-            await apiClient.achievementTemplates.achievementTemplatesPartialUpdate(
-              arg.id,
-              {
-                active: arg.active,
-              },
-            );
-          }
+  // Deactivate group mutation
+  const deactivateGroupMutation = useMutation({
+    ...patchAchievementGroupsByIdMutation(),
+    onSuccess: (response) => {
+      queryClient.invalidateQueries({ queryKey: groupsOpt.queryKey });
+      toast(response.active ? "Группа активирована" : "Группа деактивирована", {
+        description: response.active
+          ? "Группа успешно активирована."
+          : "Группа успешно деактивирована.",
+      });
+    },
+    onError: (err: AxiosError<PatchAchievementGroupsByIdError>) => {
+      handleError(err);
+      toast.error("Ошибка", {
+        description: getErrorMessage(err),
+      });
+    },
+  });
 
-          toast(arg.active ? "Элемент активирован" : "Элемент деактивирован", {
-            description: arg.active
-              ? "Элемент успешно активирован."
-              : "Элемент успешно деактивирован.",
-          });
-
-          mutateGroups();
-          mutateTemplates();
-        } catch (error) {
-          handleError(error);
-          toast.error("Ошибка", {
-            description: getErrorMessage(error),
-          });
-          throw error;
-        }
-      },
-      {
-        throwOnError: false,
-        onSuccess: () => {
-          clearError();
-        },
-      },
-    );
+  // Deactivate template mutation
+  const deactivateTemplateMutation = useMutation({
+    ...patchAchievementTemplatesByIdMutation(),
+    onSuccess: (response) => {
+      queryClient.invalidateQueries({ queryKey: templatesOpt.queryKey });
+      toast(response.active ? "Шаблон активирован" : "Шаблон деактивирован", {
+        description: response.active
+          ? "Шаблон успешно активирован."
+          : "Шаблон успешно деактивирован.",
+      });
+    },
+    onError: (err: AxiosError<PatchAchievementTemplatesByIdError>) => {
+      handleError(err);
+      toast.error("Ошибка", {
+        description: getErrorMessage(err),
+      });
+    },
+  });
 
   const openCreateTemplateInGroup = (groupId: string) => {
     setSelectedTemplate(undefined);
@@ -173,11 +169,25 @@ export function AchievementTemplatesTable() {
     if (itemToDeactivate) {
       clearError();
       const isGroup = !("pointsLimit" in itemToDeactivate);
-      await deactivateItem({
-        id: itemToDeactivate.id,
-        active: !itemToDeactivate.active,
-        type: isGroup ? "group" : "template",
-      });
+      if (isGroup) {
+        await deactivateGroupMutation.mutateAsync({
+          path: {
+            id: itemToDeactivate.id,
+          },
+          body: {
+            active: !itemToDeactivate.active,
+          },
+        });
+      } else {
+        await deactivateTemplateMutation.mutateAsync({
+          path: {
+            id: itemToDeactivate.id,
+          },
+          body: {
+            active: !itemToDeactivate.active,
+          },
+        });
+      }
       setDeactivateDialogOpen(false);
     }
   };
@@ -423,7 +433,7 @@ export function AchievementTemplatesTable() {
         template={selectedTemplate}
         groupId={selectedGroupId}
         onSuccess={() => {
-          mutateTemplates();
+          queryClient.invalidateQueries({ queryKey: templatesOpt.queryKey });
           setTemplateFormOpen(false);
           setSelectedGroupId(undefined);
         }}
@@ -434,7 +444,7 @@ export function AchievementTemplatesTable() {
         onOpenChange={setGroupFormOpen}
         group={selectedGroup}
         onSuccess={() => {
-          mutateGroups();
+          queryClient.invalidateQueries({ queryKey: groupsOpt.queryKey });
           setGroupFormOpen(false);
         }}
       />
@@ -460,12 +470,12 @@ export function AchievementTemplatesTable() {
             <AlertDialogCancel>Отмена</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeactivateItem}
-              disabled={isDeactivating}
+              disabled={deactivateGroupMutation.isPending || deactivateTemplateMutation.isPending}
               className={
                 itemToDeactivate?.active ? "bg-destructive" : "bg-green-600"
               }
             >
-              {isDeactivating ? (
+              {deactivateGroupMutation.isPending || deactivateTemplateMutation.isPending ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Загрузка...

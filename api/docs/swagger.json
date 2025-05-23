@@ -1,7 +1,10 @@
 {
     "swagger": "2.0",
     "info": {
-        "contact": {}
+        "description": "API for managing SESC departments, users and permissions",
+        "title": "SESC Management API",
+        "contact": {},
+        "version": "1.0"
     },
     "paths": {
         "/achievement-groups": {
@@ -2533,6 +2536,14 @@
                     }
                 }
             }
+        }
+    },
+    "securityDefinitions": {
+        "BearerAuth": {
+            "description": "Enter 'Bearer ' followed by your token",
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
         }
     }
 }

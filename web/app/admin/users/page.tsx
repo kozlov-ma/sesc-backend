@@ -5,8 +5,9 @@ import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { UserRound, UserRoundCheck, UserRoundX } from "lucide-react";
 import { UsersTable } from "@/components/admin-dashboard/users-table";
-import { useApi } from "@/hooks/use-api";
-import { ApiUsersResponse, ApiUserResponse } from "@/lib/Api";
+import { useQuery } from "@tanstack/react-query";
+import { getUsersOptions } from "@/lib/api/@tanstack/react-query.gen";
+import type { ApiUserResponse } from "@/lib/api/types.gen";
 
 export default function UsersPage() {
   const { isAuthenticated, role, isLoading } = useAuth();
@@ -20,8 +21,7 @@ export default function UsersPage() {
     <div className="min-h-screen flex flex-col p-6 bg-background">
       <header className="w-full flex justify-between items-center mb-8">
         <h1 className="text-2xl font-bold">Управление пользователями</h1>
-        <div className="flex items-center gap-2">
-        </div>
+        <div className="flex items-center gap-2"></div>
       </header>
 
       <motion.div
@@ -100,8 +100,6 @@ function UsersCountDisplay() {
   if (isLoading)
     return <span className="text-muted-foreground">Загрузка...</span>;
 
-  console.log(data);
-
   return data?.users?.length;
 }
 
@@ -129,5 +127,5 @@ function SuspendedUsersCountDisplay() {
 
 // Custom hook to fetch users data
 function useUsersData() {
-  return useApi<ApiUsersResponse>("/users");
+  return useQuery(getUsersOptions());
 }

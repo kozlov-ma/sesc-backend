@@ -10,6 +10,13 @@ import (
 	"github.com/kozlov-ma/sesc-backend/internal/config"
 )
 
+// @title SESC Management API
+// @version 1.0
+// @description API for managing SESC departments, users and permissions
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
+// @description Enter 'Bearer ' followed by your token
 func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, os.Kill)
 	defer stop()

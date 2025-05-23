@@ -15,9 +15,8 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { UserAvatar } from "@/components/ui/user-avatar";
-import useSWR from "swr";
-import { apiClient } from "@/lib/api-client";
-import { ApiUsersResponse } from "@/lib/Api";
+import { useQuery } from "@tanstack/react-query";
+import { getUsersOptions } from "@/lib/api/@tanstack/react-query.gen";
 
 interface UserFilterProps {
   value?: string;
@@ -27,16 +26,9 @@ interface UserFilterProps {
 export function UserFilter({ value, onChange }: UserFilterProps) {
   const [open, setOpen] = useState(false);
 
-  const { data: response } = useSWR<ApiUsersResponse>(
-    "users",
-    async () => {
-      const response = await apiClient.users.usersList();
-      return response.data;
-    },
-    {
-      revalidateOnFocus: false,
-    }
-  );
+  const { data: response } = useQuery({
+    ...getUsersOptions(),
+  });
 
   const selectedUser = response?.users?.find((user) => user.id === value);
 
@@ -74,7 +66,7 @@ export function UserFilter({ value, onChange }: UserFilterProps) {
               <Check
                 className={cn(
                   "mr-2 h-4 w-4",
-                  !value ? "opacity-100" : "opacity-0"
+                  !value ? "opacity-100" : "opacity-0",
                 )}
               />
               Все пользователи
@@ -94,7 +86,7 @@ export function UserFilter({ value, onChange }: UserFilterProps) {
                 <Check
                   className={cn(
                     "ml-auto h-4 w-4",
-                    value === user.id ? "opacity-100" : "opacity-0"
+                    value === user.id ? "opacity-100" : "opacity-0",
                   )}
                 />
               </CommandItem>
@@ -104,4 +96,4 @@ export function UserFilter({ value, onChange }: UserFilterProps) {
       </PopoverContent>
     </Popover>
   );
-} 
+}

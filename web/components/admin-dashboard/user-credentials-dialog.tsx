@@ -1,18 +1,16 @@
 "use client";
 
-import { useState } from "react";
-import { z } from "zod";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import useSWR from "swr";
-import useSWRMutation from "swr/mutation";
+import * as z from "zod";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
+  DialogFooter,
 } from "@/components/ui/dialog";
 import {
   Form,
@@ -22,15 +20,26 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { Copy, RefreshCw, Eye, EyeOff, ClipboardCopy } from "lucide-react";
-import { ApiUserResponse } from "@/lib/Api";
-import { apiClient } from "@/lib/api-client";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  getAuthCredentialsByIdOptions,
+  putUsersByIdCredentialsMutation,
+  deleteAuthCredentialsByIdMutation,
+} from "@/lib/api/@tanstack/react-query.gen";
+import { AxiosError } from "axios";
+import type {
+  PutUsersByIdCredentialsError,
+  DeleteAuthCredentialsByIdError,
+  ApiUserResponse,
+} from "@/lib/api/types.gen";
 import { ErrorMessage } from "@/components/ui/error-message";
 import { useFormError } from "@/hooks/use-error-handler";
 import { hasErrorCode, getErrorMessage } from "@/lib/error-handler";
+import React from "react";
 
 const credentialsSchema = z.object({
   username: z
@@ -54,6 +63,13 @@ export function UserCredentialsDialog({
 }: UserCredentialsDialogProps) {
   const [showPassword, setShowPassword] = useState(false);
   const { formError, clearFormError, handleFormError } = useFormError();
+  const queryClient = useQueryClient();
+
+  const credentialsOpt = getAuthCredentialsByIdOptions({
+    path: {
+      id: user.id,
+    },
+  });
 
   const form = useForm<CredentialsFormValues>({
     resolver: zodResolver(credentialsSchema),
@@ -63,98 +79,94 @@ export function UserCredentialsDialog({
     },
   });
 
-  // Use SWR for credentials fetching
-  const credentialsKey = open ? `credentials-${user.id}` : null;
+  // Use TanStack Query for credentials fetching
   const {
     data: credentials,
-    isValidating,
-    mutate: revalidate,
-  } = useSWR(
-    credentialsKey,
-    async () => {
-      const response = await apiClient.auth
-        .credentialsDetail(user.id)
-        .catch((err) => {
-          if (hasErrorCode(err, "USER_NOT_FOUND")) {
-            return { data: { username: "", password: "" } };
-          }
-          throw err;
-        });
-      return response.data;
-    },
-    {
-      revalidateOnFocus: false,
-      onSuccess: (data) => {
-        if (data) {
-          form.setValue("username", data.username);
-          form.setValue("password", data.password);
-        } else {
-          form.reset({
-            username: "",
-            password: "",
-          });
-        }
-        clearFormError();
-      },
-      onError: (err) => {
-        handleFormError(err);
-      },
-    },
-  );
+    isLoading: isValidating,
+    refetch: revalidate,
+  } = useQuery({
+    ...credentialsOpt,
+    enabled: open,
+  });
 
-  const { trigger: submitCredentials, isMutating: isSubmitting } =
-    useSWRMutation(
-      `credentials-update-${user.id}`,
-      async (_key, { arg }: { arg: CredentialsFormValues }) => {
-        const response = await apiClient.users.credentialsUpdate(user.id, arg);
-        return response.data;
-      },
-      {
-        onSuccess: () => {
-          revalidate();
-          clearFormError();
-          onOpenChange(false);
-          toast("Учетные данные обновлены", {
-            description: "Учетные данные пользователя успешно обновлены.",
-          });
-        },
-        onError: (err) => {
-          handleFormError(err);
-          toast.error("Ошибка", {
-            description: getErrorMessage(err),
-          });
-        },
-        throwOnError: false,
-      },
-    );
+  // Update form values when credentials are loaded
+  useEffect(() => {
+    if (credentials) {
+      form.setValue("username", credentials.username);
+      form.setValue("password", credentials.password);
+      clearFormError();
+    } else {
+      form.reset({
+        username: "",
+        password: "",
+      });
+    }
+  }, [credentials, form, clearFormError]);
 
-  const { trigger: deleteCredentials, isMutating: isDeleting } = useSWRMutation(
-    `credentials-delete-${user.id}`,
-    async () => {
-      await apiClient.auth.credentialsDelete(user.id);
-      return true;
-    },
-    {
-      onSuccess: () => {
-        revalidate();
-        clearFormError();
-        onOpenChange(false);
-        toast("Учетные данные удалены", {
-          description: "Учетные данные пользователя успешно удалены.",
+  // Handle query error
+  useEffect(() => {
+    if (formError) {
+      if (hasErrorCode(formError, "USER_NOT_FOUND")) {
+        form.reset({
+          username: "",
+          password: "",
         });
-      },
-      onError: (err) => {
-        handleFormError(err);
-        toast.error("Ошибка", {
-          description: getErrorMessage(err),
-        });
-      },
+        return;
+      }
+      handleFormError(formError);
+    }
+  }, [formError, form, handleFormError]);
+
+  // Update credentials mutation
+  const updateCredentialsMutation = useMutation({
+    ...putUsersByIdCredentialsMutation(),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: credentialsOpt.queryKey,
+      });
+      clearFormError();
+      onOpenChange(false);
+      toast("Учетные данные обновлены", {
+        description: "Учетные данные пользователя успешно обновлены.",
+      });
     },
-  );
+    onError: (err: AxiosError<PutUsersByIdCredentialsError>) => {
+      handleFormError(err);
+      toast.error("Ошибка", {
+        description: getErrorMessage(err),
+      });
+    },
+  });
+
+  // Delete credentials mutation
+  const deleteCredentialsMutation = useMutation({
+    ...deleteAuthCredentialsByIdMutation(),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: credentialsOpt.queryKey,
+      });
+      clearFormError();
+      onOpenChange(false);
+      toast("Учетные данные удалены", {
+        description: "Учетные данные пользователя успешно удалены.",
+      });
+    },
+    onError: (err: AxiosError<DeleteAuthCredentialsByIdError>) => {
+      handleFormError(err);
+      toast.error("Ошибка", {
+        description: getErrorMessage(err),
+      });
+    },
+  });
 
   const handleSubmit = async (values: CredentialsFormValues) => {
     clearFormError();
-    await submitCredentials(values);
+    await updateCredentialsMutation.mutateAsync({
+      path: {
+        id: user.id,
+      },
+      body: values,
+    });
   };
 
   const handleDelete = async () => {
@@ -162,7 +174,11 @@ export function UserCredentialsDialog({
       confirm("Вы уверены, что хотите удалить учетные данные пользователя?")
     ) {
       clearFormError();
-      await deleteCredentials();
+      await deleteCredentialsMutation.mutateAsync({
+        path: {
+          id: user.id,
+        },
+      });
     }
   };
 
@@ -311,21 +327,27 @@ export function UserCredentialsDialog({
                   type="button"
                   variant="destructive"
                   onClick={handleDelete}
-                  disabled={isDeleting || isValidating || !credentials}
+                  disabled={
+                    deleteCredentialsMutation.isPending ||
+                    isValidating ||
+                    !credentials
+                  }
                 >
-                  {isDeleting ? "Удаление..." : "Удалить"}
+                  {deleteCredentialsMutation.isPending
+                    ? "Удаление..."
+                    : "Удалить"}
                 </Button>
               ) : null}
               <Button
                 type="submit"
                 disabled={
-                  isSubmitting ||
+                  updateCredentialsMutation.isPending ||
                   isValidating ||
                   !form.formState.isDirty ||
                   !form.formState.isValid
                 }
               >
-                {isSubmitting
+                {updateCredentialsMutation.isPending
                   ? "Сохранение..."
                   : credentialsExist
                     ? "Обновить"

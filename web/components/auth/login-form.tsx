@@ -1,9 +1,11 @@
 "use client";
+
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { motion } from "framer-motion";
-import type { ApiCredentialsRequest } from "@/lib/Api";
+import { useMutation } from "@tanstack/react-query";
+import { postAuthLoginMutation } from "@/lib/api/@tanstack/react-query.gen";
 import { useAuth } from "@/hooks/use-auth";
 import { ErrorMessage } from "@/components/ui/error-message";
 import { Button } from "@/components/ui/button";
@@ -17,6 +19,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { useRouter } from "next/navigation";
 
 // Схема валидации для формы входа пользователя
 const userLoginSchema = z.object({
@@ -31,7 +34,8 @@ const userLoginSchema = z.object({
 type UserLoginFormValues = z.infer<typeof userLoginSchema>;
 
 export function LoginForm() {
-  const { loginUser, isLoading, resetLoginUserError } = useAuth();
+  const { push } = useRouter();
+  const { setAuth } = useAuth();
   const { formError, clearFormError, handleFormError } = useFormError();
 
   const form = useForm<UserLoginFormValues>({
@@ -42,19 +46,25 @@ export function LoginForm() {
     },
   });
 
+  const loginMutation = useMutation({
+    ...postAuthLoginMutation(),
+    onSuccess: (response) => {
+      setAuth(response.token, "user");
+      push("/u/profile");
+    },
+    onError: (error) => {
+      handleFormError(error);
+    },
+  });
+
   const onSubmit = async (data: UserLoginFormValues) => {
     clearFormError();
-    resetLoginUserError();
-
-    try {
-      const credentials: ApiCredentialsRequest = {
+    await loginMutation.mutateAsync({
+      body: {
         username: data.username,
         password: data.password,
-      };
-      await loginUser(credentials);
-    } catch (error) {
-      handleFormError(error);
-    }
+      },
+    });
   };
 
   return (
@@ -78,7 +88,7 @@ export function LoginForm() {
                   <Input
                     placeholder="Ваше имя пользователя"
                     {...field}
-                    disabled={isLoading}
+                    disabled={loginMutation.isPending}
                   />
                 </FormControl>
                 <FormMessage />
@@ -96,15 +106,15 @@ export function LoginForm() {
                     type="password"
                     placeholder="Ваш пароль"
                     {...field}
-                    disabled={isLoading}
+                    disabled={loginMutation.isPending}
                   />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
-          <Button type="submit" className="w-full" disabled={isLoading}>
-            {isLoading ? "Вход..." : "Войти"}
+          <Button type="submit" className="w-full" disabled={loginMutation.isPending}>
+            {loginMutation.isPending ? "Вход..." : "Войти"}
           </Button>
         </form>
       </Form>

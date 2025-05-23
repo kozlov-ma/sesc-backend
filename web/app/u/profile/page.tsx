@@ -6,20 +6,16 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { User, Calendar, Building, Shield } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
-import useSWR from "swr";
-import { ApiUserResponse } from "@/lib/Api";
-import { apiClient } from "@/lib/api-client";
+import { useQuery } from "@tanstack/react-query";
+import { getUsersMeOptions } from "@/lib/api/@tanstack/react-query.gen";
 
 export default function ProfilePage() {
   const { isAuthenticated, isLoading } = useAuth();
 
-  const { data: user, error, isLoading: isUserLoading } = useSWR<ApiUserResponse>(
-    isAuthenticated ? 'me' : null,
-    async () => {
-      const response = await apiClient.users.getUsers();
-      return response.data;
-    },
-  );
+  const { data: user, error, isLoading: isUserLoading } = useQuery({
+    ...getUsersMeOptions(),
+    enabled: isAuthenticated,
+  });
 
   if (!isAuthenticated || isLoading) {
     return null;
@@ -42,7 +38,7 @@ export default function ProfilePage() {
     );
   }
 
-  if (user?.role?.name === "admin") {
+  if (user.role.name === "admin") {
     return null;
   }
 
@@ -75,12 +71,12 @@ export default function ProfilePage() {
               <div className="flex flex-col md:flex-row gap-6">
                 <div className="flex flex-col items-center gap-4">
                   <Avatar className="h-24 w-24">
-                    {user?.pictureUrl ? (
+                    {user.pictureUrl ? (
                       <AvatarImage src={user.pictureUrl} alt={user.lastName} />
                     ) : null}
                     <AvatarFallback className="text-2xl">
-                      {user?.firstName?.[0]}
-                      {user?.lastName?.[0]}
+                      {user.firstName[0]}
+                      {user.lastName[0]}
                     </AvatarFallback>
                   </Avatar>
                 </div>
@@ -92,7 +88,7 @@ export default function ProfilePage() {
                         <User className="mr-2 h-4 w-4" />
                         <span className="text-sm">Имя</span>
                       </div>
-                      <p className="font-medium">{user?.firstName || "—"}</p>
+                      <p className="font-medium">{user.firstName || "—"}</p>
                     </div>
 
                     <div className="space-y-2">
@@ -100,7 +96,7 @@ export default function ProfilePage() {
                         <User className="mr-2 h-4 w-4" />
                         <span className="text-sm">Фамилия</span>
                       </div>
-                      <p className="font-medium">{user?.lastName || "—"}</p>
+                      <p className="font-medium">{user.lastName || "—"}</p>
                     </div>
                   </div>
 
@@ -109,7 +105,7 @@ export default function ProfilePage() {
                       <User className="mr-2 h-4 w-4" />
                       <span className="text-sm">Отчество</span>
                     </div>
-                    <p className="font-medium">{user?.middleName || "—"}</p>
+                    <p className="font-medium">{user.middleName || "—"}</p>
                   </div>
 
                   <Separator />
@@ -120,7 +116,7 @@ export default function ProfilePage() {
                         <Building className="mr-2 h-4 w-4" />
                         <span className="text-sm">Кафедра</span>
                       </div>
-                      <p className="font-medium">{user?.department?.name || "—"}</p>
+                      <p className="font-medium">{user.department?.name || "—"}</p>
                     </div>
 
                     <div className="space-y-2">
@@ -128,7 +124,7 @@ export default function ProfilePage() {
                         <Shield className="mr-2 h-4 w-4" />
                         <span className="text-sm">Роль</span>
                       </div>
-                      <p className="font-medium">{user?.role?.name || "—"}</p>
+                      <p className="font-medium">{user.role.name || "—"}</p>
                     </div>
                   </div>
 
@@ -138,7 +134,7 @@ export default function ProfilePage() {
                       <span className="text-sm">Статус аккаунта</span>
                     </div>
                     <p className="font-medium">
-                      {user?.suspended ? "Заблокирован" : "Активен"}
+                      {user.suspended ? "Заблокирован" : "Активен"}
                     </p>
                   </div>
                 </div>

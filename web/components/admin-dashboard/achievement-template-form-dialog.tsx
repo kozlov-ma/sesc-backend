@@ -16,9 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
-import useSWRMutation from "swr/mutation";
-import { apiClient } from "@/lib/api-client";
-import { ApiAchievementTemplateResponse } from "@/lib/Api";
+import { ApiAchievementTemplateResponse } from "@/lib/api/types.gen";
 import { Loader2 } from "lucide-react";
 import {
   Select,
@@ -27,6 +25,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  postAchievementTemplatesMutation,
+  patchAchievementTemplatesByIdMutation,
+  getAchievementTemplatesOptions,
+} from "@/lib/api/@tanstack/react-query.gen";
+import { AxiosError } from "axios";
+import type {
+  PostAchievementTemplatesError,
+  PatchAchievementTemplatesByIdError,
+} from "@/lib/api/types.gen";
 
 const formSchema = z
   .object({
@@ -81,6 +90,9 @@ export function AchievementTemplateFormDialog({
     },
   });
 
+  const queryClient = useQueryClient();
+  const templatesOpt = getAchievementTemplatesOptions();
+
   useEffect(() => {
     if (open) {
       if (template) {
@@ -103,69 +115,76 @@ export function AchievementTemplateFormDialog({
     }
   }, [open, template, form]);
 
-  const { trigger: createTemplate, isMutating: isCreating } = useSWRMutation(
-    "create-template",
-    async (_key: string, { arg }: { arg: FormValues }) => {
-      if (!groupId) {
-        throw new Error("Group ID is required");
-      }
-      const templateData = {
-        name: arg.name,
-        description: arg.description,
-        pointsLimit: arg.isUnlimitedPoints ? 0 : arg.pointsLimit,
-        groupId,
-        kind: arg.kind,
-      };
-      console.log("Creating template with data:", templateData);
-      await apiClient.achievementTemplates.achievementTemplatesCreate(
-        templateData,
-      );
+  // Create template mutation
+  const createTemplateMutation = useMutation({
+    ...postAchievementTemplatesMutation(),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: templatesOpt.queryKey });
+      onSuccess?.();
+      toast.success("Шаблон создан", {
+        description: "Шаблон достижения успешно создан.",
+      });
     },
-  );
+    onError: (err: AxiosError<PostAchievementTemplatesError>) => {
+      toast.error("Ошибка", {
+        description: err.response?.data?.message || "Произошла ошибка при создании шаблона",
+      });
+    },
+  });
 
-  const { trigger: updateTemplate, isMutating: isUpdating } = useSWRMutation(
-    "update-template",
-    async (_key: string, { arg }: { arg: FormValues }) => {
-      if (!template) {
-        throw new Error("Template is required for update");
-      }
-      const templateData = {
-        name: arg.name,
-        description: arg.description,
-        pointsLimit: arg.isUnlimitedPoints ? 0 : arg.pointsLimit,
-        kind: arg.kind,
-      };
-      console.log("Updating template with data:", templateData);
-      await apiClient.achievementTemplates.achievementTemplatesPartialUpdate(
-        template.id,
-        templateData,
-      );
+  // Update template mutation
+  const updateTemplateMutation = useMutation({
+    ...patchAchievementTemplatesByIdMutation(),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: templatesOpt.queryKey });
+      onSuccess?.();
+      toast.success("Шаблон обновлен", {
+        description: "Шаблон достижения успешно обновлен.",
+      });
     },
-  );
+    onError: (err: AxiosError<PatchAchievementTemplatesByIdError>) => {
+      toast.error("Ошибка", {
+        description: err.response?.data?.message || "Произошла ошибка при обновлении шаблона",
+      });
+    },
+  });
 
   const onSubmit = async (data: FormValues) => {
     console.log("Form submitted with data:", data);
     try {
       if (template) {
-        await updateTemplate(data);
-        toast.success("Шаблон обновлен", {
-          description: "Шаблон достижения успешно обновлен.",
+        await updateTemplateMutation.mutateAsync({
+          path: {
+            id: template.id,
+          },
+          body: {
+            name: data.name,
+            description: data.description,
+            pointsLimit: data.isUnlimitedPoints ? 0 : data.pointsLimit,
+            kind: data.kind,
+          },
         });
       } else {
-        await createTemplate(data);
-        toast.success("Шаблон создан", {
-          description: "Шаблон достижения успешно создан.",
+        if (!groupId) {
+          throw new Error("Group ID is required");
+        }
+        await createTemplateMutation.mutateAsync({
+          body: {
+            name: data.name,
+            description: data.description,
+            pointsLimit: data.isUnlimitedPoints ? 0 : data.pointsLimit,
+            groupId,
+            kind: data.kind,
+          },
         });
       }
-      onSuccess?.();
     } catch (error) {
       console.error("Error submitting form:", error);
-      toast.error("Ошибка", {
-        description:
-          error instanceof Error
-            ? error.message
-            : "Произошла ошибка при сохранении шаблона",
-      });
+      if (!(error instanceof AxiosError)) {
+        toast.error("Ошибка", {
+          description: error instanceof Error ? error.message : "Произошла ошибка при сохранении шаблона",
+        });
+      }
     }
   };
 
@@ -214,21 +233,14 @@ export function AchievementTemplateFormDialog({
           <div className="space-y-2">
             <Label htmlFor="kind">Тип достижения</Label>
             <Select
-              value={form.watch("kind")}
-              onValueChange={(value) =>
-                form.setValue(
-                  "kind",
-                  value as "olympiad" | "development" | "scientific",
-                )
-              }
+              onValueChange={(value) => form.setValue("kind", value as FormValues["kind"])}
+              defaultValue={form.getValues("kind")}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Выберите тип достижения" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="olympiad">
-                  Олимпиадная деятельность
-                </SelectItem>
+                <SelectItem value="olympiad">Олимпиада</SelectItem>
                 <SelectItem value="development">Развитие</SelectItem>
                 <SelectItem value="scientific">Научная деятельность</SelectItem>
               </SelectContent>
@@ -247,23 +259,23 @@ export function AchievementTemplateFormDialog({
                 checked={form.watch("isUnlimitedPoints")}
                 onCheckedChange={(checked) => {
                   form.setValue("isUnlimitedPoints", checked as boolean);
-                  form.setValue("pointsLimit", 1);
+                  if (checked) {
+                    form.setValue("pointsLimit", 0);
+                  }
                 }}
               />
-              <Label htmlFor="isUnlimitedPoints">
-                Неограниченное количество баллов
-              </Label>
+              <Label htmlFor="isUnlimitedPoints">Неограниченное количество баллов</Label>
             </div>
           </div>
 
           {!form.watch("isUnlimitedPoints") && (
             <div className="space-y-2">
-              <Label htmlFor="pointsLimit">Лимит баллов</Label>
+              <Label htmlFor="pointsLimit">Количество баллов</Label>
               <Input
                 id="pointsLimit"
                 type="number"
-                min={1}
                 {...form.register("pointsLimit", { valueAsNumber: true })}
+                placeholder="Введите количество баллов"
               />
               {form.formState.errors.pointsLimit && (
                 <p className="text-sm text-red-500">
@@ -281,8 +293,11 @@ export function AchievementTemplateFormDialog({
             >
               Отмена
             </Button>
-            <Button type="submit" disabled={isCreating || isUpdating}>
-              {(isCreating || isUpdating) && (
+            <Button
+              type="submit"
+              disabled={createTemplateMutation.isPending || updateTemplateMutation.isPending}
+            >
+              {(createTemplateMutation.isPending || updateTemplateMutation.isPending) && (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               )}
               {template ? "Сохранить" : "Создать"}

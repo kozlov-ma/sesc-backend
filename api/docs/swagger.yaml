@@ -652,6 +652,9 @@ definitions:
     type: object
 info:
   contact: {}
+  description: API for managing SESC departments, users and permissions
+  title: SESC Management API
+  version: "1.0"
 paths:
   /achievement-groups:
     get:
@@ -1693,4 +1696,10 @@ paths:
       summary: Get current user information
       tags:
       - users
+securityDefinitions:
+  BearerAuth:
+    description: Enter 'Bearer ' followed by your token
+    in: header
+    name: Authorization
+    type: apiKey
 swagger: "2.0"

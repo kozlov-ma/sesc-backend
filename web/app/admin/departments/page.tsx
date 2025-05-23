@@ -5,8 +5,8 @@ import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Building, BuildingIcon, School } from "lucide-react";
 import { DepartmentsTable } from "@/components/admin-dashboard/departments-table";
-import { useApi } from "@/hooks/use-api";
-import { ApiDepartmentsResponse } from "@/lib/Api";
+import { useQuery } from "@tanstack/react-query";
+import { getDepartmentsOptions } from "@/lib/api/@tanstack/react-query.gen";
 
 export default function DepartmentsPage() {
   const { isAuthenticated, role, isLoading } = useAuth();
@@ -20,8 +20,7 @@ export default function DepartmentsPage() {
     <div className="min-h-screen flex flex-col p-6 bg-background">
       <header className="w-full flex justify-between items-center mb-8">
         <h1 className="text-2xl font-bold">Управление кафедрами</h1>
-        <div className="flex items-center gap-2">
-        </div>
+        <div className="flex items-center gap-2"></div>
       </header>
 
       <motion.div
@@ -32,9 +31,7 @@ export default function DepartmentsPage() {
       >
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Всего кафедр
-            </CardTitle>
+            <CardTitle className="text-sm font-medium">Всего кафедр</CardTitle>
             <Building className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -46,9 +43,7 @@ export default function DepartmentsPage() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Информация
-            </CardTitle>
+            <CardTitle className="text-sm font-medium">Информация</CardTitle>
             <School className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -60,9 +55,7 @@ export default function DepartmentsPage() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Возможности
-            </CardTitle>
+            <CardTitle className="text-sm font-medium">Возможности</CardTitle>
             <BuildingIcon className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -105,5 +98,5 @@ function DepartmentsCountDisplay() {
 
 // Custom hook to fetch departments data
 function useDepartmentsData() {
-  return useApi<ApiDepartmentsResponse>("/departments");
+  return useQuery(getDepartmentsOptions());
 }

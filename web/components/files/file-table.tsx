@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ApiFileListResponse, ApiFileResponse } from "@/lib/Api";
+import type { ApiFileResponse } from "@/lib/api/types.gen";
 import { formatFileSize } from "@/lib/utils";
 import { Download, FileText, Search, Trash2, Upload, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -16,9 +16,11 @@ import {
 } from "@/components/ui/table";
 import { UserAvatar } from "@/components/ui/user-avatar";
 import { cn } from "@/lib/utils";
-import useSWRInfinite from "swr/infinite";
-import useSWRMutation from "swr/mutation";
-import { apiClient } from "@/lib/api-client";
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { useInfiniteScroll } from "@/hooks/use-infinite-scroll";
 import {
   AlertDialog,
@@ -31,6 +33,11 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { FileNameDisplay } from "@/components/files/file-name-display";
+import {
+  getFilesInfiniteOptions,
+  postFilesMutation,
+  deleteFilesByIdMutation,
+} from "@/lib/api/@tanstack/react-query.gen";
 
 interface FileTableProps {
   showOwner?: boolean;
@@ -57,63 +64,51 @@ export function FileTable({
   const [fileToDelete, setFileToDelete] = useState<ApiFileResponse | null>(
     null,
   );
+  const queryClient = useQueryClient();
 
-  const { data, error, isLoading, size, setSize, isValidating, mutate } =
-    useSWRInfinite<ApiFileListResponse>(
-      (index: number) => {
-        const params = new URLSearchParams({
-          offset: String(index * 20),
-          limit: "20",
-        });
-
-        if (searchQuery) {
-          params.append("name", searchQuery);
-        }
-        if (initialFilters.ownerId) {
-          params.append("owner_id", initialFilters.ownerId);
-        }
-        if (initialFilters.common) {
-          params.append("common", "true");
-        }
-
-        return `/files?${params.toString()}`;
-      },
-      async (url: string) => {
-        const response = await apiClient.files.filesList({
-          offset: parseInt(url.split("offset=")[1].split("&")[0]),
-          limit: 20,
-          name: searchQuery || undefined,
-          owner_id: initialFilters.ownerId,
-          common: initialFilters.common || undefined,
-        });
-        return response.data;
-      },
-      {
-        revalidateFirstPage: false,
-        revalidateOnFocus: false,
-      },
-    );
-
-  const { trigger: uploadFile, isMutating: isUploading } = useSWRMutation(
-    "/files/upload",
-    async (url: string, { arg: file }: { arg: File }) => {
-      const response = await apiClient.files.filesCreate({ file });
-      return response.data;
+  const fileOpt = getFilesInfiniteOptions({
+    query: {
+      name: searchQuery || undefined,
+      owner_id: initialFilters.ownerId,
+      common: initialFilters.common || undefined,
+      limit: 20,
     },
-  );
+  });
 
-  const files = data
-    ? data
-        .flatMap((page: ApiFileListResponse) => page.items || [])
-        .filter((file): file is ApiFileResponse => file !== undefined)
-    : [];
-  const hasMore =
-    data && data.length > 0 && data[data.length - 1]?.items?.length === 20;
+  const {
+    data,
+    error,
+    isLoading,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteQuery({
+    ...fileOpt,
+    getNextPageParam: (lastPage, pages) =>
+      lastPage.items?.length == 20 ? pages.length * 20 : undefined,
+  });
+
+  const uploadFileMutation = useMutation({
+    ...postFilesMutation(),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: fileOpt.queryKey });
+    },
+  });
+
+  const deleteFileMutation = useMutation({
+    ...deleteFilesByIdMutation(),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: fileOpt.queryKey });
+    },
+  });
+
+  const files = data?.pages.flatMap((page) => page.items || []) || [];
+  const hasMore = hasNextPage;
 
   const { ref } = useInfiniteScroll({
     onLoadMore: () => {
-      if (hasMore && !isValidating) {
-        setSize(size + 1);
+      if (hasMore && !isFetchingNextPage) {
+        fetchNextPage();
       }
     },
   });
@@ -129,8 +124,9 @@ export function FileTable({
     if (!file) return;
 
     try {
-      await uploadFile(file);
-      mutate(); // Refresh the file list
+      await uploadFileMutation.mutateAsync({
+        body: { file },
+      });
     } catch (error) {
       console.error("Error uploading file:", error);
     }
@@ -144,8 +140,11 @@ export function FileTable({
     if (!fileToDelete?.id) return;
 
     try {
-      await apiClient.files.filesDelete(fileToDelete.id);
-      mutate();
+      await deleteFileMutation.mutateAsync({
+        path: {
+          id: fileToDelete.id,
+        },
+      });
     } catch (error) {
       console.error("Error deleting file:", error);
     } finally {
@@ -202,15 +201,17 @@ export function FileTable({
               id="fileUpload"
               className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
               onChange={handleFileChange}
-              disabled={isUploading}
+              disabled={uploadFileMutation.isPending}
             />
             {allowUpload && (
               <Button
                 className="flex items-center gap-2"
-                disabled={isUploading}
+                disabled={uploadFileMutation.isPending}
               >
                 <Upload className="h-4 w-4" />
-                {isUploading ? "Загрузка..." : "Загрузить файл"}
+                {uploadFileMutation.isPending
+                  ? "Загрузка..."
+                  : "Загрузить файл"}
               </Button>
             )}
           </div>
@@ -251,12 +252,8 @@ export function FileTable({
                     </TableCell>
                     {showOwner && (
                       <TableCell>
-                        {file.ownerId ? (
+                        {file.ownerId && (
                           <UserAvatar userId={file.ownerId} size="sm" />
-                        ) : (
-                          <span className="text-sm text-muted-foreground">
-                            Общий файл
-                          </span>
                         )}
                       </TableCell>
                     )}
@@ -264,18 +261,16 @@ export function FileTable({
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
                         <Button
-                          variant="outline"
-                          size="sm"
+                          variant="ghost"
+                          size="icon"
                           onClick={() => handleDownload(file)}
-                          disabled={!file.downloadUrl}
                         >
                           <Download className="h-4 w-4" />
                         </Button>
                         {(allowDeleteCommon || file.ownerId) && (
                           <Button
-                            variant="outline"
-                            size="sm"
-                            className="text-destructive hover:text-destructive"
+                            variant="ghost"
+                            size="icon"
                             onClick={() => handleDelete(file)}
                           >
                             <Trash2 className="h-4 w-4" />
@@ -290,7 +285,7 @@ export function FileTable({
           </div>
           {hasMore && (
             <div ref={ref} className="h-8 flex items-center justify-center">
-              {isValidating && (
+              {isFetchingNextPage && (
                 <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
               )}
             </div>
@@ -304,7 +299,7 @@ export function FileTable({
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Удалить файл?</AlertDialogTitle>
+            <AlertDialogTitle>Удалить файл</AlertDialogTitle>
             <AlertDialogDescription>
               Вы уверены, что хотите удалить файл &quot;{fileToDelete?.fileName}
               &quot;? Это действие нельзя отменить.
@@ -314,9 +309,9 @@ export function FileTable({
             <AlertDialogCancel>Отмена</AlertDialogCancel>
             <AlertDialogAction
               onClick={confirmDelete}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              disabled={deleteFileMutation.isPending}
             >
-              Удалить
+              {deleteFileMutation.isPending ? "Удаление..." : "Удалить"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

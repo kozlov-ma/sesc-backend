@@ -1,4 +1,3 @@
-import { ApiFileResponse } from "@/lib/Api";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -9,6 +8,7 @@ import {
 import { Download, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
+import { ApiFileResponse } from "@/lib/api";
 
 interface FileNameDisplayProps {
   file: ApiFileResponse;

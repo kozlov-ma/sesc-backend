@@ -1,8 +1,23 @@
 "use client";
 
 import { useState } from "react";
-import useSWR from "swr";
-import useSWRMutation from "swr/mutation";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import type { ApiDepartment } from "@/lib/api/types.gen";
+import { ErrorMessage } from "@/components/ui/error-message";
+import { Building, MoreHorizontal, Search, Trash } from "lucide-react";
+import { toast } from "sonner";
+import { DepartmentFormDialog } from "./department-form-dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import {
   Table,
   TableBody,
@@ -19,109 +34,89 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { ApiDepartmentsResponse, ApiDepartment } from "@/lib/Api";
-import { ErrorMessage } from "@/components/ui/error-message";
-import { Building, MoreHorizontal, Search, Trash } from "lucide-react";
-import { toast } from "sonner";
-import { apiClient } from "@/lib/api-client";
-import { DepartmentFormDialog } from "./department-form-dialog";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { useErrorHandler } from "@/hooks/use-error-handler";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  getDepartmentsOptions,
+  deleteDepartmentsByIdMutation,
+} from "@/lib/api/@tanstack/react-query.gen";
+import { useFormError } from "@/hooks/use-error-handler";
 import { getErrorMessage } from "@/lib/error-handler";
 
 export function DepartmentsTable() {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [departmentFormOpen, setDepartmentFormOpen] = useState(false);
-  const [selectedDepartment, setSelectedDepartment] = useState<ApiDepartment | undefined>(undefined);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [departmentToDelete, setDepartmentToDelete] = useState<ApiDepartment | undefined>(undefined);
-  
-  const { error: tableError, handleError, clearError } = useErrorHandler();
+  const [searchQuery, setSearchQuery] = useState("");
+  const [departmentToDelete, setDepartmentToDelete] = useState<
+    ApiDepartment | undefined
+  >(undefined);
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [editingDepartment, setEditingDepartment] = useState<
+    ApiDepartment | undefined
+  >(undefined);
+  const queryClient = useQueryClient();
+  const { formError, handleFormError, clearFormError } = useFormError();
 
-  const {
-    data,
-    error,
-    isLoading,
-    mutate: mutateDepartments,
-  } = useSWR<ApiDepartmentsResponse>("/departments", 
-    async () => {
-      try {
-        const response = await apiClient.departments.departmentsList();
-        clearError();
-        return response.data;
-      } catch (err) {
-        handleError(err);
-        throw err;
-      }
+  const departmentsOpt = getDepartmentsOptions();
+  const { data, error, isLoading, isError } = useQuery(departmentsOpt);
+
+  // Handle query errors
+  if (isError && error) {
+    handleFormError(error);
+  }
+
+  // Delete department with TanStack Query mutation
+  const deleteDepartmentMutation = useMutation({
+    ...deleteDepartmentsByIdMutation(),
+    onSuccess: () => {
+      toast("Кафедра удалена", {
+        description: "Кафедра успешно удалена.",
+      });
+      queryClient.invalidateQueries({
+        queryKey: departmentsOpt.queryKey,
+      });
+      clearFormError();
     },
-    {
-      onError: (err) => {
-        handleError(err);
-      },
-    }
-  );
-
-  // Delete department with SWR mutation
-  const { trigger: deleteDepartment, isMutating: isDeleting } = useSWRMutation(
-    "delete-department",
-    async (_key: string, { arg }: { arg: string }) => {
-      try {
-        await apiClient.departments.departmentsDelete(arg);
-
-        toast("Кафедра удалена", {
-          description: "Кафедра успешно удалена.",
-        });
-
-        mutateDepartments();
-      } catch (error) {
-        handleError(error);
-        toast.error("Ошибка", {
-          description: getErrorMessage(error),
-        });
-        throw error;
-      }
+    onError: (error) => {
+      handleFormError(error);
+      toast.error("Ошибка", {
+        description: getErrorMessage(error),
+      });
     },
-    {
-      throwOnError: false,
-      onSuccess: () => {
-        clearError();
-      },
-    }
-  );
+  });
 
   const openCreateDepartmentDialog = () => {
-    setSelectedDepartment(undefined);
-    setDepartmentFormOpen(true);
+    setEditingDepartment(undefined);
+    setIsFormOpen(true);
   };
 
   const openEditDepartmentDialog = (department: ApiDepartment) => {
-    setSelectedDepartment(department);
-    setDepartmentFormOpen(true);
+    setEditingDepartment(department);
+    setIsFormOpen(true);
   };
 
   const openDeleteDialog = (department: ApiDepartment) => {
     setDepartmentToDelete(department);
-    setDeleteDialogOpen(true);
   };
 
   const handleDeleteDepartment = async () => {
     if (departmentToDelete) {
-      clearError();
-      await deleteDepartment(departmentToDelete.id);
-      setDeleteDialogOpen(false);
+      clearFormError();
+      await deleteDepartmentMutation.mutateAsync({
+        path: {
+          id: departmentToDelete.id,
+        },
+      });
     }
   };
 
   // Filter departments based on search term
-  const filteredDepartments = data?.departments.filter((department) => {
-    const searchLower = searchTerm.toLowerCase();
-    return (
-      department.name.toLowerCase().includes(searchLower) ||
-      department.description.toLowerCase().includes(searchLower)
-    );
-  });
+  const filteredDepartments = data?.departments.filter(
+    (department: ApiDepartment) => {
+      const searchLower = searchQuery.toLowerCase();
+      return (
+        department.name.toLowerCase().includes(searchLower) ||
+        department.description.toLowerCase().includes(searchLower)
+      );
+    },
+  );
 
   if (isLoading) {
     return (
@@ -133,9 +128,7 @@ export function DepartmentsTable() {
 
   return (
     <div className="space-y-4">
-      {(error || tableError) && (
-        <ErrorMessage error={error || tableError} />
-      )}
+      {(isError || formError) && <ErrorMessage error={error || formError} />}
 
       <div className="flex justify-between">
         <div className="relative w-full md:w-72">
@@ -143,8 +136,8 @@ export function DepartmentsTable() {
           <Input
             placeholder="Поиск кафедр..."
             className="pl-8"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
         <Button onClick={openCreateDepartmentDialog}>
@@ -164,9 +157,11 @@ export function DepartmentsTable() {
           </TableHeader>
           <TableBody>
             {filteredDepartments && filteredDepartments.length > 0 ? (
-              filteredDepartments.map((department) => (
+              filteredDepartments.map((department: ApiDepartment) => (
                 <TableRow key={department.id}>
-                  <TableCell className="font-medium">{department.name}</TableCell>
+                  <TableCell className="font-medium">
+                    {department.name}
+                  </TableCell>
                   <TableCell>{department.description}</TableCell>
                   <TableCell>
                     <DropdownMenu>
@@ -198,7 +193,7 @@ export function DepartmentsTable() {
             ) : (
               <TableRow>
                 <TableCell colSpan={3} className="h-24 text-center">
-                  {searchTerm ? (
+                  {searchQuery ? (
                     <span className="text-muted-foreground">
                       Кафедры не найдены
                     </span>
@@ -215,15 +210,20 @@ export function DepartmentsTable() {
       </div>
 
       <DepartmentFormDialog
-        open={departmentFormOpen}
-        onOpenChange={setDepartmentFormOpen}
-        department={selectedDepartment}
+        open={isFormOpen}
+        onOpenChange={setIsFormOpen}
+        department={editingDepartment}
         onSuccess={() => {
-          mutateDepartments();
+          queryClient.invalidateQueries({
+            queryKey: departmentsOpt.queryKey,
+          });
         }}
       />
 
-      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+      <AlertDialog
+        open={!!departmentToDelete}
+        onOpenChange={() => setDepartmentToDelete(undefined)}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Удаление кафедры</AlertDialogTitle>
@@ -233,13 +233,15 @@ export function DepartmentsTable() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={isDeleting}>Отмена</AlertDialogCancel>
+            <AlertDialogCancel disabled={deleteDepartmentMutation.isPending}>
+              Отмена
+            </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteDepartment}
-              disabled={isDeleting}
+              disabled={deleteDepartmentMutation.isPending}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              {isDeleting ? "Удаление..." : "Удалить"}
+              {deleteDepartmentMutation.isPending ? "Удаление..." : "Удалить"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

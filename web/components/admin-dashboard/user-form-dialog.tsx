@@ -1,17 +1,16 @@
 "use client";
 
 import { useEffect } from "react";
-import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import useSWRMutation from "swr/mutation";
+import * as z from "zod";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
+  DialogFooter,
 } from "@/components/ui/dialog";
 import {
   Form,
@@ -21,8 +20,10 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
+import { toast } from "sonner";
 import {
   Select,
   SelectContent,
@@ -30,17 +31,22 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
-import { useApi } from "@/hooks/use-api";
-import { toast } from "sonner";
-import { apiClient } from "@/lib/api-client";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
+  getRolesOptions,
+  getDepartmentsOptions,
+  getUsersOptions,
+  postUsersMutation,
+  patchUsersByIdMutation,
+} from "@/lib/api/@tanstack/react-query.gen";
+import { AxiosError } from "axios";
+import type {
+  PostUsersError,
+  PatchUsersByIdError,
   ApiUserResponse,
-  ApiRolesResponse,
-  ApiDepartmentsResponse,
   ApiCreateUserRequest,
   ApiPatchUserRequest,
-} from "@/lib/Api";
+} from "@/lib/api/types.gen";
 import { ErrorMessage } from "@/components/ui/error-message";
 import { useFormError } from "@/hooks/use-error-handler";
 import { getErrorMessage } from "@/lib/error-handler";
@@ -70,10 +76,15 @@ export function UserFormDialog({
   user,
   onSuccess,
 }: UserFormDialogProps) {
-  const { data: rolesData } = useApi<ApiRolesResponse>("/roles");
-  const { data: departmentsData } =
-    useApi<ApiDepartmentsResponse>("/departments");
+  const rolesOpt = getRolesOptions();
+  const departmentsOpt = getDepartmentsOptions();
+  const usersOpt = getUsersOptions();
+
+  const { data: rolesData } = useQuery(rolesOpt);
+  const { data: departmentsData } = useQuery(departmentsOpt);
+
   const { formError, clearFormError, handleFormError } = useFormError();
+  const queryClient = useQueryClient();
 
   const form = useForm<UserFormValues>({
     resolver: zodResolver(userFormSchema),
@@ -88,86 +99,43 @@ export function UserFormDialog({
     },
   });
 
-  // Create new user with SWR mutation
-  const { trigger: createUser, isMutating: isCreating } = useSWRMutation(
-    "create-user",
-    async (_key, { arg }: { arg: UserFormValues }) => {
-      try {
-        const userData: ApiCreateUserRequest = {
-          firstName: arg.firstName,
-          lastName: arg.lastName,
-          middleName: arg.middleName || undefined,
-          departmentId: arg.departmentId || undefined,
-          pictureUrl: arg.pictureUrl || undefined,
-          roleId: arg.roleId,
-        };
-
-        const response = await apiClient.users.usersCreate(userData);
-
-        toast("Пользователь создан", {
-          description: "Новый пользователь успешно создан.",
-        });
-
-        onOpenChange(false);
-        if (onSuccess) onSuccess();
-        return response.data;
-      } catch (error) {
-        handleFormError(error);
-        toast.error("Ошибка", {
-          description: getErrorMessage(error),
-        });
-        throw error;
-      }
+  // Create new user mutation
+  const createUserMutation = useMutation({
+    ...postUsersMutation(),
+    onSuccess: () => {
+      toast("Пользователь создан", {
+        description: "Новый пользователь успешно создан.",
+      });
+      queryClient.invalidateQueries({ queryKey: usersOpt.queryKey });
+      onOpenChange(false);
+      if (onSuccess) onSuccess();
     },
-    {
-      throwOnError: false,
-      onSuccess: () => {
-        clearFormError();
-      },
+    onError: (err: AxiosError<PostUsersError>) => {
+      handleFormError(err);
+      toast.error("Ошибка", {
+        description: getErrorMessage(err),
+      });
     },
-  );
+  });
 
-  // Update existing user with SWR mutation
-  const { trigger: updateUser, isMutating: isUpdating } = useSWRMutation(
-    "update-user",
-    async (_key, { arg }: { arg: UserFormValues }) => {
-      try {
-        if (!user) throw new Error("User not defined");
-
-        const userData: ApiPatchUserRequest = {
-          firstName: arg.firstName,
-          lastName: arg.lastName,
-          middleName: arg.middleName || undefined,
-          departmentId: arg.departmentId || undefined,
-          pictureUrl: arg.pictureUrl || undefined,
-          roleId: arg.roleId,
-          suspended: arg.suspended,
-        };
-
-        const response = await apiClient.users.usersPartialUpdate(user.id, userData);
-
-        toast("Пользователь обновлен", {
-          description: "Данные пользователя успешно обновлены.",
-        });
-
-        onOpenChange(false);
-        if (onSuccess) onSuccess();
-        return response.data;
-      } catch (error) {
-        handleFormError(error);
-        toast.error("Ошибка", {
-          description: getErrorMessage(error),
-        });
-        throw error;
-      }
+  // Update existing user mutation
+  const updateUserMutation = useMutation({
+    ...patchUsersByIdMutation(),
+    onSuccess: () => {
+      toast("Пользователь обновлен", {
+        description: "Данные пользователя успешно обновлены.",
+      });
+      queryClient.invalidateQueries({ queryKey: usersOpt.queryKey });
+      onOpenChange(false);
+      if (onSuccess) onSuccess();
     },
-    {
-      throwOnError: false,
-      onSuccess: () => {
-        clearFormError();
-      },
+    onError: (err: AxiosError<PatchUsersByIdError>) => {
+      handleFormError(err);
+      toast.error("Ошибка", {
+        description: getErrorMessage(err),
+      });
     },
-  );
+  });
 
   // Set form values when editing an existing user
   useEffect(() => {
@@ -198,13 +166,38 @@ export function UserFormDialog({
   const handleSubmit = async (values: UserFormValues) => {
     clearFormError();
     if (user) {
-      await updateUser(values);
+      const userData: ApiPatchUserRequest = {
+        firstName: values.firstName,
+        lastName: values.lastName,
+        middleName: values.middleName || undefined,
+        departmentId: values.departmentId || undefined,
+        pictureUrl: values.pictureUrl || undefined,
+        roleId: values.roleId,
+        suspended: values.suspended,
+      };
+      await updateUserMutation.mutateAsync({
+        path: {
+          id: user.id,
+        },
+        body: userData,
+      });
     } else {
-      await createUser(values);
+      const userData: ApiCreateUserRequest = {
+        firstName: values.firstName,
+        lastName: values.lastName,
+        middleName: values.middleName || undefined,
+        departmentId: values.departmentId || undefined,
+        pictureUrl: values.pictureUrl || undefined,
+        roleId: values.roleId,
+      };
+      await createUserMutation.mutateAsync({
+        body: userData,
+      });
     }
   };
 
-  const isLoading = isCreating || isUpdating;
+  const isLoading =
+    createUserMutation.isPending || updateUserMutation.isPending;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

@@ -11,9 +11,8 @@ import {
 import { useAuth } from "@/hooks/use-auth";
 import React from "react";
 import { AppSidebar } from "@/components/app-sidebar";
-import useSWR from "swr";
-import { ApiUserResponse } from "@/lib/Api";
-import { apiClient } from "@/lib/api-client";
+import { useQuery } from "@tanstack/react-query";
+import { getUsersMeOptions } from "@/lib/api/@tanstack/react-query.gen";
 
 const groups = [
   {
@@ -36,13 +35,10 @@ export default function DashboardLayout({
 }) {
   const { isAuthenticated, isLoading, role } = useAuth();
 
-  const { data: user } = useSWR<ApiUserResponse>(
-    isAuthenticated ? "/users/me" : null,
-    async () => {
-      const response = await apiClient.users.getUsers();
-      return response.data;
-    },
-  );
+  const { data: user } = useQuery({
+    ...getUsersMeOptions(),
+    enabled: isAuthenticated,
+  });
 
   if (!isAuthenticated || isLoading || role === "admin") {
     return null;

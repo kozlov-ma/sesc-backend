@@ -1,9 +1,11 @@
 "use client";
+
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { motion } from "framer-motion";
-import type { ApiCredentialsRequest } from "@/lib/Api";
+import { useMutation } from "@tanstack/react-query";
+import { postAuthAdminLoginMutation } from "@/lib/api/@tanstack/react-query.gen";
 import { useAuth } from "@/hooks/use-auth";
 import { ErrorMessage } from "@/components/ui/error-message";
 import { Button } from "@/components/ui/button";
@@ -17,6 +19,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { useRouter } from "next/navigation";
 
 // Схема валидации для формы входа администратора
 const adminLoginSchema = z.object({
@@ -31,7 +34,8 @@ const adminLoginSchema = z.object({
 type AdminLoginFormValues = z.infer<typeof adminLoginSchema>;
 
 export function AdminLoginForm() {
-  const { loginAdmin, isLoading, resetLoginAdminError } = useAuth();
+  const { push } = useRouter();
+  const { setAuth } = useAuth();
   const { formError, clearFormError, handleFormError } = useFormError();
 
   const form = useForm<AdminLoginFormValues>({
@@ -42,19 +46,25 @@ export function AdminLoginForm() {
     },
   });
 
+  const loginMutation = useMutation({
+    ...postAuthAdminLoginMutation(),
+    onSuccess: (response) => {
+      setAuth(response.token, "admin");
+      push("/admin/dashboard");
+    },
+    onError: (error) => {
+      handleFormError(error);
+    },
+  });
+
   const onSubmit = async (data: AdminLoginFormValues) => {
     clearFormError();
-    resetLoginAdminError();
-
-    try {
-      const adminCreds: ApiCredentialsRequest = {
+    await loginMutation.mutateAsync({
+      body: {
         username: data.username,
         password: data.password,
-      };
-      await loginAdmin(adminCreds);
-    } catch (error) {
-      handleFormError(error);
-    }
+      },
+    });
   };
 
   return (
@@ -78,7 +88,7 @@ export function AdminLoginForm() {
                   <Input
                     placeholder="Имя администратора"
                     {...field}
-                    disabled={isLoading}
+                    disabled={loginMutation.isPending}
                   />
                 </FormControl>
                 <FormMessage />
@@ -96,15 +106,15 @@ export function AdminLoginForm() {
                     type="password"
                     placeholder="Пароль администратора"
                     {...field}
-                    disabled={isLoading}
+                    disabled={loginMutation.isPending}
                   />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
-          <Button type="submit" className="w-full" disabled={isLoading}>
-            {isLoading ? "Вход..." : "Войти как администратор"}
+          <Button type="submit" className="w-full" disabled={loginMutation.isPending}>
+            {loginMutation.isPending ? "Вход..." : "Войти как администратор"}
           </Button>
         </form>
       </Form>

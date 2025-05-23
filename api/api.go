@@ -16,14 +16,6 @@ import (
 	httpSwagger "github.com/swaggo/http-swagger"
 )
 
-// @title SESC Management API
-// @version 1.0
-// @description API for managing SESC departments, users and permissions
-// @securityDefinitions.apikey BearerAuth
-// @in header
-// @name Authorization
-// @description Enter 'Bearer ' followed by your token
-
 type API struct {
 	sesc      SESC
 	iam       IAMService

@@ -1,11 +1,10 @@
-import { ApiUserResponse } from "@/lib/Api";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useState, useEffect } from "react";
 import { User } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Skeleton } from "@/components/ui/skeleton";
-import { apiClient } from "@/lib/api-client";
+import { useQuery } from "@tanstack/react-query";
+import { getUsersByIdOptions } from "@/lib/api/@tanstack/react-query.gen";
 
 interface UserAvatarProps {
   userId: string | null;
@@ -15,29 +14,14 @@ interface UserAvatarProps {
 }
 
 export function UserAvatar({ userId, size = "md", showName = true, className }: UserAvatarProps) {
-  const [user, setUser] = useState<ApiUserResponse | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  
-  useEffect(() => {
-    if (!userId) return;
-    
-    const fetchUser = async () => {
-      setLoading(true);
-      try {
-        const response = await apiClient.users.usersDetail(userId);
-        setUser(response.data);
-        setError(null);
-      } catch (err) {
-        setError("Ошибка загрузки данных пользователя");
-        console.error("Error fetching user data:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    
-    fetchUser();
-  }, [userId]);
+  const { data: user, isLoading, error } = useQuery({
+    ...getUsersByIdOptions({
+      path: {
+        id: userId!,
+      },
+    }),
+    enabled: !!userId,
+  });
   
   // Size classes mapping
   const sizeClasses = {
@@ -69,7 +53,7 @@ export function UserAvatar({ userId, size = "md", showName = true, className }: 
     </div>
   ) : null;
   
-  if (loading) {
+  if (isLoading) {
     return (
       <div className={cn("flex items-center", className)}>
         <Skeleton className={cn("rounded-full", sizeClasses[size].avatar)} />

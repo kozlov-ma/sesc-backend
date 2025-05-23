@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import useSWRMutation from "swr/mutation";
+import { useMutation } from "@tanstack/react-query";
 import {
   Dialog,
   DialogContent,
@@ -25,15 +25,11 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { apiClient } from "@/lib/api-client";
-import {
-  ApiDepartment,
-  ApiCreateDepartmentRequest,
-  ApiUpdateDepartmentRequest,
-} from "@/lib/Api";
+import type { ApiDepartment } from "@/lib/api/types.gen";
 import { ErrorMessage } from "@/components/ui/error-message";
 import { useFormError } from "@/hooks/use-error-handler";
 import { getErrorMessage } from "@/lib/error-handler";
+import { postDepartmentsMutation, putDepartmentsByIdMutation } from "@/lib/api/@tanstack/react-query.gen";
 
 const departmentFormSchema = z.object({
   name: z.string().min(1, "Введите название кафедры"),
@@ -65,77 +61,43 @@ export function DepartmentFormDialog({
     },
   });
 
-  // Create new department with SWR mutation
-  const { trigger: createDepartment, isMutating: isCreating } = useSWRMutation(
-    "create-department",
-    async (_key, { arg }: { arg: DepartmentFormValues }) => {
-      try {
-        const departmentData: ApiCreateDepartmentRequest = {
-          name: arg.name,
-          description: arg.description,
-        };
-
-        const response = await apiClient.departments.departmentsCreate(departmentData);
-
-        toast("Кафедра создана", {
-          description: "Новая кафедра успешно создана.",
-        });
-
-        onOpenChange(false);
-        if (onSuccess) onSuccess();
-        return response.data;
-      } catch (error) {
-        handleFormError(error);
-        toast.error("Ошибка", {
-          description: getErrorMessage(error),
-        });
-        throw error;
-      }
+  // Create new department with TanStack Query mutation
+  const createDepartmentMutation = useMutation({
+    ...postDepartmentsMutation(),
+    onSuccess: () => {
+      toast("Кафедра создана", {
+        description: "Новая кафедра успешно создана.",
+      });
+      onOpenChange(false);
+      if (onSuccess) onSuccess();
+      clearFormError();
     },
-    {
-      throwOnError: false,
-      onSuccess: () => {
-        clearFormError();
-      },
+    onError: (error) => {
+      handleFormError(error);
+      toast.error("Ошибка", {
+        description: getErrorMessage(error),
+      });
     },
-  );
+  });
 
-  // Update existing department with SWR mutation
-  const { trigger: updateDepartment, isMutating: isUpdating } = useSWRMutation(
-    "update-department",
-    async (_key, { arg }: { arg: DepartmentFormValues }) => {
-      try {
-        if (!department) throw new Error("Department not defined");
-
-        const departmentData: ApiUpdateDepartmentRequest = {
-          name: arg.name,
-          description: arg.description,
-        };
-
-        const response = await apiClient.departments.departmentsUpdate(department.id, departmentData);
-
-        toast("Кафедра обновлена", {
-          description: "Данные кафедры успешно обновлены.",
-        });
-
-        onOpenChange(false);
-        if (onSuccess) onSuccess();
-        return response.data;
-      } catch (error) {
-        handleFormError(error);
-        toast.error("Ошибка", {
-          description: getErrorMessage(error),
-        });
-        throw error;
-      }
+  // Update existing department with TanStack Query mutation
+  const updateDepartmentMutation = useMutation({
+    ...putDepartmentsByIdMutation(),
+    onSuccess: () => {
+      toast("Кафедра обновлена", {
+        description: "Данные кафедры успешно обновлены.",
+      });
+      onOpenChange(false);
+      if (onSuccess) onSuccess();
+      clearFormError();
     },
-    {
-      throwOnError: false,
-      onSuccess: () => {
-        clearFormError();
-      },
+    onError: (error) => {
+      handleFormError(error);
+      toast.error("Ошибка", {
+        description: getErrorMessage(error),
+      });
     },
-  );
+  });
 
   // Set form values when editing an existing department
   useEffect(() => {
@@ -156,13 +118,26 @@ export function DepartmentFormDialog({
   const handleSubmit = async (values: DepartmentFormValues) => {
     clearFormError();
     if (department) {
-      await updateDepartment(values);
+      await updateDepartmentMutation.mutateAsync({
+        path: {
+          id: department.id,
+        },
+        body: {
+          name: values.name,
+          description: values.description,
+        },
+      });
     } else {
-      await createDepartment(values);
+      await createDepartmentMutation.mutateAsync({
+        body: {
+          name: values.name,
+          description: values.description,
+        },
+      });
     }
   };
 
-  const isLoading = isCreating || isUpdating;
+  const isLoading = createDepartmentMutation.isPending || updateDepartmentMutation.isPending;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -206,10 +181,10 @@ export function DepartmentFormDialog({
                 <FormItem>
                   <FormLabel>Описание кафедры</FormLabel>
                   <FormControl>
-                    <Textarea 
+                    <Textarea
                       placeholder="Описание кафедры"
                       className="resize-none"
-                      {...field} 
+                      {...field}
                     />
                   </FormControl>
                   <FormMessage />
@@ -227,7 +202,13 @@ export function DepartmentFormDialog({
                 Отмена
               </Button>
               <Button type="submit" disabled={isLoading}>
-                {isLoading ? "Сохранение..." : "Сохранить"}
+                {isLoading
+                  ? department
+                    ? "Сохранение..."
+                    : "Создание..."
+                  : department
+                  ? "Сохранить"
+                  : "Создать"}
               </Button>
             </DialogFooter>
           </form>
