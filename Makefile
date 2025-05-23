@@ -18,7 +18,7 @@ down:
 
 # Format the go files
 fmt:
-	golangci-lint fmt ./...
+	go tool golangci-lint fmt ./...
 
 # Stop and remove all containers and volumes
 clean:
@@ -26,7 +26,7 @@ clean:
 
 # Run linting
 lint:
-	golangci-lint run ./...
+	go tool golangci-lint run ./...
 
 # Run tests
 test:
