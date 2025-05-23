@@ -26,3 +26,6 @@ go.work.sum
 
 # MacOS files
 .DS_Store
+
+# Node.js dependencies
+node_modules/
