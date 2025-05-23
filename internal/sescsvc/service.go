@@ -981,7 +981,7 @@ func (s *SESC) User(ctx context.Context, id UUID) (User, error) {
 	return s.UserByID(ctx, id)
 }
 
-// AchievementGroups Methods
+// AchievementGroups gets all achievement groups with optional filtering.
 func (s *SESC) AchievementGroups(
 	ctx context.Context,
 	options AchievementGroupSearchOptions,
@@ -1023,6 +1023,8 @@ func (s *SESC) AchievementGroups(
 	return result, nil
 }
 
+// AchievementGroupByID gets an achievement group by its ID.
+// Returns sesc.ErrAchievementGroupNotFound if the group does not exist.
 func (s *SESC) AchievementGroupByID(ctx context.Context, id UUID) (AchievementGroup, error) {
 	rec := event.Get(ctx).Sub("sesc/achievement_group_by_id")
 	rec.Add("group_id", id)
@@ -1031,7 +1033,7 @@ func (s *SESC) AchievementGroupByID(ctx context.Context, id UUID) (AchievementGr
 	if err != nil {
 		if ent.IsNotFound(err) {
 			rec.Add(events.Error, "achievement group not found")
-			return AchievementGroup{}, sesc.ErrDepartmentNotFound // Reusing similar error
+			return AchievementGroup{}, sesc.ErrAchievementGroupNotFound
 		}
 		rec.Add(events.Error, fmt.Errorf("failed to get achievement group: %w", err))
 		return AchievementGroup{}, err
@@ -1045,6 +1047,7 @@ func (s *SESC) AchievementGroupByID(ctx context.Context, id UUID) (AchievementGr
 	}, nil
 }
 
+// CreateAchievementGroup creates a new achievement group with auto-generated ID.
 func (s *SESC) CreateAchievementGroup(
 	ctx context.Context,
 	options AchievementGroupCreateOptions,
@@ -1080,6 +1083,8 @@ func (s *SESC) CreateAchievementGroup(
 	return result, nil
 }
 
+// UpdateAchievementGroup updates an existing achievement group.
+// Returns sesc.ErrAchievementGroupNotFound if the group does not exist.
 func (s *SESC) UpdateAchievementGroup(
 	ctx context.Context,
 	id UUID,
@@ -1096,7 +1101,7 @@ func (s *SESC) UpdateAchievementGroup(
 	}
 	if !exists {
 		rec.Add(events.Error, "achievement group not found")
-		return AchievementGroup{}, sesc.ErrDepartmentNotFound // Reusing similar error
+		return AchievementGroup{}, sesc.ErrAchievementGroupNotFound
 	}
 
 	update := s.client.AchievementGroup.UpdateOneID(id)
@@ -1128,8 +1133,7 @@ func (s *SESC) UpdateAchievementGroup(
 	return result, nil
 }
 
-// Achievement Template Methods
-
+// AchievementTemplates gets all achievement templates with optional filtering.
 func (s *SESC) AchievementTemplates(
 	ctx context.Context,
 	options AchievementTemplateSearchOptions,
@@ -1174,6 +1178,8 @@ func (s *SESC) AchievementTemplates(
 	return result, nil
 }
 
+// AchievementTemplateByID gets an achievement template by its ID.
+// Returns sesc.ErrAchievementTemplateNotFound if the template does not exist.
 func (s *SESC) AchievementTemplateByID(ctx context.Context, id UUID) (AchievementTemplate, error) {
 	rec := event.Get(ctx).Sub("sesc/achievement_template_by_id")
 	rec.Add("template_id", id)
@@ -1182,7 +1188,7 @@ func (s *SESC) AchievementTemplateByID(ctx context.Context, id UUID) (Achievemen
 	if err != nil {
 		if ent.IsNotFound(err) {
 			rec.Add(events.Error, "achievement template not found")
-			return AchievementTemplate{}, sesc.ErrDepartmentNotFound // Reusing similar error
+			return AchievementTemplate{}, sesc.ErrAchievementTemplateNotFound
 		}
 		rec.Add(events.Error, fmt.Errorf("failed to get achievement template: %w", err))
 		return AchievementTemplate{}, err
@@ -1199,6 +1205,8 @@ func (s *SESC) AchievementTemplateByID(ctx context.Context, id UUID) (Achievemen
 	}, nil
 }
 
+// CreateAchievementTemplate creates a new achievement template with auto-generated ID.
+// Returns sesc.ErrAchievementGroupNotFound if the specified group does not exist.
 func (s *SESC) CreateAchievementTemplate(
 	ctx context.Context,
 	options AchievementTemplateCreateOptions,
@@ -1215,7 +1223,7 @@ func (s *SESC) CreateAchievementTemplate(
 	}
 	if !exists {
 		rec.Add(events.Error, "achievement group not found")
-		return AchievementTemplate{}, sesc.ErrDepartmentNotFound // Reusing similar error
+		return AchievementTemplate{}, sesc.ErrAchievementGroupNotFound
 	}
 
 	id, err := s.newUUID()
@@ -1252,6 +1260,9 @@ func (s *SESC) CreateAchievementTemplate(
 	return result, nil
 }
 
+// UpdateAchievementTemplate updates an existing achievement template.
+// Returns sesc.ErrAchievementTemplateNotFound if the template does not exist.
+// Returns sesc.ErrAchievementGroupNotFound if the specified group does not exist.
 func (s *SESC) UpdateAchievementTemplate(
 	ctx context.Context,
 	id UUID,
@@ -1268,7 +1279,7 @@ func (s *SESC) UpdateAchievementTemplate(
 	}
 	if !exists {
 		rec.Add(events.Error, "achievement template not found")
-		return AchievementTemplate{}, sesc.ErrDepartmentNotFound // Reusing similar error
+		return AchievementTemplate{}, sesc.ErrAchievementTemplateNotFound
 	}
 
 	// If GroupID is being updated, validate the new group exists
@@ -1280,7 +1291,7 @@ func (s *SESC) UpdateAchievementTemplate(
 		}
 		if !groupExists {
 			rec.Add(events.Error, "achievement group not found")
-			return AchievementTemplate{}, sesc.ErrDepartmentNotFound // Reusing similar error
+			return AchievementTemplate{}, sesc.ErrAchievementGroupNotFound
 		}
 	}
 

@@ -625,7 +625,7 @@ func TestAchievementGroupByID(t *testing.T) {
 		ctx, svc, _ := setup(t)
 
 		_, err := svc.AchievementGroupByID(ctx, uuid.Must(uuid.NewV7()))
-		require.ErrorIs(t, err, sesc.ErrDepartmentNotFound)
+		require.ErrorIs(t, err, sesc.ErrAchievementGroupNotFound)
 	})
 }
 
@@ -742,7 +742,7 @@ func TestUpdateAchievementGroup(t *testing.T) {
 
 		opts := AchievementGroupUpdateOptions{}
 		_, err := svc.UpdateAchievementGroup(ctx, uuid.Must(uuid.NewV7()), opts)
-		require.ErrorIs(t, err, sesc.ErrDepartmentNotFound)
+		require.ErrorIs(t, err, sesc.ErrAchievementGroupNotFound)
 	})
 }
 
@@ -798,7 +798,7 @@ func TestCreateAchievementTemplate(t *testing.T) {
 		}
 
 		_, err := svc.CreateAchievementTemplate(ctx, opts)
-		require.ErrorIs(t, err, sesc.ErrDepartmentNotFound)
+		require.ErrorIs(t, err, sesc.ErrAchievementGroupNotFound)
 	})
 }
 
@@ -842,7 +842,7 @@ func TestAchievementTemplateByID(t *testing.T) {
 		ctx, svc, _ := setup(t)
 
 		_, err := svc.AchievementTemplateByID(ctx, uuid.Must(uuid.NewV7()))
-		require.ErrorIs(t, err, sesc.ErrDepartmentNotFound)
+		require.ErrorIs(t, err, sesc.ErrAchievementTemplateNotFound)
 	})
 }
 
@@ -987,7 +987,7 @@ func TestUpdateAchievementTemplate(t *testing.T) {
 
 		opts := AchievementTemplateUpdateOptions{}
 		_, err := svc.UpdateAchievementTemplate(ctx, uuid.Must(uuid.NewV7()), opts)
-		require.ErrorIs(t, err, sesc.ErrDepartmentNotFound)
+		require.ErrorIs(t, err, sesc.ErrAchievementTemplateNotFound)
 	})
 
 	t.Run("invalid group", func(t *testing.T) {
@@ -999,6 +999,6 @@ func TestUpdateAchievementTemplate(t *testing.T) {
 		}
 
 		_, err := svc.UpdateAchievementTemplate(ctx, templateID, opts)
-		require.ErrorIs(t, err, sesc.ErrDepartmentNotFound)
+		require.ErrorIs(t, err, sesc.ErrAchievementGroupNotFound)
 	})
 }

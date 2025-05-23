@@ -296,7 +296,7 @@ func (a *API) CreateAchievementTemplate(w http.ResponseWriter, r *http.Request) 
 	if err != nil {
 		rec.Add(events.Error, err)
 		// Check if it's a group not found error
-		if errors.Is(err, sesc.ErrDepartmentNotFound) {
+		if errors.Is(err, sesc.ErrAchievementGroupNotFound) {
 			writeError(ctx, w, GroupNotFoundError{
 				Code:      "GROUP_NOT_FOUND",
 				Message:   "Achievement group not found",
@@ -373,7 +373,7 @@ func (a *API) PatchAchievementGroup(w http.ResponseWriter, r *http.Request) {
 	group, err := a.sesc.UpdateAchievementGroup(ctx, groupID, options)
 	if err != nil {
 		rec.Add(events.Error, err)
-		if errors.Is(err, sesc.ErrDepartmentNotFound) {
+		if errors.Is(err, sesc.ErrAchievementGroupNotFound) {
 			writeError(ctx, w, GroupNotFoundError{
 				Code:      "GROUP_NOT_FOUND",
 				Message:   "Achievement group not found",
@@ -464,11 +464,19 @@ func (a *API) PatchAchievementTemplate(w http.ResponseWriter, r *http.Request) {
 	template, err := a.sesc.UpdateAchievementTemplate(ctx, templateID, options)
 	if err != nil {
 		rec.Add(events.Error, err)
-		if errors.Is(err, sesc.ErrDepartmentNotFound) {
+		if errors.Is(err, sesc.ErrAchievementTemplateNotFound) {
 			writeError(ctx, w, AchievementTemplateNotFoundError{
 				Code:      "ACHIEVEMENT_TEMPLATE_NOT_FOUND",
 				Message:   "Achievement template not found",
 				RuMessage: "Шаблон достижения не найден",
+			}.WithStatus(http.StatusNotFound))
+			return
+		}
+		if errors.Is(err, sesc.ErrAchievementGroupNotFound) {
+			writeError(ctx, w, GroupNotFoundError{
+				Code:      "GROUP_NOT_FOUND",
+				Message:   "Achievement group not found",
+				RuMessage: "Группа достижений не найдена",
 			}.WithStatus(http.StatusNotFound))
 			return
 		}
