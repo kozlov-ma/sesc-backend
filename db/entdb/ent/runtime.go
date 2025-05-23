@@ -4,6 +4,8 @@ package ent
 
 import (
 	uuid "github.com/gofrs/uuid/v5"
+	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievementgroup"
+	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievementtemplate"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/authuser"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/department"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/file"
@@ -15,6 +17,66 @@ import (
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
+	achievementgroupFields := schema.AchievementGroup{}.Fields()
+	_ = achievementgroupFields
+	// achievementgroupDescName is the schema descriptor for name field.
+	achievementgroupDescName := achievementgroupFields[1].Descriptor()
+	// achievementgroup.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	achievementgroup.NameValidator = func() func(string) error {
+		validators := achievementgroupDescName.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(name string) error {
+			for _, fn := range fns {
+				if err := fn(name); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// achievementgroupDescActive is the schema descriptor for active field.
+	achievementgroupDescActive := achievementgroupFields[3].Descriptor()
+	// achievementgroup.DefaultActive holds the default value on creation for the active field.
+	achievementgroup.DefaultActive = achievementgroupDescActive.Default.(bool)
+	// achievementgroupDescID is the schema descriptor for id field.
+	achievementgroupDescID := achievementgroupFields[0].Descriptor()
+	// achievementgroup.DefaultID holds the default value on creation for the id field.
+	achievementgroup.DefaultID = achievementgroupDescID.Default.(func() uuid.UUID)
+	achievementtemplateFields := schema.AchievementTemplate{}.Fields()
+	_ = achievementtemplateFields
+	// achievementtemplateDescName is the schema descriptor for name field.
+	achievementtemplateDescName := achievementtemplateFields[1].Descriptor()
+	// achievementtemplate.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	achievementtemplate.NameValidator = func() func(string) error {
+		validators := achievementtemplateDescName.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(name string) error {
+			for _, fn := range fns {
+				if err := fn(name); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// achievementtemplateDescPointsLimit is the schema descriptor for points_limit field.
+	achievementtemplateDescPointsLimit := achievementtemplateFields[3].Descriptor()
+	// achievementtemplate.PointsLimitValidator is a validator for the "points_limit" field. It is called by the builders before save.
+	achievementtemplate.PointsLimitValidator = achievementtemplateDescPointsLimit.Validators[0].(func(int32) error)
+	// achievementtemplateDescActive is the schema descriptor for active field.
+	achievementtemplateDescActive := achievementtemplateFields[5].Descriptor()
+	// achievementtemplate.DefaultActive holds the default value on creation for the active field.
+	achievementtemplate.DefaultActive = achievementtemplateDescActive.Default.(bool)
+	// achievementtemplateDescID is the schema descriptor for id field.
+	achievementtemplateDescID := achievementtemplateFields[0].Descriptor()
+	// achievementtemplate.DefaultID holds the default value on creation for the id field.
+	achievementtemplate.DefaultID = achievementtemplateDescID.Default.(func() uuid.UUID)
 	authuserFields := schema.AuthUser{}.Fields()
 	_ = authuserFields
 	// authuserDescUsername is the schema descriptor for username field.

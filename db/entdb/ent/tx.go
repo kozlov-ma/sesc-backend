@@ -12,6 +12,10 @@ import (
 // Tx is a transactional client that is created by calling Client.Tx().
 type Tx struct {
 	config
+	// AchievementGroup is the client for interacting with the AchievementGroup builders.
+	AchievementGroup *AchievementGroupClient
+	// AchievementTemplate is the client for interacting with the AchievementTemplate builders.
+	AchievementTemplate *AchievementTemplateClient
 	// AuthUser is the client for interacting with the AuthUser builders.
 	AuthUser *AuthUserClient
 	// Department is the client for interacting with the Department builders.
@@ -151,6 +155,8 @@ func (tx *Tx) Client() *Client {
 }
 
 func (tx *Tx) init() {
+	tx.AchievementGroup = NewAchievementGroupClient(tx.config)
+	tx.AchievementTemplate = NewAchievementTemplateClient(tx.config)
 	tx.AuthUser = NewAuthUserClient(tx.config)
 	tx.Department = NewDepartmentClient(tx.config)
 	tx.File = NewFileClient(tx.config)
@@ -164,7 +170,7 @@ func (tx *Tx) init() {
 // of them in order to commit or rollback the transaction.
 //
 // If a closed transaction is embedded in one of the generated entities, and the entity
-// applies a query, for example: AuthUser.QueryXXX(), the query will be executed
+// applies a query, for example: AchievementGroup.QueryXXX(), the query will be executed
 // through the driver which created this transaction.
 //
 // Note that txDriver is not goroutine safe.

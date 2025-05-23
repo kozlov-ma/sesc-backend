@@ -5,10 +5,13 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/gofrs/uuid/v5"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent"
+	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievementgroup"
+	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievementtemplate"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/user"
 	"github.com/kozlov-ma/sesc-backend/pkg/event"
 	"github.com/kozlov-ma/sesc-backend/pkg/event/events"
@@ -16,12 +19,20 @@ import (
 )
 
 type (
-	UUID              = uuid.UUID
-	User              = sesc.User
-	Department        = sesc.Department
-	Role              = sesc.Role
-	Permission        = sesc.Permission
-	UserUpdateOptions = sesc.UserUpdateOptions
+	UUID                             = uuid.UUID
+	User                             = sesc.User
+	Department                       = sesc.Department
+	Role                             = sesc.Role
+	Permission                       = sesc.Permission
+	UserUpdateOptions                = sesc.UserUpdateOptions
+	AchievementGroup                 = sesc.AchievementGroup
+	AchievementTemplate              = sesc.AchievementTemplate
+	AchievementGroupCreateOptions    = sesc.AchievementGroupCreateOptions
+	AchievementGroupUpdateOptions    = sesc.AchievementGroupUpdateOptions
+	AchievementGroupSearchOptions    = sesc.AchievementGroupSearchOptions
+	AchievementTemplateCreateOptions = sesc.AchievementTemplateCreateOptions
+	AchievementTemplateUpdateOptions = sesc.AchievementTemplateUpdateOptions
+	AchievementTemplateSearchOptions = sesc.AchievementTemplateSearchOptions
 )
 
 type SESC struct {
@@ -968,4 +979,348 @@ func (s *SESC) User(ctx context.Context, id UUID) (User, error) {
 	// Create a wrapped context for UserByID
 	ctx = rec.Sub("user_by_id").Wrap(ctx)
 	return s.UserByID(ctx, id)
+}
+
+// AchievementGroups Methods
+func (s *SESC) AchievementGroups(
+	ctx context.Context,
+	options AchievementGroupSearchOptions,
+) ([]AchievementGroup, error) {
+	rec := event.Get(ctx).Sub("sesc/achievement_groups")
+
+	query := s.client.AchievementGroup.Query()
+
+	// Apply filters
+	if !options.ShowInactive {
+		query = query.Where(achievementgroup.Active(true))
+	}
+
+	if options.Search != "" {
+		searchTerm := strings.ToLower(options.Search)
+		query = query.Where(achievementgroup.Or(
+			achievementgroup.NameContainsFold(searchTerm),
+			achievementgroup.DescriptionContainsFold(searchTerm),
+		))
+	}
+
+	groups, err := query.All(ctx)
+	if err != nil {
+		rec.Add(events.Error, fmt.Errorf("failed to query achievement groups: %w", err))
+		return nil, err
+	}
+
+	result := make([]AchievementGroup, 0, len(groups))
+	for _, g := range groups {
+		result = append(result, AchievementGroup{
+			ID:          g.ID,
+			Name:        g.Name,
+			Description: g.Description,
+			Active:      g.Active,
+		})
+	}
+
+	rec.Add("groups_count", len(result))
+	return result, nil
+}
+
+func (s *SESC) AchievementGroupByID(ctx context.Context, id UUID) (AchievementGroup, error) {
+	rec := event.Get(ctx).Sub("sesc/achievement_group_by_id")
+	rec.Add("group_id", id)
+
+	group, err := s.client.AchievementGroup.Get(ctx, id)
+	if err != nil {
+		if ent.IsNotFound(err) {
+			rec.Add(events.Error, "achievement group not found")
+			return AchievementGroup{}, sesc.ErrDepartmentNotFound // Reusing similar error
+		}
+		rec.Add(events.Error, fmt.Errorf("failed to get achievement group: %w", err))
+		return AchievementGroup{}, err
+	}
+
+	return AchievementGroup{
+		ID:          group.ID,
+		Name:        group.Name,
+		Description: group.Description,
+		Active:      group.Active,
+	}, nil
+}
+
+func (s *SESC) CreateAchievementGroup(
+	ctx context.Context,
+	options AchievementGroupCreateOptions,
+) (AchievementGroup, error) {
+	rec := event.Get(ctx).Sub("sesc/create_achievement_group")
+	rec.Add("group_name", options.Name)
+
+	id, err := s.newUUID()
+	if err != nil {
+		rec.Add(events.Error, fmt.Errorf("failed to generate ID: %w", err))
+		return AchievementGroup{}, err
+	}
+	rec.Add("generated_id", id)
+
+	group, err := s.client.AchievementGroup.Create().
+		SetID(id).
+		SetName(options.Name).
+		SetDescription(options.Description).
+		Save(ctx)
+	if err != nil {
+		rec.Add(events.Error, fmt.Errorf("failed to create achievement group: %w", err))
+		return AchievementGroup{}, err
+	}
+
+	result := AchievementGroup{
+		ID:          group.ID,
+		Name:        group.Name,
+		Description: group.Description,
+		Active:      group.Active,
+	}
+
+	rec.Add("created_group", result)
+	return result, nil
+}
+
+func (s *SESC) UpdateAchievementGroup(
+	ctx context.Context,
+	id UUID,
+	options AchievementGroupUpdateOptions,
+) (AchievementGroup, error) {
+	rec := event.Get(ctx).Sub("sesc/update_achievement_group")
+	rec.Add("group_id", id)
+
+	// Check if group exists
+	exists, err := s.client.AchievementGroup.Query().Where(achievementgroup.ID(id)).Exist(ctx)
+	if err != nil {
+		rec.Add(events.Error, fmt.Errorf("failed to check achievement group existence: %w", err))
+		return AchievementGroup{}, err
+	}
+	if !exists {
+		rec.Add(events.Error, "achievement group not found")
+		return AchievementGroup{}, sesc.ErrDepartmentNotFound // Reusing similar error
+	}
+
+	update := s.client.AchievementGroup.UpdateOneID(id)
+
+	if options.Name != nil {
+		update = update.SetName(*options.Name)
+	}
+	if options.Description != nil {
+		update = update.SetDescription(*options.Description)
+	}
+	if options.Active != nil {
+		update = update.SetActive(*options.Active)
+	}
+
+	group, err := update.Save(ctx)
+	if err != nil {
+		rec.Add(events.Error, fmt.Errorf("failed to update achievement group: %w", err))
+		return AchievementGroup{}, err
+	}
+
+	result := AchievementGroup{
+		ID:          group.ID,
+		Name:        group.Name,
+		Description: group.Description,
+		Active:      group.Active,
+	}
+
+	rec.Add("updated_group", result)
+	return result, nil
+}
+
+// Achievement Template Methods
+
+func (s *SESC) AchievementTemplates(
+	ctx context.Context,
+	options AchievementTemplateSearchOptions,
+) ([]AchievementTemplate, error) {
+	rec := event.Get(ctx).Sub("sesc/achievement_templates")
+
+	query := s.client.AchievementTemplate.Query()
+
+	// Apply filters
+	if !options.ShowInactive {
+		query = query.Where(achievementtemplate.Active(true))
+	}
+
+	if options.Search != "" {
+		searchTerm := strings.ToLower(options.Search)
+		query = query.Where(achievementtemplate.Or(
+			achievementtemplate.NameContainsFold(searchTerm),
+			achievementtemplate.DescriptionContainsFold(searchTerm),
+		))
+	}
+
+	templates, err := query.All(ctx)
+	if err != nil {
+		rec.Add(events.Error, fmt.Errorf("failed to query achievement templates: %w", err))
+		return nil, err
+	}
+
+	result := make([]AchievementTemplate, 0, len(templates))
+	for _, t := range templates {
+		result = append(result, AchievementTemplate{
+			ID:          t.ID,
+			Name:        t.Name,
+			Description: t.Description,
+			PointsLimit: t.PointsLimit,
+			GroupID:     t.GroupID,
+			Active:      t.Active,
+			Kind:        string(t.Kind),
+		})
+	}
+
+	rec.Add("templates_count", len(result))
+	return result, nil
+}
+
+func (s *SESC) AchievementTemplateByID(ctx context.Context, id UUID) (AchievementTemplate, error) {
+	rec := event.Get(ctx).Sub("sesc/achievement_template_by_id")
+	rec.Add("template_id", id)
+
+	template, err := s.client.AchievementTemplate.Get(ctx, id)
+	if err != nil {
+		if ent.IsNotFound(err) {
+			rec.Add(events.Error, "achievement template not found")
+			return AchievementTemplate{}, sesc.ErrDepartmentNotFound // Reusing similar error
+		}
+		rec.Add(events.Error, fmt.Errorf("failed to get achievement template: %w", err))
+		return AchievementTemplate{}, err
+	}
+
+	return AchievementTemplate{
+		ID:          template.ID,
+		Name:        template.Name,
+		Description: template.Description,
+		PointsLimit: template.PointsLimit,
+		GroupID:     template.GroupID,
+		Active:      template.Active,
+		Kind:        string(template.Kind),
+	}, nil
+}
+
+func (s *SESC) CreateAchievementTemplate(
+	ctx context.Context,
+	options AchievementTemplateCreateOptions,
+) (AchievementTemplate, error) {
+	rec := event.Get(ctx).Sub("sesc/create_achievement_template")
+	rec.Add("template_name", options.Name)
+	rec.Add("group_id", options.GroupID)
+
+	// Validate that the group exists
+	exists, err := s.client.AchievementGroup.Query().Where(achievementgroup.ID(options.GroupID)).Exist(ctx)
+	if err != nil {
+		rec.Add(events.Error, fmt.Errorf("failed to check achievement group existence: %w", err))
+		return AchievementTemplate{}, err
+	}
+	if !exists {
+		rec.Add(events.Error, "achievement group not found")
+		return AchievementTemplate{}, sesc.ErrDepartmentNotFound // Reusing similar error
+	}
+
+	id, err := s.newUUID()
+	if err != nil {
+		rec.Add(events.Error, fmt.Errorf("failed to generate ID: %w", err))
+		return AchievementTemplate{}, err
+	}
+	rec.Add("generated_id", id)
+
+	template, err := s.client.AchievementTemplate.Create().
+		SetID(id).
+		SetName(options.Name).
+		SetDescription(options.Description).
+		SetPointsLimit(options.PointsLimit).
+		SetGroupID(options.GroupID).
+		SetKind(achievementtemplate.Kind(options.Kind)).
+		Save(ctx)
+	if err != nil {
+		rec.Add(events.Error, fmt.Errorf("failed to create achievement template: %w", err))
+		return AchievementTemplate{}, err
+	}
+
+	result := AchievementTemplate{
+		ID:          template.ID,
+		Name:        template.Name,
+		Description: template.Description,
+		PointsLimit: template.PointsLimit,
+		GroupID:     template.GroupID,
+		Active:      template.Active,
+		Kind:        string(template.Kind),
+	}
+
+	rec.Add("created_template", result)
+	return result, nil
+}
+
+func (s *SESC) UpdateAchievementTemplate(
+	ctx context.Context,
+	id UUID,
+	options AchievementTemplateUpdateOptions,
+) (AchievementTemplate, error) {
+	rec := event.Get(ctx).Sub("sesc/update_achievement_template")
+	rec.Add("template_id", id)
+
+	// Check if template exists
+	exists, err := s.client.AchievementTemplate.Query().Where(achievementtemplate.ID(id)).Exist(ctx)
+	if err != nil {
+		rec.Add(events.Error, fmt.Errorf("failed to check achievement template existence: %w", err))
+		return AchievementTemplate{}, err
+	}
+	if !exists {
+		rec.Add(events.Error, "achievement template not found")
+		return AchievementTemplate{}, sesc.ErrDepartmentNotFound // Reusing similar error
+	}
+
+	// If GroupID is being updated, validate the new group exists
+	if options.GroupID != nil {
+		groupExists, err := s.client.AchievementGroup.Query().Where(achievementgroup.ID(*options.GroupID)).Exist(ctx)
+		if err != nil {
+			rec.Add(events.Error, fmt.Errorf("failed to check achievement group existence: %w", err))
+			return AchievementTemplate{}, err
+		}
+		if !groupExists {
+			rec.Add(events.Error, "achievement group not found")
+			return AchievementTemplate{}, sesc.ErrDepartmentNotFound // Reusing similar error
+		}
+	}
+
+	update := s.client.AchievementTemplate.UpdateOneID(id)
+
+	if options.Name != nil {
+		update = update.SetName(*options.Name)
+	}
+	if options.Description != nil {
+		update = update.SetDescription(*options.Description)
+	}
+	if options.PointsLimit != nil {
+		update = update.SetPointsLimit(*options.PointsLimit)
+	}
+	if options.GroupID != nil {
+		update = update.SetGroupID(*options.GroupID)
+	}
+	if options.Active != nil {
+		update = update.SetActive(*options.Active)
+	}
+	if options.Kind != nil {
+		update = update.SetKind(achievementtemplate.Kind(*options.Kind))
+	}
+
+	template, err := update.Save(ctx)
+	if err != nil {
+		rec.Add(events.Error, fmt.Errorf("failed to update achievement template: %w", err))
+		return AchievementTemplate{}, err
+	}
+
+	result := AchievementTemplate{
+		ID:          template.ID,
+		Name:        template.Name,
+		Description: template.Description,
+		PointsLimit: template.PointsLimit,
+		GroupID:     template.GroupID,
+		Active:      template.Active,
+		Kind:        string(template.Kind),
+	}
+
+	rec.Add("updated_template", result)
+	return result, nil
 }

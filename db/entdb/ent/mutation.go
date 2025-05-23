@@ -11,6 +11,8 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	uuid "github.com/gofrs/uuid/v5"
+	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievementgroup"
+	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievementtemplate"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/authuser"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/department"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/file"
@@ -27,11 +29,1282 @@ const (
 	OpUpdateOne = ent.OpUpdateOne
 
 	// Node types.
-	TypeAuthUser   = "AuthUser"
-	TypeDepartment = "Department"
-	TypeFile       = "File"
-	TypeUser       = "User"
+	TypeAchievementGroup    = "AchievementGroup"
+	TypeAchievementTemplate = "AchievementTemplate"
+	TypeAuthUser            = "AuthUser"
+	TypeDepartment          = "Department"
+	TypeFile                = "File"
+	TypeUser                = "User"
 )
+
+// AchievementGroupMutation represents an operation that mutates the AchievementGroup nodes in the graph.
+type AchievementGroupMutation struct {
+	config
+	op               Op
+	typ              string
+	id               *uuid.UUID
+	name             *string
+	description      *string
+	active           *bool
+	clearedFields    map[string]struct{}
+	templates        map[uuid.UUID]struct{}
+	removedtemplates map[uuid.UUID]struct{}
+	clearedtemplates bool
+	done             bool
+	oldValue         func(context.Context) (*AchievementGroup, error)
+	predicates       []predicate.AchievementGroup
+}
+
+var _ ent.Mutation = (*AchievementGroupMutation)(nil)
+
+// achievementgroupOption allows management of the mutation configuration using functional options.
+type achievementgroupOption func(*AchievementGroupMutation)
+
+// newAchievementGroupMutation creates new mutation for the AchievementGroup entity.
+func newAchievementGroupMutation(c config, op Op, opts ...achievementgroupOption) *AchievementGroupMutation {
+	m := &AchievementGroupMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeAchievementGroup,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withAchievementGroupID sets the ID field of the mutation.
+func withAchievementGroupID(id uuid.UUID) achievementgroupOption {
+	return func(m *AchievementGroupMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *AchievementGroup
+		)
+		m.oldValue = func(ctx context.Context) (*AchievementGroup, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().AchievementGroup.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withAchievementGroup sets the old AchievementGroup of the mutation.
+func withAchievementGroup(node *AchievementGroup) achievementgroupOption {
+	return func(m *AchievementGroupMutation) {
+		m.oldValue = func(context.Context) (*AchievementGroup, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m AchievementGroupMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m AchievementGroupMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of AchievementGroup entities.
+func (m *AchievementGroupMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *AchievementGroupMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *AchievementGroupMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().AchievementGroup.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetName sets the "name" field.
+func (m *AchievementGroupMutation) SetName(s string) {
+	m.name = &s
+}
+
+// Name returns the value of the "name" field in the mutation.
+func (m *AchievementGroupMutation) Name() (r string, exists bool) {
+	v := m.name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldName returns the old "name" field's value of the AchievementGroup entity.
+// If the AchievementGroup object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AchievementGroupMutation) OldName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldName: %w", err)
+	}
+	return oldValue.Name, nil
+}
+
+// ResetName resets all changes to the "name" field.
+func (m *AchievementGroupMutation) ResetName() {
+	m.name = nil
+}
+
+// SetDescription sets the "description" field.
+func (m *AchievementGroupMutation) SetDescription(s string) {
+	m.description = &s
+}
+
+// Description returns the value of the "description" field in the mutation.
+func (m *AchievementGroupMutation) Description() (r string, exists bool) {
+	v := m.description
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDescription returns the old "description" field's value of the AchievementGroup entity.
+// If the AchievementGroup object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AchievementGroupMutation) OldDescription(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDescription is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDescription requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDescription: %w", err)
+	}
+	return oldValue.Description, nil
+}
+
+// ClearDescription clears the value of the "description" field.
+func (m *AchievementGroupMutation) ClearDescription() {
+	m.description = nil
+	m.clearedFields[achievementgroup.FieldDescription] = struct{}{}
+}
+
+// DescriptionCleared returns if the "description" field was cleared in this mutation.
+func (m *AchievementGroupMutation) DescriptionCleared() bool {
+	_, ok := m.clearedFields[achievementgroup.FieldDescription]
+	return ok
+}
+
+// ResetDescription resets all changes to the "description" field.
+func (m *AchievementGroupMutation) ResetDescription() {
+	m.description = nil
+	delete(m.clearedFields, achievementgroup.FieldDescription)
+}
+
+// SetActive sets the "active" field.
+func (m *AchievementGroupMutation) SetActive(b bool) {
+	m.active = &b
+}
+
+// Active returns the value of the "active" field in the mutation.
+func (m *AchievementGroupMutation) Active() (r bool, exists bool) {
+	v := m.active
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldActive returns the old "active" field's value of the AchievementGroup entity.
+// If the AchievementGroup object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AchievementGroupMutation) OldActive(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldActive is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldActive requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldActive: %w", err)
+	}
+	return oldValue.Active, nil
+}
+
+// ResetActive resets all changes to the "active" field.
+func (m *AchievementGroupMutation) ResetActive() {
+	m.active = nil
+}
+
+// AddTemplateIDs adds the "templates" edge to the AchievementTemplate entity by ids.
+func (m *AchievementGroupMutation) AddTemplateIDs(ids ...uuid.UUID) {
+	if m.templates == nil {
+		m.templates = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.templates[ids[i]] = struct{}{}
+	}
+}
+
+// ClearTemplates clears the "templates" edge to the AchievementTemplate entity.
+func (m *AchievementGroupMutation) ClearTemplates() {
+	m.clearedtemplates = true
+}
+
+// TemplatesCleared reports if the "templates" edge to the AchievementTemplate entity was cleared.
+func (m *AchievementGroupMutation) TemplatesCleared() bool {
+	return m.clearedtemplates
+}
+
+// RemoveTemplateIDs removes the "templates" edge to the AchievementTemplate entity by IDs.
+func (m *AchievementGroupMutation) RemoveTemplateIDs(ids ...uuid.UUID) {
+	if m.removedtemplates == nil {
+		m.removedtemplates = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.templates, ids[i])
+		m.removedtemplates[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedTemplates returns the removed IDs of the "templates" edge to the AchievementTemplate entity.
+func (m *AchievementGroupMutation) RemovedTemplatesIDs() (ids []uuid.UUID) {
+	for id := range m.removedtemplates {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// TemplatesIDs returns the "templates" edge IDs in the mutation.
+func (m *AchievementGroupMutation) TemplatesIDs() (ids []uuid.UUID) {
+	for id := range m.templates {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetTemplates resets all changes to the "templates" edge.
+func (m *AchievementGroupMutation) ResetTemplates() {
+	m.templates = nil
+	m.clearedtemplates = false
+	m.removedtemplates = nil
+}
+
+// Where appends a list predicates to the AchievementGroupMutation builder.
+func (m *AchievementGroupMutation) Where(ps ...predicate.AchievementGroup) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the AchievementGroupMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *AchievementGroupMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.AchievementGroup, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *AchievementGroupMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *AchievementGroupMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (AchievementGroup).
+func (m *AchievementGroupMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *AchievementGroupMutation) Fields() []string {
+	fields := make([]string, 0, 3)
+	if m.name != nil {
+		fields = append(fields, achievementgroup.FieldName)
+	}
+	if m.description != nil {
+		fields = append(fields, achievementgroup.FieldDescription)
+	}
+	if m.active != nil {
+		fields = append(fields, achievementgroup.FieldActive)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *AchievementGroupMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case achievementgroup.FieldName:
+		return m.Name()
+	case achievementgroup.FieldDescription:
+		return m.Description()
+	case achievementgroup.FieldActive:
+		return m.Active()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *AchievementGroupMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case achievementgroup.FieldName:
+		return m.OldName(ctx)
+	case achievementgroup.FieldDescription:
+		return m.OldDescription(ctx)
+	case achievementgroup.FieldActive:
+		return m.OldActive(ctx)
+	}
+	return nil, fmt.Errorf("unknown AchievementGroup field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *AchievementGroupMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case achievementgroup.FieldName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetName(v)
+		return nil
+	case achievementgroup.FieldDescription:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDescription(v)
+		return nil
+	case achievementgroup.FieldActive:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetActive(v)
+		return nil
+	}
+	return fmt.Errorf("unknown AchievementGroup field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *AchievementGroupMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *AchievementGroupMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *AchievementGroupMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown AchievementGroup numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *AchievementGroupMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(achievementgroup.FieldDescription) {
+		fields = append(fields, achievementgroup.FieldDescription)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *AchievementGroupMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *AchievementGroupMutation) ClearField(name string) error {
+	switch name {
+	case achievementgroup.FieldDescription:
+		m.ClearDescription()
+		return nil
+	}
+	return fmt.Errorf("unknown AchievementGroup nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *AchievementGroupMutation) ResetField(name string) error {
+	switch name {
+	case achievementgroup.FieldName:
+		m.ResetName()
+		return nil
+	case achievementgroup.FieldDescription:
+		m.ResetDescription()
+		return nil
+	case achievementgroup.FieldActive:
+		m.ResetActive()
+		return nil
+	}
+	return fmt.Errorf("unknown AchievementGroup field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *AchievementGroupMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.templates != nil {
+		edges = append(edges, achievementgroup.EdgeTemplates)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *AchievementGroupMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case achievementgroup.EdgeTemplates:
+		ids := make([]ent.Value, 0, len(m.templates))
+		for id := range m.templates {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *AchievementGroupMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.removedtemplates != nil {
+		edges = append(edges, achievementgroup.EdgeTemplates)
+	}
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *AchievementGroupMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case achievementgroup.EdgeTemplates:
+		ids := make([]ent.Value, 0, len(m.removedtemplates))
+		for id := range m.removedtemplates {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *AchievementGroupMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.clearedtemplates {
+		edges = append(edges, achievementgroup.EdgeTemplates)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *AchievementGroupMutation) EdgeCleared(name string) bool {
+	switch name {
+	case achievementgroup.EdgeTemplates:
+		return m.clearedtemplates
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *AchievementGroupMutation) ClearEdge(name string) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown AchievementGroup unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *AchievementGroupMutation) ResetEdge(name string) error {
+	switch name {
+	case achievementgroup.EdgeTemplates:
+		m.ResetTemplates()
+		return nil
+	}
+	return fmt.Errorf("unknown AchievementGroup edge %s", name)
+}
+
+// AchievementTemplateMutation represents an operation that mutates the AchievementTemplate nodes in the graph.
+type AchievementTemplateMutation struct {
+	config
+	op              Op
+	typ             string
+	id              *uuid.UUID
+	name            *string
+	description     *string
+	points_limit    *int32
+	addpoints_limit *int32
+	active          *bool
+	kind            *achievementtemplate.Kind
+	clearedFields   map[string]struct{}
+	group           *uuid.UUID
+	clearedgroup    bool
+	done            bool
+	oldValue        func(context.Context) (*AchievementTemplate, error)
+	predicates      []predicate.AchievementTemplate
+}
+
+var _ ent.Mutation = (*AchievementTemplateMutation)(nil)
+
+// achievementtemplateOption allows management of the mutation configuration using functional options.
+type achievementtemplateOption func(*AchievementTemplateMutation)
+
+// newAchievementTemplateMutation creates new mutation for the AchievementTemplate entity.
+func newAchievementTemplateMutation(c config, op Op, opts ...achievementtemplateOption) *AchievementTemplateMutation {
+	m := &AchievementTemplateMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeAchievementTemplate,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withAchievementTemplateID sets the ID field of the mutation.
+func withAchievementTemplateID(id uuid.UUID) achievementtemplateOption {
+	return func(m *AchievementTemplateMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *AchievementTemplate
+		)
+		m.oldValue = func(ctx context.Context) (*AchievementTemplate, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().AchievementTemplate.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withAchievementTemplate sets the old AchievementTemplate of the mutation.
+func withAchievementTemplate(node *AchievementTemplate) achievementtemplateOption {
+	return func(m *AchievementTemplateMutation) {
+		m.oldValue = func(context.Context) (*AchievementTemplate, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m AchievementTemplateMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m AchievementTemplateMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of AchievementTemplate entities.
+func (m *AchievementTemplateMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *AchievementTemplateMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *AchievementTemplateMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().AchievementTemplate.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetName sets the "name" field.
+func (m *AchievementTemplateMutation) SetName(s string) {
+	m.name = &s
+}
+
+// Name returns the value of the "name" field in the mutation.
+func (m *AchievementTemplateMutation) Name() (r string, exists bool) {
+	v := m.name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldName returns the old "name" field's value of the AchievementTemplate entity.
+// If the AchievementTemplate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AchievementTemplateMutation) OldName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldName: %w", err)
+	}
+	return oldValue.Name, nil
+}
+
+// ResetName resets all changes to the "name" field.
+func (m *AchievementTemplateMutation) ResetName() {
+	m.name = nil
+}
+
+// SetDescription sets the "description" field.
+func (m *AchievementTemplateMutation) SetDescription(s string) {
+	m.description = &s
+}
+
+// Description returns the value of the "description" field in the mutation.
+func (m *AchievementTemplateMutation) Description() (r string, exists bool) {
+	v := m.description
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDescription returns the old "description" field's value of the AchievementTemplate entity.
+// If the AchievementTemplate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AchievementTemplateMutation) OldDescription(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDescription is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDescription requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDescription: %w", err)
+	}
+	return oldValue.Description, nil
+}
+
+// ClearDescription clears the value of the "description" field.
+func (m *AchievementTemplateMutation) ClearDescription() {
+	m.description = nil
+	m.clearedFields[achievementtemplate.FieldDescription] = struct{}{}
+}
+
+// DescriptionCleared returns if the "description" field was cleared in this mutation.
+func (m *AchievementTemplateMutation) DescriptionCleared() bool {
+	_, ok := m.clearedFields[achievementtemplate.FieldDescription]
+	return ok
+}
+
+// ResetDescription resets all changes to the "description" field.
+func (m *AchievementTemplateMutation) ResetDescription() {
+	m.description = nil
+	delete(m.clearedFields, achievementtemplate.FieldDescription)
+}
+
+// SetPointsLimit sets the "points_limit" field.
+func (m *AchievementTemplateMutation) SetPointsLimit(i int32) {
+	m.points_limit = &i
+	m.addpoints_limit = nil
+}
+
+// PointsLimit returns the value of the "points_limit" field in the mutation.
+func (m *AchievementTemplateMutation) PointsLimit() (r int32, exists bool) {
+	v := m.points_limit
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPointsLimit returns the old "points_limit" field's value of the AchievementTemplate entity.
+// If the AchievementTemplate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AchievementTemplateMutation) OldPointsLimit(ctx context.Context) (v int32, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPointsLimit is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPointsLimit requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPointsLimit: %w", err)
+	}
+	return oldValue.PointsLimit, nil
+}
+
+// AddPointsLimit adds i to the "points_limit" field.
+func (m *AchievementTemplateMutation) AddPointsLimit(i int32) {
+	if m.addpoints_limit != nil {
+		*m.addpoints_limit += i
+	} else {
+		m.addpoints_limit = &i
+	}
+}
+
+// AddedPointsLimit returns the value that was added to the "points_limit" field in this mutation.
+func (m *AchievementTemplateMutation) AddedPointsLimit() (r int32, exists bool) {
+	v := m.addpoints_limit
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetPointsLimit resets all changes to the "points_limit" field.
+func (m *AchievementTemplateMutation) ResetPointsLimit() {
+	m.points_limit = nil
+	m.addpoints_limit = nil
+}
+
+// SetGroupID sets the "group_id" field.
+func (m *AchievementTemplateMutation) SetGroupID(u uuid.UUID) {
+	m.group = &u
+}
+
+// GroupID returns the value of the "group_id" field in the mutation.
+func (m *AchievementTemplateMutation) GroupID() (r uuid.UUID, exists bool) {
+	v := m.group
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldGroupID returns the old "group_id" field's value of the AchievementTemplate entity.
+// If the AchievementTemplate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AchievementTemplateMutation) OldGroupID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldGroupID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldGroupID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldGroupID: %w", err)
+	}
+	return oldValue.GroupID, nil
+}
+
+// ResetGroupID resets all changes to the "group_id" field.
+func (m *AchievementTemplateMutation) ResetGroupID() {
+	m.group = nil
+}
+
+// SetActive sets the "active" field.
+func (m *AchievementTemplateMutation) SetActive(b bool) {
+	m.active = &b
+}
+
+// Active returns the value of the "active" field in the mutation.
+func (m *AchievementTemplateMutation) Active() (r bool, exists bool) {
+	v := m.active
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldActive returns the old "active" field's value of the AchievementTemplate entity.
+// If the AchievementTemplate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AchievementTemplateMutation) OldActive(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldActive is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldActive requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldActive: %w", err)
+	}
+	return oldValue.Active, nil
+}
+
+// ResetActive resets all changes to the "active" field.
+func (m *AchievementTemplateMutation) ResetActive() {
+	m.active = nil
+}
+
+// SetKind sets the "kind" field.
+func (m *AchievementTemplateMutation) SetKind(a achievementtemplate.Kind) {
+	m.kind = &a
+}
+
+// Kind returns the value of the "kind" field in the mutation.
+func (m *AchievementTemplateMutation) Kind() (r achievementtemplate.Kind, exists bool) {
+	v := m.kind
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldKind returns the old "kind" field's value of the AchievementTemplate entity.
+// If the AchievementTemplate object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AchievementTemplateMutation) OldKind(ctx context.Context) (v achievementtemplate.Kind, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldKind is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldKind requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldKind: %w", err)
+	}
+	return oldValue.Kind, nil
+}
+
+// ResetKind resets all changes to the "kind" field.
+func (m *AchievementTemplateMutation) ResetKind() {
+	m.kind = nil
+}
+
+// ClearGroup clears the "group" edge to the AchievementGroup entity.
+func (m *AchievementTemplateMutation) ClearGroup() {
+	m.clearedgroup = true
+	m.clearedFields[achievementtemplate.FieldGroupID] = struct{}{}
+}
+
+// GroupCleared reports if the "group" edge to the AchievementGroup entity was cleared.
+func (m *AchievementTemplateMutation) GroupCleared() bool {
+	return m.clearedgroup
+}
+
+// GroupIDs returns the "group" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// GroupID instead. It exists only for internal usage by the builders.
+func (m *AchievementTemplateMutation) GroupIDs() (ids []uuid.UUID) {
+	if id := m.group; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetGroup resets all changes to the "group" edge.
+func (m *AchievementTemplateMutation) ResetGroup() {
+	m.group = nil
+	m.clearedgroup = false
+}
+
+// Where appends a list predicates to the AchievementTemplateMutation builder.
+func (m *AchievementTemplateMutation) Where(ps ...predicate.AchievementTemplate) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the AchievementTemplateMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *AchievementTemplateMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.AchievementTemplate, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *AchievementTemplateMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *AchievementTemplateMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (AchievementTemplate).
+func (m *AchievementTemplateMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *AchievementTemplateMutation) Fields() []string {
+	fields := make([]string, 0, 6)
+	if m.name != nil {
+		fields = append(fields, achievementtemplate.FieldName)
+	}
+	if m.description != nil {
+		fields = append(fields, achievementtemplate.FieldDescription)
+	}
+	if m.points_limit != nil {
+		fields = append(fields, achievementtemplate.FieldPointsLimit)
+	}
+	if m.group != nil {
+		fields = append(fields, achievementtemplate.FieldGroupID)
+	}
+	if m.active != nil {
+		fields = append(fields, achievementtemplate.FieldActive)
+	}
+	if m.kind != nil {
+		fields = append(fields, achievementtemplate.FieldKind)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *AchievementTemplateMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case achievementtemplate.FieldName:
+		return m.Name()
+	case achievementtemplate.FieldDescription:
+		return m.Description()
+	case achievementtemplate.FieldPointsLimit:
+		return m.PointsLimit()
+	case achievementtemplate.FieldGroupID:
+		return m.GroupID()
+	case achievementtemplate.FieldActive:
+		return m.Active()
+	case achievementtemplate.FieldKind:
+		return m.Kind()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *AchievementTemplateMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case achievementtemplate.FieldName:
+		return m.OldName(ctx)
+	case achievementtemplate.FieldDescription:
+		return m.OldDescription(ctx)
+	case achievementtemplate.FieldPointsLimit:
+		return m.OldPointsLimit(ctx)
+	case achievementtemplate.FieldGroupID:
+		return m.OldGroupID(ctx)
+	case achievementtemplate.FieldActive:
+		return m.OldActive(ctx)
+	case achievementtemplate.FieldKind:
+		return m.OldKind(ctx)
+	}
+	return nil, fmt.Errorf("unknown AchievementTemplate field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *AchievementTemplateMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case achievementtemplate.FieldName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetName(v)
+		return nil
+	case achievementtemplate.FieldDescription:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDescription(v)
+		return nil
+	case achievementtemplate.FieldPointsLimit:
+		v, ok := value.(int32)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPointsLimit(v)
+		return nil
+	case achievementtemplate.FieldGroupID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetGroupID(v)
+		return nil
+	case achievementtemplate.FieldActive:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetActive(v)
+		return nil
+	case achievementtemplate.FieldKind:
+		v, ok := value.(achievementtemplate.Kind)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetKind(v)
+		return nil
+	}
+	return fmt.Errorf("unknown AchievementTemplate field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *AchievementTemplateMutation) AddedFields() []string {
+	var fields []string
+	if m.addpoints_limit != nil {
+		fields = append(fields, achievementtemplate.FieldPointsLimit)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *AchievementTemplateMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case achievementtemplate.FieldPointsLimit:
+		return m.AddedPointsLimit()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *AchievementTemplateMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case achievementtemplate.FieldPointsLimit:
+		v, ok := value.(int32)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddPointsLimit(v)
+		return nil
+	}
+	return fmt.Errorf("unknown AchievementTemplate numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *AchievementTemplateMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(achievementtemplate.FieldDescription) {
+		fields = append(fields, achievementtemplate.FieldDescription)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *AchievementTemplateMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *AchievementTemplateMutation) ClearField(name string) error {
+	switch name {
+	case achievementtemplate.FieldDescription:
+		m.ClearDescription()
+		return nil
+	}
+	return fmt.Errorf("unknown AchievementTemplate nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *AchievementTemplateMutation) ResetField(name string) error {
+	switch name {
+	case achievementtemplate.FieldName:
+		m.ResetName()
+		return nil
+	case achievementtemplate.FieldDescription:
+		m.ResetDescription()
+		return nil
+	case achievementtemplate.FieldPointsLimit:
+		m.ResetPointsLimit()
+		return nil
+	case achievementtemplate.FieldGroupID:
+		m.ResetGroupID()
+		return nil
+	case achievementtemplate.FieldActive:
+		m.ResetActive()
+		return nil
+	case achievementtemplate.FieldKind:
+		m.ResetKind()
+		return nil
+	}
+	return fmt.Errorf("unknown AchievementTemplate field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *AchievementTemplateMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.group != nil {
+		edges = append(edges, achievementtemplate.EdgeGroup)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *AchievementTemplateMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case achievementtemplate.EdgeGroup:
+		if id := m.group; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *AchievementTemplateMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *AchievementTemplateMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *AchievementTemplateMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.clearedgroup {
+		edges = append(edges, achievementtemplate.EdgeGroup)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *AchievementTemplateMutation) EdgeCleared(name string) bool {
+	switch name {
+	case achievementtemplate.EdgeGroup:
+		return m.clearedgroup
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *AchievementTemplateMutation) ClearEdge(name string) error {
+	switch name {
+	case achievementtemplate.EdgeGroup:
+		m.ClearGroup()
+		return nil
+	}
+	return fmt.Errorf("unknown AchievementTemplate unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *AchievementTemplateMutation) ResetEdge(name string) error {
+	switch name {
+	case achievementtemplate.EdgeGroup:
+		m.ResetGroup()
+		return nil
+	}
+	return fmt.Errorf("unknown AchievementTemplate edge %s", name)
+}
 
 // AuthUserMutation represents an operation that mutates the AuthUser nodes in the graph.
 type AuthUserMutation struct {
