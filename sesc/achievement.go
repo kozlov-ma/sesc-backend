@@ -4,6 +4,38 @@ import (
 	"github.com/gofrs/uuid/v5"
 )
 
+// AchievementKind represents the type of achievement
+type AchievementKind string
+
+const (
+	Olympiad    AchievementKind = "olympiad"
+	Development AchievementKind = "development"
+	Scientific  AchievementKind = "scientific"
+)
+
+// String implements the Stringer interface
+func (k AchievementKind) String() string {
+	return string(k)
+}
+
+// IsValid checks if the AchievementKind is one of the valid values
+func (k AchievementKind) IsValid() bool {
+	switch k {
+	case Olympiad, Development, Scientific:
+		return true
+	default:
+		return false
+	}
+}
+
+// Validate returns an error if the AchievementKind is not valid
+func (k AchievementKind) Validate() error {
+	if !k.IsValid() {
+		return ErrInvalidAchievementKind
+	}
+	return nil
+}
+
 // AchievementGroup represents a group of related achievement templates
 type AchievementGroup struct {
 	ID          uuid.UUID
@@ -20,7 +52,7 @@ type AchievementTemplate struct {
 	PointsLimit int
 	GroupID     uuid.UUID
 	Active      bool
-	Kind        string // olympiad, development, scientific
+	Kind        AchievementKind
 }
 
 // AchievementGroupCreateOptions contains options for creating an achievement group
@@ -42,7 +74,7 @@ type AchievementTemplateCreateOptions struct {
 	Description string
 	PointsLimit int
 	GroupID     uuid.UUID
-	Kind        string
+	Kind        AchievementKind
 }
 
 // AchievementTemplateUpdateOptions contains options for updating an achievement template
@@ -51,7 +83,7 @@ type AchievementTemplateUpdateOptions struct {
 	Description *string
 	PointsLimit *int
 	Active      *bool
-	Kind        *string
+	Kind        *AchievementKind
 }
 
 // AchievementGroupSearchOptions contains options for searching achievement groups

@@ -768,7 +768,7 @@ func TestCreateAchievementTemplate(t *testing.T) {
 			Description: "Scientific publication",
 			PointsLimit: 10,
 			GroupID:     groupID,
-			Kind:        "scientific",
+			Kind:        sesc.Scientific,
 		}
 
 		template, err := svc.CreateAchievementTemplate(ctx, opts)
@@ -794,11 +794,26 @@ func TestCreateAchievementTemplate(t *testing.T) {
 			Description: "Description",
 			PointsLimit: 5,
 			GroupID:     uuid.Must(uuid.NewV7()),
-			Kind:        "scientific",
+			Kind:        sesc.Scientific,
 		}
 
 		_, err := svc.CreateAchievementTemplate(ctx, opts)
 		require.ErrorIs(t, err, sesc.ErrAchievementGroupNotFound)
+	})
+
+	t.Run("invalid kind", func(t *testing.T) {
+		ctx, svc, groupID := setup(t)
+
+		opts := AchievementTemplateCreateOptions{
+			Name:        "Template",
+			Description: "Description",
+			PointsLimit: 5,
+			GroupID:     groupID,
+			Kind:        sesc.AchievementKind("invalid"),
+		}
+
+		_, err := svc.CreateAchievementTemplate(ctx, opts)
+		require.ErrorIs(t, err, sesc.ErrInvalidAchievementKind)
 	})
 }
 
@@ -818,7 +833,7 @@ func TestAchievementTemplateByID(t *testing.T) {
 			Description: "Test Description",
 			PointsLimit: 15,
 			GroupID:     group.ID,
-			Kind:        "olympiad",
+			Kind:        sesc.Olympiad,
 		}
 		template, _ := svc.CreateAchievementTemplate(ctx, templateOpts)
 		return ctx, svc, template.ID
@@ -834,7 +849,7 @@ func TestAchievementTemplateByID(t *testing.T) {
 		require.Equal(t, "Test Template", template.Name)
 		require.Equal(t, "Test Description", template.Description)
 		require.Equal(t, 15, template.PointsLimit)
-		require.Equal(t, "olympiad", template.Kind)
+		require.Equal(t, sesc.Olympiad, template.Kind)
 		require.True(t, template.Active)
 	})
 
@@ -878,7 +893,7 @@ func TestAchievementTemplates(t *testing.T) {
 				Description: fmt.Sprintf("Description %d", i+1),
 				PointsLimit: i + 5,
 				GroupID:     groupID,
-				Kind:        "scientific",
+				Kind:        sesc.Scientific,
 			}
 			template, err := svc.CreateAchievementTemplate(ctx, opts)
 			require.NoError(t, err)
@@ -910,11 +925,11 @@ func TestAchievementTemplates(t *testing.T) {
 		// Create templates with different names
 		opts1 := AchievementTemplateCreateOptions{
 			Name: "Research Publication", Description: "Research", PointsLimit: 10,
-			GroupID: groupID, Kind: "scientific",
+			GroupID: groupID, Kind: sesc.Scientific,
 		}
 		opts2 := AchievementTemplateCreateOptions{
 			Name: "Development Project", Description: "Dev", PointsLimit: 8,
-			GroupID: groupID, Kind: "development",
+			GroupID: groupID, Kind: sesc.Development,
 		}
 		template1, _ := svc.CreateAchievementTemplate(ctx, opts1)
 		_, _ = svc.CreateAchievementTemplate(ctx, opts2)
@@ -944,7 +959,7 @@ func TestUpdateAchievementTemplate(t *testing.T) {
 			Description: "Original Description",
 			PointsLimit: 10,
 			GroupID:     group.ID,
-			Kind:        "scientific",
+			Kind:        sesc.Scientific,
 		}
 		template, _ := svc.CreateAchievementTemplate(ctx, templateOpts)
 		return ctx, svc, template.ID, group.ID
@@ -957,7 +972,7 @@ func TestUpdateAchievementTemplate(t *testing.T) {
 		newDesc := "Updated Description"
 		newPoints := 20
 		newActive := false
-		newKind := "development"
+		newKind := sesc.Development
 
 		opts := AchievementTemplateUpdateOptions{
 			Name:        &newName,
@@ -988,5 +1003,17 @@ func TestUpdateAchievementTemplate(t *testing.T) {
 		opts := AchievementTemplateUpdateOptions{}
 		_, err := svc.UpdateAchievementTemplate(ctx, uuid.Must(uuid.NewV7()), opts)
 		require.ErrorIs(t, err, sesc.ErrAchievementTemplateNotFound)
+	})
+
+	t.Run("invalid kind", func(t *testing.T) {
+		ctx, svc, templateID, _ := setup(t)
+
+		invalidKind := sesc.AchievementKind("invalid")
+		opts := AchievementTemplateUpdateOptions{
+			Kind: &invalidKind,
+		}
+
+		_, err := svc.UpdateAchievementTemplate(ctx, templateID, opts)
+		require.ErrorIs(t, err, sesc.ErrInvalidAchievementKind)
 	})
 }

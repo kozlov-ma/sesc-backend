@@ -24,4 +24,5 @@ var (
 
 	ErrAchievementGroupNotFound    = errors.New("achievement group not found")
 	ErrAchievementTemplateNotFound = errors.New("achievement template not found")
+	ErrInvalidAchievementKind      = errors.New("invalid achievement kind")
 )

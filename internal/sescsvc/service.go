@@ -1106,11 +1106,11 @@ func (s *SESC) UpdateAchievementGroup(
 	}
 
 	group, err := update.Save(ctx)
-	if err != nil {
-		if ent.IsNotFound(err) {
-			rec.Add(events.Error, "achievement group not found")
-			return AchievementGroup{}, sesc.ErrAchievementGroupNotFound
-		}
+	switch {
+	case ent.IsNotFound(err):
+		rec.Add(events.Error, "achievement group not found")
+		return AchievementGroup{}, sesc.ErrAchievementGroupNotFound
+	case err != nil:
 		rec.Add(events.Error, fmt.Errorf("failed to update achievement group: %w", err))
 		return AchievementGroup{}, err
 	}
@@ -1163,7 +1163,7 @@ func (s *SESC) AchievementTemplates(
 			PointsLimit: t.PointsLimit,
 			GroupID:     t.GroupID,
 			Active:      t.Active,
-			Kind:        string(t.Kind),
+			Kind:        sesc.AchievementKind(t.Kind),
 		})
 	}
 
@@ -1194,7 +1194,7 @@ func (s *SESC) AchievementTemplateByID(ctx context.Context, id UUID) (Achievemen
 		PointsLimit: template.PointsLimit,
 		GroupID:     template.GroupID,
 		Active:      template.Active,
-		Kind:        string(template.Kind),
+		Kind:        sesc.AchievementKind(template.Kind),
 	}, nil
 }
 
@@ -1207,6 +1207,12 @@ func (s *SESC) CreateAchievementTemplate(
 	rec := event.Get(ctx).Sub("sesc/create_achievement_template")
 	rec.Add("template_name", options.Name)
 	rec.Add("group_id", options.GroupID)
+
+	// Validate the kind
+	if err := options.Kind.Validate(); err != nil {
+		rec.Add(events.Error, fmt.Errorf("invalid achievement kind: %w", err))
+		return AchievementTemplate{}, err
+	}
 
 	id, err := s.newUUID()
 	if err != nil {
@@ -1221,13 +1227,13 @@ func (s *SESC) CreateAchievementTemplate(
 		SetDescription(options.Description).
 		SetPointsLimit(options.PointsLimit).
 		SetGroupID(options.GroupID).
-		SetKind(achievementtemplate.Kind(options.Kind)).
+		SetKind(achievementtemplate.Kind(options.Kind.String())).
 		Save(ctx)
-	if err != nil {
-		if ent.IsConstraintError(err) {
-			rec.Add(events.Error, "achievement group not found")
-			return AchievementTemplate{}, sesc.ErrAchievementGroupNotFound
-		}
+	switch {
+	case ent.IsConstraintError(err):
+		rec.Add(events.Error, "achievement group not found")
+		return AchievementTemplate{}, sesc.ErrAchievementGroupNotFound
+	case err != nil:
 		rec.Add(events.Error, fmt.Errorf("failed to create achievement template: %w", err))
 		return AchievementTemplate{}, err
 	}
@@ -1239,7 +1245,7 @@ func (s *SESC) CreateAchievementTemplate(
 		PointsLimit: template.PointsLimit,
 		GroupID:     template.GroupID,
 		Active:      template.Active,
-		Kind:        string(template.Kind),
+		Kind:        sesc.AchievementKind(template.Kind),
 	}
 
 	rec.Add("created_template", result)
@@ -1272,7 +1278,12 @@ func (s *SESC) UpdateAchievementTemplate(
 		update = update.SetActive(*options.Active)
 	}
 	if options.Kind != nil {
-		update = update.SetKind(achievementtemplate.Kind(*options.Kind))
+		// Validate the kind
+		if err := options.Kind.Validate(); err != nil {
+			rec.Add(events.Error, fmt.Errorf("invalid achievement kind: %w", err))
+			return AchievementTemplate{}, err
+		}
+		update = update.SetKind(achievementtemplate.Kind(options.Kind.String()))
 	}
 
 	template, err := update.Save(ctx)
@@ -1292,7 +1303,7 @@ func (s *SESC) UpdateAchievementTemplate(
 		PointsLimit: template.PointsLimit,
 		GroupID:     template.GroupID,
 		Active:      template.Active,
-		Kind:        string(template.Kind),
+		Kind:        sesc.AchievementKind(template.Kind),
 	}
 
 	rec.Add("updated_template", result)
