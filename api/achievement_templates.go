@@ -26,7 +26,7 @@ type AchievementTemplateResponse struct {
 	PointsLimit int                  `json:"pointsLimit" example:"10"                                   validate:"required"`
 	GroupID     uuid.UUID            `json:"groupId"     example:"550e8400-e29b-41d4-a716-446655440000" validate:"required"`
 	Active      bool                 `json:"active"      example:"true"                                 validate:"required"`
-	Kind        sesc.AchievementKind `json:"kind"        example:"scientific"                           validate:"required"`
+	Kind        sesc.AchievementKind `json:"kind"        example:"scientific"                           validate:"required,oneof=olympiad development scientific"`
 }
 
 type CreateAchievementGroupRequest struct {
@@ -39,7 +39,7 @@ type CreateAchievementTemplateRequest struct {
 	Description string               `json:"description" example:"Публикация статьи в научном журнале"  validate:"required"`
 	PointsLimit int                  `json:"pointsLimit" example:"10"                                   validate:"required"`
 	GroupID     uuid.UUID            `json:"groupId"     example:"550e8400-e29b-41d4-a716-446655440000" validate:"required"`
-	Kind        sesc.AchievementKind `json:"kind"        example:"scientific"                           validate:"required"`
+	Kind        sesc.AchievementKind `json:"kind"        example:"scientific"                           validate:"required,oneof=olympiad development scientific"`
 }
 
 type PatchAchievementGroupRequest struct {
@@ -53,7 +53,7 @@ type PatchAchievementTemplateRequest struct {
 	Description *string               `json:"description,omitzero" example:"Публикация статьи в научном журнале"`
 	PointsLimit *int                  `json:"pointsLimit,omitzero" example:"10"`
 	Active      *bool                 `json:"active,omitzero"      example:"true"`
-	Kind        *sesc.AchievementKind `json:"kind,omitzero"        example:"scientific"`
+	Kind        *sesc.AchievementKind `json:"kind,omitzero"                                                      validate:"omitempty,oneof=olympiad development scientific"`
 }
 
 // GetAchievementGroups godoc
