@@ -9,6 +9,30 @@ import (
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent"
 )
 
+// The AchievementGroupFunc type is an adapter to allow the use of ordinary
+// function as AchievementGroup mutator.
+type AchievementGroupFunc func(context.Context, *ent.AchievementGroupMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f AchievementGroupFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.AchievementGroupMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AchievementGroupMutation", m)
+}
+
+// The AchievementTemplateFunc type is an adapter to allow the use of ordinary
+// function as AchievementTemplate mutator.
+type AchievementTemplateFunc func(context.Context, *ent.AchievementTemplateMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f AchievementTemplateFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.AchievementTemplateMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AchievementTemplateMutation", m)
+}
+
 // The AuthUserFunc type is an adapter to allow the use of ordinary
 // function as AuthUser mutator.
 type AuthUserFunc func(context.Context, *ent.AuthUserMutation) (ent.Value, error)

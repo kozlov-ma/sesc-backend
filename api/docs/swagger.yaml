@@ -439,14 +439,7 @@ definitions:
       description:
         example: Публикация статьи в научном журнале
         type: string
-      groupId:
-        example: 550e8400-e29b-41d4-a716-446655440000
-        type: string
       kind:
-        enum:
-        - olympiad
-        - development
-        - scientific
         example: scientific
         type: string
       name:

@@ -6,6 +6,12 @@ import (
 	"entgo.io/ent/dialect/sql"
 )
 
+// AchievementGroup is the predicate function for achievementgroup builders.
+type AchievementGroup func(*sql.Selector)
+
+// AchievementTemplate is the predicate function for achievementtemplate builders.
+type AchievementTemplate func(*sql.Selector)
+
 // AuthUser is the predicate function for authuser builders.
 type AuthUser func(*sql.Selector)
 

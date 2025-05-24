@@ -50,6 +50,38 @@ type (
 		CreateUser(ctx context.Context, options sesc.UserUpdateOptions) (sesc.User, error)
 		UpdateUser(ctx context.Context, id uuid.UUID, options sesc.UserUpdateOptions) (sesc.User, error)
 		UpdateProfilePicture(ctx context.Context, id uuid.UUID, pictureURL string) error
+
+		// Achievement group operations
+		AchievementGroups(
+			ctx context.Context,
+			options sesc.AchievementGroupSearchOptions,
+		) ([]sesc.AchievementGroup, error)
+		AchievementGroupByID(ctx context.Context, id uuid.UUID) (sesc.AchievementGroup, error)
+		CreateAchievementGroup(
+			ctx context.Context,
+			options sesc.AchievementGroupCreateOptions,
+		) (sesc.AchievementGroup, error)
+		UpdateAchievementGroup(
+			ctx context.Context,
+			id uuid.UUID,
+			options sesc.AchievementGroupUpdateOptions,
+		) (sesc.AchievementGroup, error)
+
+		// Achievement template operations
+		AchievementTemplates(
+			ctx context.Context,
+			options sesc.AchievementTemplateSearchOptions,
+		) ([]sesc.AchievementTemplate, error)
+		AchievementTemplateByID(ctx context.Context, id uuid.UUID) (sesc.AchievementTemplate, error)
+		CreateAchievementTemplate(
+			ctx context.Context,
+			options sesc.AchievementTemplateCreateOptions,
+		) (sesc.AchievementTemplate, error)
+		UpdateAchievementTemplate(
+			ctx context.Context,
+			id uuid.UUID,
+			options sesc.AchievementTemplateUpdateOptions,
+		) (sesc.AchievementTemplate, error)
 	}
 
 	// FileService defines the file operations interface required by the API

@@ -2,10 +2,14 @@ package api
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
+	"strconv"
 
 	"github.com/gofrs/uuid/v5"
 	"github.com/kozlov-ma/sesc-backend/pkg/event"
+	"github.com/kozlov-ma/sesc-backend/pkg/event/events"
+	"github.com/kozlov-ma/sesc-backend/sesc"
 )
 
 type AchievementGroupResponse struct {
@@ -16,13 +20,13 @@ type AchievementGroupResponse struct {
 }
 
 type AchievementTemplateResponse struct {
-	ID          uuid.UUID `json:"id"          example:"550e8400-e29b-41d4-a716-446655440000" validate:"required"`
-	Name        string    `json:"name"        example:"Публикация в журнале"                 validate:"required"`
-	Description string    `json:"description" example:"Публикация статьи в научном журнале"  validate:"required"`
-	PointsLimit int32     `json:"pointsLimit" example:"10"                                   validate:"required"`
-	GroupID     uuid.UUID `json:"groupId"     example:"550e8400-e29b-41d4-a716-446655440000" validate:"required"`
-	Active      bool      `json:"active"      example:"true"                                 validate:"required"`
-	Kind        string    `json:"kind"        example:"scientific"                           validate:"required,oneof=olympiad development scientific"`
+	ID          uuid.UUID            `json:"id"          example:"550e8400-e29b-41d4-a716-446655440000" validate:"required"`
+	Name        string               `json:"name"        example:"Публикация в журнале"                 validate:"required"`
+	Description string               `json:"description" example:"Публикация статьи в научном журнале"  validate:"required"`
+	PointsLimit int                  `json:"pointsLimit" example:"10"                                   validate:"required"`
+	GroupID     uuid.UUID            `json:"groupId"     example:"550e8400-e29b-41d4-a716-446655440000" validate:"required"`
+	Active      bool                 `json:"active"      example:"true"                                 validate:"required"`
+	Kind        sesc.AchievementKind `json:"kind"        example:"scientific"                           validate:"required,oneof=olympiad development scientific"`
 }
 
 type CreateAchievementGroupRequest struct {
@@ -31,11 +35,11 @@ type CreateAchievementGroupRequest struct {
 }
 
 type CreateAchievementTemplateRequest struct {
-	Name        string    `json:"name"        example:"Публикация в журнале"                 validate:"required"`
-	Description string    `json:"description" example:"Публикация статьи в научном журнале"  validate:"required"`
-	PointsLimit int32     `json:"pointsLimit" example:"10"                                   validate:"required"`
-	GroupID     uuid.UUID `json:"groupId"     example:"550e8400-e29b-41d4-a716-446655440000" validate:"required"`
-	Kind        string    `json:"kind"        example:"scientific"                           validate:"required,oneof=olympiad development scientific"`
+	Name        string               `json:"name"        example:"Публикация в журнале"                 validate:"required"`
+	Description string               `json:"description" example:"Публикация статьи в научном журнале"  validate:"required"`
+	PointsLimit int                  `json:"pointsLimit" example:"10"                                   validate:"required"`
+	GroupID     uuid.UUID            `json:"groupId"     example:"550e8400-e29b-41d4-a716-446655440000" validate:"required"`
+	Kind        sesc.AchievementKind `json:"kind"        example:"scientific"                           validate:"required,oneof=olympiad development scientific"`
 }
 
 type PatchAchievementGroupRequest struct {
@@ -45,27 +49,11 @@ type PatchAchievementGroupRequest struct {
 }
 
 type PatchAchievementTemplateRequest struct {
-	Name        *string    `json:"name,omitzero"        example:"Публикация в журнале"`
-	Description *string    `json:"description,omitzero" example:"Публикация статьи в научном журнале"`
-	PointsLimit *int32     `json:"pointsLimit,omitzero" example:"10"`
-	GroupID     *uuid.UUID `json:"groupId,omitzero"     example:"550e8400-e29b-41d4-a716-446655440000"`
-	Active      *bool      `json:"active,omitzero"      example:"true"`
-	Kind        *string    `json:"kind,omitzero"        example:"scientific"                           validate:"omitempty,oneof=olympiad development scientific"`
-}
-
-var groups = []AchievementGroupResponse{
-	{
-		ID:          uuid.Must(uuid.NewV4()),
-		Name:        "Сопровождение (подготовка/организация, проведение) мероприятий программы развития, плана работы.",
-		Description: "",
-		Active:      true,
-	},
-	{
-		ID:          uuid.Must(uuid.NewV4()),
-		Name:        "Обеспечение участия в мероприятиях и сопровождение обучающихся СУНЦ УрФУ",
-		Description: "",
-		Active:      true,
-	},
+	Name        *string               `json:"name,omitzero"        example:"Публикация в журнале"`
+	Description *string               `json:"description,omitzero" example:"Публикация статьи в научном журнале"`
+	PointsLimit *int                  `json:"pointsLimit,omitzero" example:"10"`
+	Active      *bool                 `json:"active,omitzero"      example:"true"`
+	Kind        *sesc.AchievementKind `json:"kind,omitzero"                                                      validate:"omitempty,oneof=olympiad development scientific"`
 }
 
 // GetAchievementGroups godoc
@@ -83,19 +71,49 @@ var groups = []AchievementGroupResponse{
 // @Router /achievement-groups [get]
 func (a *API) GetAchievementGroups(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	// TODO: Use event recorder for logging
-	_ = event.Get(ctx)
+	rec := event.Get(ctx)
 
-	// TODO: Implement show_inactive filter
-	_ = r.URL.Query().Get("show_inactive")
+	// Parse query parameters
+	showInactiveStr := r.URL.Query().Get("show_inactive")
+	showInactive := false
+	if showInactiveStr != "" {
+		var err error
+		showInactive, err = strconv.ParseBool(showInactiveStr)
+		if err != nil {
+			rec.Add(events.Error, "invalid show_inactive parameter")
+			writeError(ctx, w, ErrInvalidRequest.WithStatus(http.StatusBadRequest))
+			return
+		}
+	}
 
-	// TODO: Implement search functionality
-	_ = r.URL.Query().Get("search")
+	search := r.URL.Query().Get("search")
 
-	// TODO: Implement actual business logic
-	// For now, return mock data
+	// Create search options
+	options := sesc.AchievementGroupSearchOptions{
+		ShowInactive: showInactive,
+		Search:       search,
+	}
 
-	a.writeJSON(ctx, w, groups, http.StatusOK)
+	// Call service
+	groups, err := a.sesc.AchievementGroups(ctx, options)
+	if err != nil {
+		rec.Add(events.Error, err)
+		writeError(ctx, w, ErrServerError.WithStatus(http.StatusInternalServerError))
+		return
+	}
+
+	// Convert to response format
+	response := make([]AchievementGroupResponse, 0, len(groups))
+	for _, group := range groups {
+		response = append(response, AchievementGroupResponse{
+			ID:          group.ID,
+			Name:        group.Name,
+			Description: group.Description,
+			Active:      group.Active,
+		})
+	}
+
+	a.writeJSON(ctx, w, response, http.StatusOK)
 }
 
 // CreateAchievementGroup godoc
@@ -115,25 +133,45 @@ func (a *API) GetAchievementGroups(w http.ResponseWriter, r *http.Request) {
 // @Router /achievement-groups [post]
 func (a *API) CreateAchievementGroup(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	// TODO: Use event recorder for logging
-	_ = event.Get(ctx)
+	rec := event.Get(ctx)
 
 	var req CreateAchievementGroupRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		rec.Add(events.Error, "invalid request body")
 		writeError(ctx, w, ErrInvalidRequest.WithStatus(http.StatusBadRequest))
 		return
 	}
 
-	// TODO: Implement actual business logic
-	// For now, return mock data
-	group := AchievementGroupResponse{
-		ID:          uuid.Must(uuid.NewV4()),
-		Name:        req.Name,
-		Description: req.Description,
-		Active:      true,
+	// Validate required fields
+	if req.Name == "" {
+		rec.Add(events.Error, "name is required")
+		writeError(ctx, w, ErrInvalidRequest.WithStatus(http.StatusBadRequest))
+		return
 	}
 
-	a.writeJSON(ctx, w, group, http.StatusCreated)
+	// Create options
+	options := sesc.AchievementGroupCreateOptions{
+		Name:        req.Name,
+		Description: req.Description,
+	}
+
+	// Call service
+	group, err := a.sesc.CreateAchievementGroup(ctx, options)
+	if err != nil {
+		rec.Add(events.Error, err)
+		writeError(ctx, w, ErrServerError.WithStatus(http.StatusInternalServerError))
+		return
+	}
+
+	// Convert to response format
+	response := AchievementGroupResponse{
+		ID:          group.ID,
+		Name:        group.Name,
+		Description: group.Description,
+		Active:      group.Active,
+	}
+
+	a.writeJSON(ctx, w, response, http.StatusCreated)
 }
 
 // GetAchievementTemplates godoc
@@ -151,30 +189,52 @@ func (a *API) CreateAchievementGroup(w http.ResponseWriter, r *http.Request) {
 // @Router /achievement-templates [get]
 func (a *API) GetAchievementTemplates(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	// TODO: Use event recorder for logging
-	_ = event.Get(ctx)
+	rec := event.Get(ctx)
 
-	// TODO: Implement show_inactive filter
-	_ = r.URL.Query().Get("show_inactive")
-
-	// TODO: Implement search functionality
-	_ = r.URL.Query().Get("search")
-
-	// TODO: Implement actual business logic
-	// For now, return mock data
-	templates := []AchievementTemplateResponse{
-		{
-			ID:          uuid.Must(uuid.NewV4()),
-			Name:        "международный уровень",
-			Description: "",
-			PointsLimit: 10,
-			GroupID:     groups[0].ID,
-			Active:      true,
-			Kind:        "scientific",
-		},
+	// Parse query parameters
+	showInactiveStr := r.URL.Query().Get("show_inactive")
+	showInactive := false
+	if showInactiveStr != "" {
+		var err error
+		showInactive, err = strconv.ParseBool(showInactiveStr)
+		if err != nil {
+			rec.Add(events.Error, "invalid show_inactive parameter")
+			writeError(ctx, w, ErrInvalidRequest.WithStatus(http.StatusBadRequest))
+			return
+		}
 	}
 
-	a.writeJSON(ctx, w, templates, http.StatusOK)
+	search := r.URL.Query().Get("search")
+
+	// Create search options
+	options := sesc.AchievementTemplateSearchOptions{
+		ShowInactive: showInactive,
+		Search:       search,
+	}
+
+	// Call service
+	templates, err := a.sesc.AchievementTemplates(ctx, options)
+	if err != nil {
+		rec.Add(events.Error, err)
+		writeError(ctx, w, ErrServerError.WithStatus(http.StatusInternalServerError))
+		return
+	}
+
+	// Convert to response format
+	response := make([]AchievementTemplateResponse, 0, len(templates))
+	for _, template := range templates {
+		response = append(response, AchievementTemplateResponse{
+			ID:          template.ID,
+			Name:        template.Name,
+			Description: template.Description,
+			PointsLimit: template.PointsLimit,
+			GroupID:     template.GroupID,
+			Active:      template.Active,
+			Kind:        template.Kind,
+		})
+	}
+
+	a.writeJSON(ctx, w, response, http.StatusOK)
 }
 
 // CreateAchievementTemplate godoc
@@ -195,28 +255,70 @@ func (a *API) GetAchievementTemplates(w http.ResponseWriter, r *http.Request) {
 // @Router /achievement-templates [post]
 func (a *API) CreateAchievementTemplate(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	// TODO: Use event recorder for logging
-	_ = event.Get(ctx)
+	rec := event.Get(ctx)
 
 	var req CreateAchievementTemplateRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		rec.Add(events.Error, "invalid request body")
 		writeError(ctx, w, ErrInvalidRequest.WithStatus(http.StatusBadRequest))
 		return
 	}
 
-	// TODO: Implement actual business logic
-	// For now, return mock data
-	template := AchievementTemplateResponse{
-		ID:          uuid.Must(uuid.NewV4()),
+	// Validate required fields
+	if req.Name == "" {
+		rec.Add(events.Error, "name is required")
+		writeError(ctx, w, ErrInvalidRequest.WithStatus(http.StatusBadRequest))
+		return
+	}
+	if req.PointsLimit <= 0 {
+		rec.Add(events.Error, "pointsLimit must be positive")
+		writeError(ctx, w, ErrInvalidRequest.WithStatus(http.StatusBadRequest))
+		return
+	}
+	if err := req.Kind.Validate(); err != nil {
+		rec.Add(events.Error, "invalid kind value")
+		writeError(ctx, w, ErrInvalidRequest.WithStatus(http.StatusBadRequest))
+		return
+	}
+
+	// Create options
+	options := sesc.AchievementTemplateCreateOptions{
 		Name:        req.Name,
 		Description: req.Description,
 		PointsLimit: req.PointsLimit,
 		GroupID:     req.GroupID,
-		Active:      true,
 		Kind:        req.Kind,
 	}
 
-	a.writeJSON(ctx, w, template, http.StatusCreated)
+	// Call service
+	template, err := a.sesc.CreateAchievementTemplate(ctx, options)
+	if err != nil {
+		rec.Add(events.Error, err)
+		// Check if it's a group not found error
+		if errors.Is(err, sesc.ErrAchievementGroupNotFound) {
+			writeError(ctx, w, GroupNotFoundError{
+				Code:      "GROUP_NOT_FOUND",
+				Message:   "Achievement group not found",
+				RuMessage: "Группа достижений не найдена",
+			}.WithStatus(http.StatusNotFound))
+			return
+		}
+		writeError(ctx, w, ErrServerError.WithStatus(http.StatusInternalServerError))
+		return
+	}
+
+	// Convert to response format
+	response := AchievementTemplateResponse{
+		ID:          template.ID,
+		Name:        template.Name,
+		Description: template.Description,
+		PointsLimit: template.PointsLimit,
+		GroupID:     template.GroupID,
+		Active:      template.Active,
+		Kind:        template.Kind,
+	}
+
+	a.writeJSON(ctx, w, response, http.StatusCreated)
 }
 
 // PatchAchievementGroup godoc
@@ -238,12 +340,12 @@ func (a *API) CreateAchievementTemplate(w http.ResponseWriter, r *http.Request) 
 // @Router /achievement-groups/{id} [patch]
 func (a *API) PatchAchievementGroup(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	// TODO: Use event recorder for logging
-	_ = event.Get(ctx)
+	rec := event.Get(ctx)
 
 	idStr := r.PathValue("id")
 	groupID, err := uuid.FromString(idStr)
 	if err != nil {
+		rec.Add(events.Error, "invalid group ID format")
 		writeError(ctx, w, InvalidUUIDError{
 			Code:      "INVALID_UUID",
 			Message:   "Invalid group ID format",
@@ -254,20 +356,43 @@ func (a *API) PatchAchievementGroup(w http.ResponseWriter, r *http.Request) {
 
 	var req PatchAchievementGroupRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		rec.Add(events.Error, "invalid request body")
 		writeError(ctx, w, ErrInvalidRequest.WithStatus(http.StatusBadRequest))
 		return
 	}
 
-	// TODO: Implement actual business logic
-	// For now, return mock data
-	group := AchievementGroupResponse{
-		ID:          groupID,
-		Name:        "Updated Group",
-		Description: "Updated Description",
-		Active:      true,
+	// Create update options
+	options := sesc.AchievementGroupUpdateOptions{
+		Name:        req.Name,
+		Description: req.Description,
+		Active:      req.Active,
 	}
 
-	a.writeJSON(ctx, w, group, http.StatusOK)
+	// Call service
+	group, err := a.sesc.UpdateAchievementGroup(ctx, groupID, options)
+	if err != nil {
+		rec.Add(events.Error, err)
+		if errors.Is(err, sesc.ErrAchievementGroupNotFound) {
+			writeError(ctx, w, GroupNotFoundError{
+				Code:      "GROUP_NOT_FOUND",
+				Message:   "Achievement group not found",
+				RuMessage: "Группа достижений не найдена",
+			}.WithStatus(http.StatusNotFound))
+			return
+		}
+		writeError(ctx, w, ErrServerError.WithStatus(http.StatusInternalServerError))
+		return
+	}
+
+	// Convert to response format
+	response := AchievementGroupResponse{
+		ID:          group.ID,
+		Name:        group.Name,
+		Description: group.Description,
+		Active:      group.Active,
+	}
+
+	a.writeJSON(ctx, w, response, http.StatusOK)
 }
 
 // PatchAchievementTemplate godoc
@@ -289,12 +414,12 @@ func (a *API) PatchAchievementGroup(w http.ResponseWriter, r *http.Request) {
 // @Router /achievement-templates/{id} [patch]
 func (a *API) PatchAchievementTemplate(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	// TODO: Use event recorder for logging
-	_ = event.Get(ctx)
+	rec := event.Get(ctx)
 
 	idStr := r.PathValue("id")
 	templateID, err := uuid.FromString(idStr)
 	if err != nil {
+		rec.Add(events.Error, "invalid template ID format")
 		writeError(ctx, w, InvalidUUIDError{
 			Code:      "INVALID_UUID",
 			Message:   "Invalid template ID format",
@@ -305,21 +430,70 @@ func (a *API) PatchAchievementTemplate(w http.ResponseWriter, r *http.Request) {
 
 	var req PatchAchievementTemplateRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		rec.Add(events.Error, "invalid request body")
 		writeError(ctx, w, ErrInvalidRequest.WithStatus(http.StatusBadRequest))
 		return
 	}
 
-	// TODO: Implement actual business logic
-	// For now, return mock data
-	template := AchievementTemplateResponse{
-		ID:          templateID,
-		Name:        "Updated Template",
-		Description: "Updated Description",
-		PointsLimit: 15,
-		GroupID:     uuid.Must(uuid.NewV4()),
-		Active:      true,
-		Kind:        "scientific",
+	// Validate kind if provided
+	if req.Kind != nil {
+		if err := req.Kind.Validate(); err != nil {
+			rec.Add(events.Error, "invalid kind value")
+			writeError(ctx, w, ErrInvalidRequest.WithStatus(http.StatusBadRequest))
+			return
+		}
 	}
 
-	a.writeJSON(ctx, w, template, http.StatusOK)
+	// Validate points limit if provided
+	if req.PointsLimit != nil && *req.PointsLimit <= 0 {
+		rec.Add(events.Error, "pointsLimit must be positive")
+		writeError(ctx, w, ErrInvalidRequest.WithStatus(http.StatusBadRequest))
+		return
+	}
+
+	// Create update options
+	options := sesc.AchievementTemplateUpdateOptions{
+		Name:        req.Name,
+		Description: req.Description,
+		PointsLimit: req.PointsLimit,
+		Active:      req.Active,
+		Kind:        req.Kind,
+	}
+
+	// Call service
+	template, err := a.sesc.UpdateAchievementTemplate(ctx, templateID, options)
+	if err != nil {
+		rec.Add(events.Error, err)
+		if errors.Is(err, sesc.ErrAchievementTemplateNotFound) {
+			writeError(ctx, w, AchievementTemplateNotFoundError{
+				Code:      "ACHIEVEMENT_TEMPLATE_NOT_FOUND",
+				Message:   "Achievement template not found",
+				RuMessage: "Шаблон достижения не найден",
+			}.WithStatus(http.StatusNotFound))
+			return
+		}
+		if errors.Is(err, sesc.ErrAchievementGroupNotFound) {
+			writeError(ctx, w, GroupNotFoundError{
+				Code:      "GROUP_NOT_FOUND",
+				Message:   "Achievement group not found",
+				RuMessage: "Группа достижений не найдена",
+			}.WithStatus(http.StatusNotFound))
+			return
+		}
+		writeError(ctx, w, ErrServerError.WithStatus(http.StatusInternalServerError))
+		return
+	}
+
+	// Convert to response format
+	response := AchievementTemplateResponse{
+		ID:          template.ID,
+		Name:        template.Name,
+		Description: template.Description,
+		PointsLimit: template.PointsLimit,
+		GroupID:     template.GroupID,
+		Active:      template.Active,
+		Kind:        template.Kind,
+	}
+
+	a.writeJSON(ctx, w, response, http.StatusOK)
 }

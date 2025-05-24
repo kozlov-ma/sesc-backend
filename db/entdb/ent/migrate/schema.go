@@ -8,6 +8,43 @@ import (
 )
 
 var (
+	// AchievementGroupsColumns holds the columns for the "achievement_groups" table.
+	AchievementGroupsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Unique: true},
+		{Name: "name", Type: field.TypeString, Size: 255},
+		{Name: "description", Type: field.TypeString, Nullable: true, Size: 2147483647},
+		{Name: "active", Type: field.TypeBool, Default: true},
+	}
+	// AchievementGroupsTable holds the schema information for the "achievement_groups" table.
+	AchievementGroupsTable = &schema.Table{
+		Name:       "achievement_groups",
+		Columns:    AchievementGroupsColumns,
+		PrimaryKey: []*schema.Column{AchievementGroupsColumns[0]},
+	}
+	// AchievementTemplatesColumns holds the columns for the "achievement_templates" table.
+	AchievementTemplatesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Unique: true},
+		{Name: "name", Type: field.TypeString, Size: 255},
+		{Name: "description", Type: field.TypeString, Nullable: true, Size: 2147483647},
+		{Name: "points_limit", Type: field.TypeInt},
+		{Name: "active", Type: field.TypeBool, Default: true},
+		{Name: "kind", Type: field.TypeEnum, Enums: []string{"olympiad", "development", "scientific"}},
+		{Name: "group_id", Type: field.TypeUUID},
+	}
+	// AchievementTemplatesTable holds the schema information for the "achievement_templates" table.
+	AchievementTemplatesTable = &schema.Table{
+		Name:       "achievement_templates",
+		Columns:    AchievementTemplatesColumns,
+		PrimaryKey: []*schema.Column{AchievementTemplatesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "achievement_templates_achievement_groups_templates",
+				Columns:    []*schema.Column{AchievementTemplatesColumns[6]},
+				RefColumns: []*schema.Column{AchievementGroupsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+	}
 	// AuthUsersColumns holds the columns for the "auth_users" table.
 	AuthUsersColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -149,6 +186,8 @@ var (
 	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
+		AchievementGroupsTable,
+		AchievementTemplatesTable,
 		AuthUsersTable,
 		DepartmentsTable,
 		FilesTable,
@@ -157,6 +196,7 @@ var (
 )
 
 func init() {
+	AchievementTemplatesTable.ForeignKeys[0].RefTable = AchievementGroupsTable
 	AuthUsersTable.ForeignKeys[0].RefTable = UsersTable
 	FilesTable.ForeignKeys[0].RefTable = UsersTable
 	UsersTable.ForeignKeys[0].RefTable = DepartmentsTable

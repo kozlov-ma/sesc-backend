@@ -41,7 +41,8 @@ type SpecificError interface {
 		UserExistsError | CredentialsNotFoundError | ServerError |
 		InvalidRoleError | InvalidNameError | DepartmentExistsError |
 		InvalidDepartmentIDError | InvalidDepartmentError | DepartmentNotFoundError |
-		CannotRemoveDepartmentError | FileNotFoundError | BadRequestError | Error
+		CannotRemoveDepartmentError | FileNotFoundError | BadRequestError |
+		GroupNotFoundError | AchievementTemplateNotFoundError | Error
 }
 
 // InvalidRequestError represents an invalid request error
