@@ -65,7 +65,7 @@ func Description(v string) predicate.AchievementTemplate {
 }
 
 // PointsLimit applies equality check predicate on the "points_limit" field. It's identical to PointsLimitEQ.
-func PointsLimit(v int32) predicate.AchievementTemplate {
+func PointsLimit(v int) predicate.AchievementTemplate {
 	return predicate.AchievementTemplate(sql.FieldEQ(FieldPointsLimit, v))
 }
 
@@ -220,42 +220,42 @@ func DescriptionContainsFold(v string) predicate.AchievementTemplate {
 }
 
 // PointsLimitEQ applies the EQ predicate on the "points_limit" field.
-func PointsLimitEQ(v int32) predicate.AchievementTemplate {
+func PointsLimitEQ(v int) predicate.AchievementTemplate {
 	return predicate.AchievementTemplate(sql.FieldEQ(FieldPointsLimit, v))
 }
 
 // PointsLimitNEQ applies the NEQ predicate on the "points_limit" field.
-func PointsLimitNEQ(v int32) predicate.AchievementTemplate {
+func PointsLimitNEQ(v int) predicate.AchievementTemplate {
 	return predicate.AchievementTemplate(sql.FieldNEQ(FieldPointsLimit, v))
 }
 
 // PointsLimitIn applies the In predicate on the "points_limit" field.
-func PointsLimitIn(vs ...int32) predicate.AchievementTemplate {
+func PointsLimitIn(vs ...int) predicate.AchievementTemplate {
 	return predicate.AchievementTemplate(sql.FieldIn(FieldPointsLimit, vs...))
 }
 
 // PointsLimitNotIn applies the NotIn predicate on the "points_limit" field.
-func PointsLimitNotIn(vs ...int32) predicate.AchievementTemplate {
+func PointsLimitNotIn(vs ...int) predicate.AchievementTemplate {
 	return predicate.AchievementTemplate(sql.FieldNotIn(FieldPointsLimit, vs...))
 }
 
 // PointsLimitGT applies the GT predicate on the "points_limit" field.
-func PointsLimitGT(v int32) predicate.AchievementTemplate {
+func PointsLimitGT(v int) predicate.AchievementTemplate {
 	return predicate.AchievementTemplate(sql.FieldGT(FieldPointsLimit, v))
 }
 
 // PointsLimitGTE applies the GTE predicate on the "points_limit" field.
-func PointsLimitGTE(v int32) predicate.AchievementTemplate {
+func PointsLimitGTE(v int) predicate.AchievementTemplate {
 	return predicate.AchievementTemplate(sql.FieldGTE(FieldPointsLimit, v))
 }
 
 // PointsLimitLT applies the LT predicate on the "points_limit" field.
-func PointsLimitLT(v int32) predicate.AchievementTemplate {
+func PointsLimitLT(v int) predicate.AchievementTemplate {
 	return predicate.AchievementTemplate(sql.FieldLT(FieldPointsLimit, v))
 }
 
 // PointsLimitLTE applies the LTE predicate on the "points_limit" field.
-func PointsLimitLTE(v int32) predicate.AchievementTemplate {
+func PointsLimitLTE(v int) predicate.AchievementTemplate {
 	return predicate.AchievementTemplate(sql.FieldLTE(FieldPointsLimit, v))
 }
 

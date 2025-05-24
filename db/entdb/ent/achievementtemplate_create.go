@@ -42,7 +42,7 @@ func (atc *AchievementTemplateCreate) SetNillableDescription(s *string) *Achieve
 }
 
 // SetPointsLimit sets the "points_limit" field.
-func (atc *AchievementTemplateCreate) SetPointsLimit(i int32) *AchievementTemplateCreate {
+func (atc *AchievementTemplateCreate) SetPointsLimit(i int) *AchievementTemplateCreate {
 	atc.mutation.SetPointsLimit(i)
 	return atc
 }
@@ -216,7 +216,7 @@ func (atc *AchievementTemplateCreate) createSpec() (*AchievementTemplate, *sqlgr
 		_node.Description = value
 	}
 	if value, ok := atc.mutation.PointsLimit(); ok {
-		_spec.SetField(achievementtemplate.FieldPointsLimit, field.TypeInt32, value)
+		_spec.SetField(achievementtemplate.FieldPointsLimit, field.TypeInt, value)
 		_node.PointsLimit = value
 	}
 	if value, ok := atc.mutation.Active(); ok {

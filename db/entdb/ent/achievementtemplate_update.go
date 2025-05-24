@@ -64,14 +64,14 @@ func (atu *AchievementTemplateUpdate) ClearDescription() *AchievementTemplateUpd
 }
 
 // SetPointsLimit sets the "points_limit" field.
-func (atu *AchievementTemplateUpdate) SetPointsLimit(i int32) *AchievementTemplateUpdate {
+func (atu *AchievementTemplateUpdate) SetPointsLimit(i int) *AchievementTemplateUpdate {
 	atu.mutation.ResetPointsLimit()
 	atu.mutation.SetPointsLimit(i)
 	return atu
 }
 
 // SetNillablePointsLimit sets the "points_limit" field if the given value is not nil.
-func (atu *AchievementTemplateUpdate) SetNillablePointsLimit(i *int32) *AchievementTemplateUpdate {
+func (atu *AchievementTemplateUpdate) SetNillablePointsLimit(i *int) *AchievementTemplateUpdate {
 	if i != nil {
 		atu.SetPointsLimit(*i)
 	}
@@ -79,7 +79,7 @@ func (atu *AchievementTemplateUpdate) SetNillablePointsLimit(i *int32) *Achievem
 }
 
 // AddPointsLimit adds i to the "points_limit" field.
-func (atu *AchievementTemplateUpdate) AddPointsLimit(i int32) *AchievementTemplateUpdate {
+func (atu *AchievementTemplateUpdate) AddPointsLimit(i int) *AchievementTemplateUpdate {
 	atu.mutation.AddPointsLimit(i)
 	return atu
 }
@@ -214,10 +214,10 @@ func (atu *AchievementTemplateUpdate) sqlSave(ctx context.Context) (n int, err e
 		_spec.ClearField(achievementtemplate.FieldDescription, field.TypeString)
 	}
 	if value, ok := atu.mutation.PointsLimit(); ok {
-		_spec.SetField(achievementtemplate.FieldPointsLimit, field.TypeInt32, value)
+		_spec.SetField(achievementtemplate.FieldPointsLimit, field.TypeInt, value)
 	}
 	if value, ok := atu.mutation.AddedPointsLimit(); ok {
-		_spec.AddField(achievementtemplate.FieldPointsLimit, field.TypeInt32, value)
+		_spec.AddField(achievementtemplate.FieldPointsLimit, field.TypeInt, value)
 	}
 	if value, ok := atu.mutation.Active(); ok {
 		_spec.SetField(achievementtemplate.FieldActive, field.TypeBool, value)
@@ -309,14 +309,14 @@ func (atuo *AchievementTemplateUpdateOne) ClearDescription() *AchievementTemplat
 }
 
 // SetPointsLimit sets the "points_limit" field.
-func (atuo *AchievementTemplateUpdateOne) SetPointsLimit(i int32) *AchievementTemplateUpdateOne {
+func (atuo *AchievementTemplateUpdateOne) SetPointsLimit(i int) *AchievementTemplateUpdateOne {
 	atuo.mutation.ResetPointsLimit()
 	atuo.mutation.SetPointsLimit(i)
 	return atuo
 }
 
 // SetNillablePointsLimit sets the "points_limit" field if the given value is not nil.
-func (atuo *AchievementTemplateUpdateOne) SetNillablePointsLimit(i *int32) *AchievementTemplateUpdateOne {
+func (atuo *AchievementTemplateUpdateOne) SetNillablePointsLimit(i *int) *AchievementTemplateUpdateOne {
 	if i != nil {
 		atuo.SetPointsLimit(*i)
 	}
@@ -324,7 +324,7 @@ func (atuo *AchievementTemplateUpdateOne) SetNillablePointsLimit(i *int32) *Achi
 }
 
 // AddPointsLimit adds i to the "points_limit" field.
-func (atuo *AchievementTemplateUpdateOne) AddPointsLimit(i int32) *AchievementTemplateUpdateOne {
+func (atuo *AchievementTemplateUpdateOne) AddPointsLimit(i int) *AchievementTemplateUpdateOne {
 	atuo.mutation.AddPointsLimit(i)
 	return atuo
 }
@@ -489,10 +489,10 @@ func (atuo *AchievementTemplateUpdateOne) sqlSave(ctx context.Context) (_node *A
 		_spec.ClearField(achievementtemplate.FieldDescription, field.TypeString)
 	}
 	if value, ok := atuo.mutation.PointsLimit(); ok {
-		_spec.SetField(achievementtemplate.FieldPointsLimit, field.TypeInt32, value)
+		_spec.SetField(achievementtemplate.FieldPointsLimit, field.TypeInt, value)
 	}
 	if value, ok := atuo.mutation.AddedPointsLimit(); ok {
-		_spec.AddField(achievementtemplate.FieldPointsLimit, field.TypeInt32, value)
+		_spec.AddField(achievementtemplate.FieldPointsLimit, field.TypeInt, value)
 	}
 	if value, ok := atuo.mutation.Active(); ok {
 		_spec.SetField(achievementtemplate.FieldActive, field.TypeBool, value)

@@ -26,7 +26,7 @@ var (
 		{Name: "id", Type: field.TypeUUID, Unique: true},
 		{Name: "name", Type: field.TypeString, Size: 255},
 		{Name: "description", Type: field.TypeString, Nullable: true, Size: 2147483647},
-		{Name: "points_limit", Type: field.TypeInt32},
+		{Name: "points_limit", Type: field.TypeInt},
 		{Name: "active", Type: field.TypeBool, Default: true},
 		{Name: "kind", Type: field.TypeEnum, Enums: []string{"olympiad", "development", "scientific"}},
 		{Name: "group_id", Type: field.TypeUUID},

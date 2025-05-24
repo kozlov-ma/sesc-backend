@@ -1093,17 +1093,6 @@ func (s *SESC) UpdateAchievementGroup(
 	rec := event.Get(ctx).Sub("sesc/update_achievement_group")
 	rec.Add("group_id", id)
 
-	// Check if group exists
-	exists, err := s.client.AchievementGroup.Query().Where(achievementgroup.ID(id)).Exist(ctx)
-	if err != nil {
-		rec.Add(events.Error, fmt.Errorf("failed to check achievement group existence: %w", err))
-		return AchievementGroup{}, err
-	}
-	if !exists {
-		rec.Add(events.Error, "achievement group not found")
-		return AchievementGroup{}, sesc.ErrAchievementGroupNotFound
-	}
-
 	update := s.client.AchievementGroup.UpdateOneID(id)
 
 	if options.Name != nil {
@@ -1118,6 +1107,10 @@ func (s *SESC) UpdateAchievementGroup(
 
 	group, err := update.Save(ctx)
 	if err != nil {
+		if ent.IsNotFound(err) {
+			rec.Add(events.Error, "achievement group not found")
+			return AchievementGroup{}, sesc.ErrAchievementGroupNotFound
+		}
 		rec.Add(events.Error, fmt.Errorf("failed to update achievement group: %w", err))
 		return AchievementGroup{}, err
 	}
@@ -1185,11 +1178,11 @@ func (s *SESC) AchievementTemplateByID(ctx context.Context, id UUID) (Achievemen
 	rec.Add("template_id", id)
 
 	template, err := s.client.AchievementTemplate.Get(ctx, id)
-	if err != nil {
-		if ent.IsNotFound(err) {
-			rec.Add(events.Error, "achievement template not found")
-			return AchievementTemplate{}, sesc.ErrAchievementTemplateNotFound
-		}
+	switch {
+	case ent.IsNotFound(err):
+		rec.Add(events.Error, "achievement template not found")
+		return AchievementTemplate{}, sesc.ErrAchievementTemplateNotFound
+	case err != nil:
 		rec.Add(events.Error, fmt.Errorf("failed to get achievement template: %w", err))
 		return AchievementTemplate{}, err
 	}
@@ -1215,17 +1208,6 @@ func (s *SESC) CreateAchievementTemplate(
 	rec.Add("template_name", options.Name)
 	rec.Add("group_id", options.GroupID)
 
-	// Validate that the group exists
-	exists, err := s.client.AchievementGroup.Query().Where(achievementgroup.ID(options.GroupID)).Exist(ctx)
-	if err != nil {
-		rec.Add(events.Error, fmt.Errorf("failed to check achievement group existence: %w", err))
-		return AchievementTemplate{}, err
-	}
-	if !exists {
-		rec.Add(events.Error, "achievement group not found")
-		return AchievementTemplate{}, sesc.ErrAchievementGroupNotFound
-	}
-
 	id, err := s.newUUID()
 	if err != nil {
 		rec.Add(events.Error, fmt.Errorf("failed to generate ID: %w", err))
@@ -1242,6 +1224,10 @@ func (s *SESC) CreateAchievementTemplate(
 		SetKind(achievementtemplate.Kind(options.Kind)).
 		Save(ctx)
 	if err != nil {
+		if ent.IsConstraintError(err) {
+			rec.Add(events.Error, "achievement group not found")
+			return AchievementTemplate{}, sesc.ErrAchievementGroupNotFound
+		}
 		rec.Add(events.Error, fmt.Errorf("failed to create achievement template: %w", err))
 		return AchievementTemplate{}, err
 	}
@@ -1262,7 +1248,7 @@ func (s *SESC) CreateAchievementTemplate(
 
 // UpdateAchievementTemplate updates an existing achievement template.
 // Returns sesc.ErrAchievementTemplateNotFound if the template does not exist.
-// Returns sesc.ErrAchievementGroupNotFound if the specified group does not exist.
+// Note: GroupID cannot be changed after creation.
 func (s *SESC) UpdateAchievementTemplate(
 	ctx context.Context,
 	id UUID,
@@ -1270,30 +1256,6 @@ func (s *SESC) UpdateAchievementTemplate(
 ) (AchievementTemplate, error) {
 	rec := event.Get(ctx).Sub("sesc/update_achievement_template")
 	rec.Add("template_id", id)
-
-	// Check if template exists
-	exists, err := s.client.AchievementTemplate.Query().Where(achievementtemplate.ID(id)).Exist(ctx)
-	if err != nil {
-		rec.Add(events.Error, fmt.Errorf("failed to check achievement template existence: %w", err))
-		return AchievementTemplate{}, err
-	}
-	if !exists {
-		rec.Add(events.Error, "achievement template not found")
-		return AchievementTemplate{}, sesc.ErrAchievementTemplateNotFound
-	}
-
-	// If GroupID is being updated, validate the new group exists
-	if options.GroupID != nil {
-		groupExists, err := s.client.AchievementGroup.Query().Where(achievementgroup.ID(*options.GroupID)).Exist(ctx)
-		if err != nil {
-			rec.Add(events.Error, fmt.Errorf("failed to check achievement group existence: %w", err))
-			return AchievementTemplate{}, err
-		}
-		if !groupExists {
-			rec.Add(events.Error, "achievement group not found")
-			return AchievementTemplate{}, sesc.ErrAchievementGroupNotFound
-		}
-	}
 
 	update := s.client.AchievementTemplate.UpdateOneID(id)
 
@@ -1306,9 +1268,6 @@ func (s *SESC) UpdateAchievementTemplate(
 	if options.PointsLimit != nil {
 		update = update.SetPointsLimit(*options.PointsLimit)
 	}
-	if options.GroupID != nil {
-		update = update.SetGroupID(*options.GroupID)
-	}
 	if options.Active != nil {
 		update = update.SetActive(*options.Active)
 	}
@@ -1318,6 +1277,10 @@ func (s *SESC) UpdateAchievementTemplate(
 
 	template, err := update.Save(ctx)
 	if err != nil {
+		if ent.IsNotFound(err) {
+			rec.Add(events.Error, "achievement template not found")
+			return AchievementTemplate{}, sesc.ErrAchievementTemplateNotFound
+		}
 		rec.Add(events.Error, fmt.Errorf("failed to update achievement template: %w", err))
 		return AchievementTemplate{}, err
 	}

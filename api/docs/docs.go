@@ -2247,17 +2247,8 @@ const docTemplate = `{
                     "type": "string",
                     "example": "Публикация статьи в научном журнале"
                 },
-                "groupId": {
-                    "type": "string",
-                    "example": "550e8400-e29b-41d4-a716-446655440000"
-                },
                 "kind": {
                     "type": "string",
-                    "enum": [
-                        "olympiad",
-                        "development",
-                        "scientific"
-                    ],
                     "example": "scientific"
                 },
                 "name": {

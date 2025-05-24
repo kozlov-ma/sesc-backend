@@ -600,8 +600,8 @@ type AchievementTemplateMutation struct {
 	id              *uuid.UUID
 	name            *string
 	description     *string
-	points_limit    *int32
-	addpoints_limit *int32
+	points_limit    *int
+	addpoints_limit *int
 	active          *bool
 	kind            *achievementtemplate.Kind
 	clearedFields   map[string]struct{}
@@ -802,13 +802,13 @@ func (m *AchievementTemplateMutation) ResetDescription() {
 }
 
 // SetPointsLimit sets the "points_limit" field.
-func (m *AchievementTemplateMutation) SetPointsLimit(i int32) {
+func (m *AchievementTemplateMutation) SetPointsLimit(i int) {
 	m.points_limit = &i
 	m.addpoints_limit = nil
 }
 
 // PointsLimit returns the value of the "points_limit" field in the mutation.
-func (m *AchievementTemplateMutation) PointsLimit() (r int32, exists bool) {
+func (m *AchievementTemplateMutation) PointsLimit() (r int, exists bool) {
 	v := m.points_limit
 	if v == nil {
 		return
@@ -819,7 +819,7 @@ func (m *AchievementTemplateMutation) PointsLimit() (r int32, exists bool) {
 // OldPointsLimit returns the old "points_limit" field's value of the AchievementTemplate entity.
 // If the AchievementTemplate object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *AchievementTemplateMutation) OldPointsLimit(ctx context.Context) (v int32, err error) {
+func (m *AchievementTemplateMutation) OldPointsLimit(ctx context.Context) (v int, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldPointsLimit is only allowed on UpdateOne operations")
 	}
@@ -834,7 +834,7 @@ func (m *AchievementTemplateMutation) OldPointsLimit(ctx context.Context) (v int
 }
 
 // AddPointsLimit adds i to the "points_limit" field.
-func (m *AchievementTemplateMutation) AddPointsLimit(i int32) {
+func (m *AchievementTemplateMutation) AddPointsLimit(i int) {
 	if m.addpoints_limit != nil {
 		*m.addpoints_limit += i
 	} else {
@@ -843,7 +843,7 @@ func (m *AchievementTemplateMutation) AddPointsLimit(i int32) {
 }
 
 // AddedPointsLimit returns the value that was added to the "points_limit" field in this mutation.
-func (m *AchievementTemplateMutation) AddedPointsLimit() (r int32, exists bool) {
+func (m *AchievementTemplateMutation) AddedPointsLimit() (r int, exists bool) {
 	v := m.addpoints_limit
 	if v == nil {
 		return
@@ -1110,7 +1110,7 @@ func (m *AchievementTemplateMutation) SetField(name string, value ent.Value) err
 		m.SetDescription(v)
 		return nil
 	case achievementtemplate.FieldPointsLimit:
-		v, ok := value.(int32)
+		v, ok := value.(int)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
@@ -1168,7 +1168,7 @@ func (m *AchievementTemplateMutation) AddedField(name string) (ent.Value, bool) 
 func (m *AchievementTemplateMutation) AddField(name string, value ent.Value) error {
 	switch name {
 	case achievementtemplate.FieldPointsLimit:
-		v, ok := value.(int32)
+		v, ok := value.(int)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}

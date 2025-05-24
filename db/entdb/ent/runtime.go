@@ -68,7 +68,7 @@ func init() {
 	// achievementtemplateDescPointsLimit is the schema descriptor for points_limit field.
 	achievementtemplateDescPointsLimit := achievementtemplateFields[3].Descriptor()
 	// achievementtemplate.PointsLimitValidator is a validator for the "points_limit" field. It is called by the builders before save.
-	achievementtemplate.PointsLimitValidator = achievementtemplateDescPointsLimit.Validators[0].(func(int32) error)
+	achievementtemplate.PointsLimitValidator = achievementtemplateDescPointsLimit.Validators[0].(func(int) error)
 	// achievementtemplateDescActive is the schema descriptor for active field.
 	achievementtemplateDescActive := achievementtemplateFields[5].Descriptor()
 	// achievementtemplate.DefaultActive holds the default value on creation for the active field.

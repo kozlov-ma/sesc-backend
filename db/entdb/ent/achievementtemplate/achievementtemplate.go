@@ -65,7 +65,7 @@ var (
 	// NameValidator is a validator for the "name" field. It is called by the builders before save.
 	NameValidator func(string) error
 	// PointsLimitValidator is a validator for the "points_limit" field. It is called by the builders before save.
-	PointsLimitValidator func(int32) error
+	PointsLimitValidator func(int) error
 	// DefaultActive holds the default value on creation for the "active" field.
 	DefaultActive bool
 	// DefaultID holds the default value on creation for the "id" field.

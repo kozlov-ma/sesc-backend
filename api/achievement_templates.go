@@ -23,7 +23,7 @@ type AchievementTemplateResponse struct {
 	ID          uuid.UUID `json:"id"          example:"550e8400-e29b-41d4-a716-446655440000" validate:"required"`
 	Name        string    `json:"name"        example:"Публикация в журнале"                 validate:"required"`
 	Description string    `json:"description" example:"Публикация статьи в научном журнале"  validate:"required"`
-	PointsLimit int32     `json:"pointsLimit" example:"10"                                   validate:"required"`
+	PointsLimit int       `json:"pointsLimit" example:"10"                                   validate:"required"`
 	GroupID     uuid.UUID `json:"groupId"     example:"550e8400-e29b-41d4-a716-446655440000" validate:"required"`
 	Active      bool      `json:"active"      example:"true"                                 validate:"required"`
 	Kind        string    `json:"kind"        example:"scientific"                           validate:"required,oneof=olympiad development scientific"`
@@ -37,7 +37,7 @@ type CreateAchievementGroupRequest struct {
 type CreateAchievementTemplateRequest struct {
 	Name        string    `json:"name"        example:"Публикация в журнале"                 validate:"required"`
 	Description string    `json:"description" example:"Публикация статьи в научном журнале"  validate:"required"`
-	PointsLimit int32     `json:"pointsLimit" example:"10"                                   validate:"required"`
+	PointsLimit int       `json:"pointsLimit" example:"10"                                   validate:"required"`
 	GroupID     uuid.UUID `json:"groupId"     example:"550e8400-e29b-41d4-a716-446655440000" validate:"required"`
 	Kind        string    `json:"kind"        example:"scientific"                           validate:"required,oneof=olympiad development scientific"`
 }
@@ -49,12 +49,11 @@ type PatchAchievementGroupRequest struct {
 }
 
 type PatchAchievementTemplateRequest struct {
-	Name        *string    `json:"name,omitzero"        example:"Публикация в журнале"`
-	Description *string    `json:"description,omitzero" example:"Публикация статьи в научном журнале"`
-	PointsLimit *int32     `json:"pointsLimit,omitzero" example:"10"`
-	GroupID     *uuid.UUID `json:"groupId,omitzero"     example:"550e8400-e29b-41d4-a716-446655440000"`
-	Active      *bool      `json:"active,omitzero"      example:"true"`
-	Kind        *string    `json:"kind,omitzero"        example:"scientific"                           validate:"omitempty,oneof=olympiad development scientific"`
+	Name        *string `json:"name,omitzero"        example:"Публикация в журнале"`
+	Description *string `json:"description,omitzero" example:"Публикация статьи в научном журнале"`
+	PointsLimit *int    `json:"pointsLimit,omitzero" example:"10"`
+	Active      *bool   `json:"active,omitzero"      example:"true"`
+	Kind        *string `json:"kind,omitzero"        example:"scientific"`
 }
 
 // GetAchievementGroups godoc
@@ -455,7 +454,6 @@ func (a *API) PatchAchievementTemplate(w http.ResponseWriter, r *http.Request) {
 		Name:        req.Name,
 		Description: req.Description,
 		PointsLimit: req.PointsLimit,
-		GroupID:     req.GroupID,
 		Active:      req.Active,
 		Kind:        req.Kind,
 	}

@@ -23,7 +23,7 @@ type AchievementTemplate struct {
 	// Description holds the value of the "description" field.
 	Description string `json:"description,omitempty"`
 	// PointsLimit holds the value of the "points_limit" field.
-	PointsLimit int32 `json:"points_limit,omitempty"`
+	PointsLimit int `json:"points_limit,omitempty"`
 	// GroupID holds the value of the "group_id" field.
 	GroupID uuid.UUID `json:"group_id,omitempty"`
 	// Active holds the value of the "active" field.
@@ -106,7 +106,7 @@ func (at *AchievementTemplate) assignValues(columns []string, values []any) erro
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field points_limit", values[i])
 			} else if value.Valid {
-				at.PointsLimit = int32(value.Int64)
+				at.PointsLimit = int(value.Int64)
 			}
 		case achievementtemplate.FieldGroupID:
 			if value, ok := values[i].(*uuid.UUID); !ok {

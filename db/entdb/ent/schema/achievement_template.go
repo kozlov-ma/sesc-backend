@@ -24,7 +24,7 @@ func (AchievementTemplate) Fields() []ent.Field {
 			MaxLen(255),
 		field.Text("description").
 			Optional(),
-		field.Int32("points_limit").
+		field.Int("points_limit").
 			Positive(),
 		field.UUID("group_id", uuid.UUID{}),
 		field.Bool("active").

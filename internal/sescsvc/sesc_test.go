@@ -833,7 +833,7 @@ func TestAchievementTemplateByID(t *testing.T) {
 		require.Equal(t, templateID, template.ID)
 		require.Equal(t, "Test Template", template.Name)
 		require.Equal(t, "Test Description", template.Description)
-		require.Equal(t, int32(15), template.PointsLimit)
+		require.Equal(t, 15, template.PointsLimit)
 		require.Equal(t, "olympiad", template.Kind)
 		require.True(t, template.Active)
 	})
@@ -876,7 +876,7 @@ func TestAchievementTemplates(t *testing.T) {
 			opts := AchievementTemplateCreateOptions{
 				Name:        fmt.Sprintf("Template %d", i+1),
 				Description: fmt.Sprintf("Description %d", i+1),
-				PointsLimit: int32(i + 5),
+				PointsLimit: i + 5,
 				GroupID:     groupID,
 				Kind:        "scientific",
 			}
@@ -955,7 +955,7 @@ func TestUpdateAchievementTemplate(t *testing.T) {
 
 		newName := "Updated Template"
 		newDesc := "Updated Description"
-		newPoints := int32(20)
+		newPoints := 20
 		newActive := false
 		newKind := "development"
 
@@ -988,17 +988,5 @@ func TestUpdateAchievementTemplate(t *testing.T) {
 		opts := AchievementTemplateUpdateOptions{}
 		_, err := svc.UpdateAchievementTemplate(ctx, uuid.Must(uuid.NewV7()), opts)
 		require.ErrorIs(t, err, sesc.ErrAchievementTemplateNotFound)
-	})
-
-	t.Run("invalid group", func(t *testing.T) {
-		ctx, svc, templateID, _ := setup(t)
-
-		invalidGroupID := uuid.Must(uuid.NewV7())
-		opts := AchievementTemplateUpdateOptions{
-			GroupID: &invalidGroupID,
-		}
-
-		_, err := svc.UpdateAchievementTemplate(ctx, templateID, opts)
-		require.ErrorIs(t, err, sesc.ErrAchievementGroupNotFound)
 	})
 }
