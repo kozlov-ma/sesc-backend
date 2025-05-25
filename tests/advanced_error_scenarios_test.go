@@ -24,11 +24,11 @@ func TestDepartmentErrors(t *testing.T) {
 
 	// Create a regular user for permission testing
 	randomSuffix := uuid.Must(uuid.NewV7()).String()
-	userData := CreateUserRequest{
-		FirstName: fmt.Sprintf("Regular_%s", randomSuffix),
-		LastName:  fmt.Sprintf("User_%s", randomSuffix),
-		RoleID:    2,
-	}
+	userData := CreateValidUserData(
+		fmt.Sprintf("Regular_%s", randomSuffix),
+		fmt.Sprintf("User_%s", randomSuffix),
+		2,
+	)
 	user, err := adminClient.CreateUser(ctx, userData)
 	require.NoError(t, err)
 
@@ -57,12 +57,12 @@ func TestDepartmentErrors(t *testing.T) {
 	// Test deleting a department that has associated users
 	// First create a user associated with the department
 	randomSuffix2 := uuid.Must(uuid.NewV7()).String()
-	userWithDept := CreateUserRequest{
-		FirstName:    fmt.Sprintf("Department_%s", randomSuffix2),
-		LastName:     fmt.Sprintf("User_%s", randomSuffix2),
-		DepartmentID: dept.ID,
-		RoleID:       2,
-	}
+	userWithDept := CreateValidUserData(
+		fmt.Sprintf("Department_%s", randomSuffix2),
+		fmt.Sprintf("User_%s", randomSuffix2),
+		3,
+	)
+	userWithDept.DepartmentID = dept.ID
 	_, err = adminClient.CreateUser(ctx, userWithDept)
 	require.NoError(t, err)
 
@@ -115,18 +115,12 @@ func TestRequestValidationErrors(t *testing.T) {
 		veryLongName += "x"
 	}
 	// This test might pass or fail depending on the server's max size configuration
-	_, _ = client.CreateUser(ctx, CreateUserRequest{
-		FirstName: veryLongName,
-		LastName:  "Test",
-		RoleID:    2,
-	})
+	longNameUser := CreateValidUserData(veryLongName, "Test", 2)
+	_, _ = client.CreateUser(ctx, longNameUser)
 
 	// 4. User with non-existent role ID
-	_, err = client.CreateUser(ctx, CreateUserRequest{
-		FirstName: "Role",
-		LastName:  "Test",
-		RoleID:    999, // Non-existent role ID
-	})
+	invalidRoleUser := CreateValidUserData("Role", "Test", 999)
+	_, err = client.CreateUser(ctx, invalidRoleUser)
 	require.Error(t, err)
 }
 
@@ -146,11 +140,11 @@ func TestUserRoleBasedAccess(t *testing.T) {
 	// Create a regular user for permission testing
 	randomSuffix := uuid.Must(uuid.NewV7()).String()
 	username := fmt.Sprintf("regular_user_%s", uuid.Must(uuid.NewV7()).String())
-	userData := CreateUserRequest{
-		FirstName: fmt.Sprintf("Regular_%s", randomSuffix),
-		LastName:  fmt.Sprintf("User_%s", randomSuffix),
-		RoleID:    2,
-	}
+	userData := CreateValidUserData(
+		fmt.Sprintf("Regular_%s", randomSuffix),
+		fmt.Sprintf("User_%s", randomSuffix),
+		2,
+	)
 	user, err := adminClient.CreateUser(ctx, userData)
 	require.NoError(t, err)
 
@@ -204,12 +198,12 @@ func TestUserRoleBasedAccess(t *testing.T) {
 	// Test deleting a department that has associated users
 	// First create a user associated with the department
 	randomSuffix2 := uuid.Must(uuid.NewV7()).String()
-	userWithDept := CreateUserRequest{
-		FirstName:    fmt.Sprintf("Department_%s", randomSuffix2),
-		LastName:     fmt.Sprintf("User_%s", randomSuffix2),
-		DepartmentID: dept.ID,
-		RoleID:       2,
-	}
+	userWithDept := CreateValidUserData(
+		fmt.Sprintf("Department_%s", randomSuffix2),
+		fmt.Sprintf("User_%s", randomSuffix2),
+		3,
+	)
+	userWithDept.DepartmentID = dept.ID
 	_, err = adminClient.CreateUser(ctx, userWithDept)
 	require.NoError(t, err)
 
@@ -235,11 +229,11 @@ func TestAccessControlAdvanced(t *testing.T) {
 	// Create a regular user for permission testing
 	randomSuffix := uuid.Must(uuid.NewV7()).String()
 	username := fmt.Sprintf("regular_user_%s", uuid.Must(uuid.NewV7()).String())
-	userData := CreateUserRequest{
-		FirstName: fmt.Sprintf("Regular_%s", randomSuffix),
-		LastName:  fmt.Sprintf("User_%s", randomSuffix),
-		RoleID:    2,
-	}
+	userData := CreateValidUserData(
+		fmt.Sprintf("Regular_%s", randomSuffix),
+		fmt.Sprintf("User_%s", randomSuffix),
+		2,
+	)
 	user, err := adminClient.CreateUser(ctx, userData)
 	require.NoError(t, err)
 
@@ -293,12 +287,12 @@ func TestAccessControlAdvanced(t *testing.T) {
 	// Test deleting a department that has associated users
 	// First create a user associated with the department
 	randomSuffix2 := uuid.Must(uuid.NewV7()).String()
-	userWithDept := CreateUserRequest{
-		FirstName:    fmt.Sprintf("Department_%s", randomSuffix2),
-		LastName:     fmt.Sprintf("User_%s", randomSuffix2),
-		DepartmentID: dept.ID,
-		RoleID:       2,
-	}
+	userWithDept := CreateValidUserData(
+		fmt.Sprintf("Department_%s", randomSuffix2),
+		fmt.Sprintf("User_%s", randomSuffix2),
+		3,
+	)
+	userWithDept.DepartmentID = dept.ID
 	_, err = adminClient.CreateUser(ctx, userWithDept)
 	require.NoError(t, err)
 

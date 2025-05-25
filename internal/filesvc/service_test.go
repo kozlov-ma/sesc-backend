@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"math/rand/v2"
 	"testing"
+	"time"
 
 	"github.com/gofrs/uuid/v5"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent"
@@ -86,6 +87,12 @@ func createTestUser(ctx context.Context, t *testing.T, client *ent.Client) uuid.
 		SetLastName("User").
 		SetRoleID(1).
 		SetDepartmentID(deptID).
+		SetSubdivision("Test Subdivision").
+		SetJobTitle("Test Position").
+		SetEmploymentRate(1.0).
+		SetPersonnelCategory(1).
+		SetEmploymentType(1).
+		SetDateOfEmployment(time.Now()).
 		Save(ctx)
 	require.NoError(t, err)
 

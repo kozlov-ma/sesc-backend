@@ -39,14 +39,14 @@ func TestUserCRUD(t *testing.T) {
 
 	// 3. Create a new user with unique data
 	randomSuffix := uuid.Must(uuid.NewV7()).String()
-	userData := CreateUserRequest{
-		FirstName:    fmt.Sprintf("John_%s", randomSuffix),
-		LastName:     fmt.Sprintf("Doe_%s", randomSuffix),
-		MiddleName:   fmt.Sprintf("Smith_%s", randomSuffix),
-		RoleID:       2, // Assuming 2 is a regular user role
-		PictureURL:   fmt.Sprintf("/images/users/john_%s.jpg", randomSuffix),
-		DepartmentID: dept.ID,
-	}
+	userData := CreateValidUserData(
+		fmt.Sprintf("John_%s", randomSuffix),
+		fmt.Sprintf("Doe_%s", randomSuffix),
+		2,
+	)
+	userData.MiddleName = fmt.Sprintf("Smith_%s", randomSuffix)
+	userData.PictureURL = fmt.Sprintf("/images/users/john_%s.jpg", randomSuffix)
+	userData.DepartmentID = dept.ID
 
 	user, err := client.CreateUser(ctx, userData)
 	require.NoError(t, err)

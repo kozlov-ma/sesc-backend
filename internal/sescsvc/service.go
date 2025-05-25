@@ -66,14 +66,25 @@ func convertUser(u *ent.User) (User, error) {
 	}
 
 	return User{
-		ID:         u.ID,
-		FirstName:  u.FirstName,
-		LastName:   u.LastName,
-		MiddleName: u.MiddleName,
-		PictureURL: u.PictureURL,
-		Suspended:  u.Suspended,
-		Department: dept,
-		Role:       role,
+		ID:                u.ID,
+		FirstName:         u.FirstName,
+		LastName:          u.LastName,
+		MiddleName:        u.MiddleName,
+		PictureURL:        u.PictureURL,
+		Suspended:         u.Suspended,
+		Department:        dept,
+		Role:              role,
+		Subdivision:       u.Subdivision,
+		JobTitle:          u.JobTitle,
+		EmploymentRate:    u.EmploymentRate,
+		AcademicDegree:    u.AcademicDegree,
+		PersonnelCategory: u.PersonnelCategory,
+		EmploymentType:    u.EmploymentType,
+		AcademicTitle:     u.AcademicTitle,
+		Honors:            u.Honors,
+		Category:          u.Category,
+		DateOfEmployment:  u.DateOfEmployment,
+		UnemploymentDate:  u.UnemploymentDate,
 	}, nil
 }
 
@@ -578,7 +589,19 @@ func (s *SESC) updateUserRecord(
 		SetMiddleName(upd.MiddleName).
 		SetPictureURL(upd.PictureURL).
 		SetSuspended(upd.Suspended).
-		SetRoleID(upd.NewRoleID)
+		SetRoleID(upd.NewRoleID).
+		SetSubdivision(upd.Subdivision).
+		SetJobTitle(upd.JobTitle).
+		SetEmploymentRate(upd.EmploymentRate).
+		SetPersonnelCategory(upd.PersonnelCategory).
+		SetEmploymentType(upd.EmploymentType).
+		SetDateOfEmployment(upd.DateOfEmployment)
+
+	updater = updater.SetAcademicDegree(upd.AcademicDegree).
+		SetAcademicTitle(upd.AcademicTitle).
+		SetHonors(upd.Honors).
+		SetCategory(upd.Category).
+		SetUnemploymentDate(upd.UnemploymentDate)
 
 	if dept != nil {
 		updater = updater.SetDepartmentID(dept.ID)
@@ -747,7 +770,19 @@ func (s *SESC) createUserRecord(
 		SetLastName(opt.LastName).
 		SetMiddleName(opt.MiddleName).
 		SetPictureURL(opt.PictureURL).
-		SetRoleID(opt.NewRoleID)
+		SetRoleID(opt.NewRoleID).
+		SetSubdivision(opt.Subdivision).
+		SetJobTitle(opt.JobTitle).
+		SetEmploymentRate(opt.EmploymentRate).
+		SetPersonnelCategory(opt.PersonnelCategory).
+		SetEmploymentType(opt.EmploymentType).
+		SetDateOfEmployment(opt.DateOfEmployment)
+
+	cr = cr.SetAcademicDegree(opt.AcademicDegree).
+		SetAcademicTitle(opt.AcademicTitle).
+		SetHonors(opt.Honors).
+		SetCategory(opt.Category).
+		SetUnemploymentDate(opt.UnemploymentDate)
 	if dept != nil {
 		cr = cr.SetDepartment(dept)
 	}

@@ -273,15 +273,57 @@ export const api_CreateDepartmentRequestSchema = {
 
 export const api_CreateUserRequestSchema = {
   type: "object",
-  required: ["firstName", "lastName", "roleId"],
+  required: [
+    "dateOfEmployment",
+    "employmentRate",
+    "employmentType",
+    "firstName",
+    "jobTitle",
+    "lastName",
+    "personnelCategory",
+    "roleId",
+    "subdivision",
+  ],
   properties: {
+    academicDegree: {
+      type: "integer",
+      example: 2,
+    },
+    academicTitle: {
+      type: "string",
+      example: "Профессор",
+    },
+    category: {
+      type: "string",
+      example: "Высшая",
+    },
+    dateOfEmployment: {
+      type: "string",
+      example: "2020-01-15T00:00:00Z",
+    },
     departmentId: {
       type: "string",
       example: "550e8400-e29b-41d4-a716-446655440000",
     },
+    employmentRate: {
+      type: "number",
+      example: 1,
+    },
+    employmentType: {
+      type: "integer",
+      example: 1,
+    },
     firstName: {
       type: "string",
       example: "Anna",
+    },
+    honors: {
+      type: "string",
+      example: "Заслуженный деятель науки",
+    },
+    jobTitle: {
+      type: "string",
+      example: "Профессор",
     },
     lastName: {
       type: "string",
@@ -291,6 +333,10 @@ export const api_CreateUserRequestSchema = {
       type: "string",
       example: "Olegovna",
     },
+    personnelCategory: {
+      type: "integer",
+      example: 1,
+    },
     pictureUrl: {
       type: "string",
       example: "/images/users/ivan.jpg",
@@ -298,6 +344,14 @@ export const api_CreateUserRequestSchema = {
     roleId: {
       type: "integer",
       example: 2,
+    },
+    subdivision: {
+      type: "string",
+      example: "Кафедра информатики",
+    },
+    unemploymentDate: {
+      type: "string",
+      example: "2023-12-31T00:00:00Z",
     },
   },
 } as const;
@@ -811,13 +865,45 @@ export const api_PatchUserRequestSchema = {
   type: "object",
   required: ["firstName", "lastName", "roleId", "suspended"],
   properties: {
+    academicDegree: {
+      type: "integer",
+      example: 2,
+    },
+    academicTitle: {
+      type: "string",
+      example: "Профессор",
+    },
+    category: {
+      type: "string",
+      example: "Высшая",
+    },
+    dateOfEmployment: {
+      type: "string",
+      example: "2020-01-15T00:00:00Z",
+    },
     departmentId: {
       type: "string",
       example: "550e8400-e29b-41d4-a716-446655440000",
     },
+    employmentRate: {
+      type: "number",
+      example: 1,
+    },
+    employmentType: {
+      type: "integer",
+      example: 1,
+    },
     firstName: {
       type: "string",
       example: "Ivan",
+    },
+    honors: {
+      type: "string",
+      example: "Заслуженный деятель науки",
+    },
+    jobTitle: {
+      type: "string",
+      example: "Профессор",
     },
     lastName: {
       type: "string",
@@ -827,6 +913,10 @@ export const api_PatchUserRequestSchema = {
       type: "string",
       example: "Sergeevich",
     },
+    personnelCategory: {
+      type: "integer",
+      example: 1,
+    },
     pictureUrl: {
       type: "string",
       example: "/images/users/ivan.jpg",
@@ -835,9 +925,17 @@ export const api_PatchUserRequestSchema = {
       type: "integer",
       example: 1,
     },
+    subdivision: {
+      type: "string",
+      example: "Кафедра информатики",
+    },
     suspended: {
       type: "boolean",
       example: false,
+    },
+    unemploymentDate: {
+      type: "string",
+      example: "2023-12-31T00:00:00Z",
     },
   },
 } as const;
@@ -1082,18 +1180,63 @@ export const api_UserNotFoundErrorSchema = {
 
 export const api_UserResponseSchema = {
   type: "object",
-  required: ["firstName", "id", "lastName", "pictureUrl", "role", "suspended"],
+  required: [
+    "dateOfEmployment",
+    "employmentRate",
+    "employmentType",
+    "firstName",
+    "id",
+    "jobTitle",
+    "lastName",
+    "personnelCategory",
+    "pictureUrl",
+    "role",
+    "subdivision",
+    "suspended",
+  ],
   properties: {
+    academicDegree: {
+      type: "integer",
+      example: 2,
+    },
+    academicTitle: {
+      type: "string",
+      example: "Профессор",
+    },
+    category: {
+      type: "string",
+      example: "Высшая",
+    },
+    dateOfEmployment: {
+      type: "string",
+      example: "2020-01-15T00:00:00Z",
+    },
     department: {
       $ref: "#/definitions/api.Department",
+    },
+    employmentRate: {
+      type: "number",
+      example: 1,
+    },
+    employmentType: {
+      type: "integer",
+      example: 1,
     },
     firstName: {
       type: "string",
       example: "Ivan",
     },
+    honors: {
+      type: "string",
+      example: "Заслуженный деятель науки",
+    },
     id: {
       type: "string",
       example: "550e8400-e29b-41d4-a716-446655440000",
+    },
+    jobTitle: {
+      type: "string",
+      example: "Профессор",
     },
     lastName: {
       type: "string",
@@ -1103,6 +1246,10 @@ export const api_UserResponseSchema = {
       type: "string",
       example: "Sergeevich",
     },
+    personnelCategory: {
+      type: "integer",
+      example: 1,
+    },
     pictureUrl: {
       type: "string",
       example: "/images/users/ivan.jpg",
@@ -1110,8 +1257,16 @@ export const api_UserResponseSchema = {
     role: {
       $ref: "#/definitions/api.Role",
     },
+    subdivision: {
+      type: "string",
+      example: "Кафедра информатики",
+    },
     suspended: {
       type: "boolean",
+    },
+    unemploymentDate: {
+      type: "string",
+      example: "2023-12-31T00:00:00Z",
     },
   },
 } as const;

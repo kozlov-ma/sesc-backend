@@ -9,6 +9,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"entgo.io/ent/schema/index"
 	"github.com/gofrs/uuid/v5"
+	"github.com/kozlov-ma/sesc-backend/sesc"
 )
 
 // User holds the schema definition for the User entity.
@@ -28,20 +29,20 @@ func (User) Fields() []ent.Field {
 		field.UUID("department_id", uuid.UUID{}).Optional().Nillable(),
 		field.Int32("role_id"),
 
-		field.String("subdivision"),
-		field.String("job_title"),
+		field.String("subdivision").Default(""),
+		field.String("job_title").Default(""),
 		field.Float("employment_rate").Default(1),
-		field.Int("academic_degree").Optional(),
-		field.Int("personnel_category"),
-		field.Int("employment_type"),
+		field.Int("academic_degree").GoType(sesc.AcademicDegree(0)).Optional(),
+		field.Int("personnel_category").GoType(sesc.PersonnelCategory(0)).Default(0),
+		field.Int("employment_type").GoType(sesc.EmploymentType(0)).Default(0),
 		field.String("academic_title").Optional(),
 		field.String("honors").Optional(),
 		field.String("category").Optional(),
 
-		field.Time("date_of_employment"),
+		field.Time("date_of_employment").Default(time.Now),
 		field.Time("unemployment_date").Optional(),
 		field.Time("created_at").Default(time.Now).Immutable(),
-		field.Time("updated_at").UpdateDefault(time.Now),
+		field.Time("updated_at").Default(time.Now).UpdateDefault(time.Now),
 	}
 }
 

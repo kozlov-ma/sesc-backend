@@ -3,6 +3,8 @@
 package ent
 
 import (
+	"time"
+
 	uuid "github.com/gofrs/uuid/v5"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievement"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievementdocument"
@@ -14,6 +16,7 @@ import (
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/file"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/schema"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/user"
+	"github.com/kozlov-ma/sesc-backend/sesc"
 )
 
 // The init function reads all schema descriptors with runtime code
@@ -158,6 +161,40 @@ func init() {
 	userDescSuspended := userFields[5].Descriptor()
 	// user.DefaultSuspended holds the default value on creation for the suspended field.
 	user.DefaultSuspended = userDescSuspended.Default.(bool)
+	// userDescSubdivision is the schema descriptor for subdivision field.
+	userDescSubdivision := userFields[8].Descriptor()
+	// user.DefaultSubdivision holds the default value on creation for the subdivision field.
+	user.DefaultSubdivision = userDescSubdivision.Default.(string)
+	// userDescJobTitle is the schema descriptor for job_title field.
+	userDescJobTitle := userFields[9].Descriptor()
+	// user.DefaultJobTitle holds the default value on creation for the job_title field.
+	user.DefaultJobTitle = userDescJobTitle.Default.(string)
+	// userDescEmploymentRate is the schema descriptor for employment_rate field.
+	userDescEmploymentRate := userFields[10].Descriptor()
+	// user.DefaultEmploymentRate holds the default value on creation for the employment_rate field.
+	user.DefaultEmploymentRate = userDescEmploymentRate.Default.(float64)
+	// userDescPersonnelCategory is the schema descriptor for personnel_category field.
+	userDescPersonnelCategory := userFields[12].Descriptor()
+	// user.DefaultPersonnelCategory holds the default value on creation for the personnel_category field.
+	user.DefaultPersonnelCategory = sesc.PersonnelCategory(userDescPersonnelCategory.Default.(int))
+	// userDescEmploymentType is the schema descriptor for employment_type field.
+	userDescEmploymentType := userFields[13].Descriptor()
+	// user.DefaultEmploymentType holds the default value on creation for the employment_type field.
+	user.DefaultEmploymentType = sesc.EmploymentType(userDescEmploymentType.Default.(int))
+	// userDescDateOfEmployment is the schema descriptor for date_of_employment field.
+	userDescDateOfEmployment := userFields[17].Descriptor()
+	// user.DefaultDateOfEmployment holds the default value on creation for the date_of_employment field.
+	user.DefaultDateOfEmployment = userDescDateOfEmployment.Default.(func() time.Time)
+	// userDescCreatedAt is the schema descriptor for created_at field.
+	userDescCreatedAt := userFields[19].Descriptor()
+	// user.DefaultCreatedAt holds the default value on creation for the created_at field.
+	user.DefaultCreatedAt = userDescCreatedAt.Default.(func() time.Time)
+	// userDescUpdatedAt is the schema descriptor for updated_at field.
+	userDescUpdatedAt := userFields[20].Descriptor()
+	// user.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	user.DefaultUpdatedAt = userDescUpdatedAt.Default.(func() time.Time)
+	// user.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	user.UpdateDefaultUpdatedAt = userDescUpdatedAt.UpdateDefault.(func() time.Time)
 	// userDescID is the schema descriptor for id field.
 	userDescID := userFields[0].Descriptor()
 	// user.DefaultID holds the default value on creation for the id field.

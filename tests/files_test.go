@@ -26,11 +26,11 @@ func TestFileUploadAndDownload(t *testing.T) {
 	// Create a regular user for testing ownership
 	randomSuffix := uuid.Must(uuid.NewV7()).String()
 	username := fmt.Sprintf("file_test_user_%s", randomSuffix)
-	userData := CreateUserRequest{
-		FirstName: fmt.Sprintf("File_%s", randomSuffix),
-		LastName:  fmt.Sprintf("User_%s", randomSuffix),
-		RoleID:    2,
-	}
+	userData := CreateValidUserData(
+		fmt.Sprintf("File_%s", randomSuffix),
+		fmt.Sprintf("User_%s", randomSuffix),
+		2,
+	)
 	user, err := adminClient.CreateUser(ctx, userData)
 	require.NoError(t, err)
 
@@ -198,11 +198,11 @@ func TestFileDelete(t *testing.T) {
 	// Create a regular user for testing ownership
 	randomSuffix := uuid.Must(uuid.NewV7()).String()
 	username := fmt.Sprintf("file_delete_user_%s", randomSuffix)
-	userData := CreateUserRequest{
-		FirstName: fmt.Sprintf("FileDelete_%s", randomSuffix),
-		LastName:  fmt.Sprintf("User_%s", randomSuffix),
-		RoleID:    2,
-	}
+	userData := CreateValidUserData(
+		fmt.Sprintf("FileDelete_%s", randomSuffix),
+		fmt.Sprintf("User_%s", randomSuffix),
+		2,
+	)
 	user, err := adminClient.CreateUser(ctx, userData)
 	require.NoError(t, err)
 
@@ -292,11 +292,11 @@ func TestFileDelete(t *testing.T) {
 		// Create another user
 		anotherUserSuffix := uuid.Must(uuid.NewV7()).String()
 		anotherUsername := fmt.Sprintf("another_user_%s", anotherUserSuffix)
-		anotherUserData := CreateUserRequest{
-			FirstName: fmt.Sprintf("Another_%s", anotherUserSuffix),
-			LastName:  fmt.Sprintf("User_%s", anotherUserSuffix),
-			RoleID:    2,
-		}
+		anotherUserData := CreateValidUserData(
+			fmt.Sprintf("Another_%s", anotherUserSuffix),
+			fmt.Sprintf("User_%s", anotherUserSuffix),
+			2,
+		)
 		anotherUser, err := adminClient.CreateUser(ctx, anotherUserData)
 		require.NoError(t, err)
 

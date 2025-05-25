@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/gofrs/uuid/v5"
 	"github.com/kozlov-ma/sesc-backend/achievement"
@@ -13,6 +14,21 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/stretchr/testify/require"
 )
+
+// validUserUpdateOptions returns a valid UserUpdateOptions for testing
+func validUserUpdateOptions() UserUpdateOptions {
+	return UserUpdateOptions{
+		FirstName:         "Test",
+		LastName:          "User",
+		NewRoleID:         1,
+		Subdivision:       "Test Subdivision",
+		JobTitle:          "Test Position",
+		EmploymentRate:    1.0,
+		PersonnelCategory: 1,
+		EmploymentType:    1,
+		DateOfEmployment:  time.Now(),
+	}
+}
 
 func requireDepartmentMatches(t *testing.T, expected, actual Department) {
 	t.Helper()
@@ -116,12 +132,8 @@ func TestDeleteDepartment(t *testing.T) {
 		ctx, svc, depID := setup(t)
 
 		// Create a user with this department
-		opt := UserUpdateOptions{
-			FirstName:    "John",
-			LastName:     "Doe",
-			DepartmentID: depID,
-			NewRoleID:    1,
-		}
+		opt := validUserUpdateOptions()
+		opt.DepartmentID = depID
 		_, err := svc.CreateUser(ctx, opt)
 		require.NoError(t, err)
 
@@ -220,12 +232,10 @@ func TestCreateUser(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		ctx, svc, depID := setup(t)
 
-		opts := UserUpdateOptions{
-			FirstName:    "John",
-			LastName:     "Doe",
-			DepartmentID: depID,
-			NewRoleID:    1,
-		}
+		opts := validUserUpdateOptions()
+		opts.FirstName = "John"
+		opts.LastName = "Doe"
+		opts.DepartmentID = depID
 
 		user, err := svc.CreateUser(ctx, opts)
 		require.NoError(t, err, "CreateUser failed")
@@ -251,11 +261,10 @@ func TestCreateUser(t *testing.T) {
 	t.Run("without_department", func(t *testing.T) {
 		ctx, svc, _ := setup(t)
 
-		opts := UserUpdateOptions{
-			FirstName: "John",
-			LastName:  "Doe",
-			NewRoleID: 1,
-		}
+		opts := validUserUpdateOptions()
+		opts.FirstName = "Jane"
+		opts.LastName = "Smith"
+		opts.NewRoleID = 2
 
 		user, err := svc.CreateUser(ctx, opts)
 		require.NoError(t, err, "CreateUser failed")
@@ -265,7 +274,7 @@ func TestCreateUser(t *testing.T) {
 			FirstName:  opts.FirstName,
 			LastName:   opts.LastName,
 			Department: Department{},
-			Role:       Role{ID: 1},
+			Role:       Role{ID: opts.NewRoleID},
 		}
 		requireUserMatches(t, expected, user)
 
@@ -278,12 +287,10 @@ func TestCreateUser(t *testing.T) {
 	t.Run("invalid department", func(t *testing.T) {
 		ctx, svc, _ := setup(t)
 
-		opts := UserUpdateOptions{
-			FirstName:    "Jane",
-			LastName:     "Doe",
-			DepartmentID: uuid.Must(uuid.NewV7()),
-			NewRoleID:    1,
-		}
+		opts := validUserUpdateOptions()
+		opts.FirstName = "Jane"
+		opts.LastName = "Doe"
+		opts.DepartmentID = uuid.Must(uuid.NewV7())
 
 		_, err := svc.CreateUser(ctx, opts)
 		require.Error(t, err)
@@ -330,11 +337,9 @@ func TestUpdateProfilePicture(t *testing.T) {
 		svc = setupSESC(t)
 
 		// Create a user
-		opts := UserUpdateOptions{
-			FirstName: "John",
-			LastName:  "Doe",
-			NewRoleID: 1,
-		}
+		opts := validUserUpdateOptions()
+		opts.FirstName = "John"
+		opts.LastName = "Doe"
 
 		user, err := svc.CreateUser(ctx, opts)
 		require.NoError(t, err)
@@ -381,12 +386,10 @@ func TestUpdateUser(t *testing.T) {
 		depID = dep.ID
 
 		// Create user
-		opts := UserUpdateOptions{
-			FirstName:    "Original",
-			LastName:     "User",
-			DepartmentID: depID,
-			NewRoleID:    1,
-		}
+		opts := validUserUpdateOptions()
+		opts.FirstName = "Original"
+		opts.LastName = "User"
+		opts.DepartmentID = depID
 
 		user, err := svc.CreateUser(ctx, opts)
 		require.NoError(t, err)
@@ -396,12 +399,11 @@ func TestUpdateUser(t *testing.T) {
 
 	t.Run("success", func(t *testing.T) {
 		ctx, svc, depID, userID := setup(t)
-		opts := UserUpdateOptions{
-			FirstName:    "Updated",
-			LastName:     "User",
-			DepartmentID: depID,
-			NewRoleID:    2,
-		}
+		opts := validUserUpdateOptions()
+		opts.FirstName = "Updated"
+		opts.LastName = "User"
+		opts.DepartmentID = depID
+		opts.NewRoleID = 2
 
 		user, err := svc.UpdateUser(ctx, userID, opts)
 		require.NoError(t, err, "UpdateUser failed")
@@ -418,29 +420,26 @@ func TestUpdateUser(t *testing.T) {
 
 	t.Run("non-existent user", func(t *testing.T) {
 		ctx, svc, _, _ := setup(t)
-		_, err := svc.UpdateUser(ctx, uuid.Must(uuid.NewV7()), UserUpdateOptions{})
+		_, err := svc.UpdateUser(ctx, uuid.Must(uuid.NewV7()), validUserUpdateOptions())
 		require.ErrorIs(t, err, sesc.ErrUserNotFound)
 	})
 
 	t.Run("invalid department", func(t *testing.T) {
 		ctx, svc, _, userID := setup(t)
-		opts := UserUpdateOptions{
-			FirstName:    "Updated",
-			LastName:     "User",
-			DepartmentID: uuid.Must(uuid.NewV7()),
-			NewRoleID:    1,
-		}
+		opts := validUserUpdateOptions()
+		opts.FirstName = "Updated"
+		opts.LastName = "User"
+		opts.DepartmentID = uuid.Must(uuid.NewV7())
 		_, err := svc.UpdateUser(ctx, userID, opts)
 		require.ErrorIs(t, err, sesc.ErrInvalidDepartment)
 	})
 
 	t.Run("remove department", func(t *testing.T) {
 		ctx, svc, _, userID := setup(t)
-		opts := UserUpdateOptions{
-			FirstName: "Updated",
-			LastName:  "User",
-			NewRoleID: 2,
-		}
+		opts := validUserUpdateOptions()
+		opts.FirstName = "Updated"
+		opts.LastName = "User"
+		opts.NewRoleID = 2
 		res, err := svc.UpdateUser(ctx, userID, opts)
 		require.NoError(t, err)
 
@@ -456,11 +455,10 @@ func TestUpdateUser(t *testing.T) {
 
 	t.Run("invalid role", func(t *testing.T) {
 		ctx, svc, _, userID := setup(t)
-		opts := UserUpdateOptions{
-			FirstName: "Updated",
-			LastName:  "User",
-			NewRoleID: 999,
-		}
+		opts := validUserUpdateOptions()
+		opts.FirstName = "Updated"
+		opts.LastName = "User"
+		opts.NewRoleID = 999
 		_, err := svc.UpdateUser(ctx, userID, opts)
 		require.ErrorIs(t, err, sesc.ErrInvalidRole)
 	})
@@ -473,11 +471,9 @@ func TestUserByID(t *testing.T) {
 		svc = setupSESC(t)
 
 		// Create user
-		opts := UserUpdateOptions{
-			FirstName: "John",
-			LastName:  "Doe",
-			NewRoleID: 1,
-		}
+		opts := validUserUpdateOptions()
+		opts.FirstName = "John"
+		opts.LastName = "Doe"
 
 		user, err := svc.CreateUser(ctx, opts)
 		require.NoError(t, err)
@@ -516,11 +512,9 @@ func TestGetAllUsers(t *testing.T) {
 
 		// Create some users
 		for i := range 2 {
-			opts := UserUpdateOptions{
-				FirstName: fmt.Sprintf("User%d", i+1),
-				LastName:  fmt.Sprintf("User%d", i+1),
-				NewRoleID: 1,
-			}
+			opts := validUserUpdateOptions()
+			opts.FirstName = fmt.Sprintf("User%d", i+1)
+			opts.LastName = fmt.Sprintf("User%d", i+1)
 			_, err := svc.CreateUser(ctx, opts)
 			require.NoError(t, err)
 		}

@@ -19,14 +19,50 @@ import (
 // swagger:model api.CreateUserRequest
 type APICreateUserRequest struct {
 
+	// academic degree
+	// Example: 2
+	AcademicDegree int64 `json:"academicDegree,omitempty"`
+
+	// academic title
+	// Example: Профессор
+	AcademicTitle string `json:"academicTitle,omitempty"`
+
+	// category
+	// Example: Высшая
+	Category string `json:"category,omitempty"`
+
+	// date of employment
+	// Example: 2020-01-15T00:00:00Z
+	// Required: true
+	DateOfEmployment *string `json:"dateOfEmployment"`
+
 	// department Id
 	// Example: 550e8400-e29b-41d4-a716-446655440000
 	DepartmentID string `json:"departmentId,omitempty"`
+
+	// employment rate
+	// Example: 1
+	// Required: true
+	EmploymentRate *float64 `json:"employmentRate"`
+
+	// employment type
+	// Example: 1
+	// Required: true
+	EmploymentType *int64 `json:"employmentType"`
 
 	// first name
 	// Example: Anna
 	// Required: true
 	FirstName *string `json:"firstName"`
+
+	// honors
+	// Example: Заслуженный деятель науки
+	Honors string `json:"honors,omitempty"`
+
+	// job title
+	// Example: Профессор
+	// Required: true
+	JobTitle *string `json:"jobTitle"`
 
 	// last name
 	// Example: Smirnova
@@ -37,6 +73,11 @@ type APICreateUserRequest struct {
 	// Example: Olegovna
 	MiddleName string `json:"middleName,omitempty"`
 
+	// personnel category
+	// Example: 1
+	// Required: true
+	PersonnelCategory *int64 `json:"personnelCategory"`
+
 	// picture Url
 	// Example: /images/users/ivan.jpg
 	PictureURL string `json:"pictureUrl,omitempty"`
@@ -45,13 +86,38 @@ type APICreateUserRequest struct {
 	// Example: 2
 	// Required: true
 	RoleID *int64 `json:"roleId"`
+
+	// subdivision
+	// Example: Кафедра информатики
+	// Required: true
+	Subdivision *string `json:"subdivision"`
+
+	// unemployment date
+	// Example: 2023-12-31T00:00:00Z
+	UnemploymentDate string `json:"unemploymentDate,omitempty"`
 }
 
 // Validate validates this api create user request
 func (m *APICreateUserRequest) Validate(formats strfmt.Registry) error {
 	var res []error
 
+	if err := m.validateDateOfEmployment(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateEmploymentRate(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateEmploymentType(formats); err != nil {
+		res = append(res, err)
+	}
+
 	if err := m.validateFirstName(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateJobTitle(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -59,7 +125,15 @@ func (m *APICreateUserRequest) Validate(formats strfmt.Registry) error {
 		res = append(res, err)
 	}
 
+	if err := m.validatePersonnelCategory(formats); err != nil {
+		res = append(res, err)
+	}
+
 	if err := m.validateRoleID(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateSubdivision(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -69,9 +143,45 @@ func (m *APICreateUserRequest) Validate(formats strfmt.Registry) error {
 	return nil
 }
 
+func (m *APICreateUserRequest) validateDateOfEmployment(formats strfmt.Registry) error {
+
+	if err := validate.Required("dateOfEmployment", "body", m.DateOfEmployment); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *APICreateUserRequest) validateEmploymentRate(formats strfmt.Registry) error {
+
+	if err := validate.Required("employmentRate", "body", m.EmploymentRate); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *APICreateUserRequest) validateEmploymentType(formats strfmt.Registry) error {
+
+	if err := validate.Required("employmentType", "body", m.EmploymentType); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (m *APICreateUserRequest) validateFirstName(formats strfmt.Registry) error {
 
 	if err := validate.Required("firstName", "body", m.FirstName); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *APICreateUserRequest) validateJobTitle(formats strfmt.Registry) error {
+
+	if err := validate.Required("jobTitle", "body", m.JobTitle); err != nil {
 		return err
 	}
 
@@ -87,9 +197,27 @@ func (m *APICreateUserRequest) validateLastName(formats strfmt.Registry) error {
 	return nil
 }
 
+func (m *APICreateUserRequest) validatePersonnelCategory(formats strfmt.Registry) error {
+
+	if err := validate.Required("personnelCategory", "body", m.PersonnelCategory); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (m *APICreateUserRequest) validateRoleID(formats strfmt.Registry) error {
 
 	if err := validate.Required("roleId", "body", m.RoleID); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *APICreateUserRequest) validateSubdivision(formats strfmt.Registry) error {
+
+	if err := validate.Required("subdivision", "body", m.Subdivision); err != nil {
 		return err
 	}
 

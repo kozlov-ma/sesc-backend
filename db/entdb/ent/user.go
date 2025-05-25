@@ -5,6 +5,7 @@ package ent
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
@@ -12,6 +13,7 @@ import (
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/authuser"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/department"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/user"
+	"github.com/kozlov-ma/sesc-backend/sesc"
 )
 
 // User is the model entity for the User schema.
@@ -33,6 +35,32 @@ type User struct {
 	DepartmentID *uuid.UUID `json:"department_id,omitempty"`
 	// RoleID holds the value of the "role_id" field.
 	RoleID int32 `json:"role_id,omitempty"`
+	// Subdivision holds the value of the "subdivision" field.
+	Subdivision string `json:"subdivision,omitempty"`
+	// JobTitle holds the value of the "job_title" field.
+	JobTitle string `json:"job_title,omitempty"`
+	// EmploymentRate holds the value of the "employment_rate" field.
+	EmploymentRate float64 `json:"employment_rate,omitempty"`
+	// AcademicDegree holds the value of the "academic_degree" field.
+	AcademicDegree sesc.AcademicDegree `json:"academic_degree,omitempty"`
+	// PersonnelCategory holds the value of the "personnel_category" field.
+	PersonnelCategory sesc.PersonnelCategory `json:"personnel_category,omitempty"`
+	// EmploymentType holds the value of the "employment_type" field.
+	EmploymentType sesc.EmploymentType `json:"employment_type,omitempty"`
+	// AcademicTitle holds the value of the "academic_title" field.
+	AcademicTitle string `json:"academic_title,omitempty"`
+	// Honors holds the value of the "honors" field.
+	Honors string `json:"honors,omitempty"`
+	// Category holds the value of the "category" field.
+	Category string `json:"category,omitempty"`
+	// DateOfEmployment holds the value of the "date_of_employment" field.
+	DateOfEmployment time.Time `json:"date_of_employment,omitempty"`
+	// UnemploymentDate holds the value of the "unemployment_date" field.
+	UnemploymentDate time.Time `json:"unemployment_date,omitempty"`
+	// CreatedAt holds the value of the "created_at" field.
+	CreatedAt time.Time `json:"created_at,omitempty"`
+	// UpdatedAt holds the value of the "updated_at" field.
+	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the UserQuery when eager-loading is set.
 	Edges        UserEdges `json:"edges"`
@@ -114,10 +142,14 @@ func (*User) scanValues(columns []string) ([]any, error) {
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		case user.FieldSuspended:
 			values[i] = new(sql.NullBool)
-		case user.FieldRoleID:
+		case user.FieldEmploymentRate:
+			values[i] = new(sql.NullFloat64)
+		case user.FieldRoleID, user.FieldAcademicDegree, user.FieldPersonnelCategory, user.FieldEmploymentType:
 			values[i] = new(sql.NullInt64)
-		case user.FieldFirstName, user.FieldLastName, user.FieldMiddleName, user.FieldPictureURL:
+		case user.FieldFirstName, user.FieldLastName, user.FieldMiddleName, user.FieldPictureURL, user.FieldSubdivision, user.FieldJobTitle, user.FieldAcademicTitle, user.FieldHonors, user.FieldCategory:
 			values[i] = new(sql.NullString)
+		case user.FieldDateOfEmployment, user.FieldUnemploymentDate, user.FieldCreatedAt, user.FieldUpdatedAt:
+			values[i] = new(sql.NullTime)
 		case user.FieldID:
 			values[i] = new(uuid.UUID)
 		default:
@@ -183,6 +215,84 @@ func (u *User) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field role_id", values[i])
 			} else if value.Valid {
 				u.RoleID = int32(value.Int64)
+			}
+		case user.FieldSubdivision:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field subdivision", values[i])
+			} else if value.Valid {
+				u.Subdivision = value.String
+			}
+		case user.FieldJobTitle:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field job_title", values[i])
+			} else if value.Valid {
+				u.JobTitle = value.String
+			}
+		case user.FieldEmploymentRate:
+			if value, ok := values[i].(*sql.NullFloat64); !ok {
+				return fmt.Errorf("unexpected type %T for field employment_rate", values[i])
+			} else if value.Valid {
+				u.EmploymentRate = value.Float64
+			}
+		case user.FieldAcademicDegree:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field academic_degree", values[i])
+			} else if value.Valid {
+				u.AcademicDegree = sesc.AcademicDegree(value.Int64)
+			}
+		case user.FieldPersonnelCategory:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field personnel_category", values[i])
+			} else if value.Valid {
+				u.PersonnelCategory = sesc.PersonnelCategory(value.Int64)
+			}
+		case user.FieldEmploymentType:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field employment_type", values[i])
+			} else if value.Valid {
+				u.EmploymentType = sesc.EmploymentType(value.Int64)
+			}
+		case user.FieldAcademicTitle:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field academic_title", values[i])
+			} else if value.Valid {
+				u.AcademicTitle = value.String
+			}
+		case user.FieldHonors:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field honors", values[i])
+			} else if value.Valid {
+				u.Honors = value.String
+			}
+		case user.FieldCategory:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field category", values[i])
+			} else if value.Valid {
+				u.Category = value.String
+			}
+		case user.FieldDateOfEmployment:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field date_of_employment", values[i])
+			} else if value.Valid {
+				u.DateOfEmployment = value.Time
+			}
+		case user.FieldUnemploymentDate:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field unemployment_date", values[i])
+			} else if value.Valid {
+				u.UnemploymentDate = value.Time
+			}
+		case user.FieldCreatedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field created_at", values[i])
+			} else if value.Valid {
+				u.CreatedAt = value.Time
+			}
+		case user.FieldUpdatedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field updated_at", values[i])
+			} else if value.Valid {
+				u.UpdatedAt = value.Time
 			}
 		default:
 			u.selectValues.Set(columns[i], values[i])
@@ -267,6 +377,45 @@ func (u *User) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("role_id=")
 	builder.WriteString(fmt.Sprintf("%v", u.RoleID))
+	builder.WriteString(", ")
+	builder.WriteString("subdivision=")
+	builder.WriteString(u.Subdivision)
+	builder.WriteString(", ")
+	builder.WriteString("job_title=")
+	builder.WriteString(u.JobTitle)
+	builder.WriteString(", ")
+	builder.WriteString("employment_rate=")
+	builder.WriteString(fmt.Sprintf("%v", u.EmploymentRate))
+	builder.WriteString(", ")
+	builder.WriteString("academic_degree=")
+	builder.WriteString(fmt.Sprintf("%v", u.AcademicDegree))
+	builder.WriteString(", ")
+	builder.WriteString("personnel_category=")
+	builder.WriteString(fmt.Sprintf("%v", u.PersonnelCategory))
+	builder.WriteString(", ")
+	builder.WriteString("employment_type=")
+	builder.WriteString(fmt.Sprintf("%v", u.EmploymentType))
+	builder.WriteString(", ")
+	builder.WriteString("academic_title=")
+	builder.WriteString(u.AcademicTitle)
+	builder.WriteString(", ")
+	builder.WriteString("honors=")
+	builder.WriteString(u.Honors)
+	builder.WriteString(", ")
+	builder.WriteString("category=")
+	builder.WriteString(u.Category)
+	builder.WriteString(", ")
+	builder.WriteString("date_of_employment=")
+	builder.WriteString(u.DateOfEmployment.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("unemployment_date=")
+	builder.WriteString(u.UnemploymentDate.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("created_at=")
+	builder.WriteString(u.CreatedAt.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("updated_at=")
+	builder.WriteString(u.UpdatedAt.Format(time.ANSIC))
 	builder.WriteByte(')')
 	return builder.String()
 }

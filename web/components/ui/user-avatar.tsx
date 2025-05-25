@@ -90,7 +90,12 @@ export function UserAvatar({
 
   if (error || !userId) {
     return (
-      <div className={cn("flex items-center text-muted-foreground", className)}>
+      <div
+        className={cn(
+          "flex items-center text-muted-foreground bg-muted",
+          className,
+        )}
+      >
         <Avatar className={sizeClasses[size].avatar}>
           <AvatarFallback>
             <User className="h-4 w-4" />
@@ -119,7 +124,12 @@ export function UserAvatar({
     <TooltipProvider>
       <Tooltip>
         <TooltipTrigger asChild>
-          <div className={cn("flex items-center cursor-default", className)}>
+          <div
+            className={cn(
+              "flex items-center bg-primary/10 w-fit rounded-md px-1",
+              className,
+            )}
+          >
             <Avatar className={sizeClasses[size].avatar}>
               {user.pictureUrl ? (
                 <AvatarImage src={user.pictureUrl} alt={fullName} />
@@ -130,7 +140,7 @@ export function UserAvatar({
             {showName && (
               <span
                 className={cn(
-                  "bg-primary/10 text-primary rounded-md font-medium",
+                  "text-primary rounded-md font-medium",
                   sizeClasses[size].nameContainer,
                 )}
               >
