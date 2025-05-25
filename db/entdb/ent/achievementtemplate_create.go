@@ -10,6 +10,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	uuid "github.com/gofrs/uuid/v5"
+	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievement"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievementgroup"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievementtemplate"
 )
@@ -90,6 +91,21 @@ func (atc *AchievementTemplateCreate) SetNillableID(u *uuid.UUID) *AchievementTe
 // SetGroup sets the "group" edge to the AchievementGroup entity.
 func (atc *AchievementTemplateCreate) SetGroup(a *AchievementGroup) *AchievementTemplateCreate {
 	return atc.SetGroupID(a.ID)
+}
+
+// AddAchievementIDs adds the "achievements" edge to the Achievement entity by IDs.
+func (atc *AchievementTemplateCreate) AddAchievementIDs(ids ...uuid.UUID) *AchievementTemplateCreate {
+	atc.mutation.AddAchievementIDs(ids...)
+	return atc
+}
+
+// AddAchievements adds the "achievements" edges to the Achievement entity.
+func (atc *AchievementTemplateCreate) AddAchievements(a ...*Achievement) *AchievementTemplateCreate {
+	ids := make([]uuid.UUID, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return atc.AddAchievementIDs(ids...)
 }
 
 // Mutation returns the AchievementTemplateMutation object of the builder.
@@ -242,6 +258,22 @@ func (atc *AchievementTemplateCreate) createSpec() (*AchievementTemplate, *sqlgr
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.GroupID = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := atc.mutation.AchievementsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   achievementtemplate.AchievementsTable,
+			Columns: []string{achievementtemplate.AchievementsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(achievement.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

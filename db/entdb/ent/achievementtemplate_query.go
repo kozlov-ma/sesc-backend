@@ -4,6 +4,7 @@ package ent
 
 import (
 	"context"
+	"database/sql/driver"
 	"fmt"
 	"math"
 
@@ -13,6 +14,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	uuid "github.com/gofrs/uuid/v5"
+	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievement"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievementgroup"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievementtemplate"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/predicate"
@@ -21,12 +23,13 @@ import (
 // AchievementTemplateQuery is the builder for querying AchievementTemplate entities.
 type AchievementTemplateQuery struct {
 	config
-	ctx        *QueryContext
-	order      []achievementtemplate.OrderOption
-	inters     []Interceptor
-	predicates []predicate.AchievementTemplate
-	withGroup  *AchievementGroupQuery
-	modifiers  []func(*sql.Selector)
+	ctx              *QueryContext
+	order            []achievementtemplate.OrderOption
+	inters           []Interceptor
+	predicates       []predicate.AchievementTemplate
+	withGroup        *AchievementGroupQuery
+	withAchievements *AchievementQuery
+	modifiers        []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -78,6 +81,28 @@ func (atq *AchievementTemplateQuery) QueryGroup() *AchievementGroupQuery {
 			sqlgraph.From(achievementtemplate.Table, achievementtemplate.FieldID, selector),
 			sqlgraph.To(achievementgroup.Table, achievementgroup.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, achievementtemplate.GroupTable, achievementtemplate.GroupColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(atq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryAchievements chains the current query on the "achievements" edge.
+func (atq *AchievementTemplateQuery) QueryAchievements() *AchievementQuery {
+	query := (&AchievementClient{config: atq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := atq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := atq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(achievementtemplate.Table, achievementtemplate.FieldID, selector),
+			sqlgraph.To(achievement.Table, achievement.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, achievementtemplate.AchievementsTable, achievementtemplate.AchievementsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(atq.driver.Dialect(), step)
 		return fromU, nil
@@ -272,12 +297,13 @@ func (atq *AchievementTemplateQuery) Clone() *AchievementTemplateQuery {
 		return nil
 	}
 	return &AchievementTemplateQuery{
-		config:     atq.config,
-		ctx:        atq.ctx.Clone(),
-		order:      append([]achievementtemplate.OrderOption{}, atq.order...),
-		inters:     append([]Interceptor{}, atq.inters...),
-		predicates: append([]predicate.AchievementTemplate{}, atq.predicates...),
-		withGroup:  atq.withGroup.Clone(),
+		config:           atq.config,
+		ctx:              atq.ctx.Clone(),
+		order:            append([]achievementtemplate.OrderOption{}, atq.order...),
+		inters:           append([]Interceptor{}, atq.inters...),
+		predicates:       append([]predicate.AchievementTemplate{}, atq.predicates...),
+		withGroup:        atq.withGroup.Clone(),
+		withAchievements: atq.withAchievements.Clone(),
 		// clone intermediate query.
 		sql:  atq.sql.Clone(),
 		path: atq.path,
@@ -292,6 +318,17 @@ func (atq *AchievementTemplateQuery) WithGroup(opts ...func(*AchievementGroupQue
 		opt(query)
 	}
 	atq.withGroup = query
+	return atq
+}
+
+// WithAchievements tells the query-builder to eager-load the nodes that are connected to
+// the "achievements" edge. The optional arguments are used to configure the query builder of the edge.
+func (atq *AchievementTemplateQuery) WithAchievements(opts ...func(*AchievementQuery)) *AchievementTemplateQuery {
+	query := (&AchievementClient{config: atq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	atq.withAchievements = query
 	return atq
 }
 
@@ -373,8 +410,9 @@ func (atq *AchievementTemplateQuery) sqlAll(ctx context.Context, hooks ...queryH
 	var (
 		nodes       = []*AchievementTemplate{}
 		_spec       = atq.querySpec()
-		loadedTypes = [1]bool{
+		loadedTypes = [2]bool{
 			atq.withGroup != nil,
+			atq.withAchievements != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -401,6 +439,13 @@ func (atq *AchievementTemplateQuery) sqlAll(ctx context.Context, hooks ...queryH
 	if query := atq.withGroup; query != nil {
 		if err := atq.loadGroup(ctx, query, nodes, nil,
 			func(n *AchievementTemplate, e *AchievementGroup) { n.Edges.Group = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := atq.withAchievements; query != nil {
+		if err := atq.loadAchievements(ctx, query, nodes,
+			func(n *AchievementTemplate) { n.Edges.Achievements = []*Achievement{} },
+			func(n *AchievementTemplate, e *Achievement) { n.Edges.Achievements = append(n.Edges.Achievements, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -433,6 +478,36 @@ func (atq *AchievementTemplateQuery) loadGroup(ctx context.Context, query *Achie
 		for i := range nodes {
 			assign(nodes[i], n)
 		}
+	}
+	return nil
+}
+func (atq *AchievementTemplateQuery) loadAchievements(ctx context.Context, query *AchievementQuery, nodes []*AchievementTemplate, init func(*AchievementTemplate), assign func(*AchievementTemplate, *Achievement)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*AchievementTemplate)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(achievement.FieldTemplateID)
+	}
+	query.Where(predicate.Achievement(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(achievementtemplate.AchievementsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.TemplateID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "template_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
 	}
 	return nil
 }

@@ -40,9 +40,11 @@ type AchievementTemplate struct {
 type AchievementTemplateEdges struct {
 	// Group holds the value of the group edge.
 	Group *AchievementGroup `json:"group,omitempty"`
+	// Achievements holds the value of the achievements edge.
+	Achievements []*Achievement `json:"achievements,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [2]bool
 }
 
 // GroupOrErr returns the Group value or an error if the edge
@@ -54,6 +56,15 @@ func (e AchievementTemplateEdges) GroupOrErr() (*AchievementGroup, error) {
 		return nil, &NotFoundError{label: achievementgroup.Label}
 	}
 	return nil, &NotLoadedError{edge: "group"}
+}
+
+// AchievementsOrErr returns the Achievements value or an error if the edge
+// was not loaded in eager-loading.
+func (e AchievementTemplateEdges) AchievementsOrErr() ([]*Achievement, error) {
+	if e.loadedTypes[1] {
+		return e.Achievements, nil
+	}
+	return nil, &NotLoadedError{edge: "achievements"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -142,6 +153,11 @@ func (at *AchievementTemplate) Value(name string) (ent.Value, error) {
 // QueryGroup queries the "group" edge of the AchievementTemplate entity.
 func (at *AchievementTemplate) QueryGroup() *AchievementGroupQuery {
 	return NewAchievementTemplateClient(at.config).QueryGroup(at)
+}
+
+// QueryAchievements queries the "achievements" edge of the AchievementTemplate entity.
+func (at *AchievementTemplate) QueryAchievements() *AchievementQuery {
+	return NewAchievementTemplateClient(at.config).QueryAchievements(at)
 }
 
 // Update returns a builder for updating this AchievementTemplate.

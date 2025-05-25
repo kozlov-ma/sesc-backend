@@ -47,9 +47,13 @@ type UserEdges struct {
 	Auth *AuthUser `json:"auth,omitempty"`
 	// Files holds the value of the files edge.
 	Files []*File `json:"files,omitempty"`
+	// Achievements holds the value of the achievements edge.
+	Achievements []*Achievement `json:"achievements,omitempty"`
+	// Reviews holds the value of the reviews edge.
+	Reviews []*AchievementReview `json:"reviews,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [3]bool
+	loadedTypes [5]bool
 }
 
 // DepartmentOrErr returns the Department value or an error if the edge
@@ -81,6 +85,24 @@ func (e UserEdges) FilesOrErr() ([]*File, error) {
 		return e.Files, nil
 	}
 	return nil, &NotLoadedError{edge: "files"}
+}
+
+// AchievementsOrErr returns the Achievements value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) AchievementsOrErr() ([]*Achievement, error) {
+	if e.loadedTypes[3] {
+		return e.Achievements, nil
+	}
+	return nil, &NotLoadedError{edge: "achievements"}
+}
+
+// ReviewsOrErr returns the Reviews value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) ReviewsOrErr() ([]*AchievementReview, error) {
+	if e.loadedTypes[4] {
+		return e.Reviews, nil
+	}
+	return nil, &NotLoadedError{edge: "reviews"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -188,6 +210,16 @@ func (u *User) QueryAuth() *AuthUserQuery {
 // QueryFiles queries the "files" edge of the User entity.
 func (u *User) QueryFiles() *FileQuery {
 	return NewUserClient(u.config).QueryFiles(u)
+}
+
+// QueryAchievements queries the "achievements" edge of the User entity.
+func (u *User) QueryAchievements() *AchievementQuery {
+	return NewUserClient(u.config).QueryAchievements(u)
+}
+
+// QueryReviews queries the "reviews" edge of the User entity.
+func (u *User) QueryReviews() *AchievementReviewQuery {
+	return NewUserClient(u.config).QueryReviews(u)
 }
 
 // Update returns a builder for updating this User.

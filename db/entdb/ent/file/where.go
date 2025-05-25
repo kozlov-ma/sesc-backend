@@ -64,14 +64,19 @@ func S3ObjectKey(v string) predicate.File {
 	return predicate.File(sql.FieldEQ(FieldS3ObjectKey, v))
 }
 
-// FileName applies equality check predicate on the "file_name" field. It's identical to FileNameEQ.
-func FileName(v string) predicate.File {
-	return predicate.File(sql.FieldEQ(FieldFileName, v))
+// Name applies equality check predicate on the "name" field. It's identical to NameEQ.
+func Name(v string) predicate.File {
+	return predicate.File(sql.FieldEQ(FieldName, v))
 }
 
-// FileSize applies equality check predicate on the "file_size" field. It's identical to FileSizeEQ.
-func FileSize(v int) predicate.File {
-	return predicate.File(sql.FieldEQ(FieldFileSize, v))
+// Size applies equality check predicate on the "size" field. It's identical to SizeEQ.
+func Size(v int) predicate.File {
+	return predicate.File(sql.FieldEQ(FieldSize, v))
+}
+
+// URL applies equality check predicate on the "url" field. It's identical to URLEQ.
+func URL(v string) predicate.File {
+	return predicate.File(sql.FieldEQ(FieldURL, v))
 }
 
 // OwnerIDEQ applies the EQ predicate on the "owner_id" field.
@@ -169,109 +174,174 @@ func S3ObjectKeyContainsFold(v string) predicate.File {
 	return predicate.File(sql.FieldContainsFold(FieldS3ObjectKey, v))
 }
 
-// FileNameEQ applies the EQ predicate on the "file_name" field.
-func FileNameEQ(v string) predicate.File {
-	return predicate.File(sql.FieldEQ(FieldFileName, v))
+// NameEQ applies the EQ predicate on the "name" field.
+func NameEQ(v string) predicate.File {
+	return predicate.File(sql.FieldEQ(FieldName, v))
 }
 
-// FileNameNEQ applies the NEQ predicate on the "file_name" field.
-func FileNameNEQ(v string) predicate.File {
-	return predicate.File(sql.FieldNEQ(FieldFileName, v))
+// NameNEQ applies the NEQ predicate on the "name" field.
+func NameNEQ(v string) predicate.File {
+	return predicate.File(sql.FieldNEQ(FieldName, v))
 }
 
-// FileNameIn applies the In predicate on the "file_name" field.
-func FileNameIn(vs ...string) predicate.File {
-	return predicate.File(sql.FieldIn(FieldFileName, vs...))
+// NameIn applies the In predicate on the "name" field.
+func NameIn(vs ...string) predicate.File {
+	return predicate.File(sql.FieldIn(FieldName, vs...))
 }
 
-// FileNameNotIn applies the NotIn predicate on the "file_name" field.
-func FileNameNotIn(vs ...string) predicate.File {
-	return predicate.File(sql.FieldNotIn(FieldFileName, vs...))
+// NameNotIn applies the NotIn predicate on the "name" field.
+func NameNotIn(vs ...string) predicate.File {
+	return predicate.File(sql.FieldNotIn(FieldName, vs...))
 }
 
-// FileNameGT applies the GT predicate on the "file_name" field.
-func FileNameGT(v string) predicate.File {
-	return predicate.File(sql.FieldGT(FieldFileName, v))
+// NameGT applies the GT predicate on the "name" field.
+func NameGT(v string) predicate.File {
+	return predicate.File(sql.FieldGT(FieldName, v))
 }
 
-// FileNameGTE applies the GTE predicate on the "file_name" field.
-func FileNameGTE(v string) predicate.File {
-	return predicate.File(sql.FieldGTE(FieldFileName, v))
+// NameGTE applies the GTE predicate on the "name" field.
+func NameGTE(v string) predicate.File {
+	return predicate.File(sql.FieldGTE(FieldName, v))
 }
 
-// FileNameLT applies the LT predicate on the "file_name" field.
-func FileNameLT(v string) predicate.File {
-	return predicate.File(sql.FieldLT(FieldFileName, v))
+// NameLT applies the LT predicate on the "name" field.
+func NameLT(v string) predicate.File {
+	return predicate.File(sql.FieldLT(FieldName, v))
 }
 
-// FileNameLTE applies the LTE predicate on the "file_name" field.
-func FileNameLTE(v string) predicate.File {
-	return predicate.File(sql.FieldLTE(FieldFileName, v))
+// NameLTE applies the LTE predicate on the "name" field.
+func NameLTE(v string) predicate.File {
+	return predicate.File(sql.FieldLTE(FieldName, v))
 }
 
-// FileNameContains applies the Contains predicate on the "file_name" field.
-func FileNameContains(v string) predicate.File {
-	return predicate.File(sql.FieldContains(FieldFileName, v))
+// NameContains applies the Contains predicate on the "name" field.
+func NameContains(v string) predicate.File {
+	return predicate.File(sql.FieldContains(FieldName, v))
 }
 
-// FileNameHasPrefix applies the HasPrefix predicate on the "file_name" field.
-func FileNameHasPrefix(v string) predicate.File {
-	return predicate.File(sql.FieldHasPrefix(FieldFileName, v))
+// NameHasPrefix applies the HasPrefix predicate on the "name" field.
+func NameHasPrefix(v string) predicate.File {
+	return predicate.File(sql.FieldHasPrefix(FieldName, v))
 }
 
-// FileNameHasSuffix applies the HasSuffix predicate on the "file_name" field.
-func FileNameHasSuffix(v string) predicate.File {
-	return predicate.File(sql.FieldHasSuffix(FieldFileName, v))
+// NameHasSuffix applies the HasSuffix predicate on the "name" field.
+func NameHasSuffix(v string) predicate.File {
+	return predicate.File(sql.FieldHasSuffix(FieldName, v))
 }
 
-// FileNameEqualFold applies the EqualFold predicate on the "file_name" field.
-func FileNameEqualFold(v string) predicate.File {
-	return predicate.File(sql.FieldEqualFold(FieldFileName, v))
+// NameEqualFold applies the EqualFold predicate on the "name" field.
+func NameEqualFold(v string) predicate.File {
+	return predicate.File(sql.FieldEqualFold(FieldName, v))
 }
 
-// FileNameContainsFold applies the ContainsFold predicate on the "file_name" field.
-func FileNameContainsFold(v string) predicate.File {
-	return predicate.File(sql.FieldContainsFold(FieldFileName, v))
+// NameContainsFold applies the ContainsFold predicate on the "name" field.
+func NameContainsFold(v string) predicate.File {
+	return predicate.File(sql.FieldContainsFold(FieldName, v))
 }
 
-// FileSizeEQ applies the EQ predicate on the "file_size" field.
-func FileSizeEQ(v int) predicate.File {
-	return predicate.File(sql.FieldEQ(FieldFileSize, v))
+// SizeEQ applies the EQ predicate on the "size" field.
+func SizeEQ(v int) predicate.File {
+	return predicate.File(sql.FieldEQ(FieldSize, v))
 }
 
-// FileSizeNEQ applies the NEQ predicate on the "file_size" field.
-func FileSizeNEQ(v int) predicate.File {
-	return predicate.File(sql.FieldNEQ(FieldFileSize, v))
+// SizeNEQ applies the NEQ predicate on the "size" field.
+func SizeNEQ(v int) predicate.File {
+	return predicate.File(sql.FieldNEQ(FieldSize, v))
 }
 
-// FileSizeIn applies the In predicate on the "file_size" field.
-func FileSizeIn(vs ...int) predicate.File {
-	return predicate.File(sql.FieldIn(FieldFileSize, vs...))
+// SizeIn applies the In predicate on the "size" field.
+func SizeIn(vs ...int) predicate.File {
+	return predicate.File(sql.FieldIn(FieldSize, vs...))
 }
 
-// FileSizeNotIn applies the NotIn predicate on the "file_size" field.
-func FileSizeNotIn(vs ...int) predicate.File {
-	return predicate.File(sql.FieldNotIn(FieldFileSize, vs...))
+// SizeNotIn applies the NotIn predicate on the "size" field.
+func SizeNotIn(vs ...int) predicate.File {
+	return predicate.File(sql.FieldNotIn(FieldSize, vs...))
 }
 
-// FileSizeGT applies the GT predicate on the "file_size" field.
-func FileSizeGT(v int) predicate.File {
-	return predicate.File(sql.FieldGT(FieldFileSize, v))
+// SizeGT applies the GT predicate on the "size" field.
+func SizeGT(v int) predicate.File {
+	return predicate.File(sql.FieldGT(FieldSize, v))
 }
 
-// FileSizeGTE applies the GTE predicate on the "file_size" field.
-func FileSizeGTE(v int) predicate.File {
-	return predicate.File(sql.FieldGTE(FieldFileSize, v))
+// SizeGTE applies the GTE predicate on the "size" field.
+func SizeGTE(v int) predicate.File {
+	return predicate.File(sql.FieldGTE(FieldSize, v))
 }
 
-// FileSizeLT applies the LT predicate on the "file_size" field.
-func FileSizeLT(v int) predicate.File {
-	return predicate.File(sql.FieldLT(FieldFileSize, v))
+// SizeLT applies the LT predicate on the "size" field.
+func SizeLT(v int) predicate.File {
+	return predicate.File(sql.FieldLT(FieldSize, v))
 }
 
-// FileSizeLTE applies the LTE predicate on the "file_size" field.
-func FileSizeLTE(v int) predicate.File {
-	return predicate.File(sql.FieldLTE(FieldFileSize, v))
+// SizeLTE applies the LTE predicate on the "size" field.
+func SizeLTE(v int) predicate.File {
+	return predicate.File(sql.FieldLTE(FieldSize, v))
+}
+
+// URLEQ applies the EQ predicate on the "url" field.
+func URLEQ(v string) predicate.File {
+	return predicate.File(sql.FieldEQ(FieldURL, v))
+}
+
+// URLNEQ applies the NEQ predicate on the "url" field.
+func URLNEQ(v string) predicate.File {
+	return predicate.File(sql.FieldNEQ(FieldURL, v))
+}
+
+// URLIn applies the In predicate on the "url" field.
+func URLIn(vs ...string) predicate.File {
+	return predicate.File(sql.FieldIn(FieldURL, vs...))
+}
+
+// URLNotIn applies the NotIn predicate on the "url" field.
+func URLNotIn(vs ...string) predicate.File {
+	return predicate.File(sql.FieldNotIn(FieldURL, vs...))
+}
+
+// URLGT applies the GT predicate on the "url" field.
+func URLGT(v string) predicate.File {
+	return predicate.File(sql.FieldGT(FieldURL, v))
+}
+
+// URLGTE applies the GTE predicate on the "url" field.
+func URLGTE(v string) predicate.File {
+	return predicate.File(sql.FieldGTE(FieldURL, v))
+}
+
+// URLLT applies the LT predicate on the "url" field.
+func URLLT(v string) predicate.File {
+	return predicate.File(sql.FieldLT(FieldURL, v))
+}
+
+// URLLTE applies the LTE predicate on the "url" field.
+func URLLTE(v string) predicate.File {
+	return predicate.File(sql.FieldLTE(FieldURL, v))
+}
+
+// URLContains applies the Contains predicate on the "url" field.
+func URLContains(v string) predicate.File {
+	return predicate.File(sql.FieldContains(FieldURL, v))
+}
+
+// URLHasPrefix applies the HasPrefix predicate on the "url" field.
+func URLHasPrefix(v string) predicate.File {
+	return predicate.File(sql.FieldHasPrefix(FieldURL, v))
+}
+
+// URLHasSuffix applies the HasSuffix predicate on the "url" field.
+func URLHasSuffix(v string) predicate.File {
+	return predicate.File(sql.FieldHasSuffix(FieldURL, v))
+}
+
+// URLEqualFold applies the EqualFold predicate on the "url" field.
+func URLEqualFold(v string) predicate.File {
+	return predicate.File(sql.FieldEqualFold(FieldURL, v))
+}
+
+// URLContainsFold applies the ContainsFold predicate on the "url" field.
+func URLContainsFold(v string) predicate.File {
+	return predicate.File(sql.FieldContainsFold(FieldURL, v))
 }
 
 // HasOwner applies the HasEdge predicate on the "owner" edge.
@@ -289,6 +359,29 @@ func HasOwner() predicate.File {
 func HasOwnerWith(preds ...predicate.User) predicate.File {
 	return predicate.File(func(s *sql.Selector) {
 		step := newOwnerStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasAchievementDocuments applies the HasEdge predicate on the "achievement_documents" edge.
+func HasAchievementDocuments() predicate.File {
+	return predicate.File(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, AchievementDocumentsTable, AchievementDocumentsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasAchievementDocumentsWith applies the HasEdge predicate on the "achievement_documents" edge with a given conditions (other predicates).
+func HasAchievementDocumentsWith(preds ...predicate.AchievementDocument) predicate.File {
+	return predicate.File(func(s *sql.Selector) {
+		step := newAchievementDocumentsStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

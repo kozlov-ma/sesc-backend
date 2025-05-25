@@ -332,6 +332,29 @@ func HasGroupWith(preds ...predicate.AchievementGroup) predicate.AchievementTemp
 	})
 }
 
+// HasAchievements applies the HasEdge predicate on the "achievements" edge.
+func HasAchievements() predicate.AchievementTemplate {
+	return predicate.AchievementTemplate(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, AchievementsTable, AchievementsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasAchievementsWith applies the HasEdge predicate on the "achievements" edge with a given conditions (other predicates).
+func HasAchievementsWith(preds ...predicate.Achievement) predicate.AchievementTemplate {
+	return predicate.AchievementTemplate(func(s *sql.Selector) {
+		step := newAchievementsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.AchievementTemplate) predicate.AchievementTemplate {
 	return predicate.AchievementTemplate(sql.AndPredicates(predicates...))

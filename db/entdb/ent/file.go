@@ -22,10 +22,12 @@ type File struct {
 	OwnerID *uuid.UUID `json:"owner_id,omitempty"`
 	// S3ObjectKey holds the value of the "s3_object_key" field.
 	S3ObjectKey string `json:"s3_object_key,omitempty"`
-	// FileName holds the value of the "file_name" field.
-	FileName string `json:"file_name,omitempty"`
-	// FileSize holds the value of the "file_size" field.
-	FileSize int `json:"file_size,omitempty"`
+	// Name holds the value of the "name" field.
+	Name string `json:"name,omitempty"`
+	// Size holds the value of the "size" field.
+	Size int `json:"size,omitempty"`
+	// URL holds the value of the "url" field.
+	URL string `json:"url,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the FileQuery when eager-loading is set.
 	Edges        FileEdges `json:"edges"`
@@ -36,9 +38,11 @@ type File struct {
 type FileEdges struct {
 	// Owner holds the value of the owner edge.
 	Owner *User `json:"owner,omitempty"`
+	// AchievementDocuments holds the value of the achievement_documents edge.
+	AchievementDocuments []*AchievementDocument `json:"achievement_documents,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [2]bool
 }
 
 // OwnerOrErr returns the Owner value or an error if the edge
@@ -52,6 +56,15 @@ func (e FileEdges) OwnerOrErr() (*User, error) {
 	return nil, &NotLoadedError{edge: "owner"}
 }
 
+// AchievementDocumentsOrErr returns the AchievementDocuments value or an error if the edge
+// was not loaded in eager-loading.
+func (e FileEdges) AchievementDocumentsOrErr() ([]*AchievementDocument, error) {
+	if e.loadedTypes[1] {
+		return e.AchievementDocuments, nil
+	}
+	return nil, &NotLoadedError{edge: "achievement_documents"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*File) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
@@ -59,9 +72,9 @@ func (*File) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case file.FieldOwnerID:
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
-		case file.FieldFileSize:
+		case file.FieldSize:
 			values[i] = new(sql.NullInt64)
-		case file.FieldS3ObjectKey, file.FieldFileName:
+		case file.FieldS3ObjectKey, file.FieldName, file.FieldURL:
 			values[i] = new(sql.NullString)
 		case file.FieldID:
 			values[i] = new(uuid.UUID)
@@ -99,17 +112,23 @@ func (f *File) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				f.S3ObjectKey = value.String
 			}
-		case file.FieldFileName:
+		case file.FieldName:
 			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field file_name", values[i])
+				return fmt.Errorf("unexpected type %T for field name", values[i])
 			} else if value.Valid {
-				f.FileName = value.String
+				f.Name = value.String
 			}
-		case file.FieldFileSize:
+		case file.FieldSize:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for field file_size", values[i])
+				return fmt.Errorf("unexpected type %T for field size", values[i])
 			} else if value.Valid {
-				f.FileSize = int(value.Int64)
+				f.Size = int(value.Int64)
+			}
+		case file.FieldURL:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field url", values[i])
+			} else if value.Valid {
+				f.URL = value.String
 			}
 		default:
 			f.selectValues.Set(columns[i], values[i])
@@ -127,6 +146,11 @@ func (f *File) Value(name string) (ent.Value, error) {
 // QueryOwner queries the "owner" edge of the File entity.
 func (f *File) QueryOwner() *UserQuery {
 	return NewFileClient(f.config).QueryOwner(f)
+}
+
+// QueryAchievementDocuments queries the "achievement_documents" edge of the File entity.
+func (f *File) QueryAchievementDocuments() *AchievementDocumentQuery {
+	return NewFileClient(f.config).QueryAchievementDocuments(f)
 }
 
 // Update returns a builder for updating this File.
@@ -160,11 +184,14 @@ func (f *File) String() string {
 	builder.WriteString("s3_object_key=")
 	builder.WriteString(f.S3ObjectKey)
 	builder.WriteString(", ")
-	builder.WriteString("file_name=")
-	builder.WriteString(f.FileName)
+	builder.WriteString("name=")
+	builder.WriteString(f.Name)
 	builder.WriteString(", ")
-	builder.WriteString("file_size=")
-	builder.WriteString(fmt.Sprintf("%v", f.FileSize))
+	builder.WriteString("size=")
+	builder.WriteString(fmt.Sprintf("%v", f.Size))
+	builder.WriteString(", ")
+	builder.WriteString("url=")
+	builder.WriteString(f.URL)
 	builder.WriteByte(')')
 	return builder.String()
 }

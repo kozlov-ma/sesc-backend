@@ -1,3 +1,5 @@
+"use client";
+
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -5,21 +7,72 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Download, Sparkles } from "lucide-react";
+import { Download, Sparkles, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import Image from "next/image";
-import { ApiFileResponse } from "@/lib/api";
+import { useQuery } from "@tanstack/react-query";
+import { getFilesByIdOptions } from "@/lib/api/@tanstack/react-query.gen";
 
 interface FileNameDisplayProps {
-  file: ApiFileResponse;
+  file: {
+    id: string;
+    fileName?: string;
+    downloadUrl?: string;
+  };
+  className?: string;
+}
+
+interface FileByIdProps {
+  fileId: string;
   className?: string;
 }
 
 const IMAGE_EXTENSIONS = [".jpg", ".jpeg", ".png", ".gif", ".webp", ".svg"];
 
+export function FileNameByIdDisplay({ fileId, className }: FileByIdProps) {
+  const {
+    data: file,
+    isLoading,
+    isError,
+  } = useQuery({
+    ...getFilesByIdOptions({
+      path: {
+        id: fileId,
+      },
+    }),
+  });
+
+  if (isLoading) {
+    return (
+      <div className={cn("flex items-center gap-2", className)}>
+        <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+        <span className="text-muted-foreground">Загрузка файла...</span>
+      </div>
+    );
+  }
+
+  if (isError || !file) {
+    return (
+      <div className={cn("flex items-center gap-2", className)}>
+        <span className="text-muted-foreground">Ошибка загрузки файла</span>
+      </div>
+    );
+  }
+
+  return (
+    <FileNameDisplay
+      file={{
+        id: file?.id || fileId,
+        fileName: file?.fileName,
+        downloadUrl: file?.downloadUrl,
+      }}
+      className={className}
+    />
+  );
+}
+
 export function FileNameDisplay({ file, className }: FileNameDisplayProps) {
   const isImage = IMAGE_EXTENSIONS.some((ext) =>
-    file.fileName?.toLowerCase().endsWith(ext),
+    file.fileName?.toLowerCase()?.endsWith(ext),
   );
 
   const handleDownload = () => {
@@ -40,8 +93,9 @@ export function FileNameDisplay({ file, className }: FileNameDisplayProps) {
         variant="link"
         className={cn("flex items-center gap-2", className)}
         onClick={handleDownload}
+        disabled={!file.downloadUrl}
       >
-        <span className="font-medium">{file.fileName}</span>
+        <span className="font-medium">{file.fileName || "Файл"}</span>
       </Button>
     );
   }
@@ -59,10 +113,10 @@ export function FileNameDisplay({ file, className }: FileNameDisplayProps) {
           </div>
         </Button>
       </DialogTrigger>
-      <DialogContent className="p-0 max-w-[60vw] w-fit">
+      <DialogContent className="p-0 max-w-[80vw] max-h-[90vh] w-fit">
         <div className="flex flex-col">
           <div className="flex-1 flex items-center justify-center bg-muted">
-            <Image
+            <img
               src={file.downloadUrl}
               alt={file.fileName}
               className="max-h-full max-w-full object-contain"

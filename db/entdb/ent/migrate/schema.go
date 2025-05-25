@@ -8,6 +8,61 @@ import (
 )
 
 var (
+	// AchievementsColumns holds the columns for the "achievements" table.
+	AchievementsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Unique: true},
+		{Name: "status", Type: field.TypeString, Default: "draft"},
+		{Name: "points", Type: field.TypeInt, Default: 0},
+		{Name: "template_id", Type: field.TypeUUID},
+		{Name: "owner_id", Type: field.TypeUUID},
+	}
+	// AchievementsTable holds the schema information for the "achievements" table.
+	AchievementsTable = &schema.Table{
+		Name:       "achievements",
+		Columns:    AchievementsColumns,
+		PrimaryKey: []*schema.Column{AchievementsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "achievements_achievement_templates_achievements",
+				Columns:    []*schema.Column{AchievementsColumns[3]},
+				RefColumns: []*schema.Column{AchievementTemplatesColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "achievements_users_achievements",
+				Columns:    []*schema.Column{AchievementsColumns[4]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
+	// AchievementDocumentsColumns holds the columns for the "achievement_documents" table.
+	AchievementDocumentsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Unique: true},
+		{Name: "name", Type: field.TypeString, Size: 255},
+		{Name: "achievement_id", Type: field.TypeUUID},
+		{Name: "file_id", Type: field.TypeUUID},
+	}
+	// AchievementDocumentsTable holds the schema information for the "achievement_documents" table.
+	AchievementDocumentsTable = &schema.Table{
+		Name:       "achievement_documents",
+		Columns:    AchievementDocumentsColumns,
+		PrimaryKey: []*schema.Column{AchievementDocumentsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "achievement_documents_achievements_documents",
+				Columns:    []*schema.Column{AchievementDocumentsColumns[2]},
+				RefColumns: []*schema.Column{AchievementsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "achievement_documents_files_achievement_documents",
+				Columns:    []*schema.Column{AchievementDocumentsColumns[3]},
+				RefColumns: []*schema.Column{FilesColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+	}
 	// AchievementGroupsColumns holds the columns for the "achievement_groups" table.
 	AchievementGroupsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID, Unique: true},
@@ -20,6 +75,34 @@ var (
 		Name:       "achievement_groups",
 		Columns:    AchievementGroupsColumns,
 		PrimaryKey: []*schema.Column{AchievementGroupsColumns[0]},
+	}
+	// AchievementReviewsColumns holds the columns for the "achievement_reviews" table.
+	AchievementReviewsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID, Unique: true},
+		{Name: "points_assigned", Type: field.TypeInt},
+		{Name: "comment", Type: field.TypeString, Nullable: true, Size: 2147483647},
+		{Name: "achievement_id", Type: field.TypeUUID},
+		{Name: "reviewer_id", Type: field.TypeUUID},
+	}
+	// AchievementReviewsTable holds the schema information for the "achievement_reviews" table.
+	AchievementReviewsTable = &schema.Table{
+		Name:       "achievement_reviews",
+		Columns:    AchievementReviewsColumns,
+		PrimaryKey: []*schema.Column{AchievementReviewsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "achievement_reviews_achievements_reviews",
+				Columns:    []*schema.Column{AchievementReviewsColumns[3]},
+				RefColumns: []*schema.Column{AchievementsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "achievement_reviews_users_reviews",
+				Columns:    []*schema.Column{AchievementReviewsColumns[4]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
 	}
 	// AchievementTemplatesColumns holds the columns for the "achievement_templates" table.
 	AchievementTemplatesColumns = []*schema.Column{
@@ -107,8 +190,9 @@ var (
 	FilesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID, Unique: true},
 		{Name: "s3_object_key", Type: field.TypeString, Unique: true},
-		{Name: "file_name", Type: field.TypeString},
-		{Name: "file_size", Type: field.TypeInt},
+		{Name: "name", Type: field.TypeString},
+		{Name: "size", Type: field.TypeInt},
+		{Name: "url", Type: field.TypeString},
 		{Name: "owner_id", Type: field.TypeUUID, Nullable: true},
 	}
 	// FilesTable holds the schema information for the "files" table.
@@ -119,7 +203,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "files_users_files",
-				Columns:    []*schema.Column{FilesColumns[4]},
+				Columns:    []*schema.Column{FilesColumns[5]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -128,10 +212,10 @@ var (
 			{
 				Name:    "file_owner_id",
 				Unique:  false,
-				Columns: []*schema.Column{FilesColumns[4]},
+				Columns: []*schema.Column{FilesColumns[5]},
 			},
 			{
-				Name:    "file_file_name",
+				Name:    "file_name",
 				Unique:  false,
 				Columns: []*schema.Column{FilesColumns[2]},
 			},
@@ -186,7 +270,10 @@ var (
 	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
+		AchievementsTable,
+		AchievementDocumentsTable,
 		AchievementGroupsTable,
+		AchievementReviewsTable,
 		AchievementTemplatesTable,
 		AuthUsersTable,
 		DepartmentsTable,
@@ -196,6 +283,12 @@ var (
 )
 
 func init() {
+	AchievementsTable.ForeignKeys[0].RefTable = AchievementTemplatesTable
+	AchievementsTable.ForeignKeys[1].RefTable = UsersTable
+	AchievementDocumentsTable.ForeignKeys[0].RefTable = AchievementsTable
+	AchievementDocumentsTable.ForeignKeys[1].RefTable = FilesTable
+	AchievementReviewsTable.ForeignKeys[0].RefTable = AchievementsTable
+	AchievementReviewsTable.ForeignKeys[1].RefTable = UsersTable
 	AchievementTemplatesTable.ForeignKeys[0].RefTable = AchievementGroupsTable
 	AuthUsersTable.ForeignKeys[0].RefTable = UsersTable
 	FilesTable.ForeignKeys[0].RefTable = UsersTable

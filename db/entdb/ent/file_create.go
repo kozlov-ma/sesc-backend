@@ -10,6 +10,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	uuid "github.com/gofrs/uuid/v5"
+	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievementdocument"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/file"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/user"
 )
@@ -41,15 +42,21 @@ func (fc *FileCreate) SetS3ObjectKey(s string) *FileCreate {
 	return fc
 }
 
-// SetFileName sets the "file_name" field.
-func (fc *FileCreate) SetFileName(s string) *FileCreate {
-	fc.mutation.SetFileName(s)
+// SetName sets the "name" field.
+func (fc *FileCreate) SetName(s string) *FileCreate {
+	fc.mutation.SetName(s)
 	return fc
 }
 
-// SetFileSize sets the "file_size" field.
-func (fc *FileCreate) SetFileSize(i int) *FileCreate {
-	fc.mutation.SetFileSize(i)
+// SetSize sets the "size" field.
+func (fc *FileCreate) SetSize(i int) *FileCreate {
+	fc.mutation.SetSize(i)
+	return fc
+}
+
+// SetURL sets the "url" field.
+func (fc *FileCreate) SetURL(s string) *FileCreate {
+	fc.mutation.SetURL(s)
 	return fc
 }
 
@@ -70,6 +77,21 @@ func (fc *FileCreate) SetNillableID(u *uuid.UUID) *FileCreate {
 // SetOwner sets the "owner" edge to the User entity.
 func (fc *FileCreate) SetOwner(u *User) *FileCreate {
 	return fc.SetOwnerID(u.ID)
+}
+
+// AddAchievementDocumentIDs adds the "achievement_documents" edge to the AchievementDocument entity by IDs.
+func (fc *FileCreate) AddAchievementDocumentIDs(ids ...uuid.UUID) *FileCreate {
+	fc.mutation.AddAchievementDocumentIDs(ids...)
+	return fc
+}
+
+// AddAchievementDocuments adds the "achievement_documents" edges to the AchievementDocument entity.
+func (fc *FileCreate) AddAchievementDocuments(a ...*AchievementDocument) *FileCreate {
+	ids := make([]uuid.UUID, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return fc.AddAchievementDocumentIDs(ids...)
 }
 
 // Mutation returns the FileMutation object of the builder.
@@ -118,11 +140,14 @@ func (fc *FileCreate) check() error {
 	if _, ok := fc.mutation.S3ObjectKey(); !ok {
 		return &ValidationError{Name: "s3_object_key", err: errors.New(`ent: missing required field "File.s3_object_key"`)}
 	}
-	if _, ok := fc.mutation.FileName(); !ok {
-		return &ValidationError{Name: "file_name", err: errors.New(`ent: missing required field "File.file_name"`)}
+	if _, ok := fc.mutation.Name(); !ok {
+		return &ValidationError{Name: "name", err: errors.New(`ent: missing required field "File.name"`)}
 	}
-	if _, ok := fc.mutation.FileSize(); !ok {
-		return &ValidationError{Name: "file_size", err: errors.New(`ent: missing required field "File.file_size"`)}
+	if _, ok := fc.mutation.Size(); !ok {
+		return &ValidationError{Name: "size", err: errors.New(`ent: missing required field "File.size"`)}
+	}
+	if _, ok := fc.mutation.URL(); !ok {
+		return &ValidationError{Name: "url", err: errors.New(`ent: missing required field "File.url"`)}
 	}
 	return nil
 }
@@ -163,13 +188,17 @@ func (fc *FileCreate) createSpec() (*File, *sqlgraph.CreateSpec) {
 		_spec.SetField(file.FieldS3ObjectKey, field.TypeString, value)
 		_node.S3ObjectKey = value
 	}
-	if value, ok := fc.mutation.FileName(); ok {
-		_spec.SetField(file.FieldFileName, field.TypeString, value)
-		_node.FileName = value
+	if value, ok := fc.mutation.Name(); ok {
+		_spec.SetField(file.FieldName, field.TypeString, value)
+		_node.Name = value
 	}
-	if value, ok := fc.mutation.FileSize(); ok {
-		_spec.SetField(file.FieldFileSize, field.TypeInt, value)
-		_node.FileSize = value
+	if value, ok := fc.mutation.Size(); ok {
+		_spec.SetField(file.FieldSize, field.TypeInt, value)
+		_node.Size = value
+	}
+	if value, ok := fc.mutation.URL(); ok {
+		_spec.SetField(file.FieldURL, field.TypeString, value)
+		_node.URL = value
 	}
 	if nodes := fc.mutation.OwnerIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -186,6 +215,22 @@ func (fc *FileCreate) createSpec() (*File, *sqlgraph.CreateSpec) {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.OwnerID = &nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := fc.mutation.AchievementDocumentsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   file.AchievementDocumentsTable,
+			Columns: []string{file.AchievementDocumentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(achievementdocument.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

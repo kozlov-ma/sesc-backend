@@ -12,8 +12,14 @@ import (
 // Tx is a transactional client that is created by calling Client.Tx().
 type Tx struct {
 	config
+	// Achievement is the client for interacting with the Achievement builders.
+	Achievement *AchievementClient
+	// AchievementDocument is the client for interacting with the AchievementDocument builders.
+	AchievementDocument *AchievementDocumentClient
 	// AchievementGroup is the client for interacting with the AchievementGroup builders.
 	AchievementGroup *AchievementGroupClient
+	// AchievementReview is the client for interacting with the AchievementReview builders.
+	AchievementReview *AchievementReviewClient
 	// AchievementTemplate is the client for interacting with the AchievementTemplate builders.
 	AchievementTemplate *AchievementTemplateClient
 	// AuthUser is the client for interacting with the AuthUser builders.
@@ -155,7 +161,10 @@ func (tx *Tx) Client() *Client {
 }
 
 func (tx *Tx) init() {
+	tx.Achievement = NewAchievementClient(tx.config)
+	tx.AchievementDocument = NewAchievementDocumentClient(tx.config)
 	tx.AchievementGroup = NewAchievementGroupClient(tx.config)
+	tx.AchievementReview = NewAchievementReviewClient(tx.config)
 	tx.AchievementTemplate = NewAchievementTemplateClient(tx.config)
 	tx.AuthUser = NewAuthUserClient(tx.config)
 	tx.Department = NewDepartmentClient(tx.config)
@@ -170,7 +179,7 @@ func (tx *Tx) init() {
 // of them in order to commit or rollback the transaction.
 //
 // If a closed transaction is embedded in one of the generated entities, and the entity
-// applies a query, for example: AchievementGroup.QueryXXX(), the query will be executed
+// applies a query, for example: Achievement.QueryXXX(), the query will be executed
 // through the driver which created this transaction.
 //
 // Note that txDriver is not goroutine safe.

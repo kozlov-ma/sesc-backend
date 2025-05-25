@@ -16,7 +16,10 @@ import (
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievement"
+	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievementdocument"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievementgroup"
+	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievementreview"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievementtemplate"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/authuser"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/department"
@@ -29,8 +32,14 @@ type Client struct {
 	config
 	// Schema is the client for creating, migrating and dropping schema.
 	Schema *migrate.Schema
+	// Achievement is the client for interacting with the Achievement builders.
+	Achievement *AchievementClient
+	// AchievementDocument is the client for interacting with the AchievementDocument builders.
+	AchievementDocument *AchievementDocumentClient
 	// AchievementGroup is the client for interacting with the AchievementGroup builders.
 	AchievementGroup *AchievementGroupClient
+	// AchievementReview is the client for interacting with the AchievementReview builders.
+	AchievementReview *AchievementReviewClient
 	// AchievementTemplate is the client for interacting with the AchievementTemplate builders.
 	AchievementTemplate *AchievementTemplateClient
 	// AuthUser is the client for interacting with the AuthUser builders.
@@ -52,7 +61,10 @@ func NewClient(opts ...Option) *Client {
 
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
+	c.Achievement = NewAchievementClient(c.config)
+	c.AchievementDocument = NewAchievementDocumentClient(c.config)
 	c.AchievementGroup = NewAchievementGroupClient(c.config)
+	c.AchievementReview = NewAchievementReviewClient(c.config)
 	c.AchievementTemplate = NewAchievementTemplateClient(c.config)
 	c.AuthUser = NewAuthUserClient(c.config)
 	c.Department = NewDepartmentClient(c.config)
@@ -150,7 +162,10 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	return &Tx{
 		ctx:                 ctx,
 		config:              cfg,
+		Achievement:         NewAchievementClient(cfg),
+		AchievementDocument: NewAchievementDocumentClient(cfg),
 		AchievementGroup:    NewAchievementGroupClient(cfg),
+		AchievementReview:   NewAchievementReviewClient(cfg),
 		AchievementTemplate: NewAchievementTemplateClient(cfg),
 		AuthUser:            NewAuthUserClient(cfg),
 		Department:          NewDepartmentClient(cfg),
@@ -175,7 +190,10 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	return &Tx{
 		ctx:                 ctx,
 		config:              cfg,
+		Achievement:         NewAchievementClient(cfg),
+		AchievementDocument: NewAchievementDocumentClient(cfg),
 		AchievementGroup:    NewAchievementGroupClient(cfg),
+		AchievementReview:   NewAchievementReviewClient(cfg),
 		AchievementTemplate: NewAchievementTemplateClient(cfg),
 		AuthUser:            NewAuthUserClient(cfg),
 		Department:          NewDepartmentClient(cfg),
@@ -187,7 +205,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 // Debug returns a new debug-client. It's used to get verbose logging on specific operations.
 //
 //	client.Debug().
-//		AchievementGroup.
+//		Achievement.
 //		Query().
 //		Count(ctx)
 func (c *Client) Debug() *Client {
@@ -210,8 +228,8 @@ func (c *Client) Close() error {
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
-		c.AchievementGroup, c.AchievementTemplate, c.AuthUser, c.Department, c.File,
-		c.User,
+		c.Achievement, c.AchievementDocument, c.AchievementGroup, c.AchievementReview,
+		c.AchievementTemplate, c.AuthUser, c.Department, c.File, c.User,
 	} {
 		n.Use(hooks...)
 	}
@@ -221,8 +239,8 @@ func (c *Client) Use(hooks ...Hook) {
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
-		c.AchievementGroup, c.AchievementTemplate, c.AuthUser, c.Department, c.File,
-		c.User,
+		c.Achievement, c.AchievementDocument, c.AchievementGroup, c.AchievementReview,
+		c.AchievementTemplate, c.AuthUser, c.Department, c.File, c.User,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -231,8 +249,14 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 // Mutate implements the ent.Mutator interface.
 func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 	switch m := m.(type) {
+	case *AchievementMutation:
+		return c.Achievement.mutate(ctx, m)
+	case *AchievementDocumentMutation:
+		return c.AchievementDocument.mutate(ctx, m)
 	case *AchievementGroupMutation:
 		return c.AchievementGroup.mutate(ctx, m)
+	case *AchievementReviewMutation:
+		return c.AchievementReview.mutate(ctx, m)
 	case *AchievementTemplateMutation:
 		return c.AchievementTemplate.mutate(ctx, m)
 	case *AuthUserMutation:
@@ -245,6 +269,368 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.User.mutate(ctx, m)
 	default:
 		return nil, fmt.Errorf("ent: unknown mutation type %T", m)
+	}
+}
+
+// AchievementClient is a client for the Achievement schema.
+type AchievementClient struct {
+	config
+}
+
+// NewAchievementClient returns a client for the Achievement from the given config.
+func NewAchievementClient(c config) *AchievementClient {
+	return &AchievementClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `achievement.Hooks(f(g(h())))`.
+func (c *AchievementClient) Use(hooks ...Hook) {
+	c.hooks.Achievement = append(c.hooks.Achievement, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `achievement.Intercept(f(g(h())))`.
+func (c *AchievementClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Achievement = append(c.inters.Achievement, interceptors...)
+}
+
+// Create returns a builder for creating a Achievement entity.
+func (c *AchievementClient) Create() *AchievementCreate {
+	mutation := newAchievementMutation(c.config, OpCreate)
+	return &AchievementCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Achievement entities.
+func (c *AchievementClient) CreateBulk(builders ...*AchievementCreate) *AchievementCreateBulk {
+	return &AchievementCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *AchievementClient) MapCreateBulk(slice any, setFunc func(*AchievementCreate, int)) *AchievementCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &AchievementCreateBulk{err: fmt.Errorf("calling to AchievementClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*AchievementCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &AchievementCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Achievement.
+func (c *AchievementClient) Update() *AchievementUpdate {
+	mutation := newAchievementMutation(c.config, OpUpdate)
+	return &AchievementUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *AchievementClient) UpdateOne(a *Achievement) *AchievementUpdateOne {
+	mutation := newAchievementMutation(c.config, OpUpdateOne, withAchievement(a))
+	return &AchievementUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *AchievementClient) UpdateOneID(id uuid.UUID) *AchievementUpdateOne {
+	mutation := newAchievementMutation(c.config, OpUpdateOne, withAchievementID(id))
+	return &AchievementUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Achievement.
+func (c *AchievementClient) Delete() *AchievementDelete {
+	mutation := newAchievementMutation(c.config, OpDelete)
+	return &AchievementDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *AchievementClient) DeleteOne(a *Achievement) *AchievementDeleteOne {
+	return c.DeleteOneID(a.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *AchievementClient) DeleteOneID(id uuid.UUID) *AchievementDeleteOne {
+	builder := c.Delete().Where(achievement.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &AchievementDeleteOne{builder}
+}
+
+// Query returns a query builder for Achievement.
+func (c *AchievementClient) Query() *AchievementQuery {
+	return &AchievementQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeAchievement},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a Achievement entity by its id.
+func (c *AchievementClient) Get(ctx context.Context, id uuid.UUID) (*Achievement, error) {
+	return c.Query().Where(achievement.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *AchievementClient) GetX(ctx context.Context, id uuid.UUID) *Achievement {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryDocuments queries the documents edge of a Achievement.
+func (c *AchievementClient) QueryDocuments(a *Achievement) *AchievementDocumentQuery {
+	query := (&AchievementDocumentClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := a.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(achievement.Table, achievement.FieldID, id),
+			sqlgraph.To(achievementdocument.Table, achievementdocument.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, achievement.DocumentsTable, achievement.DocumentsColumn),
+		)
+		fromV = sqlgraph.Neighbors(a.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryReviews queries the reviews edge of a Achievement.
+func (c *AchievementClient) QueryReviews(a *Achievement) *AchievementReviewQuery {
+	query := (&AchievementReviewClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := a.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(achievement.Table, achievement.FieldID, id),
+			sqlgraph.To(achievementreview.Table, achievementreview.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, achievement.ReviewsTable, achievement.ReviewsColumn),
+		)
+		fromV = sqlgraph.Neighbors(a.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryOwner queries the owner edge of a Achievement.
+func (c *AchievementClient) QueryOwner(a *Achievement) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := a.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(achievement.Table, achievement.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, achievement.OwnerTable, achievement.OwnerColumn),
+		)
+		fromV = sqlgraph.Neighbors(a.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryTemplate queries the template edge of a Achievement.
+func (c *AchievementClient) QueryTemplate(a *Achievement) *AchievementTemplateQuery {
+	query := (&AchievementTemplateClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := a.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(achievement.Table, achievement.FieldID, id),
+			sqlgraph.To(achievementtemplate.Table, achievementtemplate.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, achievement.TemplateTable, achievement.TemplateColumn),
+		)
+		fromV = sqlgraph.Neighbors(a.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *AchievementClient) Hooks() []Hook {
+	return c.hooks.Achievement
+}
+
+// Interceptors returns the client interceptors.
+func (c *AchievementClient) Interceptors() []Interceptor {
+	return c.inters.Achievement
+}
+
+func (c *AchievementClient) mutate(ctx context.Context, m *AchievementMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&AchievementCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&AchievementUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&AchievementUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&AchievementDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown Achievement mutation op: %q", m.Op())
+	}
+}
+
+// AchievementDocumentClient is a client for the AchievementDocument schema.
+type AchievementDocumentClient struct {
+	config
+}
+
+// NewAchievementDocumentClient returns a client for the AchievementDocument from the given config.
+func NewAchievementDocumentClient(c config) *AchievementDocumentClient {
+	return &AchievementDocumentClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `achievementdocument.Hooks(f(g(h())))`.
+func (c *AchievementDocumentClient) Use(hooks ...Hook) {
+	c.hooks.AchievementDocument = append(c.hooks.AchievementDocument, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `achievementdocument.Intercept(f(g(h())))`.
+func (c *AchievementDocumentClient) Intercept(interceptors ...Interceptor) {
+	c.inters.AchievementDocument = append(c.inters.AchievementDocument, interceptors...)
+}
+
+// Create returns a builder for creating a AchievementDocument entity.
+func (c *AchievementDocumentClient) Create() *AchievementDocumentCreate {
+	mutation := newAchievementDocumentMutation(c.config, OpCreate)
+	return &AchievementDocumentCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of AchievementDocument entities.
+func (c *AchievementDocumentClient) CreateBulk(builders ...*AchievementDocumentCreate) *AchievementDocumentCreateBulk {
+	return &AchievementDocumentCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *AchievementDocumentClient) MapCreateBulk(slice any, setFunc func(*AchievementDocumentCreate, int)) *AchievementDocumentCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &AchievementDocumentCreateBulk{err: fmt.Errorf("calling to AchievementDocumentClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*AchievementDocumentCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &AchievementDocumentCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for AchievementDocument.
+func (c *AchievementDocumentClient) Update() *AchievementDocumentUpdate {
+	mutation := newAchievementDocumentMutation(c.config, OpUpdate)
+	return &AchievementDocumentUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *AchievementDocumentClient) UpdateOne(ad *AchievementDocument) *AchievementDocumentUpdateOne {
+	mutation := newAchievementDocumentMutation(c.config, OpUpdateOne, withAchievementDocument(ad))
+	return &AchievementDocumentUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *AchievementDocumentClient) UpdateOneID(id uuid.UUID) *AchievementDocumentUpdateOne {
+	mutation := newAchievementDocumentMutation(c.config, OpUpdateOne, withAchievementDocumentID(id))
+	return &AchievementDocumentUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for AchievementDocument.
+func (c *AchievementDocumentClient) Delete() *AchievementDocumentDelete {
+	mutation := newAchievementDocumentMutation(c.config, OpDelete)
+	return &AchievementDocumentDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *AchievementDocumentClient) DeleteOne(ad *AchievementDocument) *AchievementDocumentDeleteOne {
+	return c.DeleteOneID(ad.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *AchievementDocumentClient) DeleteOneID(id uuid.UUID) *AchievementDocumentDeleteOne {
+	builder := c.Delete().Where(achievementdocument.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &AchievementDocumentDeleteOne{builder}
+}
+
+// Query returns a query builder for AchievementDocument.
+func (c *AchievementDocumentClient) Query() *AchievementDocumentQuery {
+	return &AchievementDocumentQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeAchievementDocument},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a AchievementDocument entity by its id.
+func (c *AchievementDocumentClient) Get(ctx context.Context, id uuid.UUID) (*AchievementDocument, error) {
+	return c.Query().Where(achievementdocument.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *AchievementDocumentClient) GetX(ctx context.Context, id uuid.UUID) *AchievementDocument {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryAchievement queries the achievement edge of a AchievementDocument.
+func (c *AchievementDocumentClient) QueryAchievement(ad *AchievementDocument) *AchievementQuery {
+	query := (&AchievementClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := ad.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(achievementdocument.Table, achievementdocument.FieldID, id),
+			sqlgraph.To(achievement.Table, achievement.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, achievementdocument.AchievementTable, achievementdocument.AchievementColumn),
+		)
+		fromV = sqlgraph.Neighbors(ad.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryFile queries the file edge of a AchievementDocument.
+func (c *AchievementDocumentClient) QueryFile(ad *AchievementDocument) *FileQuery {
+	query := (&FileClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := ad.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(achievementdocument.Table, achievementdocument.FieldID, id),
+			sqlgraph.To(file.Table, file.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, achievementdocument.FileTable, achievementdocument.FileColumn),
+		)
+		fromV = sqlgraph.Neighbors(ad.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *AchievementDocumentClient) Hooks() []Hook {
+	return c.hooks.AchievementDocument
+}
+
+// Interceptors returns the client interceptors.
+func (c *AchievementDocumentClient) Interceptors() []Interceptor {
+	return c.inters.AchievementDocument
+}
+
+func (c *AchievementDocumentClient) mutate(ctx context.Context, m *AchievementDocumentMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&AchievementDocumentCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&AchievementDocumentUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&AchievementDocumentUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&AchievementDocumentDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown AchievementDocument mutation op: %q", m.Op())
 	}
 }
 
@@ -397,6 +783,171 @@ func (c *AchievementGroupClient) mutate(ctx context.Context, m *AchievementGroup
 	}
 }
 
+// AchievementReviewClient is a client for the AchievementReview schema.
+type AchievementReviewClient struct {
+	config
+}
+
+// NewAchievementReviewClient returns a client for the AchievementReview from the given config.
+func NewAchievementReviewClient(c config) *AchievementReviewClient {
+	return &AchievementReviewClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `achievementreview.Hooks(f(g(h())))`.
+func (c *AchievementReviewClient) Use(hooks ...Hook) {
+	c.hooks.AchievementReview = append(c.hooks.AchievementReview, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `achievementreview.Intercept(f(g(h())))`.
+func (c *AchievementReviewClient) Intercept(interceptors ...Interceptor) {
+	c.inters.AchievementReview = append(c.inters.AchievementReview, interceptors...)
+}
+
+// Create returns a builder for creating a AchievementReview entity.
+func (c *AchievementReviewClient) Create() *AchievementReviewCreate {
+	mutation := newAchievementReviewMutation(c.config, OpCreate)
+	return &AchievementReviewCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of AchievementReview entities.
+func (c *AchievementReviewClient) CreateBulk(builders ...*AchievementReviewCreate) *AchievementReviewCreateBulk {
+	return &AchievementReviewCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *AchievementReviewClient) MapCreateBulk(slice any, setFunc func(*AchievementReviewCreate, int)) *AchievementReviewCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &AchievementReviewCreateBulk{err: fmt.Errorf("calling to AchievementReviewClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*AchievementReviewCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &AchievementReviewCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for AchievementReview.
+func (c *AchievementReviewClient) Update() *AchievementReviewUpdate {
+	mutation := newAchievementReviewMutation(c.config, OpUpdate)
+	return &AchievementReviewUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *AchievementReviewClient) UpdateOne(ar *AchievementReview) *AchievementReviewUpdateOne {
+	mutation := newAchievementReviewMutation(c.config, OpUpdateOne, withAchievementReview(ar))
+	return &AchievementReviewUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *AchievementReviewClient) UpdateOneID(id uuid.UUID) *AchievementReviewUpdateOne {
+	mutation := newAchievementReviewMutation(c.config, OpUpdateOne, withAchievementReviewID(id))
+	return &AchievementReviewUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for AchievementReview.
+func (c *AchievementReviewClient) Delete() *AchievementReviewDelete {
+	mutation := newAchievementReviewMutation(c.config, OpDelete)
+	return &AchievementReviewDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *AchievementReviewClient) DeleteOne(ar *AchievementReview) *AchievementReviewDeleteOne {
+	return c.DeleteOneID(ar.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *AchievementReviewClient) DeleteOneID(id uuid.UUID) *AchievementReviewDeleteOne {
+	builder := c.Delete().Where(achievementreview.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &AchievementReviewDeleteOne{builder}
+}
+
+// Query returns a query builder for AchievementReview.
+func (c *AchievementReviewClient) Query() *AchievementReviewQuery {
+	return &AchievementReviewQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeAchievementReview},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a AchievementReview entity by its id.
+func (c *AchievementReviewClient) Get(ctx context.Context, id uuid.UUID) (*AchievementReview, error) {
+	return c.Query().Where(achievementreview.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *AchievementReviewClient) GetX(ctx context.Context, id uuid.UUID) *AchievementReview {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryAchievement queries the achievement edge of a AchievementReview.
+func (c *AchievementReviewClient) QueryAchievement(ar *AchievementReview) *AchievementQuery {
+	query := (&AchievementClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := ar.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(achievementreview.Table, achievementreview.FieldID, id),
+			sqlgraph.To(achievement.Table, achievement.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, achievementreview.AchievementTable, achievementreview.AchievementColumn),
+		)
+		fromV = sqlgraph.Neighbors(ar.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryReviewer queries the reviewer edge of a AchievementReview.
+func (c *AchievementReviewClient) QueryReviewer(ar *AchievementReview) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := ar.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(achievementreview.Table, achievementreview.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, achievementreview.ReviewerTable, achievementreview.ReviewerColumn),
+		)
+		fromV = sqlgraph.Neighbors(ar.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *AchievementReviewClient) Hooks() []Hook {
+	return c.hooks.AchievementReview
+}
+
+// Interceptors returns the client interceptors.
+func (c *AchievementReviewClient) Interceptors() []Interceptor {
+	return c.inters.AchievementReview
+}
+
+func (c *AchievementReviewClient) mutate(ctx context.Context, m *AchievementReviewMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&AchievementReviewCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&AchievementReviewUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&AchievementReviewUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&AchievementReviewDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown AchievementReview mutation op: %q", m.Op())
+	}
+}
+
 // AchievementTemplateClient is a client for the AchievementTemplate schema.
 type AchievementTemplateClient struct {
 	config
@@ -514,6 +1065,22 @@ func (c *AchievementTemplateClient) QueryGroup(at *AchievementTemplate) *Achieve
 			sqlgraph.From(achievementtemplate.Table, achievementtemplate.FieldID, id),
 			sqlgraph.To(achievementgroup.Table, achievementgroup.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, achievementtemplate.GroupTable, achievementtemplate.GroupColumn),
+		)
+		fromV = sqlgraph.Neighbors(at.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryAchievements queries the achievements edge of a AchievementTemplate.
+func (c *AchievementTemplateClient) QueryAchievements(at *AchievementTemplate) *AchievementQuery {
+	query := (&AchievementClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := at.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(achievementtemplate.Table, achievementtemplate.FieldID, id),
+			sqlgraph.To(achievement.Table, achievement.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, achievementtemplate.AchievementsTable, achievementtemplate.AchievementsColumn),
 		)
 		fromV = sqlgraph.Neighbors(at.driver.Dialect(), step)
 		return fromV, nil
@@ -968,6 +1535,22 @@ func (c *FileClient) QueryOwner(f *File) *UserQuery {
 	return query
 }
 
+// QueryAchievementDocuments queries the achievement_documents edge of a File.
+func (c *FileClient) QueryAchievementDocuments(f *File) *AchievementDocumentQuery {
+	query := (&AchievementDocumentClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := f.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(file.Table, file.FieldID, id),
+			sqlgraph.To(achievementdocument.Table, achievementdocument.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, file.AchievementDocumentsTable, file.AchievementDocumentsColumn),
+		)
+		fromV = sqlgraph.Neighbors(f.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *FileClient) Hooks() []Hook {
 	return c.hooks.File
@@ -1149,6 +1732,38 @@ func (c *UserClient) QueryFiles(u *User) *FileQuery {
 	return query
 }
 
+// QueryAchievements queries the achievements edge of a User.
+func (c *UserClient) QueryAchievements(u *User) *AchievementQuery {
+	query := (&AchievementClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := u.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(achievement.Table, achievement.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.AchievementsTable, user.AchievementsColumn),
+		)
+		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryReviews queries the reviews edge of a User.
+func (c *UserClient) QueryReviews(u *User) *AchievementReviewQuery {
+	query := (&AchievementReviewClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := u.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(achievementreview.Table, achievementreview.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.ReviewsTable, user.ReviewsColumn),
+		)
+		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *UserClient) Hooks() []Hook {
 	return c.hooks.User
@@ -1177,11 +1792,11 @@ func (c *UserClient) mutate(ctx context.Context, m *UserMutation) (Value, error)
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		AchievementGroup, AchievementTemplate, AuthUser, Department, File,
-		User []ent.Hook
+		Achievement, AchievementDocument, AchievementGroup, AchievementReview,
+		AchievementTemplate, AuthUser, Department, File, User []ent.Hook
 	}
 	inters struct {
-		AchievementGroup, AchievementTemplate, AuthUser, Department, File,
-		User []ent.Interceptor
+		Achievement, AchievementDocument, AchievementGroup, AchievementReview,
+		AchievementTemplate, AuthUser, Department, File, User []ent.Interceptor
 	}
 )

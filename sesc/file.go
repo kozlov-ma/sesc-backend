@@ -8,9 +8,9 @@ type File struct {
 	ID          UUID
 	OwnerID     *UUID
 	S3ObjectKey string
-	FileName    string
-	FileSize    int
-	DownloadURL string
+	Name        string
+	Size        int
+	URL         string
 }
 
 func (f File) EventRecord() *event.Record {
@@ -18,9 +18,9 @@ func (f File) EventRecord() *event.Record {
 		"id", f.ID,
 		"owner_id", f.OwnerID,
 		"s3_object_key", f.S3ObjectKey,
-		"file_name", f.FileName,
-		"file_size", f.FileSize,
-		"download_url", f.DownloadURL,
+		"name", f.Name,
+		"size", f.Size,
+		"url", f.URL,
 	)
 }
 

@@ -24,8 +24,8 @@ import (
 func requireFileMatches(t *testing.T, expected, actual File) {
 	t.Helper()
 	require.Equal(t, expected.ID, actual.ID, "File ID mismatch")
-	require.Equal(t, expected.FileName, actual.FileName, "File name mismatch")
-	require.Equal(t, expected.FileSize, actual.FileSize, "File size mismatch")
+	require.Equal(t, expected.Name, actual.Name, "File name mismatch")
+	require.Equal(t, expected.Size, actual.Size, "File size mismatch")
 
 	// Only check ownerID if expected has one
 	if expected.OwnerID != nil {
@@ -117,8 +117,8 @@ func TestCreate(t *testing.T) {
 		file, err := svc.Create(ctx, reader, opts)
 		require.NoError(t, err)
 		require.NotEqual(t, uuid.Nil, file.ID)
-		require.Equal(t, opts.FileName, file.FileName)
-		require.Equal(t, opts.FileSize, file.FileSize)
+		require.Equal(t, opts.FileName, file.Name)
+		require.Equal(t, opts.FileSize, file.Size)
 		require.Nil(t, file.OwnerID)
 		require.NotEmpty(t, file.S3ObjectKey)
 
@@ -149,8 +149,8 @@ func TestCreate(t *testing.T) {
 		file, err := svc.Create(ctx, reader, opts)
 		require.NoError(t, err)
 		require.NotEqual(t, uuid.Nil, file.ID)
-		require.Equal(t, opts.FileName, file.FileName)
-		require.Equal(t, opts.FileSize, file.FileSize)
+		require.Equal(t, opts.FileName, file.Name)
+		require.Equal(t, opts.FileSize, file.Size)
 		require.NotNil(t, file.OwnerID)
 		require.Equal(t, ownerID, *file.OwnerID)
 		require.NotEmpty(t, file.S3ObjectKey)
@@ -375,7 +375,7 @@ func TestSearch(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, 1, total)
 		require.Len(t, files, 1)
-		require.Equal(t, "new-owner-file.txt", files[0].FileName)
+		require.Equal(t, "new-owner-file.txt", files[0].Name)
 	})
 
 	t.Run("common_files", func(t *testing.T) {
@@ -413,7 +413,7 @@ func TestSearch(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, 1, total)
 		require.Len(t, files, 1)
-		require.Equal(t, "common-file.txt", files[0].FileName)
+		require.Equal(t, "common-file.txt", files[0].Name)
 	})
 
 	t.Run("by_name", func(t *testing.T) {
@@ -450,7 +450,7 @@ func TestSearch(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, 1, total)
 		require.Len(t, files, 1)
-		require.Equal(t, "test-image.jpg", files[0].FileName)
+		require.Equal(t, "test-image.jpg", files[0].Name)
 	})
 
 	t.Run("pagination", func(t *testing.T) {
@@ -579,7 +579,7 @@ func TestByID(t *testing.T) {
 		file, err := svc.ByID(ctx, fileID)
 		require.NoError(t, err)
 		require.Equal(t, fileID, file.ID)
-		require.Equal(t, "test.txt", file.FileName)
+		require.Equal(t, "test.txt", file.Name)
 	})
 
 	t.Run("non_existent_file", func(t *testing.T) {

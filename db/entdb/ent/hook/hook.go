@@ -9,6 +9,30 @@ import (
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent"
 )
 
+// The AchievementFunc type is an adapter to allow the use of ordinary
+// function as Achievement mutator.
+type AchievementFunc func(context.Context, *ent.AchievementMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f AchievementFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.AchievementMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AchievementMutation", m)
+}
+
+// The AchievementDocumentFunc type is an adapter to allow the use of ordinary
+// function as AchievementDocument mutator.
+type AchievementDocumentFunc func(context.Context, *ent.AchievementDocumentMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f AchievementDocumentFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.AchievementDocumentMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AchievementDocumentMutation", m)
+}
+
 // The AchievementGroupFunc type is an adapter to allow the use of ordinary
 // function as AchievementGroup mutator.
 type AchievementGroupFunc func(context.Context, *ent.AchievementGroupMutation) (ent.Value, error)
@@ -19,6 +43,18 @@ func (f AchievementGroupFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.V
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AchievementGroupMutation", m)
+}
+
+// The AchievementReviewFunc type is an adapter to allow the use of ordinary
+// function as AchievementReview mutator.
+type AchievementReviewFunc func(context.Context, *ent.AchievementReviewMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f AchievementReviewFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.AchievementReviewMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AchievementReviewMutation", m)
 }
 
 // The AchievementTemplateFunc type is an adapter to allow the use of ordinary

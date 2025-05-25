@@ -33,6 +33,10 @@ const (
 	EdgeAuth = "auth"
 	// EdgeFiles holds the string denoting the files edge name in mutations.
 	EdgeFiles = "files"
+	// EdgeAchievements holds the string denoting the achievements edge name in mutations.
+	EdgeAchievements = "achievements"
+	// EdgeReviews holds the string denoting the reviews edge name in mutations.
+	EdgeReviews = "reviews"
 	// Table holds the table name of the user in the database.
 	Table = "users"
 	// DepartmentTable is the table that holds the department relation/edge.
@@ -56,6 +60,20 @@ const (
 	FilesInverseTable = "files"
 	// FilesColumn is the table column denoting the files relation/edge.
 	FilesColumn = "owner_id"
+	// AchievementsTable is the table that holds the achievements relation/edge.
+	AchievementsTable = "achievements"
+	// AchievementsInverseTable is the table name for the Achievement entity.
+	// It exists in this package in order to avoid circular dependency with the "achievement" package.
+	AchievementsInverseTable = "achievements"
+	// AchievementsColumn is the table column denoting the achievements relation/edge.
+	AchievementsColumn = "owner_id"
+	// ReviewsTable is the table that holds the reviews relation/edge.
+	ReviewsTable = "achievement_reviews"
+	// ReviewsInverseTable is the table name for the AchievementReview entity.
+	// It exists in this package in order to avoid circular dependency with the "achievementreview" package.
+	ReviewsInverseTable = "achievement_reviews"
+	// ReviewsColumn is the table column denoting the reviews relation/edge.
+	ReviewsColumn = "reviewer_id"
 )
 
 // Columns holds all SQL columns for user fields.
@@ -159,6 +177,34 @@ func ByFiles(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newFilesStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByAchievementsCount orders the results by achievements count.
+func ByAchievementsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newAchievementsStep(), opts...)
+	}
+}
+
+// ByAchievements orders the results by achievements terms.
+func ByAchievements(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newAchievementsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
+// ByReviewsCount orders the results by reviews count.
+func ByReviewsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newReviewsStep(), opts...)
+	}
+}
+
+// ByReviews orders the results by reviews terms.
+func ByReviews(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newReviewsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newDepartmentStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -178,5 +224,19 @@ func newFilesStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(FilesInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, FilesTable, FilesColumn),
+	)
+}
+func newAchievementsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(AchievementsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, AchievementsTable, AchievementsColumn),
+	)
+}
+func newReviewsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(ReviewsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, ReviewsTable, ReviewsColumn),
 	)
 }

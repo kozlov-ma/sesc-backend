@@ -25,6 +25,31 @@ import type {
   PatchAchievementTemplatesByIdData,
   PatchAchievementTemplatesByIdResponse,
   PatchAchievementTemplatesByIdError,
+  GetAchievementsData,
+  GetAchievementsResponse,
+  GetAchievementsError,
+  PostAchievementsData,
+  PostAchievementsResponse,
+  PostAchievementsError,
+  GetAchievementsGroupedData,
+  GetAchievementsGroupedResponse,
+  GetAchievementsGroupedError,
+  DeleteAchievementsByIdData,
+  DeleteAchievementsByIdError,
+  GetAchievementsByIdData,
+  GetAchievementsByIdResponse,
+  GetAchievementsByIdError,
+  PostAchievementsByIdDocumentsData,
+  PostAchievementsByIdDocumentsResponse,
+  PostAchievementsByIdDocumentsError,
+  DeleteAchievementsByIdDocumentsByDocumentIdData,
+  DeleteAchievementsByIdDocumentsByDocumentIdError,
+  PostAchievementsByIdReviewData,
+  PostAchievementsByIdReviewResponse,
+  PostAchievementsByIdReviewError,
+  PostAchievementsByIdSubmitData,
+  PostAchievementsByIdSubmitResponse,
+  PostAchievementsByIdSubmitError,
   PostAuthAdminLoginData,
   PostAuthAdminLoginResponse,
   PostAuthAdminLoginError,
@@ -58,6 +83,9 @@ import type {
   PostFilesError,
   DeleteFilesByIdData,
   DeleteFilesByIdError,
+  GetFilesByIdData,
+  GetFilesByIdResponse,
+  GetFilesByIdError,
   GetPermissionsData,
   GetPermissionsResponse,
   GetRolesData,
@@ -256,6 +284,236 @@ export const patchAchievementTemplatesById = <
       "Content-Type": "application/json",
       ...options?.headers,
     },
+  });
+};
+
+/**
+ * Get all achievements for the current user
+ * Retrieves all achievements for the current user with pagination
+ */
+export const getAchievements = <ThrowOnError extends boolean = false>(
+  options?: Options<GetAchievementsData, ThrowOnError>,
+) => {
+  return (options?.client ?? _heyApiClient).get<
+    GetAchievementsResponse,
+    GetAchievementsError,
+    ThrowOnError
+  >({
+    security: [
+      {
+        name: "Authorization",
+        type: "apiKey",
+      },
+    ],
+    url: "/achievements",
+    ...options,
+  });
+};
+
+/**
+ * Create a new achievement
+ * Creates a new achievement for the current user
+ */
+export const postAchievements = <ThrowOnError extends boolean = false>(
+  options: Options<PostAchievementsData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).post<
+    PostAchievementsResponse,
+    PostAchievementsError,
+    ThrowOnError
+  >({
+    security: [
+      {
+        name: "Authorization",
+        type: "apiKey",
+      },
+    ],
+    url: "/achievements",
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...options?.headers,
+    },
+  });
+};
+
+/**
+ * Get achievements grouped by user
+ * Retrieves all achievements grouped by user with pagination
+ */
+export const getAchievementsGrouped = <ThrowOnError extends boolean = false>(
+  options?: Options<GetAchievementsGroupedData, ThrowOnError>,
+) => {
+  return (options?.client ?? _heyApiClient).get<
+    GetAchievementsGroupedResponse,
+    GetAchievementsGroupedError,
+    ThrowOnError
+  >({
+    security: [
+      {
+        name: "Authorization",
+        type: "apiKey",
+      },
+    ],
+    url: "/achievements/grouped",
+    ...options,
+  });
+};
+
+/**
+ * Delete an achievement
+ * Deletes an achievement
+ */
+export const deleteAchievementsById = <ThrowOnError extends boolean = false>(
+  options: Options<DeleteAchievementsByIdData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).delete<
+    unknown,
+    DeleteAchievementsByIdError,
+    ThrowOnError
+  >({
+    security: [
+      {
+        name: "Authorization",
+        type: "apiKey",
+      },
+    ],
+    url: "/achievements/{id}",
+    ...options,
+  });
+};
+
+/**
+ * Get a specific achievement
+ * Retrieves a specific achievement by ID
+ */
+export const getAchievementsById = <ThrowOnError extends boolean = false>(
+  options: Options<GetAchievementsByIdData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).get<
+    GetAchievementsByIdResponse,
+    GetAchievementsByIdError,
+    ThrowOnError
+  >({
+    security: [
+      {
+        name: "Authorization",
+        type: "apiKey",
+      },
+    ],
+    url: "/achievements/{id}",
+    ...options,
+  });
+};
+
+/**
+ * Add a document to an achievement
+ * Adds a document to an achievement
+ */
+export const postAchievementsByIdDocuments = <
+  ThrowOnError extends boolean = false,
+>(
+  options: Options<PostAchievementsByIdDocumentsData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).post<
+    PostAchievementsByIdDocumentsResponse,
+    PostAchievementsByIdDocumentsError,
+    ThrowOnError
+  >({
+    security: [
+      {
+        name: "Authorization",
+        type: "apiKey",
+      },
+    ],
+    url: "/achievements/{id}/documents",
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...options?.headers,
+    },
+  });
+};
+
+/**
+ * Remove a document from an achievement
+ * Removes a document from an achievement
+ */
+export const deleteAchievementsByIdDocumentsByDocumentId = <
+  ThrowOnError extends boolean = false,
+>(
+  options: Options<
+    DeleteAchievementsByIdDocumentsByDocumentIdData,
+    ThrowOnError
+  >,
+) => {
+  return (options.client ?? _heyApiClient).delete<
+    unknown,
+    DeleteAchievementsByIdDocumentsByDocumentIdError,
+    ThrowOnError
+  >({
+    security: [
+      {
+        name: "Authorization",
+        type: "apiKey",
+      },
+    ],
+    url: "/achievements/{id}/documents/{documentId}",
+    ...options,
+  });
+};
+
+/**
+ * Review an achievement
+ * Reviews an achievement, setting points and optionally a comment
+ */
+export const postAchievementsByIdReview = <
+  ThrowOnError extends boolean = false,
+>(
+  options: Options<PostAchievementsByIdReviewData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).post<
+    PostAchievementsByIdReviewResponse,
+    PostAchievementsByIdReviewError,
+    ThrowOnError
+  >({
+    security: [
+      {
+        name: "Authorization",
+        type: "apiKey",
+      },
+    ],
+    url: "/achievements/{id}/review",
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...options?.headers,
+    },
+  });
+};
+
+/**
+ * Submit an achievement for review
+ * Submits an achievement for review
+ */
+export const postAchievementsByIdSubmit = <
+  ThrowOnError extends boolean = false,
+>(
+  options: Options<PostAchievementsByIdSubmitData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).post<
+    PostAchievementsByIdSubmitResponse,
+    PostAchievementsByIdSubmitError,
+    ThrowOnError
+  >({
+    security: [
+      {
+        name: "Authorization",
+        type: "apiKey",
+      },
+    ],
+    url: "/achievements/{id}/submit",
+    ...options,
   });
 };
 
@@ -525,6 +783,29 @@ export const deleteFilesById = <ThrowOnError extends boolean = false>(
   return (options.client ?? _heyApiClient).delete<
     unknown,
     DeleteFilesByIdError,
+    ThrowOnError
+  >({
+    security: [
+      {
+        name: "Authorization",
+        type: "apiKey",
+      },
+    ],
+    url: "/files/{id}",
+    ...options,
+  });
+};
+
+/**
+ * Get file by ID
+ * Returns a file by ID with download URL
+ */
+export const getFilesById = <ThrowOnError extends boolean = false>(
+  options: Options<GetFilesByIdData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).get<
+    GetFilesByIdResponse,
+    GetFilesByIdError,
     ThrowOnError
   >({
     security: [

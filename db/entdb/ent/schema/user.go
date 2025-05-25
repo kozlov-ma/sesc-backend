@@ -42,6 +42,10 @@ func (User) Edges() []ent.Edge {
 
 		edge.To("files", File.Type).
 			Annotations(entsql.OnDelete(entsql.SetNull)),
+		edge.To("achievements", Achievement.Type).
+			Annotations(entsql.OnDelete(entsql.Cascade)),
+		edge.To("reviews", AchievementReview.Type).
+			Annotations(entsql.OnDelete(entsql.Cascade)),
 	}
 }
 

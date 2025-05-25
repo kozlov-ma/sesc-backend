@@ -10,6 +10,8 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	uuid "github.com/gofrs/uuid/v5"
+	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievement"
+	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievementreview"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/authuser"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/department"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/file"
@@ -148,6 +150,36 @@ func (uc *UserCreate) AddFiles(f ...*File) *UserCreate {
 		ids[i] = f[i].ID
 	}
 	return uc.AddFileIDs(ids...)
+}
+
+// AddAchievementIDs adds the "achievements" edge to the Achievement entity by IDs.
+func (uc *UserCreate) AddAchievementIDs(ids ...uuid.UUID) *UserCreate {
+	uc.mutation.AddAchievementIDs(ids...)
+	return uc
+}
+
+// AddAchievements adds the "achievements" edges to the Achievement entity.
+func (uc *UserCreate) AddAchievements(a ...*Achievement) *UserCreate {
+	ids := make([]uuid.UUID, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return uc.AddAchievementIDs(ids...)
+}
+
+// AddReviewIDs adds the "reviews" edge to the AchievementReview entity by IDs.
+func (uc *UserCreate) AddReviewIDs(ids ...uuid.UUID) *UserCreate {
+	uc.mutation.AddReviewIDs(ids...)
+	return uc
+}
+
+// AddReviews adds the "reviews" edges to the AchievementReview entity.
+func (uc *UserCreate) AddReviews(a ...*AchievementReview) *UserCreate {
+	ids := make([]uuid.UUID, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return uc.AddReviewIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -317,6 +349,38 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(file.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := uc.mutation.AchievementsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.AchievementsTable,
+			Columns: []string{user.AchievementsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(achievement.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := uc.mutation.ReviewsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.ReviewsTable,
+			Columns: []string{user.ReviewsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(achievementreview.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

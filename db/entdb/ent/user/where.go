@@ -508,6 +508,52 @@ func HasFilesWith(preds ...predicate.File) predicate.User {
 	})
 }
 
+// HasAchievements applies the HasEdge predicate on the "achievements" edge.
+func HasAchievements() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, AchievementsTable, AchievementsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasAchievementsWith applies the HasEdge predicate on the "achievements" edge with a given conditions (other predicates).
+func HasAchievementsWith(preds ...predicate.Achievement) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := newAchievementsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasReviews applies the HasEdge predicate on the "reviews" edge.
+func HasReviews() predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, ReviewsTable, ReviewsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasReviewsWith applies the HasEdge predicate on the "reviews" edge with a given conditions (other predicates).
+func HasReviewsWith(preds ...predicate.AchievementReview) predicate.User {
+	return predicate.User(func(s *sql.Selector) {
+		step := newReviewsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.User) predicate.User {
 	return predicate.User(sql.AndPredicates(predicates...))

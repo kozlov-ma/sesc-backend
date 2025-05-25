@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	uuid "github.com/gofrs/uuid/v5"
+	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievement"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievementgroup"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievementtemplate"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/predicate"
@@ -131,6 +132,21 @@ func (atu *AchievementTemplateUpdate) SetGroup(a *AchievementGroup) *Achievement
 	return atu.SetGroupID(a.ID)
 }
 
+// AddAchievementIDs adds the "achievements" edge to the Achievement entity by IDs.
+func (atu *AchievementTemplateUpdate) AddAchievementIDs(ids ...uuid.UUID) *AchievementTemplateUpdate {
+	atu.mutation.AddAchievementIDs(ids...)
+	return atu
+}
+
+// AddAchievements adds the "achievements" edges to the Achievement entity.
+func (atu *AchievementTemplateUpdate) AddAchievements(a ...*Achievement) *AchievementTemplateUpdate {
+	ids := make([]uuid.UUID, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return atu.AddAchievementIDs(ids...)
+}
+
 // Mutation returns the AchievementTemplateMutation object of the builder.
 func (atu *AchievementTemplateUpdate) Mutation() *AchievementTemplateMutation {
 	return atu.mutation
@@ -140,6 +156,27 @@ func (atu *AchievementTemplateUpdate) Mutation() *AchievementTemplateMutation {
 func (atu *AchievementTemplateUpdate) ClearGroup() *AchievementTemplateUpdate {
 	atu.mutation.ClearGroup()
 	return atu
+}
+
+// ClearAchievements clears all "achievements" edges to the Achievement entity.
+func (atu *AchievementTemplateUpdate) ClearAchievements() *AchievementTemplateUpdate {
+	atu.mutation.ClearAchievements()
+	return atu
+}
+
+// RemoveAchievementIDs removes the "achievements" edge to Achievement entities by IDs.
+func (atu *AchievementTemplateUpdate) RemoveAchievementIDs(ids ...uuid.UUID) *AchievementTemplateUpdate {
+	atu.mutation.RemoveAchievementIDs(ids...)
+	return atu
+}
+
+// RemoveAchievements removes "achievements" edges to Achievement entities.
+func (atu *AchievementTemplateUpdate) RemoveAchievements(a ...*Achievement) *AchievementTemplateUpdate {
+	ids := make([]uuid.UUID, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return atu.RemoveAchievementIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -247,6 +284,51 @@ func (atu *AchievementTemplateUpdate) sqlSave(ctx context.Context) (n int, err e
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(achievementgroup.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if atu.mutation.AchievementsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   achievementtemplate.AchievementsTable,
+			Columns: []string{achievementtemplate.AchievementsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(achievement.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := atu.mutation.RemovedAchievementsIDs(); len(nodes) > 0 && !atu.mutation.AchievementsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   achievementtemplate.AchievementsTable,
+			Columns: []string{achievementtemplate.AchievementsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(achievement.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := atu.mutation.AchievementsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   achievementtemplate.AchievementsTable,
+			Columns: []string{achievementtemplate.AchievementsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(achievement.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -376,6 +458,21 @@ func (atuo *AchievementTemplateUpdateOne) SetGroup(a *AchievementGroup) *Achieve
 	return atuo.SetGroupID(a.ID)
 }
 
+// AddAchievementIDs adds the "achievements" edge to the Achievement entity by IDs.
+func (atuo *AchievementTemplateUpdateOne) AddAchievementIDs(ids ...uuid.UUID) *AchievementTemplateUpdateOne {
+	atuo.mutation.AddAchievementIDs(ids...)
+	return atuo
+}
+
+// AddAchievements adds the "achievements" edges to the Achievement entity.
+func (atuo *AchievementTemplateUpdateOne) AddAchievements(a ...*Achievement) *AchievementTemplateUpdateOne {
+	ids := make([]uuid.UUID, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return atuo.AddAchievementIDs(ids...)
+}
+
 // Mutation returns the AchievementTemplateMutation object of the builder.
 func (atuo *AchievementTemplateUpdateOne) Mutation() *AchievementTemplateMutation {
 	return atuo.mutation
@@ -385,6 +482,27 @@ func (atuo *AchievementTemplateUpdateOne) Mutation() *AchievementTemplateMutatio
 func (atuo *AchievementTemplateUpdateOne) ClearGroup() *AchievementTemplateUpdateOne {
 	atuo.mutation.ClearGroup()
 	return atuo
+}
+
+// ClearAchievements clears all "achievements" edges to the Achievement entity.
+func (atuo *AchievementTemplateUpdateOne) ClearAchievements() *AchievementTemplateUpdateOne {
+	atuo.mutation.ClearAchievements()
+	return atuo
+}
+
+// RemoveAchievementIDs removes the "achievements" edge to Achievement entities by IDs.
+func (atuo *AchievementTemplateUpdateOne) RemoveAchievementIDs(ids ...uuid.UUID) *AchievementTemplateUpdateOne {
+	atuo.mutation.RemoveAchievementIDs(ids...)
+	return atuo
+}
+
+// RemoveAchievements removes "achievements" edges to Achievement entities.
+func (atuo *AchievementTemplateUpdateOne) RemoveAchievements(a ...*Achievement) *AchievementTemplateUpdateOne {
+	ids := make([]uuid.UUID, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return atuo.RemoveAchievementIDs(ids...)
 }
 
 // Where appends a list predicates to the AchievementTemplateUpdate builder.
@@ -522,6 +640,51 @@ func (atuo *AchievementTemplateUpdateOne) sqlSave(ctx context.Context) (_node *A
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(achievementgroup.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if atuo.mutation.AchievementsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   achievementtemplate.AchievementsTable,
+			Columns: []string{achievementtemplate.AchievementsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(achievement.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := atuo.mutation.RemovedAchievementsIDs(); len(nodes) > 0 && !atuo.mutation.AchievementsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   achievementtemplate.AchievementsTable,
+			Columns: []string{achievementtemplate.AchievementsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(achievement.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := atuo.mutation.AchievementsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   achievementtemplate.AchievementsTable,
+			Columns: []string{achievementtemplate.AchievementsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(achievement.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

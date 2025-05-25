@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	uuid "github.com/gofrs/uuid/v5"
+	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievementdocument"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/file"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/predicate"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/user"
@@ -63,44 +64,73 @@ func (fu *FileUpdate) SetNillableS3ObjectKey(s *string) *FileUpdate {
 	return fu
 }
 
-// SetFileName sets the "file_name" field.
-func (fu *FileUpdate) SetFileName(s string) *FileUpdate {
-	fu.mutation.SetFileName(s)
+// SetName sets the "name" field.
+func (fu *FileUpdate) SetName(s string) *FileUpdate {
+	fu.mutation.SetName(s)
 	return fu
 }
 
-// SetNillableFileName sets the "file_name" field if the given value is not nil.
-func (fu *FileUpdate) SetNillableFileName(s *string) *FileUpdate {
+// SetNillableName sets the "name" field if the given value is not nil.
+func (fu *FileUpdate) SetNillableName(s *string) *FileUpdate {
 	if s != nil {
-		fu.SetFileName(*s)
+		fu.SetName(*s)
 	}
 	return fu
 }
 
-// SetFileSize sets the "file_size" field.
-func (fu *FileUpdate) SetFileSize(i int) *FileUpdate {
-	fu.mutation.ResetFileSize()
-	fu.mutation.SetFileSize(i)
+// SetSize sets the "size" field.
+func (fu *FileUpdate) SetSize(i int) *FileUpdate {
+	fu.mutation.ResetSize()
+	fu.mutation.SetSize(i)
 	return fu
 }
 
-// SetNillableFileSize sets the "file_size" field if the given value is not nil.
-func (fu *FileUpdate) SetNillableFileSize(i *int) *FileUpdate {
+// SetNillableSize sets the "size" field if the given value is not nil.
+func (fu *FileUpdate) SetNillableSize(i *int) *FileUpdate {
 	if i != nil {
-		fu.SetFileSize(*i)
+		fu.SetSize(*i)
 	}
 	return fu
 }
 
-// AddFileSize adds i to the "file_size" field.
-func (fu *FileUpdate) AddFileSize(i int) *FileUpdate {
-	fu.mutation.AddFileSize(i)
+// AddSize adds i to the "size" field.
+func (fu *FileUpdate) AddSize(i int) *FileUpdate {
+	fu.mutation.AddSize(i)
+	return fu
+}
+
+// SetURL sets the "url" field.
+func (fu *FileUpdate) SetURL(s string) *FileUpdate {
+	fu.mutation.SetURL(s)
+	return fu
+}
+
+// SetNillableURL sets the "url" field if the given value is not nil.
+func (fu *FileUpdate) SetNillableURL(s *string) *FileUpdate {
+	if s != nil {
+		fu.SetURL(*s)
+	}
 	return fu
 }
 
 // SetOwner sets the "owner" edge to the User entity.
 func (fu *FileUpdate) SetOwner(u *User) *FileUpdate {
 	return fu.SetOwnerID(u.ID)
+}
+
+// AddAchievementDocumentIDs adds the "achievement_documents" edge to the AchievementDocument entity by IDs.
+func (fu *FileUpdate) AddAchievementDocumentIDs(ids ...uuid.UUID) *FileUpdate {
+	fu.mutation.AddAchievementDocumentIDs(ids...)
+	return fu
+}
+
+// AddAchievementDocuments adds the "achievement_documents" edges to the AchievementDocument entity.
+func (fu *FileUpdate) AddAchievementDocuments(a ...*AchievementDocument) *FileUpdate {
+	ids := make([]uuid.UUID, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return fu.AddAchievementDocumentIDs(ids...)
 }
 
 // Mutation returns the FileMutation object of the builder.
@@ -112,6 +142,27 @@ func (fu *FileUpdate) Mutation() *FileMutation {
 func (fu *FileUpdate) ClearOwner() *FileUpdate {
 	fu.mutation.ClearOwner()
 	return fu
+}
+
+// ClearAchievementDocuments clears all "achievement_documents" edges to the AchievementDocument entity.
+func (fu *FileUpdate) ClearAchievementDocuments() *FileUpdate {
+	fu.mutation.ClearAchievementDocuments()
+	return fu
+}
+
+// RemoveAchievementDocumentIDs removes the "achievement_documents" edge to AchievementDocument entities by IDs.
+func (fu *FileUpdate) RemoveAchievementDocumentIDs(ids ...uuid.UUID) *FileUpdate {
+	fu.mutation.RemoveAchievementDocumentIDs(ids...)
+	return fu
+}
+
+// RemoveAchievementDocuments removes "achievement_documents" edges to AchievementDocument entities.
+func (fu *FileUpdate) RemoveAchievementDocuments(a ...*AchievementDocument) *FileUpdate {
+	ids := make([]uuid.UUID, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return fu.RemoveAchievementDocumentIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -153,14 +204,17 @@ func (fu *FileUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := fu.mutation.S3ObjectKey(); ok {
 		_spec.SetField(file.FieldS3ObjectKey, field.TypeString, value)
 	}
-	if value, ok := fu.mutation.FileName(); ok {
-		_spec.SetField(file.FieldFileName, field.TypeString, value)
+	if value, ok := fu.mutation.Name(); ok {
+		_spec.SetField(file.FieldName, field.TypeString, value)
 	}
-	if value, ok := fu.mutation.FileSize(); ok {
-		_spec.SetField(file.FieldFileSize, field.TypeInt, value)
+	if value, ok := fu.mutation.Size(); ok {
+		_spec.SetField(file.FieldSize, field.TypeInt, value)
 	}
-	if value, ok := fu.mutation.AddedFileSize(); ok {
-		_spec.AddField(file.FieldFileSize, field.TypeInt, value)
+	if value, ok := fu.mutation.AddedSize(); ok {
+		_spec.AddField(file.FieldSize, field.TypeInt, value)
+	}
+	if value, ok := fu.mutation.URL(); ok {
+		_spec.SetField(file.FieldURL, field.TypeString, value)
 	}
 	if fu.mutation.OwnerCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -184,6 +238,51 @@ func (fu *FileUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if fu.mutation.AchievementDocumentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   file.AchievementDocumentsTable,
+			Columns: []string{file.AchievementDocumentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(achievementdocument.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := fu.mutation.RemovedAchievementDocumentsIDs(); len(nodes) > 0 && !fu.mutation.AchievementDocumentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   file.AchievementDocumentsTable,
+			Columns: []string{file.AchievementDocumentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(achievementdocument.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := fu.mutation.AchievementDocumentsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   file.AchievementDocumentsTable,
+			Columns: []string{file.AchievementDocumentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(achievementdocument.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -245,44 +344,73 @@ func (fuo *FileUpdateOne) SetNillableS3ObjectKey(s *string) *FileUpdateOne {
 	return fuo
 }
 
-// SetFileName sets the "file_name" field.
-func (fuo *FileUpdateOne) SetFileName(s string) *FileUpdateOne {
-	fuo.mutation.SetFileName(s)
+// SetName sets the "name" field.
+func (fuo *FileUpdateOne) SetName(s string) *FileUpdateOne {
+	fuo.mutation.SetName(s)
 	return fuo
 }
 
-// SetNillableFileName sets the "file_name" field if the given value is not nil.
-func (fuo *FileUpdateOne) SetNillableFileName(s *string) *FileUpdateOne {
+// SetNillableName sets the "name" field if the given value is not nil.
+func (fuo *FileUpdateOne) SetNillableName(s *string) *FileUpdateOne {
 	if s != nil {
-		fuo.SetFileName(*s)
+		fuo.SetName(*s)
 	}
 	return fuo
 }
 
-// SetFileSize sets the "file_size" field.
-func (fuo *FileUpdateOne) SetFileSize(i int) *FileUpdateOne {
-	fuo.mutation.ResetFileSize()
-	fuo.mutation.SetFileSize(i)
+// SetSize sets the "size" field.
+func (fuo *FileUpdateOne) SetSize(i int) *FileUpdateOne {
+	fuo.mutation.ResetSize()
+	fuo.mutation.SetSize(i)
 	return fuo
 }
 
-// SetNillableFileSize sets the "file_size" field if the given value is not nil.
-func (fuo *FileUpdateOne) SetNillableFileSize(i *int) *FileUpdateOne {
+// SetNillableSize sets the "size" field if the given value is not nil.
+func (fuo *FileUpdateOne) SetNillableSize(i *int) *FileUpdateOne {
 	if i != nil {
-		fuo.SetFileSize(*i)
+		fuo.SetSize(*i)
 	}
 	return fuo
 }
 
-// AddFileSize adds i to the "file_size" field.
-func (fuo *FileUpdateOne) AddFileSize(i int) *FileUpdateOne {
-	fuo.mutation.AddFileSize(i)
+// AddSize adds i to the "size" field.
+func (fuo *FileUpdateOne) AddSize(i int) *FileUpdateOne {
+	fuo.mutation.AddSize(i)
+	return fuo
+}
+
+// SetURL sets the "url" field.
+func (fuo *FileUpdateOne) SetURL(s string) *FileUpdateOne {
+	fuo.mutation.SetURL(s)
+	return fuo
+}
+
+// SetNillableURL sets the "url" field if the given value is not nil.
+func (fuo *FileUpdateOne) SetNillableURL(s *string) *FileUpdateOne {
+	if s != nil {
+		fuo.SetURL(*s)
+	}
 	return fuo
 }
 
 // SetOwner sets the "owner" edge to the User entity.
 func (fuo *FileUpdateOne) SetOwner(u *User) *FileUpdateOne {
 	return fuo.SetOwnerID(u.ID)
+}
+
+// AddAchievementDocumentIDs adds the "achievement_documents" edge to the AchievementDocument entity by IDs.
+func (fuo *FileUpdateOne) AddAchievementDocumentIDs(ids ...uuid.UUID) *FileUpdateOne {
+	fuo.mutation.AddAchievementDocumentIDs(ids...)
+	return fuo
+}
+
+// AddAchievementDocuments adds the "achievement_documents" edges to the AchievementDocument entity.
+func (fuo *FileUpdateOne) AddAchievementDocuments(a ...*AchievementDocument) *FileUpdateOne {
+	ids := make([]uuid.UUID, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return fuo.AddAchievementDocumentIDs(ids...)
 }
 
 // Mutation returns the FileMutation object of the builder.
@@ -294,6 +422,27 @@ func (fuo *FileUpdateOne) Mutation() *FileMutation {
 func (fuo *FileUpdateOne) ClearOwner() *FileUpdateOne {
 	fuo.mutation.ClearOwner()
 	return fuo
+}
+
+// ClearAchievementDocuments clears all "achievement_documents" edges to the AchievementDocument entity.
+func (fuo *FileUpdateOne) ClearAchievementDocuments() *FileUpdateOne {
+	fuo.mutation.ClearAchievementDocuments()
+	return fuo
+}
+
+// RemoveAchievementDocumentIDs removes the "achievement_documents" edge to AchievementDocument entities by IDs.
+func (fuo *FileUpdateOne) RemoveAchievementDocumentIDs(ids ...uuid.UUID) *FileUpdateOne {
+	fuo.mutation.RemoveAchievementDocumentIDs(ids...)
+	return fuo
+}
+
+// RemoveAchievementDocuments removes "achievement_documents" edges to AchievementDocument entities.
+func (fuo *FileUpdateOne) RemoveAchievementDocuments(a ...*AchievementDocument) *FileUpdateOne {
+	ids := make([]uuid.UUID, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return fuo.RemoveAchievementDocumentIDs(ids...)
 }
 
 // Where appends a list predicates to the FileUpdate builder.
@@ -365,14 +514,17 @@ func (fuo *FileUpdateOne) sqlSave(ctx context.Context) (_node *File, err error) 
 	if value, ok := fuo.mutation.S3ObjectKey(); ok {
 		_spec.SetField(file.FieldS3ObjectKey, field.TypeString, value)
 	}
-	if value, ok := fuo.mutation.FileName(); ok {
-		_spec.SetField(file.FieldFileName, field.TypeString, value)
+	if value, ok := fuo.mutation.Name(); ok {
+		_spec.SetField(file.FieldName, field.TypeString, value)
 	}
-	if value, ok := fuo.mutation.FileSize(); ok {
-		_spec.SetField(file.FieldFileSize, field.TypeInt, value)
+	if value, ok := fuo.mutation.Size(); ok {
+		_spec.SetField(file.FieldSize, field.TypeInt, value)
 	}
-	if value, ok := fuo.mutation.AddedFileSize(); ok {
-		_spec.AddField(file.FieldFileSize, field.TypeInt, value)
+	if value, ok := fuo.mutation.AddedSize(); ok {
+		_spec.AddField(file.FieldSize, field.TypeInt, value)
+	}
+	if value, ok := fuo.mutation.URL(); ok {
+		_spec.SetField(file.FieldURL, field.TypeString, value)
 	}
 	if fuo.mutation.OwnerCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -396,6 +548,51 @@ func (fuo *FileUpdateOne) sqlSave(ctx context.Context) (_node *File, err error) 
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if fuo.mutation.AchievementDocumentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   file.AchievementDocumentsTable,
+			Columns: []string{file.AchievementDocumentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(achievementdocument.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := fuo.mutation.RemovedAchievementDocumentsIDs(); len(nodes) > 0 && !fuo.mutation.AchievementDocumentsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   file.AchievementDocumentsTable,
+			Columns: []string{file.AchievementDocumentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(achievementdocument.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := fuo.mutation.AchievementDocumentsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   file.AchievementDocumentsTable,
+			Columns: []string{file.AchievementDocumentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(achievementdocument.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

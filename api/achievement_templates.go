@@ -7,9 +7,9 @@ import (
 	"strconv"
 
 	"github.com/gofrs/uuid/v5"
+	"github.com/kozlov-ma/sesc-backend/achievement"
 	"github.com/kozlov-ma/sesc-backend/pkg/event"
 	"github.com/kozlov-ma/sesc-backend/pkg/event/events"
-	"github.com/kozlov-ma/sesc-backend/sesc"
 )
 
 type AchievementGroupResponse struct {
@@ -20,13 +20,13 @@ type AchievementGroupResponse struct {
 }
 
 type AchievementTemplateResponse struct {
-	ID          uuid.UUID            `json:"id"          example:"550e8400-e29b-41d4-a716-446655440000" validate:"required"`
-	Name        string               `json:"name"        example:"Публикация в журнале"                 validate:"required"`
-	Description string               `json:"description" example:"Публикация статьи в научном журнале"  validate:"required"`
-	PointsLimit int                  `json:"pointsLimit" example:"10"                                   validate:"required"`
-	GroupID     uuid.UUID            `json:"groupId"     example:"550e8400-e29b-41d4-a716-446655440000" validate:"required"`
-	Active      bool                 `json:"active"      example:"true"                                 validate:"required"`
-	Kind        sesc.AchievementKind `json:"kind"        example:"scientific"                           validate:"required,oneof=olympiad development scientific"`
+	ID          uuid.UUID        `json:"id"          example:"550e8400-e29b-41d4-a716-446655440000" validate:"required"`
+	Name        string           `json:"name"        example:"Публикация в журнале"                 validate:"required"`
+	Description string           `json:"description" example:"Публикация статьи в научном журнале"  validate:"required"`
+	PointsLimit int              `json:"pointsLimit" example:"10"                                   validate:"required"`
+	GroupID     uuid.UUID        `json:"groupId"     example:"550e8400-e29b-41d4-a716-446655440000" validate:"required"`
+	Active      bool             `json:"active"      example:"true"                                 validate:"required"`
+	Kind        achievement.Kind `json:"kind"        example:"scientific"                           validate:"required,oneof=olympiad development scientific"`
 }
 
 type CreateAchievementGroupRequest struct {
@@ -35,11 +35,11 @@ type CreateAchievementGroupRequest struct {
 }
 
 type CreateAchievementTemplateRequest struct {
-	Name        string               `json:"name"        example:"Публикация в журнале"                 validate:"required"`
-	Description string               `json:"description" example:"Публикация статьи в научном журнале"  validate:"required"`
-	PointsLimit int                  `json:"pointsLimit" example:"10"                                   validate:"required"`
-	GroupID     uuid.UUID            `json:"groupId"     example:"550e8400-e29b-41d4-a716-446655440000" validate:"required"`
-	Kind        sesc.AchievementKind `json:"kind"        example:"scientific"                           validate:"required,oneof=olympiad development scientific"`
+	Name        string           `json:"name"        example:"Публикация в журнале"                 validate:"required"`
+	Description string           `json:"description" example:"Публикация статьи в научном журнале"  validate:"required"`
+	PointsLimit int              `json:"pointsLimit" example:"10"                                   validate:"required"`
+	GroupID     uuid.UUID        `json:"groupId"     example:"550e8400-e29b-41d4-a716-446655440000" validate:"required"`
+	Kind        achievement.Kind `json:"kind"        example:"scientific"                           validate:"required,oneof=olympiad development scientific"`
 }
 
 type PatchAchievementGroupRequest struct {
@@ -49,11 +49,11 @@ type PatchAchievementGroupRequest struct {
 }
 
 type PatchAchievementTemplateRequest struct {
-	Name        *string               `json:"name,omitzero"        example:"Публикация в журнале"`
-	Description *string               `json:"description,omitzero" example:"Публикация статьи в научном журнале"`
-	PointsLimit *int                  `json:"pointsLimit,omitzero" example:"10"`
-	Active      *bool                 `json:"active,omitzero"      example:"true"`
-	Kind        *sesc.AchievementKind `json:"kind,omitzero"                                                      validate:"omitempty,oneof=olympiad development scientific"`
+	Name        *string           `json:"name,omitzero"        example:"Публикация в журнале"`
+	Description *string           `json:"description,omitzero" example:"Публикация статьи в научном журнале"`
+	PointsLimit *int              `json:"pointsLimit,omitzero" example:"10"`
+	Active      *bool             `json:"active,omitzero"      example:"true"`
+	Kind        *achievement.Kind `json:"kind,omitzero"                                                      validate:"omitempty,oneof=olympiad development scientific"`
 }
 
 // GetAchievementGroups godoc
@@ -89,7 +89,7 @@ func (a *API) GetAchievementGroups(w http.ResponseWriter, r *http.Request) {
 	search := r.URL.Query().Get("search")
 
 	// Create search options
-	options := sesc.AchievementGroupSearchOptions{
+	options := achievement.GroupSearchOptions{
 		ShowInactive: showInactive,
 		Search:       search,
 	}
@@ -150,7 +150,7 @@ func (a *API) CreateAchievementGroup(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Create options
-	options := sesc.AchievementGroupCreateOptions{
+	options := achievement.GroupCreateOptions{
 		Name:        req.Name,
 		Description: req.Description,
 	}
@@ -207,7 +207,7 @@ func (a *API) GetAchievementTemplates(w http.ResponseWriter, r *http.Request) {
 	search := r.URL.Query().Get("search")
 
 	// Create search options
-	options := sesc.AchievementTemplateSearchOptions{
+	options := achievement.TemplateSearchOptions{
 		ShowInactive: showInactive,
 		Search:       search,
 	}
@@ -282,7 +282,7 @@ func (a *API) CreateAchievementTemplate(w http.ResponseWriter, r *http.Request) 
 	}
 
 	// Create options
-	options := sesc.AchievementTemplateCreateOptions{
+	options := achievement.TemplateCreateOptions{
 		Name:        req.Name,
 		Description: req.Description,
 		PointsLimit: req.PointsLimit,
@@ -295,7 +295,7 @@ func (a *API) CreateAchievementTemplate(w http.ResponseWriter, r *http.Request) 
 	if err != nil {
 		rec.Add(events.Error, err)
 		// Check if it's a group not found error
-		if errors.Is(err, sesc.ErrAchievementGroupNotFound) {
+		if errors.Is(err, achievement.ErrAchievementGroupNotFound) {
 			writeError(ctx, w, GroupNotFoundError{
 				Code:      "GROUP_NOT_FOUND",
 				Message:   "Achievement group not found",
@@ -362,7 +362,7 @@ func (a *API) PatchAchievementGroup(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Create update options
-	options := sesc.AchievementGroupUpdateOptions{
+	options := achievement.GroupUpdateOptions{
 		Name:        req.Name,
 		Description: req.Description,
 		Active:      req.Active,
@@ -372,7 +372,7 @@ func (a *API) PatchAchievementGroup(w http.ResponseWriter, r *http.Request) {
 	group, err := a.sesc.UpdateAchievementGroup(ctx, groupID, options)
 	if err != nil {
 		rec.Add(events.Error, err)
-		if errors.Is(err, sesc.ErrAchievementGroupNotFound) {
+		if errors.Is(err, achievement.ErrAchievementGroupNotFound) {
 			writeError(ctx, w, GroupNotFoundError{
 				Code:      "GROUP_NOT_FOUND",
 				Message:   "Achievement group not found",
@@ -452,7 +452,7 @@ func (a *API) PatchAchievementTemplate(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Create update options
-	options := sesc.AchievementTemplateUpdateOptions{
+	options := achievement.TemplateUpdateOptions{
 		Name:        req.Name,
 		Description: req.Description,
 		PointsLimit: req.PointsLimit,
@@ -464,7 +464,7 @@ func (a *API) PatchAchievementTemplate(w http.ResponseWriter, r *http.Request) {
 	template, err := a.sesc.UpdateAchievementTemplate(ctx, templateID, options)
 	if err != nil {
 		rec.Add(events.Error, err)
-		if errors.Is(err, sesc.ErrAchievementTemplateNotFound) {
+		if errors.Is(err, achievement.ErrAchievementTemplateNotFound) {
 			writeError(ctx, w, AchievementTemplateNotFoundError{
 				Code:      "ACHIEVEMENT_TEMPLATE_NOT_FOUND",
 				Message:   "Achievement template not found",
@@ -472,7 +472,7 @@ func (a *API) PatchAchievementTemplate(w http.ResponseWriter, r *http.Request) {
 			}.WithStatus(http.StatusNotFound))
 			return
 		}
-		if errors.Is(err, sesc.ErrAchievementGroupNotFound) {
+		if errors.Is(err, achievement.ErrAchievementGroupNotFound) {
 			writeError(ctx, w, GroupNotFoundError{
 				Code:      "GROUP_NOT_FOUND",
 				Message:   "Achievement group not found",

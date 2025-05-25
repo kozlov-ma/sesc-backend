@@ -17,12 +17,16 @@ const (
 	FieldOwnerID = "owner_id"
 	// FieldS3ObjectKey holds the string denoting the s3_object_key field in the database.
 	FieldS3ObjectKey = "s3_object_key"
-	// FieldFileName holds the string denoting the file_name field in the database.
-	FieldFileName = "file_name"
-	// FieldFileSize holds the string denoting the file_size field in the database.
-	FieldFileSize = "file_size"
+	// FieldName holds the string denoting the name field in the database.
+	FieldName = "name"
+	// FieldSize holds the string denoting the size field in the database.
+	FieldSize = "size"
+	// FieldURL holds the string denoting the url field in the database.
+	FieldURL = "url"
 	// EdgeOwner holds the string denoting the owner edge name in mutations.
 	EdgeOwner = "owner"
+	// EdgeAchievementDocuments holds the string denoting the achievement_documents edge name in mutations.
+	EdgeAchievementDocuments = "achievement_documents"
 	// Table holds the table name of the file in the database.
 	Table = "files"
 	// OwnerTable is the table that holds the owner relation/edge.
@@ -32,6 +36,13 @@ const (
 	OwnerInverseTable = "users"
 	// OwnerColumn is the table column denoting the owner relation/edge.
 	OwnerColumn = "owner_id"
+	// AchievementDocumentsTable is the table that holds the achievement_documents relation/edge.
+	AchievementDocumentsTable = "achievement_documents"
+	// AchievementDocumentsInverseTable is the table name for the AchievementDocument entity.
+	// It exists in this package in order to avoid circular dependency with the "achievementdocument" package.
+	AchievementDocumentsInverseTable = "achievement_documents"
+	// AchievementDocumentsColumn is the table column denoting the achievement_documents relation/edge.
+	AchievementDocumentsColumn = "file_id"
 )
 
 // Columns holds all SQL columns for file fields.
@@ -39,8 +50,9 @@ var Columns = []string{
 	FieldID,
 	FieldOwnerID,
 	FieldS3ObjectKey,
-	FieldFileName,
-	FieldFileSize,
+	FieldName,
+	FieldSize,
+	FieldURL,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -76,14 +88,19 @@ func ByS3ObjectKey(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldS3ObjectKey, opts...).ToFunc()
 }
 
-// ByFileName orders the results by the file_name field.
-func ByFileName(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldFileName, opts...).ToFunc()
+// ByName orders the results by the name field.
+func ByName(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldName, opts...).ToFunc()
 }
 
-// ByFileSize orders the results by the file_size field.
-func ByFileSize(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldFileSize, opts...).ToFunc()
+// BySize orders the results by the size field.
+func BySize(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSize, opts...).ToFunc()
+}
+
+// ByURL orders the results by the url field.
+func ByURL(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldURL, opts...).ToFunc()
 }
 
 // ByOwnerField orders the results by owner field.
@@ -92,10 +109,31 @@ func ByOwnerField(field string, opts ...sql.OrderTermOption) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newOwnerStep(), sql.OrderByField(field, opts...))
 	}
 }
+
+// ByAchievementDocumentsCount orders the results by achievement_documents count.
+func ByAchievementDocumentsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newAchievementDocumentsStep(), opts...)
+	}
+}
+
+// ByAchievementDocuments orders the results by achievement_documents terms.
+func ByAchievementDocuments(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newAchievementDocumentsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newOwnerStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(OwnerInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, true, OwnerTable, OwnerColumn),
+	)
+}
+func newAchievementDocumentsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(AchievementDocumentsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, AchievementDocumentsTable, AchievementDocumentsColumn),
 	)
 }

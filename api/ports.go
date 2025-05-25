@@ -5,6 +5,7 @@ import (
 	"io"
 
 	"github.com/gofrs/uuid/v5"
+	"github.com/kozlov-ma/sesc-backend/achievement"
 	"github.com/kozlov-ma/sesc-backend/iam"
 	"github.com/kozlov-ma/sesc-backend/pkg/event"
 	"github.com/kozlov-ma/sesc-backend/sesc"
@@ -54,34 +55,65 @@ type (
 		// Achievement group operations
 		AchievementGroups(
 			ctx context.Context,
-			options sesc.AchievementGroupSearchOptions,
-		) ([]sesc.AchievementGroup, error)
-		AchievementGroupByID(ctx context.Context, id uuid.UUID) (sesc.AchievementGroup, error)
+			options achievement.GroupSearchOptions,
+		) ([]achievement.Group, error)
+		AchievementGroupByID(ctx context.Context, id uuid.UUID) (achievement.Group, error)
 		CreateAchievementGroup(
 			ctx context.Context,
-			options sesc.AchievementGroupCreateOptions,
-		) (sesc.AchievementGroup, error)
+			options achievement.GroupCreateOptions,
+		) (achievement.Group, error)
 		UpdateAchievementGroup(
 			ctx context.Context,
 			id uuid.UUID,
-			options sesc.AchievementGroupUpdateOptions,
-		) (sesc.AchievementGroup, error)
+			options achievement.GroupUpdateOptions,
+		) (achievement.Group, error)
 
 		// Achievement template operations
 		AchievementTemplates(
 			ctx context.Context,
-			options sesc.AchievementTemplateSearchOptions,
-		) ([]sesc.AchievementTemplate, error)
-		AchievementTemplateByID(ctx context.Context, id uuid.UUID) (sesc.AchievementTemplate, error)
+			options achievement.TemplateSearchOptions,
+		) ([]achievement.Template, error)
+		AchievementTemplateByID(ctx context.Context, id uuid.UUID) (achievement.Template, error)
 		CreateAchievementTemplate(
 			ctx context.Context,
-			options sesc.AchievementTemplateCreateOptions,
-		) (sesc.AchievementTemplate, error)
+			options achievement.TemplateCreateOptions,
+		) (achievement.Template, error)
 		UpdateAchievementTemplate(
 			ctx context.Context,
 			id uuid.UUID,
-			options sesc.AchievementTemplateUpdateOptions,
-		) (sesc.AchievementTemplate, error)
+			options achievement.TemplateUpdateOptions,
+		) (achievement.Template, error)
+
+		GetAchievement(ctx context.Context, id uuid.UUID) (achievement.Achievement, error)
+		GetUserAchievements(
+			ctx context.Context,
+			userID uuid.UUID,
+			offset, limit int,
+		) ([]achievement.Achievement, int, error)
+		GetAchievementsForUser(
+			ctx context.Context,
+			userID uuid.UUID,
+			offset, limit int,
+		) ([]achievement.Achievement, int, error)
+		GetGroupedAchievements(
+			ctx context.Context,
+			offset, limit int,
+		) (map[uuid.UUID][]achievement.Achievement, int, error)
+
+		CreateAchievement(ctx context.Context, opt achievement.CreateOptions) (achievement.Achievement, error)
+		DeleteAchievement(ctx context.Context, opt achievement.DeleteOptions) error
+		AddDocument(ctx context.Context, opt achievement.AddDocumentOptions) (achievement.Document, error)
+		RemoveDocument(ctx context.Context, opt achievement.RemoveDocumentOptions) error
+
+		SubmitAchievement(
+			ctx context.Context,
+			opt achievement.SubmitOptions,
+		) (achievement.Achievement, error)
+
+		ReviewAchievement(
+			ctx context.Context,
+			opt achievement.ReviewOptions,
+		) (achievement.Achievement, error)
 	}
 
 	// FileService defines the file operations interface required by the API

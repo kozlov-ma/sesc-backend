@@ -111,8 +111,8 @@ func (s *FileService) Create(ctx context.Context, reader io.Reader, opts FileOpt
 	rec := event.Get(ctx).Sub("file/create")
 
 	rec.Sub("params").Set(
-		"file_name", opts.FileName,
-		"file_size", opts.FileSize,
+		"name", opts.FileName,
+		"size", opts.FileSize,
 		"owner_id", opts.OwnerID,
 		"start_time", time.Now(),
 	)
@@ -164,12 +164,12 @@ func (s *FileService) Create(ctx context.Context, reader io.Reader, opts FileOpt
 
 	err = s.withTransaction(ctx, rec, func(tx *ent.Tx) error {
 		dbErr := recordDBOperation(ctx, rec, "db_create_file", func() error {
-			var err error
 			f, err = tx.File.Create().
 				SetID(id).
 				SetS3ObjectKey(objectKey).
-				SetFileName(opts.FileName).
-				SetFileSize(opts.FileSize).
+				SetName(opts.FileName).
+				SetSize(opts.FileSize).
+				SetURL("").
 				SetNillableOwnerID(opts.OwnerID).
 				Save(ctx)
 
@@ -279,9 +279,7 @@ func buildFilePredicates(opts sesc.FileSearchOptions, rec *event.Record) []predi
 
 	// Filter by name if provided
 	if opts.Name != "" {
-		// Note: This is a basic LIKE filter; for more advanced text search,
-		// you would use tsvector with proper indexing
-		predicates = append(predicates, file.FileNameContainsFold(opts.Name))
+		predicates = append(predicates, file.NameContainsFold(opts.Name))
 		buildRec.Set("name_filter", true)
 	}
 
@@ -446,9 +444,10 @@ func convertToModel(f *ent.File) File {
 	return File{
 		ID:          f.ID,
 		OwnerID:     f.OwnerID,
+		Name:        f.Name,
+		Size:        f.Size,
+		URL:         f.URL,
 		S3ObjectKey: f.S3ObjectKey,
-		FileName:    f.FileName,
-		FileSize:    f.FileSize,
 	}
 }
 
@@ -457,12 +456,12 @@ func (s *FileService) convertToModelWithURL(ctx context.Context, f *ent.File, re
 	file := convertToModel(f)
 
 	// Generate download URL
-	url, err := s.storage.GetObjectURL(ctx, f.S3ObjectKey, f.FileName, time.Hour)
+	url, err := s.storage.GetObjectURL(ctx, f.S3ObjectKey, f.Name, time.Hour)
 	if err != nil {
 		rec.Add(events.Error, fmt.Errorf("error generating download URL: %w", err))
 		// URL remains empty if there was an error
 	} else {
-		file.DownloadURL = url
+		file.URL = url
 		rec.Set("url_generated", true)
 	}
 

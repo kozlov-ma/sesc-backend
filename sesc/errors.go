@@ -21,8 +21,4 @@ var (
 	ErrInvalidFileSize      = errors.New("invalid file size")
 	ErrInvalidFileObjectKey = errors.New("invalid file object key")
 	ErrFileNotFound         = errors.New("file not found")
-
-	ErrAchievementGroupNotFound    = errors.New("achievement group not found")
-	ErrAchievementTemplateNotFound = errors.New("achievement template not found")
-	ErrInvalidAchievementKind      = errors.New("invalid achievement kind")
 )

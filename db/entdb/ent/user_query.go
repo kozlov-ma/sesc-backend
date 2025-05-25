@@ -14,6 +14,8 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	uuid "github.com/gofrs/uuid/v5"
+	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievement"
+	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievementreview"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/authuser"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/department"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/file"
@@ -24,14 +26,16 @@ import (
 // UserQuery is the builder for querying User entities.
 type UserQuery struct {
 	config
-	ctx            *QueryContext
-	order          []user.OrderOption
-	inters         []Interceptor
-	predicates     []predicate.User
-	withDepartment *DepartmentQuery
-	withAuth       *AuthUserQuery
-	withFiles      *FileQuery
-	modifiers      []func(*sql.Selector)
+	ctx              *QueryContext
+	order            []user.OrderOption
+	inters           []Interceptor
+	predicates       []predicate.User
+	withDepartment   *DepartmentQuery
+	withAuth         *AuthUserQuery
+	withFiles        *FileQuery
+	withAchievements *AchievementQuery
+	withReviews      *AchievementReviewQuery
+	modifiers        []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -127,6 +131,50 @@ func (uq *UserQuery) QueryFiles() *FileQuery {
 			sqlgraph.From(user.Table, user.FieldID, selector),
 			sqlgraph.To(file.Table, file.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, user.FilesTable, user.FilesColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryAchievements chains the current query on the "achievements" edge.
+func (uq *UserQuery) QueryAchievements() *AchievementQuery {
+	query := (&AchievementClient{config: uq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := uq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := uq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(achievement.Table, achievement.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.AchievementsTable, user.AchievementsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryReviews chains the current query on the "reviews" edge.
+func (uq *UserQuery) QueryReviews() *AchievementReviewQuery {
+	query := (&AchievementReviewClient{config: uq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := uq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := uq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(achievementreview.Table, achievementreview.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, user.ReviewsTable, user.ReviewsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
 		return fromU, nil
@@ -321,14 +369,16 @@ func (uq *UserQuery) Clone() *UserQuery {
 		return nil
 	}
 	return &UserQuery{
-		config:         uq.config,
-		ctx:            uq.ctx.Clone(),
-		order:          append([]user.OrderOption{}, uq.order...),
-		inters:         append([]Interceptor{}, uq.inters...),
-		predicates:     append([]predicate.User{}, uq.predicates...),
-		withDepartment: uq.withDepartment.Clone(),
-		withAuth:       uq.withAuth.Clone(),
-		withFiles:      uq.withFiles.Clone(),
+		config:           uq.config,
+		ctx:              uq.ctx.Clone(),
+		order:            append([]user.OrderOption{}, uq.order...),
+		inters:           append([]Interceptor{}, uq.inters...),
+		predicates:       append([]predicate.User{}, uq.predicates...),
+		withDepartment:   uq.withDepartment.Clone(),
+		withAuth:         uq.withAuth.Clone(),
+		withFiles:        uq.withFiles.Clone(),
+		withAchievements: uq.withAchievements.Clone(),
+		withReviews:      uq.withReviews.Clone(),
 		// clone intermediate query.
 		sql:  uq.sql.Clone(),
 		path: uq.path,
@@ -365,6 +415,28 @@ func (uq *UserQuery) WithFiles(opts ...func(*FileQuery)) *UserQuery {
 		opt(query)
 	}
 	uq.withFiles = query
+	return uq
+}
+
+// WithAchievements tells the query-builder to eager-load the nodes that are connected to
+// the "achievements" edge. The optional arguments are used to configure the query builder of the edge.
+func (uq *UserQuery) WithAchievements(opts ...func(*AchievementQuery)) *UserQuery {
+	query := (&AchievementClient{config: uq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	uq.withAchievements = query
+	return uq
+}
+
+// WithReviews tells the query-builder to eager-load the nodes that are connected to
+// the "reviews" edge. The optional arguments are used to configure the query builder of the edge.
+func (uq *UserQuery) WithReviews(opts ...func(*AchievementReviewQuery)) *UserQuery {
+	query := (&AchievementReviewClient{config: uq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	uq.withReviews = query
 	return uq
 }
 
@@ -446,10 +518,12 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 	var (
 		nodes       = []*User{}
 		_spec       = uq.querySpec()
-		loadedTypes = [3]bool{
+		loadedTypes = [5]bool{
 			uq.withDepartment != nil,
 			uq.withAuth != nil,
 			uq.withFiles != nil,
+			uq.withAchievements != nil,
+			uq.withReviews != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -489,6 +563,20 @@ func (uq *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 		if err := uq.loadFiles(ctx, query, nodes,
 			func(n *User) { n.Edges.Files = []*File{} },
 			func(n *User, e *File) { n.Edges.Files = append(n.Edges.Files, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := uq.withAchievements; query != nil {
+		if err := uq.loadAchievements(ctx, query, nodes,
+			func(n *User) { n.Edges.Achievements = []*Achievement{} },
+			func(n *User, e *Achievement) { n.Edges.Achievements = append(n.Edges.Achievements, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := uq.withReviews; query != nil {
+		if err := uq.loadReviews(ctx, query, nodes,
+			func(n *User) { n.Edges.Reviews = []*AchievementReview{} },
+			func(n *User, e *AchievementReview) { n.Edges.Reviews = append(n.Edges.Reviews, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -582,6 +670,66 @@ func (uq *UserQuery) loadFiles(ctx context.Context, query *FileQuery, nodes []*U
 		node, ok := nodeids[*fk]
 		if !ok {
 			return fmt.Errorf(`unexpected referenced foreign-key "owner_id" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (uq *UserQuery) loadAchievements(ctx context.Context, query *AchievementQuery, nodes []*User, init func(*User), assign func(*User, *Achievement)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*User)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(achievement.FieldOwnerID)
+	}
+	query.Where(predicate.Achievement(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(user.AchievementsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.OwnerID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "owner_id" returned %v for node %v`, fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (uq *UserQuery) loadReviews(ctx context.Context, query *AchievementReviewQuery, nodes []*User, init func(*User), assign func(*User, *AchievementReview)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*User)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(achievementreview.FieldReviewerID)
+	}
+	query.Where(predicate.AchievementReview(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(user.ReviewsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.ReviewerID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "reviewer_id" returned %v for node %v`, fk, n.ID)
 		}
 		assign(node, n)
 	}

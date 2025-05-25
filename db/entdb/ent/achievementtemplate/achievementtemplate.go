@@ -29,6 +29,8 @@ const (
 	FieldKind = "kind"
 	// EdgeGroup holds the string denoting the group edge name in mutations.
 	EdgeGroup = "group"
+	// EdgeAchievements holds the string denoting the achievements edge name in mutations.
+	EdgeAchievements = "achievements"
 	// Table holds the table name of the achievementtemplate in the database.
 	Table = "achievement_templates"
 	// GroupTable is the table that holds the group relation/edge.
@@ -38,6 +40,13 @@ const (
 	GroupInverseTable = "achievement_groups"
 	// GroupColumn is the table column denoting the group relation/edge.
 	GroupColumn = "group_id"
+	// AchievementsTable is the table that holds the achievements relation/edge.
+	AchievementsTable = "achievements"
+	// AchievementsInverseTable is the table name for the Achievement entity.
+	// It exists in this package in order to avoid circular dependency with the "achievement" package.
+	AchievementsInverseTable = "achievements"
+	// AchievementsColumn is the table column denoting the achievements relation/edge.
+	AchievementsColumn = "template_id"
 )
 
 // Columns holds all SQL columns for achievementtemplate fields.
@@ -140,10 +149,31 @@ func ByGroupField(field string, opts ...sql.OrderTermOption) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newGroupStep(), sql.OrderByField(field, opts...))
 	}
 }
+
+// ByAchievementsCount orders the results by achievements count.
+func ByAchievementsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newAchievementsStep(), opts...)
+	}
+}
+
+// ByAchievements orders the results by achievements terms.
+func ByAchievements(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newAchievementsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newGroupStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(GroupInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, true, GroupTable, GroupColumn),
+	)
+}
+func newAchievementsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(AchievementsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, AchievementsTable, AchievementsColumn),
 	)
 }

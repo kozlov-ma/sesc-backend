@@ -441,6 +441,658 @@ const docTemplate = `{
                 }
             }
         },
+        "/achievements": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieves all achievements for the current user with pagination",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "achievements"
+                ],
+                "summary": "Get all achievements for the current user",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer JWT token",
+                        "name": "Authorization",
+                        "in": "header"
+                    },
+                    {
+                        "minimum": 0,
+                        "type": "integer",
+                        "default": 0,
+                        "description": "Pagination offset",
+                        "name": "offset",
+                        "in": "query"
+                    },
+                    {
+                        "maximum": 100,
+                        "minimum": 1,
+                        "type": "integer",
+                        "default": 10,
+                        "description": "Pagination limit",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api.PaginatedAchievementsResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request parameters",
+                        "schema": {
+                            "$ref": "#/definitions/api.InvalidRequestError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/api.UnauthorizedError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/api.ServerError"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Creates a new achievement for the current user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "achievements"
+                ],
+                "summary": "Create a new achievement",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer JWT token",
+                        "name": "Authorization",
+                        "in": "header"
+                    },
+                    {
+                        "description": "Achievement creation data",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/api.CreateAchievementRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/api.AchievementResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request format",
+                        "schema": {
+                            "$ref": "#/definitions/api.InvalidRequestError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/api.UnauthorizedError"
+                        }
+                    },
+                    "404": {
+                        "description": "Template not found",
+                        "schema": {
+                            "$ref": "#/definitions/api.AchievementTemplateNotFoundError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/api.ServerError"
+                        }
+                    }
+                }
+            }
+        },
+        "/achievements/grouped": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieves all achievements grouped by user with pagination",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "achievements"
+                ],
+                "summary": "Get achievements grouped by user",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer JWT token",
+                        "name": "Authorization",
+                        "in": "header"
+                    },
+                    {
+                        "minimum": 0,
+                        "type": "integer",
+                        "default": 0,
+                        "description": "Pagination offset",
+                        "name": "offset",
+                        "in": "query"
+                    },
+                    {
+                        "maximum": 100,
+                        "minimum": 1,
+                        "type": "integer",
+                        "default": 10,
+                        "description": "Pagination limit",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api.GroupedAchievementsResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request parameters",
+                        "schema": {
+                            "$ref": "#/definitions/api.InvalidRequestError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/api.UnauthorizedError"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/api.ForbiddenError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/api.ServerError"
+                        }
+                    }
+                }
+            }
+        },
+        "/achievements/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieves a specific achievement by ID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "achievements"
+                ],
+                "summary": "Get a specific achievement",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer JWT token",
+                        "name": "Authorization",
+                        "in": "header"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Achievement UUID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api.AchievementResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid UUID format",
+                        "schema": {
+                            "$ref": "#/definitions/api.InvalidUUIDError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/api.UnauthorizedError"
+                        }
+                    },
+                    "404": {
+                        "description": "Achievement not found",
+                        "schema": {
+                            "$ref": "#/definitions/api.AchievementNotFoundError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/api.ServerError"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Deletes an achievement",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "achievements"
+                ],
+                "summary": "Delete an achievement",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer JWT token",
+                        "name": "Authorization",
+                        "in": "header"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Achievement UUID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "400": {
+                        "description": "Invalid UUID format",
+                        "schema": {
+                            "$ref": "#/definitions/api.InvalidUUIDError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/api.UnauthorizedError"
+                        }
+                    },
+                    "404": {
+                        "description": "Achievement not found",
+                        "schema": {
+                            "$ref": "#/definitions/api.AchievementNotFoundError"
+                        }
+                    },
+                    "409": {
+                        "description": "Wrong achievement status",
+                        "schema": {
+                            "$ref": "#/definitions/api.WrongAchievementStatusError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/api.ServerError"
+                        }
+                    }
+                }
+            }
+        },
+        "/achievements/{id}/documents": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Adds a document to an achievement",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "achievements"
+                ],
+                "summary": "Add a document to an achievement",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer JWT token",
+                        "name": "Authorization",
+                        "in": "header"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Achievement UUID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Document data",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/api.AddDocumentRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/api.DocumentResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request format",
+                        "schema": {
+                            "$ref": "#/definitions/api.InvalidRequestError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/api.UnauthorizedError"
+                        }
+                    },
+                    "404": {
+                        "description": "Achievement not found",
+                        "schema": {
+                            "$ref": "#/definitions/api.AchievementNotFoundError"
+                        }
+                    },
+                    "409": {
+                        "description": "Wrong achievement status",
+                        "schema": {
+                            "$ref": "#/definitions/api.WrongAchievementStatusError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/api.ServerError"
+                        }
+                    }
+                }
+            }
+        },
+        "/achievements/{id}/documents/{documentId}": {
+            "delete": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Removes a document from an achievement",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "achievements"
+                ],
+                "summary": "Remove a document from an achievement",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer JWT token",
+                        "name": "Authorization",
+                        "in": "header"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Achievement UUID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Document UUID",
+                        "name": "documentId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "400": {
+                        "description": "Invalid UUID format",
+                        "schema": {
+                            "$ref": "#/definitions/api.InvalidUUIDError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/api.UnauthorizedError"
+                        }
+                    },
+                    "404": {
+                        "description": "Document not found",
+                        "schema": {
+                            "$ref": "#/definitions/api.DocumentNotFoundError"
+                        }
+                    },
+                    "409": {
+                        "description": "Wrong achievement status",
+                        "schema": {
+                            "$ref": "#/definitions/api.WrongAchievementStatusError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/api.ServerError"
+                        }
+                    }
+                }
+            }
+        },
+        "/achievements/{id}/review": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Reviews an achievement, setting points and optionally a comment",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "achievements"
+                ],
+                "summary": "Review an achievement",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer JWT token",
+                        "name": "Authorization",
+                        "in": "header"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Achievement UUID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Review data",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/api.ReviewAchievementRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api.AchievementResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Points assigned exceed the template's points limit",
+                        "schema": {
+                            "$ref": "#/definitions/api.PointsLimitExceededError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/api.UnauthorizedError"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden - reviewer role required",
+                        "schema": {
+                            "$ref": "#/definitions/api.ForbiddenError"
+                        }
+                    },
+                    "404": {
+                        "description": "Achievement not found",
+                        "schema": {
+                            "$ref": "#/definitions/api.AchievementNotFoundError"
+                        }
+                    },
+                    "409": {
+                        "description": "Wrong achievement status",
+                        "schema": {
+                            "$ref": "#/definitions/api.WrongAchievementStatusError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/api.ServerError"
+                        }
+                    }
+                }
+            }
+        },
+        "/achievements/{id}/submit": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Submits an achievement for review",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "achievements"
+                ],
+                "summary": "Submit an achievement for review",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer JWT token",
+                        "name": "Authorization",
+                        "in": "header"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Achievement UUID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api.AchievementResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid UUID format",
+                        "schema": {
+                            "$ref": "#/definitions/api.InvalidUUIDError"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/api.UnauthorizedError"
+                        }
+                    },
+                    "404": {
+                        "description": "Achievement not found",
+                        "schema": {
+                            "$ref": "#/definitions/api.AchievementNotFoundError"
+                        }
+                    },
+                    "409": {
+                        "description": "Wrong achievement status",
+                        "schema": {
+                            "$ref": "#/definitions/api.WrongAchievementStatusError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/api.ServerError"
+                        }
+                    }
+                }
+            }
+        },
         "/auth/admin/login": {
             "post": {
                 "description": "Verifies admin token and returns a JWT token with admin privileges",
@@ -1114,6 +1766,71 @@ const docTemplate = `{
             }
         },
         "/files/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns a file by ID with download URL",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "files"
+                ],
+                "summary": "Get file by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer JWT token",
+                        "name": "Authorization",
+                        "in": "header"
+                    },
+                    {
+                        "type": "string",
+                        "description": "File ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api.FileResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/api.Error"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/api.Error"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/api.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/api.Error"
+                        }
+                    }
+                }
+            },
             "delete": {
                 "security": [
                     {
@@ -1629,6 +2346,19 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "achievement.Kind": {
+            "type": "string",
+            "enum": [
+                "olympiad",
+                "development",
+                "scientific"
+            ],
+            "x-enum-varnames": [
+                "Olympiad",
+                "Development",
+                "Scientific"
+            ]
+        },
         "api.AchievementGroupResponse": {
             "type": "object",
             "required": [
@@ -1653,6 +2383,82 @@ const docTemplate = `{
                 "name": {
                     "type": "string",
                     "example": "Научная деятельность"
+                }
+            }
+        },
+        "api.AchievementNotFoundError": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string",
+                    "example": "ACHIEVEMENT_NOT_FOUND"
+                },
+                "details": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "Achievement not found"
+                },
+                "ruMessage": {
+                    "type": "string",
+                    "example": "Достижение не найдено"
+                }
+            }
+        },
+        "api.AchievementResponse": {
+            "type": "object",
+            "required": [
+                "documents",
+                "id",
+                "ownerId",
+                "ownerName",
+                "points",
+                "reviews",
+                "status",
+                "templateId",
+                "templateName"
+            ],
+            "properties": {
+                "documents": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/api.DocumentResponse"
+                    }
+                },
+                "id": {
+                    "type": "string",
+                    "example": "550e8400-e29b-41d4-a716-446655440000"
+                },
+                "ownerId": {
+                    "type": "string",
+                    "example": "550e8400-e29b-41d4-a716-446655440000"
+                },
+                "ownerName": {
+                    "type": "string",
+                    "example": "Иванов Иван Иванович"
+                },
+                "points": {
+                    "type": "integer",
+                    "example": 10
+                },
+                "reviews": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/api.ReviewResponse"
+                    }
+                },
+                "status": {
+                    "type": "string",
+                    "example": "draft"
+                },
+                "templateId": {
+                    "type": "string",
+                    "example": "550e8400-e29b-41d4-a716-446655440000"
+                },
+                "templateName": {
+                    "type": "string",
+                    "example": "регионального уровня"
                 }
             }
         },
@@ -1705,11 +2511,15 @@ const docTemplate = `{
                     "example": "550e8400-e29b-41d4-a716-446655440000"
                 },
                 "kind": {
-                    "type": "string",
                     "enum": [
                         "olympiad",
                         "development",
                         "scientific"
+                    ],
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/achievement.Kind"
+                        }
                     ],
                     "example": "scientific"
                 },
@@ -1720,6 +2530,23 @@ const docTemplate = `{
                 "pointsLimit": {
                     "type": "integer",
                     "example": 10
+                }
+            }
+        },
+        "api.AddDocumentRequest": {
+            "type": "object",
+            "required": [
+                "fileId",
+                "name"
+            ],
+            "properties": {
+                "fileId": {
+                    "type": "string",
+                    "example": "550e8400-e29b-41d4-a716-446655440000"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "Publication proof"
                 }
             }
         },
@@ -1760,6 +2587,18 @@ const docTemplate = `{
                 }
             }
         },
+        "api.CreateAchievementRequest": {
+            "type": "object",
+            "required": [
+                "templateId"
+            ],
+            "properties": {
+                "templateId": {
+                    "type": "string",
+                    "example": "550e8400-e29b-41d4-a716-446655440000"
+                }
+            }
+        },
         "api.CreateAchievementTemplateRequest": {
             "type": "object",
             "required": [
@@ -1779,11 +2618,15 @@ const docTemplate = `{
                     "example": "550e8400-e29b-41d4-a716-446655440000"
                 },
                 "kind": {
-                    "type": "string",
                     "enum": [
                         "olympiad",
                         "development",
                         "scientific"
+                    ],
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/achievement.Kind"
+                        }
                     ],
                     "example": "scientific"
                 },
@@ -1961,6 +2804,48 @@ const docTemplate = `{
                 }
             }
         },
+        "api.DocumentNotFoundError": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string",
+                    "example": "DOCUMENT_NOT_FOUND"
+                },
+                "details": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "Document not found"
+                },
+                "ruMessage": {
+                    "type": "string",
+                    "example": "Документ не найден"
+                }
+            }
+        },
+        "api.DocumentResponse": {
+            "type": "object",
+            "required": [
+                "fileId",
+                "id",
+                "name"
+            ],
+            "properties": {
+                "fileId": {
+                    "type": "string",
+                    "example": "550e8400-e29b-41d4-a716-446655440000"
+                },
+                "id": {
+                    "type": "string",
+                    "example": "550e8400-e29b-41d4-a716-446655440000"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "Publication proof"
+                }
+            }
+        },
         "api.Error": {
             "type": "object",
             "required": [
@@ -2058,6 +2943,35 @@ const docTemplate = `{
                 "ruMessage": {
                     "type": "string",
                     "example": "Группа достижений не найдена"
+                }
+            }
+        },
+        "api.GroupedAchievementsResponse": {
+            "type": "object",
+            "required": [
+                "items",
+                "limit",
+                "offset",
+                "totalCount"
+            ],
+            "properties": {
+                "items": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/definitions/api.AchievementResponse"
+                        }
+                    }
+                },
+                "limit": {
+                    "type": "integer"
+                },
+                "offset": {
+                    "type": "integer"
+                },
+                "totalCount": {
+                    "type": "integer"
                 }
             }
         },
@@ -2219,6 +3133,32 @@ const docTemplate = `{
                 }
             }
         },
+        "api.PaginatedAchievementsResponse": {
+            "type": "object",
+            "required": [
+                "items",
+                "limit",
+                "offset",
+                "totalCount"
+            ],
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/api.AchievementResponse"
+                    }
+                },
+                "limit": {
+                    "type": "integer"
+                },
+                "offset": {
+                    "type": "integer"
+                },
+                "totalCount": {
+                    "type": "integer"
+                }
+            }
+        },
         "api.PatchAchievementGroupRequest": {
             "type": "object",
             "properties": {
@@ -2248,8 +3188,16 @@ const docTemplate = `{
                     "example": "Публикация статьи в научном журнале"
                 },
                 "kind": {
-                    "type": "string",
-                    "example": "scientific"
+                    "enum": [
+                        "olympiad",
+                        "development",
+                        "scientific"
+                    ],
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/achievement.Kind"
+                        }
+                    ]
                 },
                 "name": {
                     "type": "string",
@@ -2333,6 +3281,73 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/api.Permission"
                     }
+                }
+            }
+        },
+        "api.PointsLimitExceededError": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string",
+                    "example": "POINTS_LIMIT_EXCEEDED"
+                },
+                "details": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "Points assigned exceed the template's points limit"
+                },
+                "ruMessage": {
+                    "type": "string",
+                    "example": "Назначенные баллы превышают лимит шаблона"
+                }
+            }
+        },
+        "api.ReviewAchievementRequest": {
+            "type": "object",
+            "required": [
+                "pointsAssigned"
+            ],
+            "properties": {
+                "comment": {
+                    "type": "string",
+                    "example": "Good job, but could be better"
+                },
+                "pointsAssigned": {
+                    "type": "integer",
+                    "example": 8
+                }
+            }
+        },
+        "api.ReviewResponse": {
+            "type": "object",
+            "required": [
+                "id",
+                "pointsAssigned",
+                "reviewerId",
+                "reviewerName"
+            ],
+            "properties": {
+                "comment": {
+                    "type": "string",
+                    "example": "Good job, but could be better"
+                },
+                "id": {
+                    "type": "string",
+                    "example": "550e8400-e29b-41d4-a716-446655440000"
+                },
+                "pointsAssigned": {
+                    "type": "integer",
+                    "example": 8
+                },
+                "reviewerId": {
+                    "type": "string",
+                    "example": "550e8400-e29b-41d4-a716-446655440000"
+                },
+                "reviewerName": {
+                    "type": "string",
+                    "example": "Петров Петр Петрович"
                 }
             }
         },
@@ -2533,6 +3548,26 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/api.UserResponse"
                     }
+                }
+            }
+        },
+        "api.WrongAchievementStatusError": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string",
+                    "example": "WRONG_ACHIEVEMENT_STATUS"
+                },
+                "details": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "Achievement is in wrong status for this operation"
+                },
+                "ruMessage": {
+                    "type": "string",
+                    "example": "Достижение находится в неподходящем статусе для этой операции"
                 }
             }
         }

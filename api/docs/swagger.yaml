@@ -1,4 +1,14 @@
 definitions:
+  achievement.Kind:
+    enum:
+    - olympiad
+    - development
+    - scientific
+    type: string
+    x-enum-varnames:
+    - Olympiad
+    - Development
+    - Scientific
   api.AchievementGroupResponse:
     properties:
       active:
@@ -18,6 +28,62 @@ definitions:
     - description
     - id
     - name
+    type: object
+  api.AchievementNotFoundError:
+    properties:
+      code:
+        example: ACHIEVEMENT_NOT_FOUND
+        type: string
+      details:
+        type: string
+      message:
+        example: Achievement not found
+        type: string
+      ruMessage:
+        example: Достижение не найдено
+        type: string
+    type: object
+  api.AchievementResponse:
+    properties:
+      documents:
+        items:
+          $ref: '#/definitions/api.DocumentResponse'
+        type: array
+      id:
+        example: 550e8400-e29b-41d4-a716-446655440000
+        type: string
+      ownerId:
+        example: 550e8400-e29b-41d4-a716-446655440000
+        type: string
+      ownerName:
+        example: Иванов Иван Иванович
+        type: string
+      points:
+        example: 10
+        type: integer
+      reviews:
+        items:
+          $ref: '#/definitions/api.ReviewResponse'
+        type: array
+      status:
+        example: draft
+        type: string
+      templateId:
+        example: 550e8400-e29b-41d4-a716-446655440000
+        type: string
+      templateName:
+        example: регионального уровня
+        type: string
+    required:
+    - documents
+    - id
+    - ownerId
+    - ownerName
+    - points
+    - reviews
+    - status
+    - templateId
+    - templateName
     type: object
   api.AchievementTemplateNotFoundError:
     properties:
@@ -48,12 +114,13 @@ definitions:
         example: 550e8400-e29b-41d4-a716-446655440000
         type: string
       kind:
+        allOf:
+        - $ref: '#/definitions/achievement.Kind'
         enum:
         - olympiad
         - development
         - scientific
         example: scientific
-        type: string
       name:
         example: Публикация в журнале
         type: string
@@ -68,6 +135,18 @@ definitions:
     - kind
     - name
     - pointsLimit
+    type: object
+  api.AddDocumentRequest:
+    properties:
+      fileId:
+        example: 550e8400-e29b-41d4-a716-446655440000
+        type: string
+      name:
+        example: Publication proof
+        type: string
+    required:
+    - fileId
+    - name
     type: object
   api.CannotRemoveDepartmentError:
     properties:
@@ -95,6 +174,14 @@ definitions:
     - description
     - name
     type: object
+  api.CreateAchievementRequest:
+    properties:
+      templateId:
+        example: 550e8400-e29b-41d4-a716-446655440000
+        type: string
+    required:
+    - templateId
+    type: object
   api.CreateAchievementTemplateRequest:
     properties:
       description:
@@ -104,12 +191,13 @@ definitions:
         example: 550e8400-e29b-41d4-a716-446655440000
         type: string
       kind:
+        allOf:
+        - $ref: '#/definitions/achievement.Kind'
         enum:
         - olympiad
         - development
         - scientific
         example: scientific
-        type: string
       name:
         example: Публикация в журнале
         type: string
@@ -239,6 +327,36 @@ definitions:
     required:
     - departments
     type: object
+  api.DocumentNotFoundError:
+    properties:
+      code:
+        example: DOCUMENT_NOT_FOUND
+        type: string
+      details:
+        type: string
+      message:
+        example: Document not found
+        type: string
+      ruMessage:
+        example: Документ не найден
+        type: string
+    type: object
+  api.DocumentResponse:
+    properties:
+      fileId:
+        example: 550e8400-e29b-41d4-a716-446655440000
+        type: string
+      id:
+        example: 550e8400-e29b-41d4-a716-446655440000
+        type: string
+      name:
+        example: Publication proof
+        type: string
+    required:
+    - fileId
+    - id
+    - name
+    type: object
   api.Error:
     properties:
       code:
@@ -307,6 +425,26 @@ definitions:
       ruMessage:
         example: Группа достижений не найдена
         type: string
+    type: object
+  api.GroupedAchievementsResponse:
+    properties:
+      items:
+        additionalProperties:
+          items:
+            $ref: '#/definitions/api.AchievementResponse'
+          type: array
+        type: object
+      limit:
+        type: integer
+      offset:
+        type: integer
+      totalCount:
+        type: integer
+    required:
+    - items
+    - limit
+    - offset
+    - totalCount
     type: object
   api.IdentityResponse:
     properties:
@@ -419,6 +557,24 @@ definitions:
         example: Некорректный формат UUID
         type: string
     type: object
+  api.PaginatedAchievementsResponse:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/api.AchievementResponse'
+        type: array
+      limit:
+        type: integer
+      offset:
+        type: integer
+      totalCount:
+        type: integer
+    required:
+    - items
+    - limit
+    - offset
+    - totalCount
+    type: object
   api.PatchAchievementGroupRequest:
     properties:
       active:
@@ -440,8 +596,12 @@ definitions:
         example: Публикация статьи в научном журнале
         type: string
       kind:
-        example: scientific
-        type: string
+        allOf:
+        - $ref: '#/definitions/achievement.Kind'
+        enum:
+        - olympiad
+        - development
+        - scientific
       name:
         example: Публикация в журнале
         type: string
@@ -502,6 +662,54 @@ definitions:
         type: array
     required:
     - permissions
+    type: object
+  api.PointsLimitExceededError:
+    properties:
+      code:
+        example: POINTS_LIMIT_EXCEEDED
+        type: string
+      details:
+        type: string
+      message:
+        example: Points assigned exceed the template's points limit
+        type: string
+      ruMessage:
+        example: Назначенные баллы превышают лимит шаблона
+        type: string
+    type: object
+  api.ReviewAchievementRequest:
+    properties:
+      comment:
+        example: Good job, but could be better
+        type: string
+      pointsAssigned:
+        example: 8
+        type: integer
+    required:
+    - pointsAssigned
+    type: object
+  api.ReviewResponse:
+    properties:
+      comment:
+        example: Good job, but could be better
+        type: string
+      id:
+        example: 550e8400-e29b-41d4-a716-446655440000
+        type: string
+      pointsAssigned:
+        example: 8
+        type: integer
+      reviewerId:
+        example: 550e8400-e29b-41d4-a716-446655440000
+        type: string
+      reviewerName:
+        example: Петров Петр Петрович
+        type: string
+    required:
+    - id
+    - pointsAssigned
+    - reviewerId
+    - reviewerName
     type: object
   api.Role:
     properties:
@@ -642,6 +850,20 @@ definitions:
         type: array
     required:
     - users
+    type: object
+  api.WrongAchievementStatusError:
+    properties:
+      code:
+        example: WRONG_ACHIEVEMENT_STATUS
+        type: string
+      details:
+        type: string
+      message:
+        example: Achievement is in wrong status for this operation
+        type: string
+      ruMessage:
+        example: Достижение находится в неподходящем статусе для этой операции
+        type: string
     type: object
 info:
   contact: {}
@@ -923,6 +1145,429 @@ paths:
       summary: Update achievement template
       tags:
       - achievement-templates
+  /achievements:
+    get:
+      description: Retrieves all achievements for the current user with pagination
+      parameters:
+      - description: Bearer JWT token
+        in: header
+        name: Authorization
+        type: string
+      - default: 0
+        description: Pagination offset
+        in: query
+        minimum: 0
+        name: offset
+        type: integer
+      - default: 10
+        description: Pagination limit
+        in: query
+        maximum: 100
+        minimum: 1
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.PaginatedAchievementsResponse'
+        "400":
+          description: Invalid request parameters
+          schema:
+            $ref: '#/definitions/api.InvalidRequestError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/api.UnauthorizedError'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/api.ServerError'
+      security:
+      - BearerAuth: []
+      summary: Get all achievements for the current user
+      tags:
+      - achievements
+    post:
+      consumes:
+      - application/json
+      description: Creates a new achievement for the current user
+      parameters:
+      - description: Bearer JWT token
+        in: header
+        name: Authorization
+        type: string
+      - description: Achievement creation data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/api.CreateAchievementRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/api.AchievementResponse'
+        "400":
+          description: Invalid request format
+          schema:
+            $ref: '#/definitions/api.InvalidRequestError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/api.UnauthorizedError'
+        "404":
+          description: Template not found
+          schema:
+            $ref: '#/definitions/api.AchievementTemplateNotFoundError'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/api.ServerError'
+      security:
+      - BearerAuth: []
+      summary: Create a new achievement
+      tags:
+      - achievements
+  /achievements/{id}:
+    delete:
+      description: Deletes an achievement
+      parameters:
+      - description: Bearer JWT token
+        in: header
+        name: Authorization
+        type: string
+      - description: Achievement UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Invalid UUID format
+          schema:
+            $ref: '#/definitions/api.InvalidUUIDError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/api.UnauthorizedError'
+        "404":
+          description: Achievement not found
+          schema:
+            $ref: '#/definitions/api.AchievementNotFoundError'
+        "409":
+          description: Wrong achievement status
+          schema:
+            $ref: '#/definitions/api.WrongAchievementStatusError'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/api.ServerError'
+      security:
+      - BearerAuth: []
+      summary: Delete an achievement
+      tags:
+      - achievements
+    get:
+      description: Retrieves a specific achievement by ID
+      parameters:
+      - description: Bearer JWT token
+        in: header
+        name: Authorization
+        type: string
+      - description: Achievement UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.AchievementResponse'
+        "400":
+          description: Invalid UUID format
+          schema:
+            $ref: '#/definitions/api.InvalidUUIDError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/api.UnauthorizedError'
+        "404":
+          description: Achievement not found
+          schema:
+            $ref: '#/definitions/api.AchievementNotFoundError'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/api.ServerError'
+      security:
+      - BearerAuth: []
+      summary: Get a specific achievement
+      tags:
+      - achievements
+  /achievements/{id}/documents:
+    post:
+      consumes:
+      - application/json
+      description: Adds a document to an achievement
+      parameters:
+      - description: Bearer JWT token
+        in: header
+        name: Authorization
+        type: string
+      - description: Achievement UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Document data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/api.AddDocumentRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/api.DocumentResponse'
+        "400":
+          description: Invalid request format
+          schema:
+            $ref: '#/definitions/api.InvalidRequestError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/api.UnauthorizedError'
+        "404":
+          description: Achievement not found
+          schema:
+            $ref: '#/definitions/api.AchievementNotFoundError'
+        "409":
+          description: Wrong achievement status
+          schema:
+            $ref: '#/definitions/api.WrongAchievementStatusError'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/api.ServerError'
+      security:
+      - BearerAuth: []
+      summary: Add a document to an achievement
+      tags:
+      - achievements
+  /achievements/{id}/documents/{documentId}:
+    delete:
+      description: Removes a document from an achievement
+      parameters:
+      - description: Bearer JWT token
+        in: header
+        name: Authorization
+        type: string
+      - description: Achievement UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Document UUID
+        in: path
+        name: documentId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Invalid UUID format
+          schema:
+            $ref: '#/definitions/api.InvalidUUIDError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/api.UnauthorizedError'
+        "404":
+          description: Document not found
+          schema:
+            $ref: '#/definitions/api.DocumentNotFoundError'
+        "409":
+          description: Wrong achievement status
+          schema:
+            $ref: '#/definitions/api.WrongAchievementStatusError'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/api.ServerError'
+      security:
+      - BearerAuth: []
+      summary: Remove a document from an achievement
+      tags:
+      - achievements
+  /achievements/{id}/review:
+    post:
+      consumes:
+      - application/json
+      description: Reviews an achievement, setting points and optionally a comment
+      parameters:
+      - description: Bearer JWT token
+        in: header
+        name: Authorization
+        type: string
+      - description: Achievement UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Review data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/api.ReviewAchievementRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.AchievementResponse'
+        "400":
+          description: Points assigned exceed the template's points limit
+          schema:
+            $ref: '#/definitions/api.PointsLimitExceededError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/api.UnauthorizedError'
+        "403":
+          description: Forbidden - reviewer role required
+          schema:
+            $ref: '#/definitions/api.ForbiddenError'
+        "404":
+          description: Achievement not found
+          schema:
+            $ref: '#/definitions/api.AchievementNotFoundError'
+        "409":
+          description: Wrong achievement status
+          schema:
+            $ref: '#/definitions/api.WrongAchievementStatusError'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/api.ServerError'
+      security:
+      - BearerAuth: []
+      summary: Review an achievement
+      tags:
+      - achievements
+  /achievements/{id}/submit:
+    post:
+      description: Submits an achievement for review
+      parameters:
+      - description: Bearer JWT token
+        in: header
+        name: Authorization
+        type: string
+      - description: Achievement UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.AchievementResponse'
+        "400":
+          description: Invalid UUID format
+          schema:
+            $ref: '#/definitions/api.InvalidUUIDError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/api.UnauthorizedError'
+        "404":
+          description: Achievement not found
+          schema:
+            $ref: '#/definitions/api.AchievementNotFoundError'
+        "409":
+          description: Wrong achievement status
+          schema:
+            $ref: '#/definitions/api.WrongAchievementStatusError'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/api.ServerError'
+      security:
+      - BearerAuth: []
+      summary: Submit an achievement for review
+      tags:
+      - achievements
+  /achievements/grouped:
+    get:
+      description: Retrieves all achievements grouped by user with pagination
+      parameters:
+      - description: Bearer JWT token
+        in: header
+        name: Authorization
+        type: string
+      - default: 0
+        description: Pagination offset
+        in: query
+        minimum: 0
+        name: offset
+        type: integer
+      - default: 10
+        description: Pagination limit
+        in: query
+        maximum: 100
+        minimum: 1
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.GroupedAchievementsResponse'
+        "400":
+          description: Invalid request parameters
+          schema:
+            $ref: '#/definitions/api.InvalidRequestError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/api.UnauthorizedError'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/api.ForbiddenError'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/api.ServerError'
+      security:
+      - BearerAuth: []
+      summary: Get achievements grouped by user
+      tags:
+      - achievements
   /auth/admin/login:
     post:
       consumes:
@@ -1401,6 +2046,48 @@ paths:
       security:
       - BearerAuth: []
       summary: Delete file
+      tags:
+      - files
+    get:
+      consumes:
+      - application/json
+      description: Returns a file by ID with download URL
+      parameters:
+      - description: Bearer JWT token
+        in: header
+        name: Authorization
+        type: string
+      - description: File ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.FileResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api.Error'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/api.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/api.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api.Error'
+      security:
+      - BearerAuth: []
+      summary: Get file by ID
       tags:
       - files
   /permissions:

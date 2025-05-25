@@ -140,8 +140,36 @@ func (a *API) RegisterRoutes(r chi.Router) {
 		r.Get("/achievement-groups", a.GetAchievementGroups)
 		r.Get("/achievement-templates", a.GetAchievementTemplates)
 
+		// Achievement routes
+		r.Route("/achievements", func(r chi.Router) {
+			r.Use(a.CurrentUserMiddleware)
+			// Routes for current user's achievements
+			r.Get("/", a.GetUserAchievements)
+			r.Post("/", a.CreateAchievement)
+
+			// Route for grouped achievements (for reviewers)
+			r.Get("/grouped", a.GetGroupedAchievements)
+
+			// Routes for specific achievement
+			r.Route("/{id}", func(r chi.Router) {
+				r.Use(a.AchievementMiddleware)
+				r.Get("/", a.GetAchievement)
+				r.Delete("/", a.DeleteAchievement)
+
+				// Document management
+				r.Post("/documents", a.AddDocument)
+				r.Delete("/documents/{documentId}", a.RemoveDocument)
+
+				// Achievement status management
+				r.Post("/submit", a.SubmitAchievement)
+				r.Post("/review", a.ReviewAchievement)
+			})
+		})
+
 		// File routes
 		r.Route("/files", func(r chi.Router) {
+			r.Use(a.CurrentUserMiddleware)
+			r.Get("/{id}", a.GetFileByID)
 			r.Get("/", a.SearchFiles)
 			r.Post("/", a.UploadFile)
 			r.With(a.FileEditAccessMiddleware).Delete("/{id}", a.DeleteFile)

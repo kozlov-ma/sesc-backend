@@ -42,5 +42,6 @@ func (AchievementTemplate) Edges() []ent.Edge {
 			Field("group_id").
 			Unique().
 			Required(),
+		edge.To("achievements", Achievement.Type),
 	}
 }

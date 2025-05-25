@@ -14,20 +14,6 @@ import { AppSidebar } from "@/components/app-sidebar";
 import { useQuery } from "@tanstack/react-query";
 import { getUsersMeOptions } from "@/lib/api/@tanstack/react-query.gen";
 
-const groups = [
-  {
-    name: "Личный кабинет",
-    routes: [{ name: "Обо мне", url: "/u/profile", icon: User }],
-  },
-  {
-    name: "Документы",
-    routes: [
-      { name: "Мои Документы", url: "/u/documents/my", icon: FolderPlus },
-      { name: "Общие Документы", url: "/u/documents/shared", icon: FolderOpen },
-    ],
-  },
-];
-
 export default function DashboardLayout({
   children,
 }: {
@@ -44,6 +30,48 @@ export default function DashboardLayout({
     return null;
   }
 
+  const groups = [
+    {
+      name: "Личный кабинет",
+      routes: [{ name: "Обо мне", url: "/u/profile", icon: User }],
+    },
+    {
+      name: "Документы",
+      routes: [
+        { name: "Мои Документы", url: "/u/documents/my", icon: FolderPlus },
+        {
+          name: "Общие Документы",
+          url: "/u/documents/shared",
+          icon: FolderOpen,
+        },
+      ],
+    },
+  ];
+
+  if (user?.role.id == 1) {
+    groups.push({
+      name: "Достижения",
+      routes: [
+        {
+          name: "Лист Достижений",
+          url: "/u/achievements/draft",
+          icon: FolderPlus,
+        },
+        { name: "Мои Достижения", url: "/u/achievements/my", icon: FolderOpen },
+      ],
+    });
+  } else if (user?.role && user.role.id >= 2 && user.role.id <= 5) {
+    groups.push({
+      name: "Достижения",
+      routes: [
+        {
+          name: "Проверка Достижений",
+          url: "/u/achievements/review",
+          icon: FolderOpen,
+        },
+      ],
+    });
+  }
   return (
     <SidebarProvider>
       <AppSidebar

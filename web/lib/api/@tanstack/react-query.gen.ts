@@ -8,6 +8,15 @@ import {
   getAchievementTemplates,
   postAchievementTemplates,
   patchAchievementTemplatesById,
+  getAchievements,
+  postAchievements,
+  getAchievementsGrouped,
+  deleteAchievementsById,
+  getAchievementsById,
+  postAchievementsByIdDocuments,
+  deleteAchievementsByIdDocumentsByDocumentId,
+  postAchievementsByIdReview,
+  postAchievementsByIdSubmit,
   postAuthAdminLogin,
   deleteAuthCredentialsById,
   getAuthCredentialsById,
@@ -20,6 +29,7 @@ import {
   getFiles,
   postFiles,
   deleteFilesById,
+  getFilesById,
   getPermissions,
   getRoles,
   getUsers,
@@ -50,6 +60,29 @@ import type {
   PatchAchievementTemplatesByIdData,
   PatchAchievementTemplatesByIdError,
   PatchAchievementTemplatesByIdResponse,
+  GetAchievementsData,
+  GetAchievementsError,
+  GetAchievementsResponse,
+  PostAchievementsData,
+  PostAchievementsError,
+  PostAchievementsResponse,
+  GetAchievementsGroupedData,
+  GetAchievementsGroupedError,
+  GetAchievementsGroupedResponse,
+  DeleteAchievementsByIdData,
+  DeleteAchievementsByIdError,
+  GetAchievementsByIdData,
+  PostAchievementsByIdDocumentsData,
+  PostAchievementsByIdDocumentsError,
+  PostAchievementsByIdDocumentsResponse,
+  DeleteAchievementsByIdDocumentsByDocumentIdData,
+  DeleteAchievementsByIdDocumentsByDocumentIdError,
+  PostAchievementsByIdReviewData,
+  PostAchievementsByIdReviewError,
+  PostAchievementsByIdReviewResponse,
+  PostAchievementsByIdSubmitData,
+  PostAchievementsByIdSubmitError,
+  PostAchievementsByIdSubmitResponse,
   PostAuthAdminLoginData,
   PostAuthAdminLoginError,
   PostAuthAdminLoginResponse,
@@ -77,6 +110,7 @@ import type {
   PostFilesResponse,
   DeleteFilesByIdData,
   DeleteFilesByIdError,
+  GetFilesByIdData,
   GetPermissionsData,
   GetRolesData,
   GetUsersData,
@@ -331,6 +365,487 @@ export const patchAchievementTemplatesByIdMutation = (
   > = {
     mutationFn: async (localOptions) => {
       const { data } = await patchAchievementTemplatesById({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
+export const getAchievementsQueryKey = (
+  options?: Options<GetAchievementsData>,
+) => createQueryKey("getAchievements", options);
+
+/**
+ * Get all achievements for the current user
+ * Retrieves all achievements for the current user with pagination
+ */
+export const getAchievementsOptions = (
+  options?: Options<GetAchievementsData>,
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getAchievements({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: getAchievementsQueryKey(options),
+  });
+};
+
+const createInfiniteParams = <
+  K extends Pick<QueryKey<Options>[0], "body" | "headers" | "path" | "query">,
+>(
+  queryKey: QueryKey<Options>,
+  page: K,
+) => {
+  const params = queryKey[0];
+  if (page.body) {
+    params.body = {
+      ...(queryKey[0].body as any),
+      ...(page.body as any),
+    };
+  }
+  if (page.headers) {
+    params.headers = {
+      ...queryKey[0].headers,
+      ...page.headers,
+    };
+  }
+  if (page.path) {
+    params.path = {
+      ...(queryKey[0].path as any),
+      ...(page.path as any),
+    };
+  }
+  if (page.query) {
+    params.query = {
+      ...(queryKey[0].query as any),
+      ...(page.query as any),
+    };
+  }
+  return params as unknown as typeof page;
+};
+
+export const getAchievementsInfiniteQueryKey = (
+  options?: Options<GetAchievementsData>,
+): QueryKey<Options<GetAchievementsData>> =>
+  createQueryKey("getAchievements", options, true);
+
+/**
+ * Get all achievements for the current user
+ * Retrieves all achievements for the current user with pagination
+ */
+export const getAchievementsInfiniteOptions = (
+  options?: Options<GetAchievementsData>,
+) => {
+  return infiniteQueryOptions<
+    GetAchievementsResponse,
+    AxiosError<GetAchievementsError>,
+    InfiniteData<GetAchievementsResponse>,
+    QueryKey<Options<GetAchievementsData>>,
+    | number
+    | Pick<
+        QueryKey<Options<GetAchievementsData>>[0],
+        "body" | "headers" | "path" | "query"
+      >
+  >(
+    // @ts-ignore
+    {
+      queryFn: async ({ pageParam, queryKey, signal }) => {
+        // @ts-ignore
+        const page: Pick<
+          QueryKey<Options<GetAchievementsData>>[0],
+          "body" | "headers" | "path" | "query"
+        > =
+          typeof pageParam === "object"
+            ? pageParam
+            : {
+                query: {
+                  offset: pageParam,
+                },
+              };
+        const params = createInfiniteParams(queryKey, page);
+        const { data } = await getAchievements({
+          ...options,
+          ...params,
+          signal,
+          throwOnError: true,
+        });
+        return data;
+      },
+      queryKey: getAchievementsInfiniteQueryKey(options),
+    },
+  );
+};
+
+export const postAchievementsQueryKey = (
+  options: Options<PostAchievementsData>,
+) => createQueryKey("postAchievements", options);
+
+/**
+ * Create a new achievement
+ * Creates a new achievement for the current user
+ */
+export const postAchievementsOptions = (
+  options: Options<PostAchievementsData>,
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await postAchievements({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: postAchievementsQueryKey(options),
+  });
+};
+
+/**
+ * Create a new achievement
+ * Creates a new achievement for the current user
+ */
+export const postAchievementsMutation = (
+  options?: Partial<Options<PostAchievementsData>>,
+): UseMutationOptions<
+  PostAchievementsResponse,
+  AxiosError<PostAchievementsError>,
+  Options<PostAchievementsData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    PostAchievementsResponse,
+    AxiosError<PostAchievementsError>,
+    Options<PostAchievementsData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await postAchievements({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
+export const getAchievementsGroupedQueryKey = (
+  options?: Options<GetAchievementsGroupedData>,
+) => createQueryKey("getAchievementsGrouped", options);
+
+/**
+ * Get achievements grouped by user
+ * Retrieves all achievements grouped by user with pagination
+ */
+export const getAchievementsGroupedOptions = (
+  options?: Options<GetAchievementsGroupedData>,
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getAchievementsGrouped({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: getAchievementsGroupedQueryKey(options),
+  });
+};
+
+export const getAchievementsGroupedInfiniteQueryKey = (
+  options?: Options<GetAchievementsGroupedData>,
+): QueryKey<Options<GetAchievementsGroupedData>> =>
+  createQueryKey("getAchievementsGrouped", options, true);
+
+/**
+ * Get achievements grouped by user
+ * Retrieves all achievements grouped by user with pagination
+ */
+export const getAchievementsGroupedInfiniteOptions = (
+  options?: Options<GetAchievementsGroupedData>,
+) => {
+  return infiniteQueryOptions<
+    GetAchievementsGroupedResponse,
+    AxiosError<GetAchievementsGroupedError>,
+    InfiniteData<GetAchievementsGroupedResponse>,
+    QueryKey<Options<GetAchievementsGroupedData>>,
+    | number
+    | Pick<
+        QueryKey<Options<GetAchievementsGroupedData>>[0],
+        "body" | "headers" | "path" | "query"
+      >
+  >(
+    // @ts-ignore
+    {
+      queryFn: async ({ pageParam, queryKey, signal }) => {
+        // @ts-ignore
+        const page: Pick<
+          QueryKey<Options<GetAchievementsGroupedData>>[0],
+          "body" | "headers" | "path" | "query"
+        > =
+          typeof pageParam === "object"
+            ? pageParam
+            : {
+                query: {
+                  offset: pageParam,
+                },
+              };
+        const params = createInfiniteParams(queryKey, page);
+        const { data } = await getAchievementsGrouped({
+          ...options,
+          ...params,
+          signal,
+          throwOnError: true,
+        });
+        return data;
+      },
+      queryKey: getAchievementsGroupedInfiniteQueryKey(options),
+    },
+  );
+};
+
+/**
+ * Delete an achievement
+ * Deletes an achievement
+ */
+export const deleteAchievementsByIdMutation = (
+  options?: Partial<Options<DeleteAchievementsByIdData>>,
+): UseMutationOptions<
+  unknown,
+  AxiosError<DeleteAchievementsByIdError>,
+  Options<DeleteAchievementsByIdData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    unknown,
+    AxiosError<DeleteAchievementsByIdError>,
+    Options<DeleteAchievementsByIdData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await deleteAchievementsById({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
+export const getAchievementsByIdQueryKey = (
+  options: Options<GetAchievementsByIdData>,
+) => createQueryKey("getAchievementsById", options);
+
+/**
+ * Get a specific achievement
+ * Retrieves a specific achievement by ID
+ */
+export const getAchievementsByIdOptions = (
+  options: Options<GetAchievementsByIdData>,
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getAchievementsById({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: getAchievementsByIdQueryKey(options),
+  });
+};
+
+export const postAchievementsByIdDocumentsQueryKey = (
+  options: Options<PostAchievementsByIdDocumentsData>,
+) => createQueryKey("postAchievementsByIdDocuments", options);
+
+/**
+ * Add a document to an achievement
+ * Adds a document to an achievement
+ */
+export const postAchievementsByIdDocumentsOptions = (
+  options: Options<PostAchievementsByIdDocumentsData>,
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await postAchievementsByIdDocuments({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: postAchievementsByIdDocumentsQueryKey(options),
+  });
+};
+
+/**
+ * Add a document to an achievement
+ * Adds a document to an achievement
+ */
+export const postAchievementsByIdDocumentsMutation = (
+  options?: Partial<Options<PostAchievementsByIdDocumentsData>>,
+): UseMutationOptions<
+  PostAchievementsByIdDocumentsResponse,
+  AxiosError<PostAchievementsByIdDocumentsError>,
+  Options<PostAchievementsByIdDocumentsData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    PostAchievementsByIdDocumentsResponse,
+    AxiosError<PostAchievementsByIdDocumentsError>,
+    Options<PostAchievementsByIdDocumentsData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await postAchievementsByIdDocuments({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
+/**
+ * Remove a document from an achievement
+ * Removes a document from an achievement
+ */
+export const deleteAchievementsByIdDocumentsByDocumentIdMutation = (
+  options?: Partial<Options<DeleteAchievementsByIdDocumentsByDocumentIdData>>,
+): UseMutationOptions<
+  unknown,
+  AxiosError<DeleteAchievementsByIdDocumentsByDocumentIdError>,
+  Options<DeleteAchievementsByIdDocumentsByDocumentIdData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    unknown,
+    AxiosError<DeleteAchievementsByIdDocumentsByDocumentIdError>,
+    Options<DeleteAchievementsByIdDocumentsByDocumentIdData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await deleteAchievementsByIdDocumentsByDocumentId({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
+export const postAchievementsByIdReviewQueryKey = (
+  options: Options<PostAchievementsByIdReviewData>,
+) => createQueryKey("postAchievementsByIdReview", options);
+
+/**
+ * Review an achievement
+ * Reviews an achievement, setting points and optionally a comment
+ */
+export const postAchievementsByIdReviewOptions = (
+  options: Options<PostAchievementsByIdReviewData>,
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await postAchievementsByIdReview({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: postAchievementsByIdReviewQueryKey(options),
+  });
+};
+
+/**
+ * Review an achievement
+ * Reviews an achievement, setting points and optionally a comment
+ */
+export const postAchievementsByIdReviewMutation = (
+  options?: Partial<Options<PostAchievementsByIdReviewData>>,
+): UseMutationOptions<
+  PostAchievementsByIdReviewResponse,
+  AxiosError<PostAchievementsByIdReviewError>,
+  Options<PostAchievementsByIdReviewData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    PostAchievementsByIdReviewResponse,
+    AxiosError<PostAchievementsByIdReviewError>,
+    Options<PostAchievementsByIdReviewData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await postAchievementsByIdReview({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
+export const postAchievementsByIdSubmitQueryKey = (
+  options: Options<PostAchievementsByIdSubmitData>,
+) => createQueryKey("postAchievementsByIdSubmit", options);
+
+/**
+ * Submit an achievement for review
+ * Submits an achievement for review
+ */
+export const postAchievementsByIdSubmitOptions = (
+  options: Options<PostAchievementsByIdSubmitData>,
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await postAchievementsByIdSubmit({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: postAchievementsByIdSubmitQueryKey(options),
+  });
+};
+
+/**
+ * Submit an achievement for review
+ * Submits an achievement for review
+ */
+export const postAchievementsByIdSubmitMutation = (
+  options?: Partial<Options<PostAchievementsByIdSubmitData>>,
+): UseMutationOptions<
+  PostAchievementsByIdSubmitResponse,
+  AxiosError<PostAchievementsByIdSubmitError>,
+  Options<PostAchievementsByIdSubmitData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    PostAchievementsByIdSubmitResponse,
+    AxiosError<PostAchievementsByIdSubmitError>,
+    Options<PostAchievementsByIdSubmitData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await postAchievementsByIdSubmit({
         ...options,
         ...localOptions,
         throwOnError: true,
@@ -677,40 +1192,6 @@ export const getFilesOptions = (options?: Options<GetFilesData>) => {
   });
 };
 
-const createInfiniteParams = <
-  K extends Pick<QueryKey<Options>[0], "body" | "headers" | "path" | "query">,
->(
-  queryKey: QueryKey<Options>,
-  page: K,
-) => {
-  const params = queryKey[0];
-  if (page.body) {
-    params.body = {
-      ...(queryKey[0].body as any),
-      ...(page.body as any),
-    };
-  }
-  if (page.headers) {
-    params.headers = {
-      ...queryKey[0].headers,
-      ...page.headers,
-    };
-  }
-  if (page.path) {
-    params.path = {
-      ...(queryKey[0].path as any),
-      ...(page.path as any),
-    };
-  }
-  if (page.query) {
-    params.query = {
-      ...(queryKey[0].query as any),
-      ...(page.query as any),
-    };
-  }
-  return params as unknown as typeof page;
-};
-
 export const getFilesInfiniteQueryKey = (
   options?: Options<GetFilesData>,
 ): QueryKey<Options<GetFilesData>> => createQueryKey("getFiles", options, true);
@@ -836,6 +1317,28 @@ export const deleteFilesByIdMutation = (
     },
   };
   return mutationOptions;
+};
+
+export const getFilesByIdQueryKey = (options: Options<GetFilesByIdData>) =>
+  createQueryKey("getFilesById", options);
+
+/**
+ * Get file by ID
+ * Returns a file by ID with download URL
+ */
+export const getFilesByIdOptions = (options: Options<GetFilesByIdData>) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getFilesById({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: getFilesByIdQueryKey(options),
+  });
 };
 
 export const getPermissionsQueryKey = (options?: Options<GetPermissionsData>) =>

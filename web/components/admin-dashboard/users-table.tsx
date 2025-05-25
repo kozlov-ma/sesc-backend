@@ -253,11 +253,13 @@ export function UsersTable() {
         }}
       />
 
-      <UserCredentialsDialog
-        open={userCredentialsOpen}
-        onOpenChange={setUserCredentialsOpen}
-        user={selectedUser!}
-      />
+      {selectedUser && (
+        <UserCredentialsDialog
+          open={userCredentialsOpen}
+          onOpenChange={setUserCredentialsOpen}
+          user={selectedUser}
+        />
+      )}
     </div>
   );
 }

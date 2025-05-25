@@ -30,11 +30,11 @@ lint:
 
 # Run tests
 test:
-	go test -v -coverprofile=c.out ./...
+	go test -coverprofile=c.out ./...
 
 # Can you push and open a PR?
 can-i-push:
-	@make lint && make test && make integration-tests
+	@make fmt && make lint && make test && make integration-tests
 
 # Can you push and open a PR for frontend changes?
 can-i-push-web:

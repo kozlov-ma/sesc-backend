@@ -1,0 +1,795 @@
+package api
+
+import (
+	"context"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"net/http"
+	"strconv"
+
+	"github.com/gofrs/uuid/v5"
+	"github.com/kozlov-ma/sesc-backend/achievement"
+	"github.com/kozlov-ma/sesc-backend/pkg/event"
+	"github.com/kozlov-ma/sesc-backend/pkg/event/events"
+	"github.com/kozlov-ma/sesc-backend/sesc"
+)
+
+// Context key for achievement
+type achievementContextKey string
+
+const (
+	achievementContextKeyValue achievementContextKey = "achievement"
+)
+
+func GetAchievementFromContext(ctx context.Context) (achievement.Achievement, bool) {
+	ach, ok := ctx.Value(achievementContextKeyValue).(achievement.Achievement)
+	return ach, ok
+}
+
+// AchievementMiddleware adds the achievement specified by ID in the path to the request context
+func (a *API) AchievementMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+		rec := event.Get(ctx)
+		rec.Sub("http").Set("route_requires_achievement", true)
+
+		// Get user from context
+		_, ok := GetUserFromContext(ctx)
+		if !ok {
+			writeError(ctx, w, ErrUnauthorized.WithStatus(http.StatusUnauthorized))
+			return
+		}
+
+		// Get achievement ID from path
+		idStr := r.PathValue("id")
+		achievementID, err := uuid.FromString(idStr)
+		if err != nil {
+			rec.Add(events.Error, "invalid achievement ID format")
+			writeError(ctx, w, InvalidUUIDError{
+				Code:      "INVALID_UUID",
+				Message:   "Invalid achievement ID format",
+				RuMessage: "Некорректный формат ID достижения",
+			}.WithStatus(http.StatusBadRequest))
+			return
+		}
+
+		// Get achievement
+		ach, err := a.sesc.GetAchievement(ctx, achievementID)
+		if err != nil {
+			rec.Add(events.Error, err)
+			if errors.Is(err, achievement.ErrAchievementNotFound) {
+				writeError(ctx, w, AchievementNotFoundError{
+					Code:      "ACHIEVEMENT_NOT_FOUND",
+					Message:   "Achievement not found",
+					RuMessage: "Достижение не найдено",
+				}.WithStatus(http.StatusNotFound))
+				return
+			}
+			writeError(ctx, w, ErrServerError.WithStatus(http.StatusInternalServerError))
+			return
+		}
+
+		// Add achievement to context
+		ctx = context.WithValue(ctx, achievementContextKeyValue, ach)
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
+
+// Helper function to convert an achievement to a response
+func convertAchievementToResponse(ach achievement.Achievement) AchievementResponse {
+	response := AchievementResponse{
+		ID:           ach.ID,
+		OwnerID:      ach.Owner.ID,
+		OwnerName:    fmt.Sprintf("%s %s %s", ach.Owner.LastName, ach.Owner.FirstName, ach.Owner.MiddleName),
+		TemplateID:   ach.Template.ID,
+		TemplateName: ach.Template.Name,
+		Status:       ach.Status,
+		Points:       ach.Points,
+		Documents:    make([]DocumentResponse, 0, len(ach.Documents)),
+		Reviews:      make([]ReviewResponse, 0, len(ach.Reviews)),
+	}
+
+	// Convert documents
+	for _, doc := range ach.Documents {
+		response.Documents = append(response.Documents, DocumentResponse{
+			ID:     doc.ID,
+			Name:   doc.Name,
+			FileID: doc.FileID,
+		})
+	}
+
+	// Convert reviews
+	for _, rev := range ach.Reviews {
+		response.Reviews = append(response.Reviews, ReviewResponse{
+			ID:             rev.ID,
+			ReviewerID:     rev.From.ID,
+			ReviewerName:   fmt.Sprintf("%s %s %s", rev.From.LastName, rev.From.FirstName, rev.From.MiddleName),
+			PointsAssigned: rev.PointsAssigned,
+			Comment:        rev.Comment,
+		})
+	}
+
+	return response
+}
+
+// GetUserAchievements godoc
+// @Summary Get all achievements for the current user
+// @Description Retrieves all achievements for the current user with pagination
+// @Tags achievements
+// @Produce json
+// @Security BearerAuth
+// @Param Authorization header string false "Bearer JWT token"
+// @Param offset query int false "Pagination offset" default(0) minimum(0)
+// @Param limit query int false "Pagination limit" default(10) minimum(1) maximum(100)
+// @Success 200 {object} PaginatedAchievementsResponse
+// @Failure 400 {object} InvalidRequestError "Invalid request parameters"
+// @Failure 401 {object} UnauthorizedError "Unauthorized"
+// @Failure 500 {object} ServerError "Internal server error"
+// @Router /achievements [get]
+func (a *API) GetUserAchievements(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	rec := event.Get(ctx)
+
+	// Get user from context
+	user, ok := GetUserFromContext(ctx)
+	if !ok {
+		writeError(ctx, w, ErrUnauthorized.WithStatus(http.StatusUnauthorized))
+		return
+	}
+
+	// Parse pagination parameters
+	offset, limit, err := parsePaginationParams(r)
+	if err != nil {
+		rec.Add(events.Error, err)
+		writeError(ctx, w, ErrInvalidRequest.WithStatus(http.StatusBadRequest))
+		return
+	}
+
+	// Get achievements for user with pagination
+	achievements, total, err := a.sesc.GetUserAchievements(ctx, user.ID, offset, limit)
+	if err != nil {
+		rec.Add(events.Error, err)
+		writeError(ctx, w, ErrServerError.WithStatus(http.StatusInternalServerError))
+		return
+	}
+
+	// Convert to response format
+	items := make([]AchievementResponse, 0, len(achievements))
+	for _, ach := range achievements {
+		items = append(items, convertAchievementToResponse(ach))
+	}
+
+	// Create paginated response
+	response := PaginatedAchievementsResponse{
+		Items:      items,
+		TotalCount: total,
+		Offset:     offset,
+		Limit:      limit,
+	}
+
+	a.writeJSON(ctx, w, response, http.StatusOK)
+}
+
+// GetAchievement godoc
+// @Summary Get a specific achievement
+// @Description Retrieves a specific achievement by ID
+// @Tags achievements
+// @Produce json
+// @Security BearerAuth
+// @Param Authorization header string false "Bearer JWT token"
+// @Param id path string true "Achievement UUID"
+// @Success 200 {object} AchievementResponse
+// @Failure 400 {object} InvalidUUIDError "Invalid UUID format"
+// @Failure 401 {object} UnauthorizedError "Unauthorized"
+// @Failure 404 {object} AchievementNotFoundError "Achievement not found"
+// @Failure 500 {object} ServerError "Internal server error"
+// @Router /achievements/{id} [get]
+func (a *API) GetAchievement(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	// Get achievement from context (added by AchievementMiddleware)
+	ach, ok := GetAchievementFromContext(ctx)
+	if !ok {
+		writeError(ctx, w, ErrUnauthorized.WithStatus(http.StatusUnauthorized))
+		return
+	}
+
+	// Convert to response format
+	response := convertAchievementToResponse(ach)
+	a.writeJSON(ctx, w, response, http.StatusOK)
+}
+
+// CreateAchievement godoc
+// @Summary Create a new achievement
+// @Description Creates a new achievement for the current user
+// @Tags achievements
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param Authorization header string false "Bearer JWT token"
+// @Param request body CreateAchievementRequest true "Achievement creation data"
+// @Success 201 {object} AchievementResponse
+// @Failure 400 {object} InvalidRequestError "Invalid request format"
+// @Failure 401 {object} UnauthorizedError "Unauthorized"
+// @Failure 404 {object} AchievementTemplateNotFoundError "Template not found"
+// @Failure 500 {object} ServerError "Internal server error"
+// @Router /achievements [post]
+func (a *API) CreateAchievement(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	rec := event.Get(ctx)
+
+	// Get user from context
+	user, ok := GetUserFromContext(ctx)
+	if !ok {
+		writeError(ctx, w, ErrUnauthorized.WithStatus(http.StatusUnauthorized))
+		return
+	}
+
+	// Parse request
+	var req CreateAchievementRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		rec.Add(events.Error, "invalid request body")
+		writeError(ctx, w, ErrInvalidRequest.WithStatus(http.StatusBadRequest))
+		return
+	}
+
+	// Create achievement
+	opt := achievement.CreateOptions{
+		ForUser:    user,
+		TemplateID: req.TemplateID,
+	}
+	ach, err := a.sesc.CreateAchievement(ctx, opt)
+	if err != nil {
+		rec.Add(events.Error, err)
+		if errors.Is(err, achievement.ErrAchievementTemplateNotFound) {
+			writeError(ctx, w, AchievementTemplateNotFoundError{
+				Code:      "ACHIEVEMENT_TEMPLATE_NOT_FOUND",
+				Message:   "Achievement template not found",
+				RuMessage: "Шаблон достижения не найден",
+			}.WithStatus(http.StatusNotFound))
+			return
+		}
+		writeError(ctx, w, ErrServerError.WithStatus(http.StatusInternalServerError))
+		return
+	}
+
+	// Convert to response format
+	response := convertAchievementToResponse(ach)
+	a.writeJSON(ctx, w, response, http.StatusCreated)
+}
+
+// DeleteAchievement godoc
+// @Summary Delete an achievement
+// @Description Deletes an achievement
+// @Tags achievements
+// @Produce json
+// @Security BearerAuth
+// @Param Authorization header string false "Bearer JWT token"
+// @Param id path string true "Achievement UUID"
+// @Success 204 "No Content"
+// @Failure 400 {object} InvalidUUIDError "Invalid UUID format"
+// @Failure 401 {object} UnauthorizedError "Unauthorized"
+// @Failure 404 {object} AchievementNotFoundError "Achievement not found"
+// @Failure 409 {object} WrongAchievementStatusError "Wrong achievement status"
+// @Failure 500 {object} ServerError "Internal server error"
+// @Router /achievements/{id} [delete]
+func (a *API) DeleteAchievement(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	rec := event.Get(ctx)
+
+	// Get achievement from context (added by AchievementMiddleware)
+	ach, ok := GetAchievementFromContext(ctx)
+	if !ok {
+		writeError(ctx, w, ErrUnauthorized.WithStatus(http.StatusUnauthorized))
+		return
+	}
+
+	// Delete achievement
+	opt := achievement.DeleteOptions{
+		OwnerID:       ach.Owner.ID,
+		AchievementID: ach.ID,
+	}
+	err := a.sesc.DeleteAchievement(ctx, opt)
+	if err != nil {
+		rec.Add(events.Error, err)
+		if errors.Is(err, achievement.ErrAchievementNotFound) {
+			writeError(ctx, w, AchievementNotFoundError{
+				Code:      "ACHIEVEMENT_NOT_FOUND",
+				Message:   "Achievement not found",
+				RuMessage: "Достижение не найдено",
+			}.WithStatus(http.StatusNotFound))
+			return
+		}
+		if errors.Is(err, achievement.ErrWrongAchievementStatus) {
+			writeError(ctx, w, WrongAchievementStatusError{
+				Code:      "WRONG_ACHIEVEMENT_STATUS",
+				Message:   "Achievement must be in draft status to delete",
+				RuMessage: "Достижение должно быть в статусе черновика для удаления",
+			}.WithStatus(http.StatusConflict))
+			return
+		}
+		writeError(ctx, w, ErrServerError.WithStatus(http.StatusInternalServerError))
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}
+
+// AddDocument godoc
+// @Summary Add a document to an achievement
+// @Description Adds a document to an achievement
+// @Tags achievements
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param Authorization header string false "Bearer JWT token"
+// @Param id path string true "Achievement UUID"
+// @Param request body AddDocumentRequest true "Document data"
+// @Success 201 {object} DocumentResponse
+// @Failure 400 {object} InvalidRequestError "Invalid request format"
+// @Failure 401 {object} UnauthorizedError "Unauthorized"
+// @Failure 404 {object} AchievementNotFoundError "Achievement not found"
+// @Failure 409 {object} WrongAchievementStatusError "Wrong achievement status"
+// @Failure 500 {object} ServerError "Internal server error"
+// @Router /achievements/{id}/documents [post]
+func (a *API) AddDocument(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	rec := event.Get(ctx)
+
+	// Get achievement from context (added by AchievementMiddleware)
+	ach, ok := GetAchievementFromContext(ctx)
+	if !ok {
+		writeError(ctx, w, ErrUnauthorized.WithStatus(http.StatusUnauthorized))
+		return
+	}
+
+	// Parse request
+	var req AddDocumentRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		rec.Add(events.Error, "invalid request body")
+		writeError(ctx, w, ErrInvalidRequest.WithStatus(http.StatusBadRequest))
+		return
+	}
+
+	// Add document
+	opt := achievement.AddDocumentOptions{
+		OwnerID:       ach.Owner.ID,
+		AchievementID: ach.ID,
+		Name:          req.Name,
+		FileID:        req.FileID,
+	}
+	doc, err := a.sesc.AddDocument(ctx, opt)
+	if err != nil {
+		rec.Add(events.Error, err)
+		if errors.Is(err, achievement.ErrAchievementNotFound) {
+			writeError(ctx, w, AchievementNotFoundError{
+				Code:      "ACHIEVEMENT_NOT_FOUND",
+				Message:   "Achievement not found",
+				RuMessage: "Достижение не найдено",
+			}.WithStatus(http.StatusNotFound))
+			return
+		}
+		if errors.Is(err, achievement.ErrWrongAchievementStatus) {
+			writeError(ctx, w, WrongAchievementStatusError{
+				Code:      "WRONG_ACHIEVEMENT_STATUS",
+				Message:   "Achievement must be in draft status to add documents",
+				RuMessage: "Достижение должно быть в статусе черновика для добавления документов",
+			}.WithStatus(http.StatusConflict))
+			return
+		}
+		writeError(ctx, w, ErrServerError.WithStatus(http.StatusInternalServerError))
+		return
+	}
+
+	// Convert to response format
+	response := DocumentResponse{
+		ID:     doc.ID,
+		Name:   doc.Name,
+		FileID: doc.FileID,
+	}
+	a.writeJSON(ctx, w, response, http.StatusCreated)
+}
+
+// RemoveDocument godoc
+// @Summary Remove a document from an achievement
+// @Description Removes a document from an achievement
+// @Tags achievements
+// @Produce json
+// @Security BearerAuth
+// @Param Authorization header string false "Bearer JWT token"
+// @Param id path string true "Achievement UUID"
+// @Param documentId path string true "Document UUID"
+// @Success 204 "No Content"
+// @Failure 400 {object} InvalidUUIDError "Invalid UUID format"
+// @Failure 401 {object} UnauthorizedError "Unauthorized"
+// @Failure 404 {object} AchievementNotFoundError "Achievement not found"
+// @Failure 404 {object} DocumentNotFoundError "Document not found"
+// @Failure 409 {object} WrongAchievementStatusError "Wrong achievement status"
+// @Failure 500 {object} ServerError "Internal server error"
+// @Router /achievements/{id}/documents/{documentId} [delete]
+func (a *API) RemoveDocument(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	rec := event.Get(ctx)
+
+	// Get achievement from context (added by AchievementMiddleware)
+	ach, ok := GetAchievementFromContext(ctx)
+	if !ok {
+		writeError(ctx, w, ErrUnauthorized.WithStatus(http.StatusUnauthorized))
+		return
+	}
+
+	// Get document ID from path
+	docIDStr := r.PathValue("documentId")
+	docID, err := uuid.FromString(docIDStr)
+	if err != nil {
+		rec.Add(events.Error, "invalid document ID format")
+		writeError(ctx, w, InvalidUUIDError{
+			Code:      "INVALID_UUID",
+			Message:   "Invalid document ID format",
+			RuMessage: "Некорректный формат ID документа",
+		}.WithStatus(http.StatusBadRequest))
+		return
+	}
+
+	// Remove document
+	opt := achievement.RemoveDocumentOptions{
+		OwnerID:       ach.Owner.ID,
+		AchievementID: ach.ID,
+		DocumentID:    docID,
+	}
+	err = a.sesc.RemoveDocument(ctx, opt)
+	if err != nil {
+		rec.Add(events.Error, err)
+		if errors.Is(err, achievement.ErrAchievementNotFound) {
+			writeError(ctx, w, AchievementNotFoundError{
+				Code:      "ACHIEVEMENT_NOT_FOUND",
+				Message:   "Achievement not found",
+				RuMessage: "Достижение не найдено",
+			}.WithStatus(http.StatusNotFound))
+			return
+		}
+		if errors.Is(err, achievement.ErrDocumentNotFound) {
+			writeError(ctx, w, DocumentNotFoundError{
+				Code:      "DOCUMENT_NOT_FOUND",
+				Message:   "Document not found",
+				RuMessage: "Документ не найден",
+			}.WithStatus(http.StatusNotFound))
+			return
+		}
+		if errors.Is(err, achievement.ErrWrongAchievementStatus) {
+			writeError(ctx, w, WrongAchievementStatusError{
+				Code:      "WRONG_ACHIEVEMENT_STATUS",
+				Message:   "Achievement must be in draft status to remove documents",
+				RuMessage: "Достижение должно быть в статусе черновика для удаления документов",
+			}.WithStatus(http.StatusConflict))
+			return
+		}
+		writeError(ctx, w, ErrServerError.WithStatus(http.StatusInternalServerError))
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}
+
+// SubmitAchievement godoc
+// @Summary Submit an achievement for review
+// @Description Submits an achievement for review
+// @Tags achievements
+// @Produce json
+// @Security BearerAuth
+// @Param Authorization header string false "Bearer JWT token"
+// @Param id path string true "Achievement UUID"
+// @Success 200 {object} AchievementResponse
+// @Failure 400 {object} InvalidUUIDError "Invalid UUID format"
+// @Failure 401 {object} UnauthorizedError "Unauthorized"
+// @Failure 404 {object} AchievementNotFoundError "Achievement not found"
+// @Failure 409 {object} WrongAchievementStatusError "Wrong achievement status"
+// @Failure 500 {object} ServerError "Internal server error"
+// @Router /achievements/{id}/submit [post]
+func (a *API) SubmitAchievement(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	rec := event.Get(ctx)
+
+	// Get achievement from context (added by AchievementMiddleware)
+	ach, ok := GetAchievementFromContext(ctx)
+	if !ok {
+		writeError(ctx, w, ErrUnauthorized.WithStatus(http.StatusUnauthorized))
+		return
+	}
+
+	// Submit achievement
+	opt := achievement.SubmitOptions{
+		OwnerID:       ach.Owner.ID,
+		AchievementID: ach.ID,
+	}
+	updatedAch, err := a.sesc.SubmitAchievement(ctx, opt)
+	if err != nil {
+		rec.Add(events.Error, err)
+		if errors.Is(err, achievement.ErrAchievementNotFound) {
+			writeError(ctx, w, AchievementNotFoundError{
+				Code:      "ACHIEVEMENT_NOT_FOUND",
+				Message:   "Achievement not found",
+				RuMessage: "Достижение не найдено",
+			}.WithStatus(http.StatusNotFound))
+			return
+		}
+		if errors.Is(err, achievement.ErrWrongAchievementStatus) {
+			writeError(ctx, w, WrongAchievementStatusError{
+				Code:      "WRONG_ACHIEVEMENT_STATUS",
+				Message:   "Achievement must be in draft status to submit",
+				RuMessage: "Достижение должно быть в статусе черновика для отправки на проверку",
+			}.WithStatus(http.StatusConflict))
+			return
+		}
+		writeError(ctx, w, ErrServerError.WithStatus(http.StatusInternalServerError))
+		return
+	}
+
+	// Convert to response format
+	response := convertAchievementToResponse(updatedAch)
+	a.writeJSON(ctx, w, response, http.StatusOK)
+}
+
+// ReviewAchievement godoc
+// @Summary Review an achievement
+// @Description Reviews an achievement, setting points and optionally a comment
+// @Tags achievements
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param Authorization header string false "Bearer JWT token"
+// @Param id path string true "Achievement UUID"
+// @Param request body ReviewAchievementRequest true "Review data"
+// @Success 200 {object} AchievementResponse
+// @Failure 400 {object} InvalidRequestError "Invalid request format"
+// @Failure 400 {object} PointsLimitExceededError "Points assigned exceed the template's points limit"
+// @Failure 401 {object} UnauthorizedError "Unauthorized"
+// @Failure 403 {object} ForbiddenError "Forbidden - reviewer role required"
+// @Failure 404 {object} AchievementNotFoundError "Achievement not found"
+// @Failure 409 {object} WrongAchievementStatusError "Wrong achievement status"
+// @Failure 500 {object} ServerError "Internal server error"
+// @Router /achievements/{id}/review [post]
+func (a *API) ReviewAchievement(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	rec := event.Get(ctx)
+
+	// Get user from context
+	reviewer, ok := GetUserFromContext(ctx)
+	if !ok {
+		writeError(ctx, w, ErrUnauthorized.WithStatus(http.StatusUnauthorized))
+		return
+	}
+
+	// Get achievement from context (added by AchievementMiddleware)
+	ach, ok := GetAchievementFromContext(ctx)
+	if !ok {
+		writeError(ctx, w, ErrUnauthorized.WithStatus(http.StatusUnauthorized))
+		return
+	}
+
+	// Parse request
+	var req ReviewAchievementRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		rec.Add(events.Error, "invalid request body")
+		writeError(ctx, w, ErrInvalidRequest.WithStatus(http.StatusBadRequest))
+		return
+	}
+
+	// Review achievement
+	opt := achievement.ReviewOptions{
+		AchievementOwnerID: ach.Owner.ID,
+		AchievementID:      ach.ID,
+		ReviewerID:         reviewer.ID,
+		PointsAssigned:     req.PointsAssigned,
+		Comment:            req.Comment,
+	}
+	updatedAch, err := a.sesc.ReviewAchievement(ctx, opt)
+	if err != nil {
+		rec.Add(events.Error, err)
+		if errors.Is(err, achievement.ErrAchievementNotFound) {
+			writeError(ctx, w, AchievementNotFoundError{
+				Code:      "ACHIEVEMENT_NOT_FOUND",
+				Message:   "Achievement not found",
+				RuMessage: "Достижение не найдено",
+			}.WithStatus(http.StatusNotFound))
+			return
+		}
+		if errors.Is(err, achievement.ErrWrongAchievementStatus) {
+			writeError(ctx, w, WrongAchievementStatusError{
+				Code:      "WRONG_ACHIEVEMENT_STATUS",
+				Message:   "Achievement is not in a reviewable status",
+				RuMessage: "Достижение не находится в статусе, позволяющем проверку",
+			}.WithStatus(http.StatusConflict))
+			return
+		}
+		if errors.Is(err, achievement.ErrPointsLimitExceeded) {
+			writeError(ctx, w, PointsLimitExceededError{
+				Code:      "POINTS_LIMIT_EXCEEDED",
+				Message:   "Points assigned exceed the template's points limit",
+				RuMessage: "Назначенные баллы превышают лимит шаблона",
+			}.WithStatus(http.StatusBadRequest))
+			return
+		}
+		if errors.Is(err, sesc.ErrInvalidRole) {
+			writeError(
+				ctx,
+				w,
+				ErrForbidden.WithDetails("You do not have the required role to review this achievement").
+					WithStatus(http.StatusForbidden),
+			)
+			return
+		}
+		writeError(ctx, w, ErrServerError.WithStatus(http.StatusInternalServerError))
+		return
+	}
+
+	// Convert to response format
+	response := convertAchievementToResponse(updatedAch)
+	a.writeJSON(ctx, w, response, http.StatusOK)
+}
+
+// Helper function to parse pagination parameters from request
+func parsePaginationParams(r *http.Request) (offset, limit int, err error) {
+	// Default values
+	offset = 0
+	limit = 10
+
+	// Parse offset
+	offsetStr := r.URL.Query().Get("offset")
+	if offsetStr != "" {
+		offset, err = strconv.Atoi(offsetStr)
+		if err != nil || offset < 0 {
+			return 0, 0, errors.New("invalid offset parameter")
+		}
+	}
+
+	// Parse limit
+	limitStr := r.URL.Query().Get("limit")
+	if limitStr != "" {
+		limit, err = strconv.Atoi(limitStr)
+		if err != nil || limit < 1 || limit > 100 {
+			return 0, 0, errors.New("invalid limit parameter")
+		}
+	}
+
+	return offset, limit, nil
+}
+
+// PaginatedAchievementsResponse represents a paginated list of achievements
+type PaginatedAchievementsResponse struct {
+	Items      []AchievementResponse `json:"items"      validate:"required"`
+	TotalCount int                   `json:"totalCount" validate:"required"`
+	Offset     int                   `json:"offset"     validate:"required"`
+	Limit      int                   `json:"limit"      validate:"required"`
+}
+
+// AchievementResponse represents the API response for an achievement
+type AchievementResponse struct {
+	ID           uuid.UUID          `json:"id"           example:"550e8400-e29b-41d4-a716-446655440000" validate:"required"`
+	OwnerID      uuid.UUID          `json:"ownerId"      example:"550e8400-e29b-41d4-a716-446655440000" validate:"required"`
+	OwnerName    string             `json:"ownerName"    example:"Иванов Иван Иванович"                 validate:"required"`
+	TemplateID   uuid.UUID          `json:"templateId"   example:"550e8400-e29b-41d4-a716-446655440000" validate:"required"`
+	TemplateName string             `json:"templateName" example:"регионального уровня"                 validate:"required"`
+	Status       achievement.Status `json:"status"       example:"draft"                                validate:"required"`
+	Points       int                `json:"points"       example:"10"                                   validate:"required"`
+	Documents    []DocumentResponse `json:"documents"                                                   validate:"required"`
+	Reviews      []ReviewResponse   `json:"reviews"                                                     validate:"required"`
+}
+
+// DocumentResponse represents the API response for a document
+type DocumentResponse struct {
+	ID     uuid.UUID `json:"id"     example:"550e8400-e29b-41d4-a716-446655440000" validate:"required"`
+	Name   string    `json:"name"   example:"Publication proof"                    validate:"required"`
+	FileID uuid.UUID `json:"fileId" example:"550e8400-e29b-41d4-a716-446655440000" validate:"required"`
+}
+
+// ReviewResponse represents the API response for a review
+type ReviewResponse struct {
+	ID             uuid.UUID `json:"id"             example:"550e8400-e29b-41d4-a716-446655440000" validate:"required"`
+	ReviewerID     uuid.UUID `json:"reviewerId"     example:"550e8400-e29b-41d4-a716-446655440000" validate:"required"`
+	ReviewerName   string    `json:"reviewerName"   example:"Петров Петр Петрович"                 validate:"required"`
+	PointsAssigned int       `json:"pointsAssigned" example:"8"                                    validate:"required"`
+	Comment        string    `json:"comment"        example:"Good job, but could be better"        validate:"omitempty"`
+}
+
+// CreateAchievementRequest represents the request to create a new achievement
+type CreateAchievementRequest struct {
+	TemplateID uuid.UUID `json:"templateId" example:"550e8400-e29b-41d4-a716-446655440000" validate:"required"`
+}
+
+// AddDocumentRequest represents the request to add a document to an achievement
+type AddDocumentRequest struct {
+	Name   string    `json:"name"   example:"Publication proof"                    validate:"required"`
+	FileID uuid.UUID `json:"fileId" example:"550e8400-e29b-41d4-a716-446655440000" validate:"required"`
+}
+
+// ReviewAchievementRequest represents the request to review an achievement
+type ReviewAchievementRequest struct {
+	PointsAssigned int    `json:"pointsAssigned" example:"8"                             validate:"required"`
+	Comment        string `json:"comment"        example:"Good job, but could be better" validate:"omitempty"`
+}
+
+// AchievementNotFoundError represents an achievement not found error
+type AchievementNotFoundError struct {
+	Code       string `json:"code"             example:"ACHIEVEMENT_NOT_FOUND"`
+	Message    string `json:"message"          example:"Achievement not found"`
+	RuMessage  string `json:"ruMessage"        example:"Достижение не найдено"`
+	Details    string `json:"details,omitzero"`
+	StatusCode int    `json:"-"`
+}
+
+// WithDetails adds detail information to the error
+func (e AchievementNotFoundError) WithDetails(details string) AchievementNotFoundError {
+	e.Details = details
+	return e
+}
+
+// WithStatus adds HTTP status code to the error
+func (e AchievementNotFoundError) WithStatus(statusCode int) Error {
+	e.StatusCode = statusCode
+	return Error(e)
+}
+
+// DocumentNotFoundError represents a document not found error
+type DocumentNotFoundError struct {
+	Code       string `json:"code"             example:"DOCUMENT_NOT_FOUND"`
+	Message    string `json:"message"          example:"Document not found"`
+	RuMessage  string `json:"ruMessage"        example:"Документ не найден"`
+	Details    string `json:"details,omitzero"`
+	StatusCode int    `json:"-"`
+}
+
+// WithDetails adds detail information to the error
+func (e DocumentNotFoundError) WithDetails(details string) DocumentNotFoundError {
+	e.Details = details
+	return e
+}
+
+// WithStatus adds HTTP status code to the error
+func (e DocumentNotFoundError) WithStatus(statusCode int) Error {
+	e.StatusCode = statusCode
+	return Error(e)
+}
+
+// WrongAchievementStatusError represents an error when achievement is in wrong status for operation
+type WrongAchievementStatusError struct {
+	Code       string `json:"code"             example:"WRONG_ACHIEVEMENT_STATUS"`
+	Message    string `json:"message"          example:"Achievement is in wrong status for this operation"`
+	RuMessage  string `json:"ruMessage"        example:"Достижение находится в неподходящем статусе для этой операции"`
+	Details    string `json:"details,omitzero"`
+	StatusCode int    `json:"-"`
+}
+
+// WithDetails adds detail information to the error
+func (e WrongAchievementStatusError) WithDetails(details string) WrongAchievementStatusError {
+	e.Details = details
+	return e
+}
+
+// WithStatus adds HTTP status code to the error
+func (e WrongAchievementStatusError) WithStatus(statusCode int) Error {
+	e.StatusCode = statusCode
+	return Error(e)
+}
+
+// PointsLimitExceededError represents an error when assigned points exceed the template's limit
+type PointsLimitExceededError struct {
+	Code       string `json:"code"             example:"POINTS_LIMIT_EXCEEDED"`
+	Message    string `json:"message"          example:"Points assigned exceed the template's points limit"`
+	RuMessage  string `json:"ruMessage"        example:"Назначенные баллы превышают лимит шаблона"`
+	Details    string `json:"details,omitzero"`
+	StatusCode int    `json:"-"`
+}
+
+// WithDetails adds detail information to the error
+func (e PointsLimitExceededError) WithDetails(details string) PointsLimitExceededError {
+	e.Details = details
+	return e
+}
+
+// WithStatus adds HTTP status code to the error
+func (e PointsLimitExceededError) WithStatus(statusCode int) Error {
+	e.StatusCode = statusCode
+	return Error(e)
+}

@@ -50,7 +50,7 @@ export function AdminLoginForm() {
     ...postAuthAdminLoginMutation(),
     onSuccess: (response) => {
       setAuth(response.token, "admin");
-      push("/admin/dashboard");
+      push("/admin");
     },
     onError: (error) => {
       handleFormError(error);
@@ -113,7 +113,11 @@ export function AdminLoginForm() {
               </FormItem>
             )}
           />
-          <Button type="submit" className="w-full" disabled={loginMutation.isPending}>
+          <Button
+            type="submit"
+            className="w-full"
+            disabled={loginMutation.isPending}
+          >
             {loginMutation.isPending ? "Вход..." : "Войти как администратор"}
           </Button>
         </form>

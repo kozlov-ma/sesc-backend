@@ -287,9 +287,9 @@ func convertFile(f sesc.File) FileResponse {
 	return FileResponse{
 		ID:          f.ID.String(),
 		OwnerID:     ownerID,
-		FileName:    f.FileName,
-		FileSize:    f.FileSize,
-		DownloadURL: f.DownloadURL,
+		FileName:    f.Name,
+		FileSize:    f.Size,
+		DownloadURL: f.URL,
 	}
 }
 
@@ -446,6 +446,43 @@ func (a *API) UploadFile(w http.ResponseWriter, r *http.Request) {
 	response := convertFile(newFile)
 
 	a.writeJSON(ctx, w, response, http.StatusCreated)
+}
+
+// GetFileByID returns a file by ID
+// @Summary Get file by ID
+// @Description Returns a file by ID with download URL
+// @Tags files
+// @Accept json
+// @Produce json
+// @Param Authorization header string false "Bearer JWT token"
+// @Param id path string true "File ID"
+// @Success 200 {object} FileResponse
+// @Failure 400 {object} Error
+// @Failure 401 {object} Error "Unauthorized"
+// @Failure 404 {object} Error
+// @Failure 500 {object} Error
+// @Router /files/{id} [get]
+// @Security BearerAuth
+func (a *API) GetFileByID(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	rec := event.Get(ctx).Sub("api/get_file_by_id")
+
+	fileID, err := uuid.FromString(chi.URLParam(r, "id"))
+	if err != nil {
+		writeError(ctx, w, ErrBadRequest.WithDetails("invalid file ID").WithStatus(http.StatusBadRequest))
+		return
+	}
+
+	file, err := a.file.ByID(ctx, fileID)
+	if err != nil {
+		rec.Add(events.Error, err)
+		writeError(ctx, w, fileError(err))
+		return
+	}
+
+	response := convertFile(file)
+
+	a.writeJSON(ctx, w, response, http.StatusOK)
 }
 
 // DeleteFile deletes a file

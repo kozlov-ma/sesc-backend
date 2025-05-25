@@ -12,7 +12,10 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievement"
+	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievementdocument"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievementgroup"
+	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievementreview"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievementtemplate"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/authuser"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/department"
@@ -78,7 +81,10 @@ var (
 func checkColumn(table, column string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
+			achievement.Table:         achievement.ValidColumn,
+			achievementdocument.Table: achievementdocument.ValidColumn,
 			achievementgroup.Table:    achievementgroup.ValidColumn,
+			achievementreview.Table:   achievementreview.ValidColumn,
 			achievementtemplate.Table: achievementtemplate.ValidColumn,
 			authuser.Table:            authuser.ValidColumn,
 			department.Table:          department.ValidColumn,
