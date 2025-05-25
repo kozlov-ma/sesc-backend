@@ -1,6 +1,8 @@
 package schema
 
 import (
+	"time"
+
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/entsql"
 	"entgo.io/ent/schema/edge"
@@ -25,6 +27,21 @@ func (User) Fields() []ent.Field {
 		field.Bool("suspended").Default(false),
 		field.UUID("department_id", uuid.UUID{}).Optional().Nillable(),
 		field.Int32("role_id"),
+
+		field.String("subdivision"),
+		field.String("job_title"),
+		field.Float("employment_rate").Default(1),
+		field.Int("academic_degree").Optional(),
+		field.Int("personnel_category"),
+		field.Int("employment_type"),
+		field.String("academic_title").Optional(),
+		field.String("honors").Optional(),
+		field.String("category").Optional(),
+
+		field.Time("date_of_employment"),
+		field.Time("unemployment_date").Optional(),
+		field.Time("created_at").Default(time.Now).Immutable(),
+		field.Time("updated_at").UpdateDefault(time.Now),
 	}
 }
 
