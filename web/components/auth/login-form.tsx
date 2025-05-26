@@ -50,7 +50,7 @@ export function LoginForm() {
     ...postAuthLoginMutation(),
     onSuccess: (response) => {
       setAuth(response.token, "user");
-      push("/u/profile");
+      push("/u/users/me");
     },
     onError: (error) => {
       handleFormError(error);
@@ -113,7 +113,11 @@ export function LoginForm() {
               </FormItem>
             )}
           />
-          <Button type="submit" className="w-full" disabled={loginMutation.isPending}>
+          <Button
+            type="submit"
+            className="w-full"
+            disabled={loginMutation.isPending}
+          >
             {loginMutation.isPending ? "Вход..." : "Войти"}
           </Button>
         </form>

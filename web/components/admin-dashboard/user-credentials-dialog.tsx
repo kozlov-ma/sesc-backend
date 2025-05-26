@@ -189,6 +189,22 @@ export function UserCredentialsDialog({
     });
   };
 
+  const generateQuickLoginUrl = (username: string, password: string) => {
+    // Create credentials object
+    const credentials = { username, password };
+    
+    // Convert to JSON and encode as base64url
+    const jsonStr = JSON.stringify(credentials);
+    const base64 = btoa(jsonStr)
+      .replace(/\+/g, "-")
+      .replace(/\//g, "_")
+      .replace(/=+$/, "");
+    
+    // Create the full URL
+    const origin = typeof window !== "undefined" ? window.location.origin : "";
+    return `${origin}/login/${base64}`;
+  };
+
   const copyAllCredentials = () => {
     const username = form.getValues("username");
     const password = form.getValues("password");
@@ -200,10 +216,13 @@ export function UserCredentialsDialog({
       return;
     }
 
-    const text = `Имя пользователя: ${username}\nПароль: ${password}`;
+    // Generate quick login URL
+    const quickLoginUrl = generateQuickLoginUrl(username, password);
+
+    const text = `Имя пользователя: ${username}\nПароль: ${password}\n\nСсылка для быстрого входа:\n${quickLoginUrl}`;
     navigator.clipboard.writeText(text);
     toast("Скопировано в буфер обмена", {
-      description: "Учетные данные скопированы в буфер обмена.",
+      description: "Учетные данные и ссылка для быстрого входа скопированы в буфер обмена.",
     });
   };
 
