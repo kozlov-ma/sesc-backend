@@ -994,11 +994,15 @@ func TestDetermineNewStatus(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+			// Create a mock event record for testing
+			_, rec := event.NewRecord(t.Context(), "test")
+
 			newStatus, isValid := determineNewStatus(
 				tc.currentStatus,
 				tc.reviewerRole,
 				tc.templateKind,
 				tc.pointsAssigned,
+				rec,
 			)
 
 			// Compare as strings to avoid type comparison issues
