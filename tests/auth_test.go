@@ -58,12 +58,11 @@ func TestLoginFlow(t *testing.T) {
 
 	// Create a test user with unique data
 	randomSuffix := generateRandomString(8)
-	userData := CreateUserRequest{
-		FirstName:  fmt.Sprintf("Test_%s", randomSuffix),
-		LastName:   fmt.Sprintf("User_%s", randomSuffix),
-		RoleID:     2,
-		PictureURL: fmt.Sprintf("/test_%s.jpg", randomSuffix),
-	}
+	userData := CreateValidUserData(
+		fmt.Sprintf("Test_%s", randomSuffix),
+		fmt.Sprintf("User_%s", randomSuffix),
+		2,
+	)
 
 	user, err := client.CreateUser(ctx, userData)
 	require.NoError(t, err)

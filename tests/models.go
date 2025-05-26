@@ -27,6 +27,19 @@ type User struct {
 	Role       Role       `json:"role"`
 	Suspended  bool       `json:"suspended"`
 	Department Department `json:"department,omitempty"`
+
+	Subdivision       string  `json:"subdivision"`
+	JobTitle          string  `json:"jobTitle"`
+	EmploymentRate    float64 `json:"employmentRate"`
+	AcademicDegree    int     `json:"academicDegree,omitempty"`
+	PersonnelCategory int     `json:"personnelCategory"`
+	EmploymentType    int     `json:"employmentType"`
+	AcademicTitle     string  `json:"academicTitle,omitempty"`
+	Honors            string  `json:"honors,omitempty"`
+	Category          string  `json:"category,omitempty"`
+
+	DateOfEmployment string `json:"dateOfEmployment"`
+	UnemploymentDate string `json:"unemploymentDate,omitempty"`
 }
 
 // CreateUserRequest is used to create a new user
@@ -37,6 +50,19 @@ type CreateUserRequest struct {
 	RoleID       int32     `json:"roleId"`
 	PictureURL   string    `json:"pictureUrl,omitempty"`
 	DepartmentID uuid.UUID `json:"departmentId,omitempty"`
+
+	Subdivision       string  `json:"subdivision"`
+	JobTitle          string  `json:"jobTitle"`
+	EmploymentRate    float64 `json:"employmentRate"`
+	AcademicDegree    int     `json:"academicDegree,omitempty"`
+	PersonnelCategory int     `json:"personnelCategory"`
+	EmploymentType    int     `json:"employmentType"`
+	AcademicTitle     string  `json:"academicTitle,omitempty"`
+	Honors            string  `json:"honors,omitempty"`
+	Category          string  `json:"category,omitempty"`
+
+	DateOfEmployment string `json:"dateOfEmployment"`
+	UnemploymentDate string `json:"unemploymentDate,omitempty"`
 }
 
 // PatchUserRequest is used to update a user
@@ -48,6 +74,19 @@ type PatchUserRequest struct {
 	Suspended    *bool      `json:"suspended,omitempty"`
 	DepartmentID *uuid.UUID `json:"departmentId,omitempty"`
 	RoleID       *int32     `json:"roleId,omitempty"`
+
+	Subdivision       *string  `json:"subdivision,omitempty"`
+	JobTitle          *string  `json:"jobTitle,omitempty"`
+	EmploymentRate    *float64 `json:"employmentRate,omitempty"`
+	AcademicDegree    *int     `json:"academicDegree,omitempty"`
+	PersonnelCategory *int     `json:"personnelCategory,omitempty"`
+	EmploymentType    *int     `json:"employmentType,omitempty"`
+	AcademicTitle     *string  `json:"academicTitle,omitempty"`
+	Honors            *string  `json:"honors,omitempty"`
+	Category          *string  `json:"category,omitempty"`
+
+	DateOfEmployment *string `json:"dateOfEmployment,omitempty"`
+	UnemploymentDate *string `json:"unemploymentDate,omitempty"`
 }
 
 // RegisterUserRequest is used to set credentials for a user

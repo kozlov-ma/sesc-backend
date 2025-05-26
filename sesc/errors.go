@@ -21,4 +21,8 @@ var (
 	ErrInvalidFileSize      = errors.New("invalid file size")
 	ErrInvalidFileObjectKey = errors.New("invalid file object key")
 	ErrFileNotFound         = errors.New("file not found")
+
+	ErrInvalidUserData         = errors.New("invalid user data")
+	ErrInvalidEmploymentRate   = errors.New("invalid employment rate")
+	ErrInvalidDateOfEmployment = errors.New("invalid date of employment")
 )

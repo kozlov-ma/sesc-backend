@@ -19,14 +19,46 @@ import (
 // swagger:model api.PatchUserRequest
 type APIPatchUserRequest struct {
 
+	// academic degree
+	// Example: 2
+	AcademicDegree int64 `json:"academicDegree,omitempty"`
+
+	// academic title
+	// Example: Профессор
+	AcademicTitle string `json:"academicTitle,omitempty"`
+
+	// category
+	// Example: Высшая
+	Category string `json:"category,omitempty"`
+
+	// date of employment
+	// Example: 2020-01-15T00:00:00Z
+	DateOfEmployment string `json:"dateOfEmployment,omitempty"`
+
 	// department Id
 	// Example: 550e8400-e29b-41d4-a716-446655440000
 	DepartmentID string `json:"departmentId,omitempty"`
+
+	// employment rate
+	// Example: 1
+	EmploymentRate float64 `json:"employmentRate,omitempty"`
+
+	// employment type
+	// Example: 1
+	EmploymentType int64 `json:"employmentType,omitempty"`
 
 	// first name
 	// Example: Ivan
 	// Required: true
 	FirstName *string `json:"firstName"`
+
+	// honors
+	// Example: Заслуженный деятель науки
+	Honors string `json:"honors,omitempty"`
+
+	// job title
+	// Example: Профессор
+	JobTitle string `json:"jobTitle,omitempty"`
 
 	// last name
 	// Example: Petrov
@@ -37,6 +69,10 @@ type APIPatchUserRequest struct {
 	// Example: Sergeevich
 	MiddleName string `json:"middleName,omitempty"`
 
+	// personnel category
+	// Example: 1
+	PersonnelCategory int64 `json:"personnelCategory,omitempty"`
+
 	// picture Url
 	// Example: /images/users/ivan.jpg
 	PictureURL string `json:"pictureUrl,omitempty"`
@@ -46,10 +82,18 @@ type APIPatchUserRequest struct {
 	// Required: true
 	RoleID *int64 `json:"roleId"`
 
+	// subdivision
+	// Example: Кафедра информатики
+	Subdivision string `json:"subdivision,omitempty"`
+
 	// suspended
 	// Example: false
 	// Required: true
 	Suspended *bool `json:"suspended"`
+
+	// unemployment date
+	// Example: 2023-12-31T00:00:00Z
+	UnemploymentDate string `json:"unemploymentDate,omitempty"`
 }
 
 // Validate validates this api patch user request

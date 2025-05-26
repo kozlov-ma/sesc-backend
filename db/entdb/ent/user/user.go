@@ -3,9 +3,12 @@
 package user
 
 import (
+	"time"
+
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	uuid "github.com/gofrs/uuid/v5"
+	"github.com/kozlov-ma/sesc-backend/sesc"
 )
 
 const (
@@ -27,6 +30,32 @@ const (
 	FieldDepartmentID = "department_id"
 	// FieldRoleID holds the string denoting the role_id field in the database.
 	FieldRoleID = "role_id"
+	// FieldSubdivision holds the string denoting the subdivision field in the database.
+	FieldSubdivision = "subdivision"
+	// FieldJobTitle holds the string denoting the job_title field in the database.
+	FieldJobTitle = "job_title"
+	// FieldEmploymentRate holds the string denoting the employment_rate field in the database.
+	FieldEmploymentRate = "employment_rate"
+	// FieldAcademicDegree holds the string denoting the academic_degree field in the database.
+	FieldAcademicDegree = "academic_degree"
+	// FieldPersonnelCategory holds the string denoting the personnel_category field in the database.
+	FieldPersonnelCategory = "personnel_category"
+	// FieldEmploymentType holds the string denoting the employment_type field in the database.
+	FieldEmploymentType = "employment_type"
+	// FieldAcademicTitle holds the string denoting the academic_title field in the database.
+	FieldAcademicTitle = "academic_title"
+	// FieldHonors holds the string denoting the honors field in the database.
+	FieldHonors = "honors"
+	// FieldCategory holds the string denoting the category field in the database.
+	FieldCategory = "category"
+	// FieldDateOfEmployment holds the string denoting the date_of_employment field in the database.
+	FieldDateOfEmployment = "date_of_employment"
+	// FieldUnemploymentDate holds the string denoting the unemployment_date field in the database.
+	FieldUnemploymentDate = "unemployment_date"
+	// FieldCreatedAt holds the string denoting the created_at field in the database.
+	FieldCreatedAt = "created_at"
+	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
+	FieldUpdatedAt = "updated_at"
 	// EdgeDepartment holds the string denoting the department edge name in mutations.
 	EdgeDepartment = "department"
 	// EdgeAuth holds the string denoting the auth edge name in mutations.
@@ -86,6 +115,19 @@ var Columns = []string{
 	FieldSuspended,
 	FieldDepartmentID,
 	FieldRoleID,
+	FieldSubdivision,
+	FieldJobTitle,
+	FieldEmploymentRate,
+	FieldAcademicDegree,
+	FieldPersonnelCategory,
+	FieldEmploymentType,
+	FieldAcademicTitle,
+	FieldHonors,
+	FieldCategory,
+	FieldDateOfEmployment,
+	FieldUnemploymentDate,
+	FieldCreatedAt,
+	FieldUpdatedAt,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -103,6 +145,24 @@ var (
 	DefaultMiddleName string
 	// DefaultSuspended holds the default value on creation for the "suspended" field.
 	DefaultSuspended bool
+	// DefaultSubdivision holds the default value on creation for the "subdivision" field.
+	DefaultSubdivision string
+	// DefaultJobTitle holds the default value on creation for the "job_title" field.
+	DefaultJobTitle string
+	// DefaultEmploymentRate holds the default value on creation for the "employment_rate" field.
+	DefaultEmploymentRate float64
+	// DefaultPersonnelCategory holds the default value on creation for the "personnel_category" field.
+	DefaultPersonnelCategory sesc.PersonnelCategory
+	// DefaultEmploymentType holds the default value on creation for the "employment_type" field.
+	DefaultEmploymentType sesc.EmploymentType
+	// DefaultDateOfEmployment holds the default value on creation for the "date_of_employment" field.
+	DefaultDateOfEmployment func() time.Time
+	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
+	DefaultCreatedAt func() time.Time
+	// DefaultUpdatedAt holds the default value on creation for the "updated_at" field.
+	DefaultUpdatedAt func() time.Time
+	// UpdateDefaultUpdatedAt holds the default value on update for the "updated_at" field.
+	UpdateDefaultUpdatedAt func() time.Time
 	// DefaultID holds the default value on creation for the "id" field.
 	DefaultID func() uuid.UUID
 )
@@ -148,6 +208,71 @@ func ByDepartmentID(opts ...sql.OrderTermOption) OrderOption {
 // ByRoleID orders the results by the role_id field.
 func ByRoleID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldRoleID, opts...).ToFunc()
+}
+
+// BySubdivision orders the results by the subdivision field.
+func BySubdivision(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldSubdivision, opts...).ToFunc()
+}
+
+// ByJobTitle orders the results by the job_title field.
+func ByJobTitle(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldJobTitle, opts...).ToFunc()
+}
+
+// ByEmploymentRate orders the results by the employment_rate field.
+func ByEmploymentRate(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldEmploymentRate, opts...).ToFunc()
+}
+
+// ByAcademicDegree orders the results by the academic_degree field.
+func ByAcademicDegree(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldAcademicDegree, opts...).ToFunc()
+}
+
+// ByPersonnelCategory orders the results by the personnel_category field.
+func ByPersonnelCategory(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldPersonnelCategory, opts...).ToFunc()
+}
+
+// ByEmploymentType orders the results by the employment_type field.
+func ByEmploymentType(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldEmploymentType, opts...).ToFunc()
+}
+
+// ByAcademicTitle orders the results by the academic_title field.
+func ByAcademicTitle(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldAcademicTitle, opts...).ToFunc()
+}
+
+// ByHonors orders the results by the honors field.
+func ByHonors(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldHonors, opts...).ToFunc()
+}
+
+// ByCategory orders the results by the category field.
+func ByCategory(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCategory, opts...).ToFunc()
+}
+
+// ByDateOfEmployment orders the results by the date_of_employment field.
+func ByDateOfEmployment(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldDateOfEmployment, opts...).ToFunc()
+}
+
+// ByUnemploymentDate orders the results by the unemployment_date field.
+func ByUnemploymentDate(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldUnemploymentDate, opts...).ToFunc()
+}
+
+// ByCreatedAt orders the results by the created_at field.
+func ByCreatedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCreatedAt, opts...).ToFunc()
+}
+
+// ByUpdatedAt orders the results by the updated_at field.
+func ByUpdatedAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldUpdatedAt, opts...).ToFunc()
 }
 
 // ByDepartmentField orders the results by department field.

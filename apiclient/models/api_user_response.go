@@ -19,18 +19,54 @@ import (
 // swagger:model api.UserResponse
 type APIUserResponse struct {
 
+	// academic degree
+	// Example: 2
+	AcademicDegree int64 `json:"academicDegree,omitempty"`
+
+	// academic title
+	// Example: Профессор
+	AcademicTitle string `json:"academicTitle,omitempty"`
+
+	// category
+	// Example: Высшая
+	Category string `json:"category,omitempty"`
+
+	// date of employment
+	// Example: 2020-01-15T00:00:00Z
+	// Required: true
+	DateOfEmployment *string `json:"dateOfEmployment"`
+
 	// department
 	Department *APIDepartment `json:"department,omitempty"`
+
+	// employment rate
+	// Example: 1
+	// Required: true
+	EmploymentRate *float64 `json:"employmentRate"`
+
+	// employment type
+	// Example: 1
+	// Required: true
+	EmploymentType *int64 `json:"employmentType"`
 
 	// first name
 	// Example: Ivan
 	// Required: true
 	FirstName *string `json:"firstName"`
 
+	// honors
+	// Example: Заслуженный деятель науки
+	Honors string `json:"honors,omitempty"`
+
 	// id
 	// Example: 550e8400-e29b-41d4-a716-446655440000
 	// Required: true
 	ID *string `json:"id"`
+
+	// job title
+	// Example: Профессор
+	// Required: true
+	JobTitle *string `json:"jobTitle"`
 
 	// last name
 	// Example: Petrov
@@ -41,6 +77,11 @@ type APIUserResponse struct {
 	// Example: Sergeevich
 	MiddleName string `json:"middleName,omitempty"`
 
+	// personnel category
+	// Example: 1
+	// Required: true
+	PersonnelCategory *int64 `json:"personnelCategory"`
+
 	// picture Url
 	// Example: /images/users/ivan.jpg
 	// Required: true
@@ -50,16 +91,37 @@ type APIUserResponse struct {
 	// Required: true
 	Role *APIRole `json:"role"`
 
+	// subdivision
+	// Example: Кафедра информатики
+	// Required: true
+	Subdivision *string `json:"subdivision"`
+
 	// suspended
 	// Required: true
 	Suspended *bool `json:"suspended"`
+
+	// unemployment date
+	// Example: 2023-12-31T00:00:00Z
+	UnemploymentDate string `json:"unemploymentDate,omitempty"`
 }
 
 // Validate validates this api user response
 func (m *APIUserResponse) Validate(formats strfmt.Registry) error {
 	var res []error
 
+	if err := m.validateDateOfEmployment(formats); err != nil {
+		res = append(res, err)
+	}
+
 	if err := m.validateDepartment(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateEmploymentRate(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateEmploymentType(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -71,7 +133,15 @@ func (m *APIUserResponse) Validate(formats strfmt.Registry) error {
 		res = append(res, err)
 	}
 
+	if err := m.validateJobTitle(formats); err != nil {
+		res = append(res, err)
+	}
+
 	if err := m.validateLastName(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validatePersonnelCategory(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -83,6 +153,10 @@ func (m *APIUserResponse) Validate(formats strfmt.Registry) error {
 		res = append(res, err)
 	}
 
+	if err := m.validateSubdivision(formats); err != nil {
+		res = append(res, err)
+	}
+
 	if err := m.validateSuspended(formats); err != nil {
 		res = append(res, err)
 	}
@@ -90,6 +164,15 @@ func (m *APIUserResponse) Validate(formats strfmt.Registry) error {
 	if len(res) > 0 {
 		return errors.CompositeValidationError(res...)
 	}
+	return nil
+}
+
+func (m *APIUserResponse) validateDateOfEmployment(formats strfmt.Registry) error {
+
+	if err := validate.Required("dateOfEmployment", "body", m.DateOfEmployment); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -107,6 +190,24 @@ func (m *APIUserResponse) validateDepartment(formats strfmt.Registry) error {
 			}
 			return err
 		}
+	}
+
+	return nil
+}
+
+func (m *APIUserResponse) validateEmploymentRate(formats strfmt.Registry) error {
+
+	if err := validate.Required("employmentRate", "body", m.EmploymentRate); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *APIUserResponse) validateEmploymentType(formats strfmt.Registry) error {
+
+	if err := validate.Required("employmentType", "body", m.EmploymentType); err != nil {
+		return err
 	}
 
 	return nil
@@ -130,9 +231,27 @@ func (m *APIUserResponse) validateID(formats strfmt.Registry) error {
 	return nil
 }
 
+func (m *APIUserResponse) validateJobTitle(formats strfmt.Registry) error {
+
+	if err := validate.Required("jobTitle", "body", m.JobTitle); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (m *APIUserResponse) validateLastName(formats strfmt.Registry) error {
 
 	if err := validate.Required("lastName", "body", m.LastName); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *APIUserResponse) validatePersonnelCategory(formats strfmt.Registry) error {
+
+	if err := validate.Required("personnelCategory", "body", m.PersonnelCategory); err != nil {
 		return err
 	}
 
@@ -163,6 +282,15 @@ func (m *APIUserResponse) validateRole(formats strfmt.Registry) error {
 			}
 			return err
 		}
+	}
+
+	return nil
+}
+
+func (m *APIUserResponse) validateSubdivision(formats strfmt.Registry) error {
+
+	if err := validate.Required("subdivision", "body", m.Subdivision); err != nil {
+		return err
 	}
 
 	return nil

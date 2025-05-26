@@ -11,7 +11,23 @@ interface UserWithStats extends ApiUserResponse {
   };
 }
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { User, Building, Shield } from "lucide-react";
+import { format } from "date-fns";
+import {
+  User,
+  Building,
+  Building2,
+  Shield,
+  Briefcase,
+  Percent,
+  Users,
+  Clock,
+  GraduationCap,
+  Award,
+  Medal,
+  Star,
+  CalendarPlus,
+  CalendarX,
+} from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
@@ -113,6 +129,135 @@ export function UserProfile({
                   <p className="font-medium">{user.role?.name || "—"}</p>
                 </div>
               </div>
+
+              <Separator />
+
+              <h3 className="text-lg font-medium">Должность и подразделение</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <div className="flex items-center text-muted-foreground">
+                    <Briefcase className="mr-2 h-4 w-4" />
+                    <span className="text-sm">Должность</span>
+                  </div>
+                  <p className="font-medium">{user.jobTitle || "—"}</p>
+                </div>
+
+                <div className="space-y-2">
+                  <div className="flex items-center text-muted-foreground">
+                    <Building2 className="mr-2 h-4 w-4" />
+                    <span className="text-sm">Подразделение</span>
+                  </div>
+                  <p className="font-medium">{user.subdivision || "—"}</p>
+                </div>
+
+                <div className="space-y-2">
+                  <div className="flex items-center text-muted-foreground">
+                    <Percent className="mr-2 h-4 w-4" />
+                    <span className="text-sm">Ставка</span>
+                  </div>
+                  <p className="font-medium">{user.employmentRate || "—"}</p>
+                </div>
+
+                <div className="space-y-2">
+                  <div className="flex items-center text-muted-foreground">
+                    <Users className="mr-2 h-4 w-4" />
+                    <span className="text-sm">Категория персонала</span>
+                  </div>
+                  <p className="font-medium">
+                    {user.personnelCategory === 1 && "Профессорско-педагогический состав"}
+                    {user.personnelCategory === 2 && "Педагогический состав"}
+                    {user.personnelCategory === 3 && "Учебно-вспомогательный персонал"}
+                    {user.personnelCategory === 4 && "Административно-управленческий персонал"}
+                    {!user.personnelCategory && "—"}
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <div className="flex items-center text-muted-foreground">
+                    <Clock className="mr-2 h-4 w-4" />
+                    <span className="text-sm">Тип занятости</span>
+                  </div>
+                  <p className="font-medium">
+                    {user.employmentType === 1 && "Основное место работы"}
+                    {user.employmentType === 2 && "Внутреннее совместительство"}
+                    {user.employmentType === 3 && "Внешнее совместительство"}
+                    {!user.employmentType && "—"}
+                  </p>
+                </div>
+              </div>
+
+              <Separator />
+
+              <h3 className="text-lg font-medium">Ученые степени и звания</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <div className="flex items-center text-muted-foreground">
+                    <GraduationCap className="mr-2 h-4 w-4" />
+                    <span className="text-sm">Ученая степень</span>
+                  </div>
+                  <p className="font-medium">
+                    {user.academicDegree === 1 && "Кандидат наук"}
+                    {user.academicDegree === 2 && "Доктор наук"}
+                    {user.academicDegree === 0 && "Нет"}
+                    {user.academicDegree === null && "—"}
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <div className="flex items-center text-muted-foreground">
+                    <Award className="mr-2 h-4 w-4" />
+                    <span className="text-sm">Ученое звание</span>
+                  </div>
+                  <p className="font-medium">{user.academicTitle || "—"}</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <div className="flex items-center text-muted-foreground">
+                    <Medal className="mr-2 h-4 w-4" />
+                    <span className="text-sm">Почетные звания</span>
+                  </div>
+                  <p className="font-medium">{user.honors || "—"}</p>
+                </div>
+
+                <div className="space-y-2">
+                  <div className="flex items-center text-muted-foreground">
+                    <Star className="mr-2 h-4 w-4" />
+                    <span className="text-sm">Категория</span>
+                  </div>
+                  <p className="font-medium">{user.category || "—"}</p>
+                </div>
+              </div>
+
+              <Separator />
+
+              <h3 className="text-lg font-medium">Даты трудоустройства</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <div className="flex items-center text-muted-foreground">
+                    <CalendarPlus className="mr-2 h-4 w-4" />
+                    <span className="text-sm">Дата приема на работу</span>
+                  </div>
+                  <p className="font-medium">
+                    {user.dateOfEmployment
+                      ? format(new Date(user.dateOfEmployment), "dd.MM.yyyy")
+                      : "—"}
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <div className="flex items-center text-muted-foreground">
+                    <CalendarX className="mr-2 h-4 w-4" />
+                    <span className="text-sm">Дата увольнения</span>
+                  </div>
+                  <p className="font-medium">
+                    {user.unemploymentDate
+                      ? format(new Date(user.unemploymentDate), "dd.MM.yyyy")
+                      : "—"}
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
         </CardContent>
@@ -127,19 +272,25 @@ export function UserProfile({
           <CardContent>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
               <div className="p-4 bg-primary/10 rounded-lg">
-                <h3 className="text-sm font-medium text-muted-foreground mb-1">Всего достижений</h3>
+                <h3 className="text-sm font-medium text-muted-foreground mb-1">
+                  Всего достижений
+                </h3>
                 <p className="text-2xl font-bold text-primary">
                   {user.statistics?.totalAchievements || 0}
                 </p>
               </div>
               <div className="p-4 bg-primary/10 rounded-lg">
-                <h3 className="text-sm font-medium text-muted-foreground mb-1">Проверенные</h3>
+                <h3 className="text-sm font-medium text-muted-foreground mb-1">
+                  Проверенные
+                </h3>
                 <p className="text-2xl font-bold text-primary">
                   {user.statistics?.reviewedAchievements || 0}
                 </p>
               </div>
               <div className="p-4 bg-primary/10 rounded-lg">
-                <h3 className="text-sm font-medium text-muted-foreground mb-1">Общий балл</h3>
+                <h3 className="text-sm font-medium text-muted-foreground mb-1">
+                  Общий балл
+                </h3>
                 <p className="text-2xl font-bold text-primary">
                   {user.statistics?.totalPoints || 0}
                 </p>

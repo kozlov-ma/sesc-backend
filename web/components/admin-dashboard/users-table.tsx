@@ -161,9 +161,11 @@ export function UsersTable() {
             <TableRow>
               <TableHead>Пользователь</TableHead>
               <TableHead>Кафедра</TableHead>
+              <TableHead>Должность</TableHead>
+              <TableHead>Подразделение</TableHead>
               <TableHead>Роль</TableHead>
               <TableHead>Статус</TableHead>
-              <TableHead className="w-[70px]"></TableHead>
+              <TableHead className="text-right">Действия</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -197,6 +199,8 @@ export function UsersTable() {
                     </div>
                   </TableCell>
                   <TableCell>{user.department?.name || "-"}</TableCell>
+                  <TableCell>{user.jobTitle || "-"}</TableCell>
+                  <TableCell>{user.subdivision || "-"}</TableCell>
                   <TableCell>{user.role?.name || "-"}</TableCell>
                   <TableCell>
                     {user.suspended ? (
@@ -247,7 +251,7 @@ export function UsersTable() {
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={5} className="h-24 text-center">
+                <TableCell colSpan={7} className="h-24 text-center">
                   Пользователи не найдены
                 </TableCell>
               </TableRow>

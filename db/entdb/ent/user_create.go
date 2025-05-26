@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -16,6 +17,7 @@ import (
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/department"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/file"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/user"
+	"github.com/kozlov-ma/sesc-backend/sesc"
 )
 
 // UserCreate is the builder for creating a User entity.
@@ -96,6 +98,188 @@ func (uc *UserCreate) SetNillableDepartmentID(u *uuid.UUID) *UserCreate {
 // SetRoleID sets the "role_id" field.
 func (uc *UserCreate) SetRoleID(i int32) *UserCreate {
 	uc.mutation.SetRoleID(i)
+	return uc
+}
+
+// SetSubdivision sets the "subdivision" field.
+func (uc *UserCreate) SetSubdivision(s string) *UserCreate {
+	uc.mutation.SetSubdivision(s)
+	return uc
+}
+
+// SetNillableSubdivision sets the "subdivision" field if the given value is not nil.
+func (uc *UserCreate) SetNillableSubdivision(s *string) *UserCreate {
+	if s != nil {
+		uc.SetSubdivision(*s)
+	}
+	return uc
+}
+
+// SetJobTitle sets the "job_title" field.
+func (uc *UserCreate) SetJobTitle(s string) *UserCreate {
+	uc.mutation.SetJobTitle(s)
+	return uc
+}
+
+// SetNillableJobTitle sets the "job_title" field if the given value is not nil.
+func (uc *UserCreate) SetNillableJobTitle(s *string) *UserCreate {
+	if s != nil {
+		uc.SetJobTitle(*s)
+	}
+	return uc
+}
+
+// SetEmploymentRate sets the "employment_rate" field.
+func (uc *UserCreate) SetEmploymentRate(f float64) *UserCreate {
+	uc.mutation.SetEmploymentRate(f)
+	return uc
+}
+
+// SetNillableEmploymentRate sets the "employment_rate" field if the given value is not nil.
+func (uc *UserCreate) SetNillableEmploymentRate(f *float64) *UserCreate {
+	if f != nil {
+		uc.SetEmploymentRate(*f)
+	}
+	return uc
+}
+
+// SetAcademicDegree sets the "academic_degree" field.
+func (uc *UserCreate) SetAcademicDegree(sd sesc.AcademicDegree) *UserCreate {
+	uc.mutation.SetAcademicDegree(sd)
+	return uc
+}
+
+// SetNillableAcademicDegree sets the "academic_degree" field if the given value is not nil.
+func (uc *UserCreate) SetNillableAcademicDegree(sd *sesc.AcademicDegree) *UserCreate {
+	if sd != nil {
+		uc.SetAcademicDegree(*sd)
+	}
+	return uc
+}
+
+// SetPersonnelCategory sets the "personnel_category" field.
+func (uc *UserCreate) SetPersonnelCategory(sc sesc.PersonnelCategory) *UserCreate {
+	uc.mutation.SetPersonnelCategory(sc)
+	return uc
+}
+
+// SetNillablePersonnelCategory sets the "personnel_category" field if the given value is not nil.
+func (uc *UserCreate) SetNillablePersonnelCategory(sc *sesc.PersonnelCategory) *UserCreate {
+	if sc != nil {
+		uc.SetPersonnelCategory(*sc)
+	}
+	return uc
+}
+
+// SetEmploymentType sets the "employment_type" field.
+func (uc *UserCreate) SetEmploymentType(st sesc.EmploymentType) *UserCreate {
+	uc.mutation.SetEmploymentType(st)
+	return uc
+}
+
+// SetNillableEmploymentType sets the "employment_type" field if the given value is not nil.
+func (uc *UserCreate) SetNillableEmploymentType(st *sesc.EmploymentType) *UserCreate {
+	if st != nil {
+		uc.SetEmploymentType(*st)
+	}
+	return uc
+}
+
+// SetAcademicTitle sets the "academic_title" field.
+func (uc *UserCreate) SetAcademicTitle(s string) *UserCreate {
+	uc.mutation.SetAcademicTitle(s)
+	return uc
+}
+
+// SetNillableAcademicTitle sets the "academic_title" field if the given value is not nil.
+func (uc *UserCreate) SetNillableAcademicTitle(s *string) *UserCreate {
+	if s != nil {
+		uc.SetAcademicTitle(*s)
+	}
+	return uc
+}
+
+// SetHonors sets the "honors" field.
+func (uc *UserCreate) SetHonors(s string) *UserCreate {
+	uc.mutation.SetHonors(s)
+	return uc
+}
+
+// SetNillableHonors sets the "honors" field if the given value is not nil.
+func (uc *UserCreate) SetNillableHonors(s *string) *UserCreate {
+	if s != nil {
+		uc.SetHonors(*s)
+	}
+	return uc
+}
+
+// SetCategory sets the "category" field.
+func (uc *UserCreate) SetCategory(s string) *UserCreate {
+	uc.mutation.SetCategory(s)
+	return uc
+}
+
+// SetNillableCategory sets the "category" field if the given value is not nil.
+func (uc *UserCreate) SetNillableCategory(s *string) *UserCreate {
+	if s != nil {
+		uc.SetCategory(*s)
+	}
+	return uc
+}
+
+// SetDateOfEmployment sets the "date_of_employment" field.
+func (uc *UserCreate) SetDateOfEmployment(t time.Time) *UserCreate {
+	uc.mutation.SetDateOfEmployment(t)
+	return uc
+}
+
+// SetNillableDateOfEmployment sets the "date_of_employment" field if the given value is not nil.
+func (uc *UserCreate) SetNillableDateOfEmployment(t *time.Time) *UserCreate {
+	if t != nil {
+		uc.SetDateOfEmployment(*t)
+	}
+	return uc
+}
+
+// SetUnemploymentDate sets the "unemployment_date" field.
+func (uc *UserCreate) SetUnemploymentDate(t time.Time) *UserCreate {
+	uc.mutation.SetUnemploymentDate(t)
+	return uc
+}
+
+// SetNillableUnemploymentDate sets the "unemployment_date" field if the given value is not nil.
+func (uc *UserCreate) SetNillableUnemploymentDate(t *time.Time) *UserCreate {
+	if t != nil {
+		uc.SetUnemploymentDate(*t)
+	}
+	return uc
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (uc *UserCreate) SetCreatedAt(t time.Time) *UserCreate {
+	uc.mutation.SetCreatedAt(t)
+	return uc
+}
+
+// SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
+func (uc *UserCreate) SetNillableCreatedAt(t *time.Time) *UserCreate {
+	if t != nil {
+		uc.SetCreatedAt(*t)
+	}
+	return uc
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (uc *UserCreate) SetUpdatedAt(t time.Time) *UserCreate {
+	uc.mutation.SetUpdatedAt(t)
+	return uc
+}
+
+// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
+func (uc *UserCreate) SetNillableUpdatedAt(t *time.Time) *UserCreate {
+	if t != nil {
+		uc.SetUpdatedAt(*t)
+	}
 	return uc
 }
 
@@ -225,6 +409,38 @@ func (uc *UserCreate) defaults() {
 		v := user.DefaultSuspended
 		uc.mutation.SetSuspended(v)
 	}
+	if _, ok := uc.mutation.Subdivision(); !ok {
+		v := user.DefaultSubdivision
+		uc.mutation.SetSubdivision(v)
+	}
+	if _, ok := uc.mutation.JobTitle(); !ok {
+		v := user.DefaultJobTitle
+		uc.mutation.SetJobTitle(v)
+	}
+	if _, ok := uc.mutation.EmploymentRate(); !ok {
+		v := user.DefaultEmploymentRate
+		uc.mutation.SetEmploymentRate(v)
+	}
+	if _, ok := uc.mutation.PersonnelCategory(); !ok {
+		v := user.DefaultPersonnelCategory
+		uc.mutation.SetPersonnelCategory(v)
+	}
+	if _, ok := uc.mutation.EmploymentType(); !ok {
+		v := user.DefaultEmploymentType
+		uc.mutation.SetEmploymentType(v)
+	}
+	if _, ok := uc.mutation.DateOfEmployment(); !ok {
+		v := user.DefaultDateOfEmployment()
+		uc.mutation.SetDateOfEmployment(v)
+	}
+	if _, ok := uc.mutation.CreatedAt(); !ok {
+		v := user.DefaultCreatedAt()
+		uc.mutation.SetCreatedAt(v)
+	}
+	if _, ok := uc.mutation.UpdatedAt(); !ok {
+		v := user.DefaultUpdatedAt()
+		uc.mutation.SetUpdatedAt(v)
+	}
 	if _, ok := uc.mutation.ID(); !ok {
 		v := user.DefaultID()
 		uc.mutation.SetID(v)
@@ -247,6 +463,30 @@ func (uc *UserCreate) check() error {
 	}
 	if _, ok := uc.mutation.RoleID(); !ok {
 		return &ValidationError{Name: "role_id", err: errors.New(`ent: missing required field "User.role_id"`)}
+	}
+	if _, ok := uc.mutation.Subdivision(); !ok {
+		return &ValidationError{Name: "subdivision", err: errors.New(`ent: missing required field "User.subdivision"`)}
+	}
+	if _, ok := uc.mutation.JobTitle(); !ok {
+		return &ValidationError{Name: "job_title", err: errors.New(`ent: missing required field "User.job_title"`)}
+	}
+	if _, ok := uc.mutation.EmploymentRate(); !ok {
+		return &ValidationError{Name: "employment_rate", err: errors.New(`ent: missing required field "User.employment_rate"`)}
+	}
+	if _, ok := uc.mutation.PersonnelCategory(); !ok {
+		return &ValidationError{Name: "personnel_category", err: errors.New(`ent: missing required field "User.personnel_category"`)}
+	}
+	if _, ok := uc.mutation.EmploymentType(); !ok {
+		return &ValidationError{Name: "employment_type", err: errors.New(`ent: missing required field "User.employment_type"`)}
+	}
+	if _, ok := uc.mutation.DateOfEmployment(); !ok {
+		return &ValidationError{Name: "date_of_employment", err: errors.New(`ent: missing required field "User.date_of_employment"`)}
+	}
+	if _, ok := uc.mutation.CreatedAt(); !ok {
+		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "User.created_at"`)}
+	}
+	if _, ok := uc.mutation.UpdatedAt(); !ok {
+		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "User.updated_at"`)}
 	}
 	return nil
 }
@@ -306,6 +546,58 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 	if value, ok := uc.mutation.RoleID(); ok {
 		_spec.SetField(user.FieldRoleID, field.TypeInt32, value)
 		_node.RoleID = value
+	}
+	if value, ok := uc.mutation.Subdivision(); ok {
+		_spec.SetField(user.FieldSubdivision, field.TypeString, value)
+		_node.Subdivision = value
+	}
+	if value, ok := uc.mutation.JobTitle(); ok {
+		_spec.SetField(user.FieldJobTitle, field.TypeString, value)
+		_node.JobTitle = value
+	}
+	if value, ok := uc.mutation.EmploymentRate(); ok {
+		_spec.SetField(user.FieldEmploymentRate, field.TypeFloat64, value)
+		_node.EmploymentRate = value
+	}
+	if value, ok := uc.mutation.AcademicDegree(); ok {
+		_spec.SetField(user.FieldAcademicDegree, field.TypeInt, value)
+		_node.AcademicDegree = value
+	}
+	if value, ok := uc.mutation.PersonnelCategory(); ok {
+		_spec.SetField(user.FieldPersonnelCategory, field.TypeInt, value)
+		_node.PersonnelCategory = value
+	}
+	if value, ok := uc.mutation.EmploymentType(); ok {
+		_spec.SetField(user.FieldEmploymentType, field.TypeInt, value)
+		_node.EmploymentType = value
+	}
+	if value, ok := uc.mutation.AcademicTitle(); ok {
+		_spec.SetField(user.FieldAcademicTitle, field.TypeString, value)
+		_node.AcademicTitle = value
+	}
+	if value, ok := uc.mutation.Honors(); ok {
+		_spec.SetField(user.FieldHonors, field.TypeString, value)
+		_node.Honors = value
+	}
+	if value, ok := uc.mutation.Category(); ok {
+		_spec.SetField(user.FieldCategory, field.TypeString, value)
+		_node.Category = value
+	}
+	if value, ok := uc.mutation.DateOfEmployment(); ok {
+		_spec.SetField(user.FieldDateOfEmployment, field.TypeTime, value)
+		_node.DateOfEmployment = value
+	}
+	if value, ok := uc.mutation.UnemploymentDate(); ok {
+		_spec.SetField(user.FieldUnemploymentDate, field.TypeTime, value)
+		_node.UnemploymentDate = value
+	}
+	if value, ok := uc.mutation.CreatedAt(); ok {
+		_spec.SetField(user.FieldCreatedAt, field.TypeTime, value)
+		_node.CreatedAt = value
+	}
+	if value, ok := uc.mutation.UpdatedAt(); ok {
+		_spec.SetField(user.FieldUpdatedAt, field.TypeTime, value)
+		_node.UpdatedAt = value
 	}
 	if nodes := uc.mutation.DepartmentIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

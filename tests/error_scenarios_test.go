@@ -45,12 +45,7 @@ func TestAuthorizationErrors(t *testing.T) {
 	adminClient.SetToken(adminToken)
 
 	// Create a test user
-	userData := CreateUserRequest{
-		FirstName:  "Test",
-		LastName:   "User",
-		MiddleName: "",
-		RoleID:     2, // Regular user role
-	}
+	userData := CreateValidUserData("Test", "User", 2)
 
 	user, err := adminClient.CreateUser(ctx, userData)
 	require.NoError(t, err)
@@ -94,10 +89,7 @@ func TestValidationErrors(t *testing.T) {
 	client.SetToken(adminToken)
 
 	// Test creating user with empty required fields
-	emptyUser := CreateUserRequest{
-		FirstName: "",
-		LastName:  "",
-	}
+	emptyUser := CreateValidUserData("", "", 2)
 	_, err = client.CreateUser(ctx, emptyUser)
 	require.Error(t, err)
 	assert.Contains(t, strings.ToLower(err.Error()), "invalid")
@@ -113,11 +105,12 @@ func TestValidationErrors(t *testing.T) {
 
 	// Test registering user with short password
 	randomSuffix := uuid.Must(uuid.NewV7()).String()
-	validUser, err := client.CreateUser(ctx, CreateUserRequest{
-		FirstName: fmt.Sprintf("Valid_%s", randomSuffix),
-		LastName:  fmt.Sprintf("User_%s", randomSuffix),
-		RoleID:    2,
-	})
+	validUserData := CreateValidUserData(
+		fmt.Sprintf("Valid_%s", randomSuffix),
+		fmt.Sprintf("User_%s", randomSuffix),
+		2,
+	)
+	validUser, err := client.CreateUser(ctx, validUserData)
 	require.NoError(t, err)
 
 	// Test user registration with weak password
@@ -223,10 +216,7 @@ func TestUserCRUDErrorScenarios(t *testing.T) {
 	client.SetToken(adminToken)
 
 	// Test creating user with empty required fields
-	emptyUser := CreateUserRequest{
-		FirstName: "",
-		LastName:  "",
-	}
+	emptyUser := CreateValidUserData("", "", 2)
 	_, err = client.CreateUser(ctx, emptyUser)
 	require.Error(t, err)
 	assert.Contains(t, strings.ToLower(err.Error()), "invalid")
@@ -242,11 +232,12 @@ func TestUserCRUDErrorScenarios(t *testing.T) {
 
 	// Test registering user with short password
 	randomSuffix := uuid.Must(uuid.NewV7()).String()
-	validUser, err := client.CreateUser(ctx, CreateUserRequest{
-		FirstName: fmt.Sprintf("Valid_%s", randomSuffix),
-		LastName:  fmt.Sprintf("User_%s", randomSuffix),
-		RoleID:    2,
-	})
+	validUserData := CreateValidUserData(
+		fmt.Sprintf("Valid_%s", randomSuffix),
+		fmt.Sprintf("User_%s", randomSuffix),
+		2,
+	)
+	validUser, err := client.CreateUser(ctx, validUserData)
 	require.NoError(t, err)
 
 	// Test user registration with weak password
@@ -273,12 +264,7 @@ func TestRegisterUserErrorScenarios(t *testing.T) {
 	client.SetToken(adminToken)
 
 	// Create a test user
-	userData := CreateUserRequest{
-		FirstName:  "Test",
-		LastName:   "User",
-		MiddleName: "",
-		RoleID:     2, // Regular user role
-	}
+	userData := CreateValidUserData("Test", "User", 2)
 
 	user, err := client.CreateUser(ctx, userData)
 	require.NoError(t, err)

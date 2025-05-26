@@ -1,0 +1,724 @@
+"use client";
+
+import { useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { format } from "date-fns";
+import { ru } from "date-fns/locale";
+import { cn } from "@/lib/utils";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Separator } from "@/components/ui/separator";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { CalendarIcon } from "lucide-react";
+import { toast } from "sonner";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  getRolesOptions,
+  getDepartmentsOptions,
+  getUsersOptions,
+  postUsersMutation,
+  patchUsersByIdMutation,
+} from "@/lib/api/@tanstack/react-query.gen";
+import { AxiosError } from "axios";
+import type {
+  PostUsersError,
+  PatchUsersByIdError,
+  ApiUserResponse,
+  ApiCreateUserRequest,
+  ApiPatchUserRequest,
+} from "@/lib/api/types.gen";
+import { ErrorMessage } from "@/components/ui/error-message";
+import { useFormError } from "@/hooks/use-error-handler";
+import { getErrorMessage } from "@/lib/error-handler";
+
+const userFormSchema = z.object({
+  firstName: z.string().min(1, "Введите имя"),
+  lastName: z.string().min(1, "Введите фамилию"),
+  middleName: z.string().optional(),
+  roleId: z.number().int().positive("Выберите роль"),
+  departmentId: z.string().optional(),
+  pictureUrl: z.string().optional(),
+  suspended: z.boolean(),
+  
+  // Additional fields
+  subdivision: z.string().min(1, "Введите подразделение"),
+  jobTitle: z.string().min(1, "Введите должность"),
+  employmentRate: z.number().min(0, "Ставка должна быть положительным числом").max(2, "Ставка не может быть больше 2"),
+  academicDegree: z.number().int().optional(),
+  personnelCategory: z.number().int().min(1, "Выберите категорию персонала"),
+  employmentType: z.number().int().min(1, "Выберите тип занятости"),
+  academicTitle: z.string().optional(),
+  honors: z.string().optional(),
+  category: z.string().optional(),
+  dateOfEmployment: z.date({required_error: "Выберите дату приема на работу"}),
+  unemploymentDate: z.date().optional().nullable(),
+});
+
+type UserFormValues = z.infer<typeof userFormSchema>;
+
+interface UserFormDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  user?: ApiUserResponse;
+  onSuccess?: () => void;
+}
+
+export function UserFormDialog({
+  open,
+  onOpenChange,
+  user,
+  onSuccess,
+}: UserFormDialogProps) {
+  const rolesOpt = getRolesOptions();
+  const departmentsOpt = getDepartmentsOptions();
+  const usersOpt = getUsersOptions();
+
+  const { data: rolesData } = useQuery(rolesOpt);
+  const { data: departmentsData } = useQuery(departmentsOpt);
+
+  const { formError, clearFormError, handleFormError } = useFormError();
+  const queryClient = useQueryClient();
+
+  const form = useForm<UserFormValues>({
+    resolver: zodResolver(userFormSchema),
+    defaultValues: {
+      firstName: "",
+      lastName: "",
+      middleName: "",
+      roleId: 0,
+      departmentId: "",
+      pictureUrl: "",
+      suspended: false,
+      subdivision: "",
+      jobTitle: "",
+      employmentRate: 1.0,
+      academicDegree: 0,
+      personnelCategory: 1,
+      employmentType: 1,
+      academicTitle: "",
+      honors: "",
+      category: "",
+      dateOfEmployment: new Date(),
+      unemploymentDate: null,
+    },
+  });
+
+  // Create new user mutation
+  const createUserMutation = useMutation({
+    ...postUsersMutation(),
+    onSuccess: () => {
+      toast("Пользователь создан", {
+        description: "Новый пользователь успешно создан.",
+      });
+      queryClient.invalidateQueries({ queryKey: usersOpt.queryKey });
+      onOpenChange(false);
+      if (onSuccess) onSuccess();
+    },
+    onError: (err: AxiosError<PostUsersError>) => {
+      handleFormError(err);
+      toast.error("Ошибка", {
+        description: getErrorMessage(err),
+      });
+    },
+  });
+
+  // Update existing user mutation
+  const updateUserMutation = useMutation({
+    ...patchUsersByIdMutation(),
+    onSuccess: () => {
+      toast("Пользователь обновлен", {
+        description: "Данные пользователя успешно обновлены.",
+      });
+      queryClient.invalidateQueries({ queryKey: usersOpt.queryKey });
+      onOpenChange(false);
+      if (onSuccess) onSuccess();
+    },
+    onError: (err: AxiosError<PatchUsersByIdError>) => {
+      handleFormError(err);
+      toast.error("Ошибка", {
+        description: getErrorMessage(err),
+      });
+    },
+  });
+
+  // Set form values when editing an existing user
+  useEffect(() => {
+    if (user) {
+      form.reset({
+        firstName: user.firstName,
+        lastName: user.lastName,
+        middleName: user.middleName || "",
+        roleId: user.role.id,
+        departmentId: user.department?.id || "",
+        pictureUrl: user.pictureUrl || "",
+        suspended: user.suspended,
+        subdivision: user.subdivision || "",
+        jobTitle: user.jobTitle || "",
+        employmentRate: user.employmentRate || 1.0,
+        academicDegree: user.academicDegree || 0,
+        personnelCategory: user.personnelCategory || 1,
+        employmentType: user.employmentType || 1,
+        academicTitle: user.academicTitle || "",
+        honors: user.honors || "",
+        category: user.category || "",
+        dateOfEmployment: user.dateOfEmployment ? new Date(user.dateOfEmployment) : new Date(),
+        unemploymentDate: user.unemploymentDate ? new Date(user.unemploymentDate) : null,
+      });
+    } else {
+      form.reset({
+        firstName: "",
+        lastName: "",
+        middleName: "",
+        roleId: 0,
+        departmentId: "",
+        pictureUrl: "",
+        suspended: false,
+        subdivision: "",
+        jobTitle: "",
+        employmentRate: 1.0,
+        academicDegree: 0,
+        personnelCategory: 1,
+        employmentType: 1,
+        academicTitle: "",
+        honors: "",
+        category: "",
+        dateOfEmployment: new Date(),
+        unemploymentDate: null,
+      });
+    }
+    clearFormError();
+  }, [user, form, clearFormError]);
+
+  const handleSubmit = (values: UserFormValues) => {
+    clearFormError();
+
+    if (user) {
+      // Update existing user
+      updateUserMutation.mutate({
+        path: {
+          id: user.id,
+        },
+        body: {
+          firstName: values.firstName,
+          lastName: values.lastName,
+          middleName: values.middleName,
+          departmentId: values.departmentId || undefined,
+          pictureUrl: values.pictureUrl || undefined,
+          roleId: values.roleId,
+          suspended: values.suspended,
+          subdivision: values.subdivision,
+          jobTitle: values.jobTitle,
+          employmentRate: values.employmentRate,
+          academicDegree: values.academicDegree,
+          personnelCategory: values.personnelCategory,
+          employmentType: values.employmentType,
+          academicTitle: values.academicTitle || undefined,
+          honors: values.honors || undefined,
+          category: values.category || undefined,
+          dateOfEmployment: values.dateOfEmployment,
+          unemploymentDate: values.unemploymentDate || undefined,
+        },
+      });
+    } else {
+      // Create new user
+      createUserMutation.mutate({
+        body: {
+          firstName: values.firstName,
+          lastName: values.lastName,
+          middleName: values.middleName,
+          departmentId: values.departmentId || undefined,
+          pictureUrl: values.pictureUrl || undefined,
+          roleId: values.roleId,
+          subdivision: values.subdivision,
+          jobTitle: values.jobTitle,
+          employmentRate: values.employmentRate,
+          academicDegree: values.academicDegree,
+          personnelCategory: values.personnelCategory,
+          employmentType: values.employmentType,
+          academicTitle: values.academicTitle || undefined,
+          honors: values.honors || undefined,
+          category: values.category || undefined,
+          dateOfEmployment: values.dateOfEmployment,
+          unemploymentDate: values.unemploymentDate || undefined,
+        },
+      });
+    }
+  };
+
+  const isLoading =
+    createUserMutation.isPending || updateUserMutation.isPending;
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-[500px]">
+        <DialogHeader>
+          <DialogTitle>
+            {user ? "Редактировать пользователя" : "Создать пользователя"}
+          </DialogTitle>
+          <DialogDescription>
+            {user
+              ? "Измените данные пользователя и нажмите сохранить."
+              : "Заполните данные нового пользователя."}
+          </DialogDescription>
+        </DialogHeader>
+
+        {formError && <ErrorMessage error={formError} className="mb-4" />}
+
+        <Form {...form}>
+          <form
+            onSubmit={form.handleSubmit(handleSubmit)}
+            className="space-y-4"
+          >
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="lastName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Фамилия</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Фамилия" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="firstName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Имя</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Имя" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <FormField
+              control={form.control}
+              name="middleName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Отчество (необязательно)</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Отчество" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="roleId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Роль</FormLabel>
+                  <Select
+                    onValueChange={(value) => field.onChange(parseInt(value))}
+                    value={field.value ? field.value.toString() : undefined}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Выберите роль" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {rolesData?.roles?.map((role) => (
+                        <SelectItem key={role.id} value={role.id.toString()}>
+                          {role.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="departmentId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Кафедра (необязательно)</FormLabel>
+                  <Select
+                    onValueChange={(value) =>
+                      field.onChange(value === "none" ? "" : value)
+                    }
+                    value={!field.value ? "none" : field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Выберите кафедру" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="none">Нет кафедры</SelectItem>
+                      {departmentsData?.departments.map((dept) => (
+                        <SelectItem key={dept.id} value={dept.id}>
+                          {dept.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="pictureUrl"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>URL изображения (необязательно)</FormLabel>
+                  <FormControl>
+                    <Input placeholder="URL изображения" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {user && (
+              <FormField
+                control={form.control}
+                name="suspended"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                    <FormControl>
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                    <div className="space-y-1 leading-none">
+                      <FormLabel>Заблокирован</FormLabel>
+                    </div>
+                  </FormItem>
+                )}
+              />
+            )}
+
+            {/* Additional fields */}
+            <div className="space-y-4 mt-6">
+              <h3 className="text-lg font-medium">Дополнительная информация</h3>
+              <Separator />
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="subdivision"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Подразделение</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Подразделение" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="jobTitle"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Должность</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Должность" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="employmentRate"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Ставка</FormLabel>
+                      <FormControl>
+                        <Input 
+                          type="number" 
+                          step="0.1" 
+                          min="0" 
+                          max="2" 
+                          placeholder="1.0" 
+                          {...field} 
+                          onChange={(e) => field.onChange(parseFloat(e.target.value))}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="academicDegree"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Ученая степень</FormLabel>
+                      <Select
+                        onValueChange={(value) => field.onChange(parseInt(value))}
+                        value={field.value ? field.value.toString() : "0"}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Выберите ученую степень" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="0">Нет</SelectItem>
+                          <SelectItem value="1">Кандидат наук</SelectItem>
+                          <SelectItem value="2">Доктор наук</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="personnelCategory"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Категория персонала</FormLabel>
+                      <Select
+                        onValueChange={(value) => field.onChange(parseInt(value))}
+                        value={field.value ? field.value.toString() : "1"}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Выберите категорию" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="1">Преподавательский состав</SelectItem>
+                          <SelectItem value="2">Административный персонал</SelectItem>
+                          <SelectItem value="3">Технический персонал</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="employmentType"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Тип занятости</FormLabel>
+                      <Select
+                        onValueChange={(value) => field.onChange(parseInt(value))}
+                        value={field.value ? field.value.toString() : "1"}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Выберите тип занятости" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="1">Полная</SelectItem>
+                          <SelectItem value="2">Частичная</SelectItem>
+                          <SelectItem value="3">По совместительству</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="academicTitle"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Ученое звание (необязательно)</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Ученое звание" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="honors"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Почетные звания (необязательно)</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Почетные звания" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <FormField
+                control={form.control}
+                name="category"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Категория (необязательно)</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Категория" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="dateOfEmployment"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col">
+                      <FormLabel>Дата приема на работу</FormLabel>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <Button
+                              variant={"outline"}
+                              className={cn(
+                                "w-full pl-3 text-left font-normal",
+                                !field.value && "text-muted-foreground"
+                              )}
+                            >
+                              {field.value ? (
+                                format(field.value, "PPP", { locale: ru })
+                              ) : (
+                                <span>Выберите дату</span>
+                              )}
+                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                            </Button>
+                          </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={field.value}
+                            onSelect={field.onChange}
+                            disabled={(date) =>
+                              date > new Date() || date < new Date("1900-01-01")
+                            }
+                            initialFocus
+                          />
+                        </PopoverContent>
+                      </Popover>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="unemploymentDate"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col">
+                      <FormLabel>Дата увольнения (необязательно)</FormLabel>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <Button
+                              variant={"outline"}
+                              className={cn(
+                                "w-full pl-3 text-left font-normal",
+                                !field.value && "text-muted-foreground"
+                              )}
+                            >
+                              {field.value ? (
+                                format(field.value, "PPP", { locale: ru })
+                              ) : (
+                                <span>Выберите дату</span>
+                              )}
+                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                            </Button>
+                          </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={field.value || undefined}
+                            onSelect={field.onChange}
+                            disabled={(date) =>
+                              date < (form.getValues("dateOfEmployment") || new Date("1900-01-01"))
+                            }
+                            initialFocus
+                          />
+                        </PopoverContent>
+                      </Popover>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </div>
+
+            <DialogFooter className="mt-6">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => onOpenChange(false)}
+                disabled={isLoading}
+              >
+                Отмена
+              </Button>
+              <Button type="submit" disabled={isLoading}>
+                {isLoading ? "Сохранение..." : "Сохранить"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </Form>
+      </DialogContent>
+    </Dialog>
+  );
+}

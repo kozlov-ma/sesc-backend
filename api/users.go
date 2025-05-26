@@ -3,6 +3,7 @@ package api
 import (
 	"encoding/json"
 	"net/http"
+	"time"
 
 	"github.com/gofrs/uuid/v5"
 	"github.com/kozlov-ma/sesc-backend/pkg/event"
@@ -19,6 +20,19 @@ type UserResponse struct {
 	Role       Role       `json:"role"                                                               validate:"required"`
 	Suspended  bool       `json:"suspended"                                                          validate:"required"`
 	Department Department `json:"department,omitzero"`
+
+	Subdivision       string  `json:"subdivision"       example:"Кафедра информатики"       validate:"required"`
+	JobTitle          string  `json:"jobTitle"          example:"Профессор"                 validate:"required"`
+	EmploymentRate    float64 `json:"employmentRate"    example:"1.0"                       validate:"required"`
+	AcademicDegree    int     `json:"academicDegree"    example:"2"`
+	PersonnelCategory int     `json:"personnelCategory" example:"1"                         validate:"required"`
+	EmploymentType    int     `json:"employmentType"    example:"1"                         validate:"required"`
+	AcademicTitle     string  `json:"academicTitle"     example:"Профессор"`
+	Honors            string  `json:"honors"            example:"Заслуженный деятель науки"`
+	Category          string  `json:"category"          example:"Высшая"`
+
+	DateOfEmployment time.Time `json:"dateOfEmployment,omitzero" example:"2020-01-15T00:00:00Z" validate:"required"`
+	UnemploymentDate time.Time `json:"unemploymentDate,omitzero" example:"2023-12-31T00:00:00Z"`
 }
 
 type CreateUserRequest struct {
@@ -28,6 +42,19 @@ type CreateUserRequest struct {
 	RoleID       int32     `json:"roleId"                example:"2"                                    validate:"required"`
 	PictureURL   string    `json:"pictureUrl,omitzero"   example:"/images/users/ivan.jpg"`
 	DepartmentID uuid.UUID `json:"departmentId,omitzero" example:"550e8400-e29b-41d4-a716-446655440000"`
+
+	Subdivision       string  `json:"subdivision"            example:"Кафедра информатики"       validate:"required"`
+	JobTitle          string  `json:"jobTitle"               example:"Профессор"                 validate:"required"`
+	EmploymentRate    float64 `json:"employmentRate"         example:"1.0"                       validate:"required"`
+	AcademicDegree    int     `json:"academicDegree"         example:"2"`
+	PersonnelCategory int     `json:"personnelCategory"      example:"1"                         validate:"required"`
+	EmploymentType    int     `json:"employmentType"         example:"1"                         validate:"required"`
+	AcademicTitle     string  `json:"academicTitle,omitzero" example:"Профессор"`
+	Honors            string  `json:"honors,omitzero"        example:"Заслуженный деятель науки"`
+	Category          string  `json:"category,omitzero"      example:"Высшая"`
+
+	DateOfEmployment time.Time `json:"dateOfEmployment,omitzero" example:"2020-01-15T00:00:00Z" validate:"required"`
+	UnemploymentDate time.Time `json:"unemploymentDate,omitzero" example:"2023-12-31T00:00:00Z"`
 }
 
 // GetUser godoc
@@ -68,14 +95,25 @@ func (a *API) GetUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	a.writeJSON(ctx, w, UserResponse{
-		ID:         user.ID,
-		FirstName:  user.FirstName,
-		LastName:   user.LastName,
-		MiddleName: user.MiddleName,
-		PictureURL: user.PictureURL,
-		Role:       convertRole(user.Role),
-		Department: convertDepartment(user.Department),
-		Suspended:  user.Suspended,
+		ID:                user.ID,
+		FirstName:         user.FirstName,
+		LastName:          user.LastName,
+		MiddleName:        user.MiddleName,
+		PictureURL:        user.PictureURL,
+		Role:              convertRole(user.Role),
+		Department:        convertDepartment(user.Department),
+		Suspended:         user.Suspended,
+		Subdivision:       user.Subdivision,
+		JobTitle:          user.JobTitle,
+		EmploymentRate:    user.EmploymentRate,
+		AcademicDegree:    int(user.AcademicDegree),
+		PersonnelCategory: int(user.PersonnelCategory),
+		EmploymentType:    int(user.EmploymentType),
+		AcademicTitle:     user.AcademicTitle,
+		Honors:            user.Honors,
+		Category:          user.Category,
+		DateOfEmployment:  user.DateOfEmployment,
+		UnemploymentDate:  user.UnemploymentDate,
 	}, http.StatusOK)
 }
 
@@ -142,12 +180,23 @@ func (a *API) CreateUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	user, err := a.sesc.CreateUser(ctx, sesc.UserUpdateOptions{
-		FirstName:    req.FirstName,
-		LastName:     req.LastName,
-		MiddleName:   req.MiddleName,
-		PictureURL:   req.PictureURL,
-		DepartmentID: req.DepartmentID,
-		NewRoleID:    req.RoleID,
+		FirstName:         req.FirstName,
+		LastName:          req.LastName,
+		MiddleName:        req.MiddleName,
+		PictureURL:        req.PictureURL,
+		DepartmentID:      req.DepartmentID,
+		NewRoleID:         req.RoleID,
+		Subdivision:       req.Subdivision,
+		JobTitle:          req.JobTitle,
+		EmploymentRate:    req.EmploymentRate,
+		AcademicDegree:    sesc.AcademicDegree(req.AcademicDegree),
+		PersonnelCategory: sesc.PersonnelCategory(req.PersonnelCategory),
+		EmploymentType:    sesc.EmploymentType(req.EmploymentType),
+		AcademicTitle:     req.AcademicTitle,
+		Honors:            req.Honors,
+		Category:          req.Category,
+		DateOfEmployment:  req.DateOfEmployment,
+		UnemploymentDate:  req.UnemploymentDate,
 	})
 
 	if err != nil {
@@ -157,12 +206,25 @@ func (a *API) CreateUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	a.writeJSON(ctx, w, UserResponse{
-		ID:         user.ID,
-		FirstName:  user.FirstName,
-		LastName:   user.LastName,
-		MiddleName: user.MiddleName,
-		PictureURL: user.PictureURL,
-		Role:       convertRole(user.Role),
+		ID:                user.ID,
+		FirstName:         user.FirstName,
+		LastName:          user.LastName,
+		MiddleName:        user.MiddleName,
+		PictureURL:        user.PictureURL,
+		Role:              convertRole(user.Role),
+		Department:        convertDepartment(user.Department),
+		Suspended:         user.Suspended,
+		Subdivision:       user.Subdivision,
+		JobTitle:          user.JobTitle,
+		EmploymentRate:    user.EmploymentRate,
+		AcademicDegree:    int(user.AcademicDegree),
+		PersonnelCategory: int(user.PersonnelCategory),
+		EmploymentType:    int(user.EmploymentType),
+		AcademicTitle:     user.AcademicTitle,
+		Honors:            user.Honors,
+		Category:          user.Category,
+		DateOfEmployment:  user.DateOfEmployment,
+		UnemploymentDate:  user.UnemploymentDate,
 	}, http.StatusCreated)
 }
 
@@ -177,6 +239,89 @@ type PatchUserRequest struct {
 	Suspended    *bool      `json:"suspended,omitzero"    example:"false"                                validate:"required"`
 	DepartmentID *uuid.UUID `json:"departmentId,omitzero" example:"550e8400-e29b-41d4-a716-446655440000"`
 	RoleID       *int32     `json:"roleId,omitzero"       example:"1"                                    validate:"required"`
+
+	Subdivision       *string  `json:"subdivision,omitzero"       example:"Кафедра информатики"`
+	JobTitle          *string  `json:"jobTitle,omitzero"          example:"Профессор"`
+	EmploymentRate    *float64 `json:"employmentRate,omitzero"    example:"1.0"`
+	AcademicDegree    *int     `json:"academicDegree,omitzero"    example:"2"`
+	PersonnelCategory *int     `json:"personnelCategory,omitzero" example:"1"`
+	EmploymentType    *int     `json:"employmentType,omitzero"    example:"1"`
+	AcademicTitle     *string  `json:"academicTitle,omitzero"     example:"Профессор"`
+	Honors            *string  `json:"honors,omitzero"            example:"Заслуженный деятель науки"`
+	Category          *string  `json:"category,omitzero"          example:"Высшая"`
+
+	DateOfEmployment *time.Time `json:"dateOfEmployment,omitzero" example:"2020-01-15T00:00:00Z"`
+	UnemploymentDate *time.Time `json:"unemploymentDate,omitzero" example:"2023-12-31T00:00:00Z"`
+}
+
+// validateDepartmentAssignment validates that department can be assigned to the role
+func (a *API) validateDepartmentAssignment(req *PatchUserRequest, existing sesc.User) bool {
+	if req.DepartmentID == nil {
+		return true
+	}
+
+	newRoleIsBad := (req.RoleID != nil && *req.RoleID != sesc.Teacher.ID && *req.RoleID != sesc.Dephead.ID)
+	noNewRoleAndOldIsBad := (req.RoleID == nil && existing.Role.ID != sesc.Teacher.ID && existing.Role.ID != sesc.Dephead.ID)
+
+	return !newRoleIsBad && !noNewRoleAndOldIsBad
+}
+
+// applyPatchUserRequest applies the patch request to the user update options
+func (a *API) applyPatchUserRequest(req *PatchUserRequest, upd *sesc.UserUpdateOptions) {
+	if req.FirstName != nil {
+		upd.FirstName = *req.FirstName
+	}
+	if req.LastName != nil {
+		upd.LastName = *req.LastName
+	}
+	if req.MiddleName != nil {
+		upd.MiddleName = *req.MiddleName
+	}
+	if req.PictureURL != nil {
+		upd.PictureURL = *req.PictureURL
+	}
+	if req.Suspended != nil {
+		upd.Suspended = *req.Suspended
+	}
+	if req.DepartmentID != nil {
+		upd.DepartmentID = *req.DepartmentID
+	}
+	if req.RoleID != nil {
+		upd.NewRoleID = *req.RoleID
+	}
+	if req.Subdivision != nil {
+		upd.Subdivision = *req.Subdivision
+	}
+	if req.JobTitle != nil {
+		upd.JobTitle = *req.JobTitle
+	}
+	if req.EmploymentRate != nil {
+		upd.EmploymentRate = *req.EmploymentRate
+	}
+	if req.AcademicDegree != nil {
+		upd.AcademicDegree = sesc.AcademicDegree(*req.AcademicDegree)
+	}
+	if req.PersonnelCategory != nil {
+		upd.PersonnelCategory = sesc.PersonnelCategory(*req.PersonnelCategory)
+	}
+	if req.EmploymentType != nil {
+		upd.EmploymentType = sesc.EmploymentType(*req.EmploymentType)
+	}
+	if req.AcademicTitle != nil {
+		upd.AcademicTitle = *req.AcademicTitle
+	}
+	if req.Honors != nil {
+		upd.Honors = *req.Honors
+	}
+	if req.Category != nil {
+		upd.Category = *req.Category
+	}
+	if req.DateOfEmployment != nil {
+		upd.DateOfEmployment = *req.DateOfEmployment
+	}
+	if req.UnemploymentDate != nil {
+		upd.UnemploymentDate = *req.UnemploymentDate
+	}
 }
 
 // PatchUser godoc
@@ -228,39 +373,17 @@ func (a *API) PatchUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	upd := existing.UpdateOptions()
-	if req.FirstName != nil {
-		upd.FirstName = *req.FirstName
+	if !a.validateDepartmentAssignment(&req, existing) {
+		writeError(ctx, w, InvalidRoleError{
+			Code:      "INVALID_ROLE",
+			Message:   "Unable to assign department to selected role",
+			RuMessage: "Нельзя указать департамент для выбранной роли",
+		}.WithStatus(http.StatusBadRequest))
+		return
 	}
-	if req.LastName != nil {
-		upd.LastName = *req.LastName
-	}
-	if req.MiddleName != nil {
-		upd.MiddleName = *req.MiddleName
-	}
-	if req.PictureURL != nil {
-		upd.PictureURL = *req.PictureURL
-	}
-	if req.Suspended != nil {
-		upd.Suspended = *req.Suspended
-	}
-	if req.DepartmentID != nil {
-		newRoleIsBad := (req.RoleID != nil && *req.RoleID != sesc.Teacher.ID && *req.RoleID != sesc.Dephead.ID)
-		noNewRoleAndOldIsBad := (req.RoleID == nil && existing.Role.ID != sesc.Teacher.ID && existing.Role.ID != sesc.Dephead.ID)
-		if newRoleIsBad || noNewRoleAndOldIsBad {
-			writeError(ctx, w, InvalidRoleError{
-				Code:      "INVALID_ROLE",
-				Message:   "Unable to assign department to selected role",
-				RuMessage: "Нельзя указать департамент для выбранной роли",
-			}.WithStatus(http.StatusBadRequest))
-			return
-		}
 
-		upd.DepartmentID = *req.DepartmentID
-	}
-	if req.RoleID != nil {
-		upd.NewRoleID = *req.RoleID
-	}
+	upd := existing.UpdateOptions()
+	a.applyPatchUserRequest(&req, &upd)
 
 	updated, err := a.sesc.UpdateUser(ctx, userID, upd)
 	if err != nil {
@@ -269,28 +392,30 @@ func (a *API) PatchUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	a.writeJSON(ctx, w, UserResponse{
-		ID:         updated.ID,
-		FirstName:  updated.FirstName,
-		LastName:   updated.LastName,
-		MiddleName: updated.MiddleName,
-		PictureURL: updated.PictureURL,
-		Role:       convertRole(updated.Role),
-		Department: convertDepartment(updated.Department),
-		Suspended:  updated.Suspended,
-	}, http.StatusOK)
+	a.writeJSON(ctx, w, convertUser(updated), http.StatusOK)
 }
 
 func convertUser(user sesc.User) UserResponse {
 	return UserResponse{
-		ID:         user.ID,
-		FirstName:  user.FirstName,
-		LastName:   user.LastName,
-		MiddleName: user.MiddleName,
-		PictureURL: user.PictureURL,
-		Role:       convertRole(user.Role),
-		Department: convertDepartment(user.Department),
-		Suspended:  user.Suspended,
+		ID:                user.ID,
+		FirstName:         user.FirstName,
+		LastName:          user.LastName,
+		MiddleName:        user.MiddleName,
+		PictureURL:        user.PictureURL,
+		Role:              convertRole(user.Role),
+		Department:        convertDepartment(user.Department),
+		Suspended:         user.Suspended,
+		Subdivision:       user.Subdivision,
+		JobTitle:          user.JobTitle,
+		EmploymentRate:    user.EmploymentRate,
+		AcademicDegree:    int(user.AcademicDegree),
+		PersonnelCategory: int(user.PersonnelCategory),
+		EmploymentType:    int(user.EmploymentType),
+		AcademicTitle:     user.AcademicTitle,
+		Honors:            user.Honors,
+		Category:          user.Category,
+		DateOfEmployment:  user.DateOfEmployment,
+		UnemploymentDate:  user.UnemploymentDate,
 	}
 }
 
@@ -321,13 +446,24 @@ func (a *API) GetCurrentUser(w http.ResponseWriter, r *http.Request) {
 
 	// Return user data
 	a.writeJSON(ctx, w, UserResponse{
-		ID:         user.ID,
-		FirstName:  user.FirstName,
-		LastName:   user.LastName,
-		MiddleName: user.MiddleName,
-		PictureURL: user.PictureURL,
-		Role:       convertRole(user.Role),
-		Department: convertDepartment(user.Department),
-		Suspended:  user.Suspended,
+		ID:                user.ID,
+		FirstName:         user.FirstName,
+		LastName:          user.LastName,
+		MiddleName:        user.MiddleName,
+		PictureURL:        user.PictureURL,
+		Role:              convertRole(user.Role),
+		Department:        convertDepartment(user.Department),
+		Suspended:         user.Suspended,
+		Subdivision:       user.Subdivision,
+		JobTitle:          user.JobTitle,
+		EmploymentRate:    user.EmploymentRate,
+		AcademicDegree:    int(user.AcademicDegree),
+		PersonnelCategory: int(user.PersonnelCategory),
+		EmploymentType:    int(user.EmploymentType),
+		AcademicTitle:     user.AcademicTitle,
+		Honors:            user.Honors,
+		Category:          user.Category,
+		DateOfEmployment:  user.DateOfEmployment,
+		UnemploymentDate:  user.UnemploymentDate,
 	}, http.StatusOK)
 }
