@@ -2,12 +2,14 @@
 
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/auth-store";
-import type { ApiCredentialsRequest } from "@/lib/api";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { getUsersMe, type ApiCredentialsRequest } from "@/lib/api";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   postAuthLoginMutation,
   postAuthAdminLoginMutation,
   getAuthValidateOptions,
+  getUsersMeQueryKey,
+  getUsersMeOptions,
 } from "@/lib/api/@tanstack/react-query.gen";
 import type {
   ApiIdentityResponse,
@@ -17,6 +19,7 @@ import type {
 export function useAuth() {
   const { push } = useRouter();
   const { token, role, setAuth, clearAuth } = useAuthStore();
+  const queryClient = useQueryClient();
 
   const loginUserMutation = useMutation({
     ...postAuthLoginMutation(),
@@ -49,6 +52,7 @@ export function useAuth() {
   const logout = () => {
     clearAuth();
     push("/");
+    queryClient.invalidateQueries({ queryKey: getUsersMeOptions().queryKey });
   };
 
   const checkAuth = async () => {

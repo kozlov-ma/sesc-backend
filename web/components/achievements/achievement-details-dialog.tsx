@@ -20,6 +20,8 @@ import {
 } from "@/components/ui/table";
 import { getStatusBadgeVariant, getStatusLabel } from "./achievement-list";
 import { FileNameByIdDisplay } from "@/components/files/file-name-display";
+import { UserAvatar } from "@/components/ui/user-avatar";
+import Link from "next/link";
 
 interface AchievementDetailsDialogProps {
   achievement: ApiAchievementResponse | null;
@@ -38,7 +40,7 @@ export function AchievementDetailsDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-3xl">
         <DialogHeader>
-          <DialogTitle>Детали достижения</DialogTitle>
+          <DialogTitle>{achievement.templateName}</DialogTitle>
           <DialogDescription>
             Подробная информация о достижении
           </DialogDescription>
@@ -48,9 +50,15 @@ export function AchievementDetailsDialog({
           <div className="grid grid-cols-2 gap-4">
             <div>
               <h3 className="text-sm font-medium text-muted-foreground">
-                Шаблон
+                Преподаватель
               </h3>
-              <p className="text-base">{achievement.templateName}</p>
+              <Link href={`/u/users/${achievement.ownerId}`}>
+                <UserAvatar
+                  userId={achievement.ownerId}
+                  size="sm"
+                  className="text-sm"
+                />
+              </Link>
             </div>
             <div>
               <h3 className="text-sm font-medium text-muted-foreground">
@@ -130,13 +138,16 @@ export function AchievementDetailsDialog({
                     {achievement.reviews.map((review) => (
                       <TableRow key={review.id}>
                         <TableCell className="max-w-[200px]">
-                          <div className="truncate" title={review.reviewerName}>
-                            {review.reviewerName}
-                          </div>
+                          <Link href={`/u/users/${review.reviewerId}`}>
+                            <UserAvatar userId={review.reviewerId} size="sm" />
+                          </Link>
                         </TableCell>
                         <TableCell>{review.pointsAssigned}</TableCell>
                         <TableCell className="max-w-[200px]">
-                          <div className="truncate" title={review.comment || "-"}>
+                          <div
+                            className="truncate"
+                            title={review.comment || "-"}
+                          >
                             {review.comment || "-"}
                           </div>
                         </TableCell>

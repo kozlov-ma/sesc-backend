@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/table";
 import { FileNameByIdDisplay } from "@/components/files/file-name-display";
 import { ApiAchievementResponse } from "@/lib/api/types.gen";
+import { UserAvatar } from "@/components/ui/user-avatar";
 import {
   getStatusLabel,
   getStatusBadgeVariant,
@@ -44,6 +45,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import Link from "next/link";
 
 interface ReviewAchievementDialogProps {
   achievement: ApiAchievementResponse;
@@ -127,7 +129,11 @@ export function ReviewAchievementDialog({
               <h3 className="text-sm font-medium text-muted-foreground">
                 Владелец
               </h3>
-              <p className="text-base">{achievement.ownerName}</p>
+              <div className="mt-1">
+                <Link href={`/u/users/${achievement.ownerId}`}>
+                  <UserAvatar userId={achievement.ownerId} size="sm" />
+                </Link>
+              </div>
             </div>
           </div>
 
@@ -212,13 +218,15 @@ export function ReviewAchievementDialog({
           <AlertDialogHeader>
             <AlertDialogTitle>Подтверждение проверки</AlertDialogTitle>
             <AlertDialogDescription>
-              Вы уверены, что хотите проверить это достижение и назначить {points} баллов?
-              Это действие нельзя будет отменить.
+              Вы уверены, что хотите проверить это достижение и назначить{" "}
+              {points} баллов? Это действие нельзя будет отменить.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Отмена</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmReview}>Подтвердить</AlertDialogAction>
+            <AlertDialogAction onClick={confirmReview}>
+              Подтвердить
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

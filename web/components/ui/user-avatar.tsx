@@ -1,7 +1,12 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { User } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useQuery } from "@tanstack/react-query";
 import { getUsersByIdOptions } from "@/lib/api/@tanstack/react-query.gen";
@@ -13,8 +18,17 @@ interface UserAvatarProps {
   className?: string;
 }
 
-export function UserAvatar({ userId, size = "md", showName = true, className }: UserAvatarProps) {
-  const { data: user, isLoading, error } = useQuery({
+export function UserAvatar({
+  userId,
+  size = "md",
+  showName = true,
+  className,
+}: UserAvatarProps) {
+  const {
+    data: user,
+    isLoading,
+    error,
+  } = useQuery({
     ...getUsersByIdOptions({
       path: {
         id: userId!,
@@ -22,7 +36,7 @@ export function UserAvatar({ userId, size = "md", showName = true, className }: 
     }),
     enabled: !!userId,
   });
-  
+
   // Size classes mapping
   const sizeClasses = {
     sm: {
@@ -33,35 +47,47 @@ export function UserAvatar({ userId, size = "md", showName = true, className }: 
     md: {
       avatar: "h-8 w-8",
       container: "text-sm",
-      nameContainer: "px-2 py-1 ml-1.5", 
+      nameContainer: "px-2 py-1 ml-1.5",
     },
     lg: {
       avatar: "h-10 w-10",
       container: "text-base",
       nameContainer: "px-2.5 py-1.5 ml-2",
-    }
+    },
   };
-  
+
   const tooltipContent = user ? (
     <div className="flex flex-col space-y-1.5 p-1">
       <div className="font-medium">{`${user.firstName} ${user.lastName}`}</div>
-      {user.middleName && <div className="text-xs text-muted-foreground">{user.middleName}</div>}
+      {user.middleName && (
+        <div className="text-xs text-muted-foreground">{user.middleName}</div>
+      )}
       <div className="text-xs text-muted-foreground">{user.role.name}</div>
       {user.department && (
-        <div className="text-xs text-muted-foreground">{user.department.name}</div>
+        <div className="text-xs text-muted-foreground">
+          {user.department.name}
+        </div>
       )}
     </div>
   ) : null;
-  
+
   if (isLoading) {
     return (
       <div className={cn("flex items-center", className)}>
         <Skeleton className={cn("rounded-full", sizeClasses[size].avatar)} />
-        {showName && <Skeleton className={cn("rounded-md", sizeClasses[size].nameContainer, "w-20")} />}
+        {showName && (
+          <Skeleton
+            className={cn(
+              "rounded-md",
+              sizeClasses[size].nameContainer,
+              "w-20",
+            )}
+          />
+        )}
       </div>
     );
   }
-  
+
   if (error || !userId) {
     return (
       <div className={cn("flex items-center text-muted-foreground", className)}>
@@ -71,19 +97,24 @@ export function UserAvatar({ userId, size = "md", showName = true, className }: 
           </AvatarFallback>
         </Avatar>
         {showName && (
-          <span className={cn("bg-muted rounded-md", sizeClasses[size].nameContainer)}>
+          <span
+            className={cn(
+              "bg-muted rounded-md",
+              sizeClasses[size].nameContainer,
+            )}
+          >
             {error ? "Ошибка" : "Нет данных"}
           </span>
         )}
       </div>
     );
   }
-  
+
   if (!user) return null;
-  
+
   const fullName = `${user.firstName} ${user.lastName}`;
   const initials = `${user.firstName.charAt(0)}${user.lastName.charAt(0)}`;
-  
+
   return (
     <TooltipProvider>
       <Tooltip>
@@ -97,19 +128,19 @@ export function UserAvatar({ userId, size = "md", showName = true, className }: 
               )}
             </Avatar>
             {showName && (
-              <span className={cn(
-                "bg-primary/10 text-primary rounded-md font-medium",
-                sizeClasses[size].nameContainer
-              )}>
+              <span
+                className={cn(
+                  "bg-primary/10 text-primary rounded-md font-medium",
+                  sizeClasses[size].nameContainer,
+                )}
+              >
                 {fullName}
               </span>
             )}
           </div>
         </TooltipTrigger>
-        <TooltipContent side="right">
-          {tooltipContent}
-        </TooltipContent>
+        <TooltipContent side="right">{tooltipContent}</TooltipContent>
       </Tooltip>
     </TooltipProvider>
   );
-} 
+}

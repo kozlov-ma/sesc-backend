@@ -26,7 +26,7 @@ import type {
 } from "@/lib/api/types.gen";
 import { ErrorMessage } from "@/components/ui/error-message";
 import { Badge } from "@/components/ui/badge";
-import { MoreHorizontal, Search, UserPlus, Key } from "lucide-react";
+import { MoreHorizontal, Search, UserPlus, Key, User } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { UserFormDialog } from "./user-form-dialog";
 import { UserCredentialsDialog } from "./user-credentials-dialog";
@@ -34,6 +34,7 @@ import { toast } from "sonner";
 import { useErrorHandler } from "@/hooks/use-error-handler";
 import { getErrorMessage } from "@/lib/error-handler";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
 import {
   getUsersOptions,
   patchUsersByIdMutation,
@@ -50,6 +51,7 @@ export function UsersTable() {
 
   const { error: tableError, handleError, clearError } = useErrorHandler();
   const queryClient = useQueryClient();
+  const router = useRouter();
 
   const usersOpt = getUsersOptions();
   const { data, error, isLoading } = useQuery(usersOpt);
@@ -107,6 +109,10 @@ export function UsersTable() {
   const openCredentialsDialog = (user: ApiUserResponse) => {
     setSelectedUser(user);
     setUserCredentialsOpen(true);
+  };
+  
+  const viewUserProfile = (user: ApiUserResponse) => {
+    router.push(`/admin/users/${user.id}`);
   };
 
   // Filter users based on search term
@@ -208,6 +214,12 @@ export function UsersTable() {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Действия</DropdownMenuLabel>
+                        <DropdownMenuItem
+                          onClick={() => viewUserProfile(user)}
+                        >
+                          <User className="h-4 w-4 mr-2" />
+                          Просмотр профиля
+                        </DropdownMenuItem>
                         <DropdownMenuItem
                           onClick={() => openEditUserDialog(user)}
                         >

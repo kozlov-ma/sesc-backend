@@ -33,7 +33,7 @@ export default function DashboardLayout({
   const groups = [
     {
       name: "Личный кабинет",
-      routes: [{ name: "Обо мне", url: "/u/profile", icon: User }],
+      routes: [{ name: "Обо мне", url: "/u/users/me", icon: User }],
     },
     {
       name: "Документы",

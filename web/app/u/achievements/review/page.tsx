@@ -42,6 +42,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
+import { UserAvatar } from "@/components/ui/user-avatar";
 
 export default function ReviewAchievementsPage() {
   const [selectedAchievement, setSelectedAchievement] =
@@ -202,7 +203,7 @@ export default function ReviewAchievementsPage() {
               </TableHeader>
               <TableBody>
                 {processedUsers.map(([userId, achievements]) => {
-                  const userName = achievements[0]?.ownerName || "Пользователь";
+                  // User information is displayed via UserAvatar component
                   const isExpanded = expandedUsers.has(userId);
                   const reviewableCount = achievements.filter((a) =>
                     canReviewAchievement(a),
@@ -221,7 +222,9 @@ export default function ReviewAchievementsPage() {
                             ) : (
                               <ChevronRight className="mr-2 h-4 w-4" />
                             )}
-                            {userName}
+                            <Link href={`/u/users/${userId}`}>
+                              <UserAvatar userId={userId} size="sm" />
+                            </Link>
                           </div>
                         </TableCell>
                         <TableCell>
@@ -427,3 +430,4 @@ export default function ReviewAchievementsPage() {
 }
 
 import React from "react";
+import Link from "next/link";

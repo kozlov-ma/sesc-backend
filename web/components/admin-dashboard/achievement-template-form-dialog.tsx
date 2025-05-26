@@ -14,7 +14,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { ApiAchievementTemplateResponse } from "@/lib/api/types.gen";
 import { Loader2 } from "lucide-react";
@@ -85,7 +84,6 @@ export function AchievementTemplateFormDialog({
       name: "",
       description: "",
       pointsLimit: 0,
-      isUnlimitedPoints: false,
       kind: "development",
     },
   });
@@ -100,7 +98,6 @@ export function AchievementTemplateFormDialog({
           name: template.name,
           description: template.description,
           pointsLimit: template.pointsLimit,
-          isUnlimitedPoints: template.pointsLimit === 0,
           kind: template.kind as "olympiad" | "development" | "scientific",
         });
       } else {
@@ -127,7 +124,9 @@ export function AchievementTemplateFormDialog({
     },
     onError: (err: AxiosError<PostAchievementTemplatesError>) => {
       toast.error("Ошибка", {
-        description: err.response?.data?.message || "Произошла ошибка при создании шаблона",
+        description:
+          err.response?.data?.message ||
+          "Произошла ошибка при создании шаблона",
       });
     },
   });
@@ -144,7 +143,9 @@ export function AchievementTemplateFormDialog({
     },
     onError: (err: AxiosError<PatchAchievementTemplatesByIdError>) => {
       toast.error("Ошибка", {
-        description: err.response?.data?.message || "Произошла ошибка при обновлении шаблона",
+        description:
+          err.response?.data?.message ||
+          "Произошла ошибка при обновлении шаблона",
       });
     },
   });
@@ -182,7 +183,10 @@ export function AchievementTemplateFormDialog({
       console.error("Error submitting form:", error);
       if (!(error instanceof AxiosError)) {
         toast.error("Ошибка", {
-          description: error instanceof Error ? error.message : "Произошла ошибка при сохранении шаблона",
+          description:
+            error instanceof Error
+              ? error.message
+              : "Произошла ошибка при сохранении шаблона",
         });
       }
     }
@@ -233,7 +237,9 @@ export function AchievementTemplateFormDialog({
           <div className="space-y-2">
             <Label htmlFor="kind">Тип достижения</Label>
             <Select
-              onValueChange={(value) => form.setValue("kind", value as FormValues["kind"])}
+              onValueChange={(value) =>
+                form.setValue("kind", value as FormValues["kind"])
+              }
               defaultValue={form.getValues("kind")}
             >
               <SelectTrigger>
@@ -253,37 +259,19 @@ export function AchievementTemplateFormDialog({
           </div>
 
           <div className="space-y-2">
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="isUnlimitedPoints"
-                checked={form.watch("isUnlimitedPoints")}
-                onCheckedChange={(checked) => {
-                  form.setValue("isUnlimitedPoints", checked as boolean);
-                  if (checked) {
-                    form.setValue("pointsLimit", 0);
-                  }
-                }}
-              />
-              <Label htmlFor="isUnlimitedPoints">Неограниченное количество баллов</Label>
-            </div>
+            <Label htmlFor="pointsLimit">Количество баллов</Label>
+            <Input
+              id="pointsLimit"
+              type="number"
+              {...form.register("pointsLimit", { valueAsNumber: true })}
+              placeholder="Введите количество баллов"
+            />
+            {form.formState.errors.pointsLimit && (
+              <p className="text-sm text-red-500">
+                {form.formState.errors.pointsLimit.message}
+              </p>
+            )}
           </div>
-
-          {!form.watch("isUnlimitedPoints") && (
-            <div className="space-y-2">
-              <Label htmlFor="pointsLimit">Количество баллов</Label>
-              <Input
-                id="pointsLimit"
-                type="number"
-                {...form.register("pointsLimit", { valueAsNumber: true })}
-                placeholder="Введите количество баллов"
-              />
-              {form.formState.errors.pointsLimit && (
-                <p className="text-sm text-red-500">
-                  {form.formState.errors.pointsLimit.message}
-                </p>
-              )}
-            </div>
-          )}
 
           <div className="flex justify-end space-x-2">
             <Button
@@ -295,9 +283,13 @@ export function AchievementTemplateFormDialog({
             </Button>
             <Button
               type="submit"
-              disabled={createTemplateMutation.isPending || updateTemplateMutation.isPending}
+              disabled={
+                createTemplateMutation.isPending ||
+                updateTemplateMutation.isPending
+              }
             >
-              {(createTemplateMutation.isPending || updateTemplateMutation.isPending) && (
+              {(createTemplateMutation.isPending ||
+                updateTemplateMutation.isPending) && (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               )}
               {template ? "Сохранить" : "Создать"}
