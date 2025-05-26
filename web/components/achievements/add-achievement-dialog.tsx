@@ -2,15 +2,32 @@
 
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Trophy, ChevronRight, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-import { getAchievementGroupsOptions, getAchievementTemplatesOptions } from "@/lib/api/@tanstack/react-query.gen";
-import { ApiAchievementGroupResponse, ApiAchievementTemplateResponse } from "@/lib/api/types.gen";
+import {
+  getAchievementGroupsOptions,
+  getAchievementTemplatesOptions,
+} from "@/lib/api/@tanstack/react-query.gen";
+import {
+  ApiAchievementGroupResponse,
+  ApiAchievementTemplateResponse,
+} from "@/lib/api/types.gen";
 
 interface AddAchievementDialogProps {
   open: boolean;
@@ -18,8 +35,13 @@ interface AddAchievementDialogProps {
   onAdd: (template: ApiAchievementTemplateResponse) => void;
 }
 
-export function AddAchievementDialog({ open, onOpenChange, onAdd }: AddAchievementDialogProps) {
-  const [selectedGroup, setSelectedGroup] = useState<ApiAchievementGroupResponse | null>(null);
+export function AddAchievementDialog({
+  open,
+  onOpenChange,
+  onAdd,
+}: AddAchievementDialogProps) {
+  const [selectedGroup, setSelectedGroup] =
+    useState<ApiAchievementGroupResponse | null>(null);
   const [search, setSearch] = useState("");
 
   const { data: groups, isLoading: isLoadingGroups } = useQuery({
@@ -32,15 +54,17 @@ export function AddAchievementDialog({ open, onOpenChange, onAdd }: AddAchieveme
     enabled: open && !!selectedGroup,
   });
 
-  const filteredGroups = groups?.filter(group => 
-    group.name.toLowerCase().includes(search.toLowerCase()) ||
-    group.description?.toLowerCase().includes(search.toLowerCase())
+  const filteredGroups = groups?.filter(
+    (group) =>
+      group.name.toLowerCase().includes(search.toLowerCase()) ||
+      group.description?.toLowerCase().includes(search.toLowerCase()),
   );
 
-  const filteredTemplates = templates?.filter(template =>
-    template.groupId === selectedGroup?.id &&
-    (template.name.toLowerCase().includes(search.toLowerCase()) ||
-    template.description?.toLowerCase().includes(search.toLowerCase()))
+  const filteredTemplates = templates?.filter(
+    (template) =>
+      template.groupId === selectedGroup?.id &&
+      (template.name.toLowerCase().includes(search.toLowerCase()) ||
+        template.description?.toLowerCase().includes(search.toLowerCase())),
   );
 
   return (
@@ -67,45 +91,49 @@ export function AddAchievementDialog({ open, onOpenChange, onAdd }: AddAchieveme
             {/* Groups */}
             <Card className="w-[350px] overflow-hidden">
               <CardHeader>
-                <CardTitle className="text-lg">Группы достижений</CardTitle>
-                <CardDescription>Выберите группу достижений</CardDescription>
+                <CardTitle className="text-lg">Типы достижений</CardTitle>
+                <CardDescription>Выберите тип достижения</CardDescription>
               </CardHeader>
               <CardContent className="-mt-3">
-                <ScrollArea className="h-[calc(80vh-220px)]">
-                  <div className="space-y-2 pr-4">
-                    {isLoadingGroups ? (
-                      Array.from({ length: 5 }).map((_, i) => (
-                        <div key={i} className="h-20 bg-muted animate-pulse rounded-lg" />
-                      ))
-                    ) : filteredGroups?.map((group) => (
-                      <Button
-                        key={group.id}
-                        variant={selectedGroup?.id === group.id ? "default" : "ghost"}
-                        className={cn(
-                          "w-full justify-start p-4 h-auto",
-                          selectedGroup?.id === group.id && "bg-primary"
-                        )}
-                        onClick={() => setSelectedGroup(group)}
-                      >
-                        <div className="flex items-start justify-between w-full gap-2">
-                          <div className="space-y-1 text-left">
-                            <div className="font-medium leading-none">{group.name}</div>
-                            {group.description && (
-                              <div className={cn(
-                                "text-sm text-muted-foreground line-clamp-2",
-                                selectedGroup?.id === group.id && "text-primary-foreground/70"
-                              )}>
-                                {group.description}
-                              </div>
+                <ScrollArea className="h-[70vh] pb-4">
+                  <div className="space-y-2">
+                    {isLoadingGroups
+                      ? Array.from({ length: 5 }).map((_, i) => (
+                          <div
+                            key={i}
+                            className="h-20 bg-muted animate-pulse rounded-lg"
+                          />
+                        ))
+                      : filteredGroups?.map((group) => (
+                          <Button
+                            key={group.id}
+                            variant={
+                              selectedGroup?.id === group.id
+                                ? "default"
+                                : "ghost"
+                            }
+                            className={cn(
+                              "w-full justify-start p-4 h-auto",
+                              selectedGroup?.id === group.id && "bg-primary",
                             )}
-                          </div>
-                          <ChevronRight className={cn(
-                            "h-4 w-4 shrink-0",
-                            selectedGroup?.id === group.id && "text-primary-foreground"
-                          )} />
-                        </div>
-                      </Button>
-                    ))}
+                            onClick={() => setSelectedGroup(group)}
+                          >
+                            <div className="flex items-start justify-between w-full gap-2">
+                              <div className="space-y-1 text-left overflow-hidden text-pretty">
+                                <div className="font-medium leading-tight break-words">
+                                  {group.name}
+                                </div>
+                              </div>
+                              <ChevronRight
+                                className={cn(
+                                  "h-4 w-4 shrink-0 mt-1",
+                                  selectedGroup?.id === group.id &&
+                                    "text-primary-foreground",
+                                )}
+                              />
+                            </div>
+                          </Button>
+                        ))}
                   </div>
                 </ScrollArea>
               </CardContent>
@@ -114,20 +142,22 @@ export function AddAchievementDialog({ open, onOpenChange, onAdd }: AddAchieveme
             {/* Templates */}
             <Card className="flex-1 overflow-hidden">
               <CardHeader>
-                <CardTitle className="text-lg">Шаблоны достижений</CardTitle>
+                <CardTitle className="text-lg">Достижения</CardTitle>
                 <CardDescription>
-                  {selectedGroup 
-                    ? `Выберите шаблон из группы "${selectedGroup.name}"`
-                    : "Сначала выберите группу достижений"
-                  }
+                  {selectedGroup
+                    ? selectedGroup.description
+                    : "Сначала выберите группу достижений"}
                 </CardDescription>
               </CardHeader>
               <CardContent className="-mt-3">
-                <ScrollArea className="h-[calc(80vh-220px)]">
-                  <div className="space-y-2 pr-4">
+                <ScrollArea className="h-[50vh]">
+                  <div className="space-y-4 mb-4">
                     {isLoadingTemplates ? (
                       Array.from({ length: 5 }).map((_, i) => (
-                        <div key={i} className="h-24 bg-muted animate-pulse rounded-lg" />
+                        <div
+                          key={i}
+                          className="h-24 bg-muted animate-pulse rounded-lg"
+                        />
                       ))
                     ) : selectedGroup ? (
                       filteredTemplates?.length ? (
@@ -140,8 +170,10 @@ export function AddAchievementDialog({ open, onOpenChange, onAdd }: AddAchieveme
                           >
                             <div className="flex items-start gap-3 w-full">
                               <Trophy className="h-5 w-5 shrink-0 mt-0.5" />
-                              <div className="space-y-1 text-left">
-                                <div className="font-medium leading-none">{template.name}</div>
+                              <div className="space-y-1 text-left overflow-hidden text-pretty">
+                                <div className="font-medium leading-tight break-words">
+                                  {template.name}
+                                </div>
                                 {template.description && (
                                   <div className="text-sm text-muted-foreground line-clamp-2">
                                     {template.description}

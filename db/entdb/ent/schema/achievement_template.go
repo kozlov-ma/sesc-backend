@@ -21,7 +21,7 @@ func (AchievementTemplate) Fields() []ent.Field {
 			Immutable(),
 		field.String("name").
 			NotEmpty().
-			MaxLen(255),
+			MaxLen(600),
 		field.Text("description").
 			Optional(),
 		field.Int("points_limit").

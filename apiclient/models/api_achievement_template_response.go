@@ -44,9 +44,7 @@ type APIAchievementTemplateResponse struct {
 	// Example: scientific
 	// Required: true
 	// Enum: ["olympiad","development","scientific"]
-	Kind struct {
-		AchievementKind
-	} `json:"kind"`
+	Kind *string `json:"kind"`
 
 	// name
 	// Example: Публикация в журнале
@@ -136,9 +134,7 @@ func (m *APIAchievementTemplateResponse) validateID(formats strfmt.Registry) err
 var apiAchievementTemplateResponseTypeKindPropEnum []interface{}
 
 func init() {
-	var res []struct {
-		AchievementKind
-	}
+	var res []string
 	if err := json.Unmarshal([]byte(`["olympiad","development","scientific"]`), &res); err != nil {
 		panic(err)
 	}
@@ -147,10 +143,20 @@ func init() {
 	}
 }
 
+const (
+
+	// APIAchievementTemplateResponseKindOlympiad captures enum value "olympiad"
+	APIAchievementTemplateResponseKindOlympiad string = "olympiad"
+
+	// APIAchievementTemplateResponseKindDevelopment captures enum value "development"
+	APIAchievementTemplateResponseKindDevelopment string = "development"
+
+	// APIAchievementTemplateResponseKindScientific captures enum value "scientific"
+	APIAchievementTemplateResponseKindScientific string = "scientific"
+)
+
 // prop value enum
-func (m *APIAchievementTemplateResponse) validateKindEnum(path, location string, value *struct {
-	AchievementKind
-}) error {
+func (m *APIAchievementTemplateResponse) validateKindEnum(path, location string, value string) error {
 	if err := validate.EnumCase(path, location, value, apiAchievementTemplateResponseTypeKindPropEnum, true); err != nil {
 		return err
 	}
@@ -158,6 +164,15 @@ func (m *APIAchievementTemplateResponse) validateKindEnum(path, location string,
 }
 
 func (m *APIAchievementTemplateResponse) validateKind(formats strfmt.Registry) error {
+
+	if err := validate.Required("kind", "body", m.Kind); err != nil {
+		return err
+	}
+
+	// value enum
+	if err := m.validateKindEnum("kind", "body", *m.Kind); err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -180,22 +195,8 @@ func (m *APIAchievementTemplateResponse) validatePointsLimit(formats strfmt.Regi
 	return nil
 }
 
-// ContextValidate validate this api achievement template response based on the context it is used
+// ContextValidate validates this api achievement template response based on context it is used
 func (m *APIAchievementTemplateResponse) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
-	var res []error
-
-	if err := m.contextValidateKind(ctx, formats); err != nil {
-		res = append(res, err)
-	}
-
-	if len(res) > 0 {
-		return errors.CompositeValidationError(res...)
-	}
-	return nil
-}
-
-func (m *APIAchievementTemplateResponse) contextValidateKind(ctx context.Context, formats strfmt.Registry) error {
-
 	return nil
 }
 

@@ -2346,19 +2346,6 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "achievement.Kind": {
-            "type": "string",
-            "enum": [
-                "olympiad",
-                "development",
-                "scientific"
-            ],
-            "x-enum-varnames": [
-                "Olympiad",
-                "Development",
-                "Scientific"
-            ]
-        },
         "api.AchievementGroupResponse": {
             "type": "object",
             "required": [
@@ -2511,15 +2498,11 @@ const docTemplate = `{
                     "example": "550e8400-e29b-41d4-a716-446655440000"
                 },
                 "kind": {
+                    "type": "string",
                     "enum": [
                         "olympiad",
                         "development",
                         "scientific"
-                    ],
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/achievement.Kind"
-                        }
                     ],
                     "example": "scientific"
                 },
@@ -2618,15 +2601,11 @@ const docTemplate = `{
                     "example": "550e8400-e29b-41d4-a716-446655440000"
                 },
                 "kind": {
+                    "type": "string",
                     "enum": [
                         "olympiad",
                         "development",
                         "scientific"
-                    ],
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/achievement.Kind"
-                        }
                     ],
                     "example": "scientific"
                 },
@@ -3188,15 +3167,11 @@ const docTemplate = `{
                     "example": "Публикация статьи в научном журнале"
                 },
                 "kind": {
+                    "type": "string",
                     "enum": [
                         "olympiad",
                         "development",
                         "scientific"
-                    ],
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/achievement.Kind"
-                        }
                     ]
                 },
                 "name": {

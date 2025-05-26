@@ -20,13 +20,13 @@ type AchievementGroupResponse struct {
 }
 
 type AchievementTemplateResponse struct {
-	ID          uuid.UUID        `json:"id"          example:"550e8400-e29b-41d4-a716-446655440000" validate:"required"`
-	Name        string           `json:"name"        example:"Публикация в журнале"                 validate:"required"`
-	Description string           `json:"description" example:"Публикация статьи в научном журнале"  validate:"required"`
-	PointsLimit int              `json:"pointsLimit" example:"10"                                   validate:"required"`
-	GroupID     uuid.UUID        `json:"groupId"     example:"550e8400-e29b-41d4-a716-446655440000" validate:"required"`
-	Active      bool             `json:"active"      example:"true"                                 validate:"required"`
-	Kind        achievement.Kind `json:"kind"        example:"scientific"                           validate:"required,oneof=olympiad development scientific"`
+	ID          uuid.UUID `json:"id"          example:"550e8400-e29b-41d4-a716-446655440000" validate:"required"`
+	Name        string    `json:"name"        example:"Публикация в журнале"                 validate:"required"`
+	Description string    `json:"description" example:"Публикация статьи в научном журнале"  validate:"required"`
+	PointsLimit int       `json:"pointsLimit" example:"10"                                   validate:"required"`
+	GroupID     uuid.UUID `json:"groupId"     example:"550e8400-e29b-41d4-a716-446655440000" validate:"required"`
+	Active      bool      `json:"active"      example:"true"                                 validate:"required"`
+	Kind        string    `json:"kind"        example:"scientific"                           validate:"required" enums:"olympiad,development,scientific"`
 }
 
 type CreateAchievementGroupRequest struct {
@@ -35,11 +35,11 @@ type CreateAchievementGroupRequest struct {
 }
 
 type CreateAchievementTemplateRequest struct {
-	Name        string           `json:"name"        example:"Публикация в журнале"                 validate:"required"`
-	Description string           `json:"description" example:"Публикация статьи в научном журнале"  validate:"required"`
-	PointsLimit int              `json:"pointsLimit" example:"10"                                   validate:"required"`
-	GroupID     uuid.UUID        `json:"groupId"     example:"550e8400-e29b-41d4-a716-446655440000" validate:"required"`
-	Kind        achievement.Kind `json:"kind"        example:"scientific"                           validate:"required,oneof=olympiad development scientific"`
+	Name        string    `json:"name"        example:"Публикация в журнале"                 validate:"required"`
+	Description string    `json:"description" example:"Публикация статьи в научном журнале"  validate:"required"`
+	PointsLimit int       `json:"pointsLimit" example:"10"                                   validate:"required"`
+	GroupID     uuid.UUID `json:"groupId"     example:"550e8400-e29b-41d4-a716-446655440000" validate:"required"`
+	Kind        string    `json:"kind"        example:"scientific"                           validate:"required,oneof=olympiad development scientific"`
 }
 
 type PatchAchievementGroupRequest struct {
@@ -49,11 +49,11 @@ type PatchAchievementGroupRequest struct {
 }
 
 type PatchAchievementTemplateRequest struct {
-	Name        *string           `json:"name,omitzero"        example:"Публикация в журнале"`
-	Description *string           `json:"description,omitzero" example:"Публикация статьи в научном журнале"`
-	PointsLimit *int              `json:"pointsLimit,omitzero" example:"10"`
-	Active      *bool             `json:"active,omitzero"      example:"true"`
-	Kind        *achievement.Kind `json:"kind,omitzero"                                                      validate:"omitempty,oneof=olympiad development scientific"`
+	Name        *string `json:"name,omitzero"        example:"Публикация в журнале"`
+	Description *string `json:"description,omitzero" example:"Публикация статьи в научном журнале"`
+	PointsLimit *int    `json:"pointsLimit,omitzero" example:"10"`
+	Active      *bool   `json:"active,omitzero"      example:"true"`
+	Kind        *string `json:"kind,omitzero"                                                      validate:"omitempty,oneof=olympiad development scientific"`
 }
 
 // GetAchievementGroups godoc
@@ -230,7 +230,7 @@ func (a *API) GetAchievementTemplates(w http.ResponseWriter, r *http.Request) {
 			PointsLimit: template.PointsLimit,
 			GroupID:     template.GroupID,
 			Active:      template.Active,
-			Kind:        template.Kind,
+			Kind:        template.Kind.String(),
 		})
 	}
 
@@ -275,7 +275,7 @@ func (a *API) CreateAchievementTemplate(w http.ResponseWriter, r *http.Request) 
 		writeError(ctx, w, ErrInvalidRequest.WithStatus(http.StatusBadRequest))
 		return
 	}
-	if err := req.Kind.Validate(); err != nil {
+	if err := achievement.Kind(req.Kind).Validate(); err != nil {
 		rec.Add(events.Error, "invalid kind value")
 		writeError(ctx, w, ErrInvalidRequest.WithStatus(http.StatusBadRequest))
 		return
@@ -287,7 +287,7 @@ func (a *API) CreateAchievementTemplate(w http.ResponseWriter, r *http.Request) 
 		Description: req.Description,
 		PointsLimit: req.PointsLimit,
 		GroupID:     req.GroupID,
-		Kind:        req.Kind,
+		Kind:        achievement.Kind(req.Kind),
 	}
 
 	// Call service
@@ -315,7 +315,7 @@ func (a *API) CreateAchievementTemplate(w http.ResponseWriter, r *http.Request) 
 		PointsLimit: template.PointsLimit,
 		GroupID:     template.GroupID,
 		Active:      template.Active,
-		Kind:        template.Kind,
+		Kind:        template.Kind.String(),
 	}
 
 	a.writeJSON(ctx, w, response, http.StatusCreated)
@@ -437,7 +437,7 @@ func (a *API) PatchAchievementTemplate(w http.ResponseWriter, r *http.Request) {
 
 	// Validate kind if provided
 	if req.Kind != nil {
-		if err := req.Kind.Validate(); err != nil {
+		if err := achievement.Kind(*req.Kind).Validate(); err != nil {
 			rec.Add(events.Error, "invalid kind value")
 			writeError(ctx, w, ErrInvalidRequest.WithStatus(http.StatusBadRequest))
 			return
@@ -457,7 +457,7 @@ func (a *API) PatchAchievementTemplate(w http.ResponseWriter, r *http.Request) {
 		Description: req.Description,
 		PointsLimit: req.PointsLimit,
 		Active:      req.Active,
-		Kind:        req.Kind,
+		Kind:        (*achievement.Kind)(req.Kind),
 	}
 
 	// Call service
@@ -492,7 +492,7 @@ func (a *API) PatchAchievementTemplate(w http.ResponseWriter, r *http.Request) {
 		PointsLimit: template.PointsLimit,
 		GroupID:     template.GroupID,
 		Active:      template.Active,
-		Kind:        template.Kind,
+		Kind:        template.Kind.String(),
 	}
 
 	a.writeJSON(ctx, w, response, http.StatusOK)

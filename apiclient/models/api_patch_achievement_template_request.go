@@ -30,9 +30,7 @@ type APIPatchAchievementTemplateRequest struct {
 
 	// kind
 	// Enum: ["olympiad","development","scientific"]
-	Kind struct {
-		AchievementKind
-	} `json:"kind,omitempty"`
+	Kind string `json:"kind,omitempty"`
 
 	// name
 	// Example: Публикация в журнале
@@ -60,9 +58,7 @@ func (m *APIPatchAchievementTemplateRequest) Validate(formats strfmt.Registry) e
 var apiPatchAchievementTemplateRequestTypeKindPropEnum []interface{}
 
 func init() {
-	var res []struct {
-		AchievementKind
-	}
+	var res []string
 	if err := json.Unmarshal([]byte(`["olympiad","development","scientific"]`), &res); err != nil {
 		panic(err)
 	}
@@ -71,10 +67,20 @@ func init() {
 	}
 }
 
+const (
+
+	// APIPatchAchievementTemplateRequestKindOlympiad captures enum value "olympiad"
+	APIPatchAchievementTemplateRequestKindOlympiad string = "olympiad"
+
+	// APIPatchAchievementTemplateRequestKindDevelopment captures enum value "development"
+	APIPatchAchievementTemplateRequestKindDevelopment string = "development"
+
+	// APIPatchAchievementTemplateRequestKindScientific captures enum value "scientific"
+	APIPatchAchievementTemplateRequestKindScientific string = "scientific"
+)
+
 // prop value enum
-func (m *APIPatchAchievementTemplateRequest) validateKindEnum(path, location string, value *struct {
-	AchievementKind
-}) error {
+func (m *APIPatchAchievementTemplateRequest) validateKindEnum(path, location string, value string) error {
 	if err := validate.EnumCase(path, location, value, apiPatchAchievementTemplateRequestTypeKindPropEnum, true); err != nil {
 		return err
 	}
@@ -86,25 +92,16 @@ func (m *APIPatchAchievementTemplateRequest) validateKind(formats strfmt.Registr
 		return nil
 	}
 
+	// value enum
+	if err := m.validateKindEnum("kind", "body", m.Kind); err != nil {
+		return err
+	}
+
 	return nil
 }
 
-// ContextValidate validate this api patch achievement template request based on the context it is used
+// ContextValidate validates this api patch achievement template request based on context it is used
 func (m *APIPatchAchievementTemplateRequest) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
-	var res []error
-
-	if err := m.contextValidateKind(ctx, formats); err != nil {
-		res = append(res, err)
-	}
-
-	if len(res) > 0 {
-		return errors.CompositeValidationError(res...)
-	}
-	return nil
-}
-
-func (m *APIPatchAchievementTemplateRequest) contextValidateKind(ctx context.Context, formats strfmt.Registry) error {
-
 	return nil
 }
 

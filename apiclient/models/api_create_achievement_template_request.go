@@ -34,9 +34,7 @@ type APICreateAchievementTemplateRequest struct {
 	// Example: scientific
 	// Required: true
 	// Enum: ["olympiad","development","scientific"]
-	Kind struct {
-		AchievementKind
-	} `json:"kind"`
+	Kind *string `json:"kind"`
 
 	// name
 	// Example: Публикация в журнале
@@ -100,9 +98,7 @@ func (m *APICreateAchievementTemplateRequest) validateGroupID(formats strfmt.Reg
 var apiCreateAchievementTemplateRequestTypeKindPropEnum []interface{}
 
 func init() {
-	var res []struct {
-		AchievementKind
-	}
+	var res []string
 	if err := json.Unmarshal([]byte(`["olympiad","development","scientific"]`), &res); err != nil {
 		panic(err)
 	}
@@ -111,10 +107,20 @@ func init() {
 	}
 }
 
+const (
+
+	// APICreateAchievementTemplateRequestKindOlympiad captures enum value "olympiad"
+	APICreateAchievementTemplateRequestKindOlympiad string = "olympiad"
+
+	// APICreateAchievementTemplateRequestKindDevelopment captures enum value "development"
+	APICreateAchievementTemplateRequestKindDevelopment string = "development"
+
+	// APICreateAchievementTemplateRequestKindScientific captures enum value "scientific"
+	APICreateAchievementTemplateRequestKindScientific string = "scientific"
+)
+
 // prop value enum
-func (m *APICreateAchievementTemplateRequest) validateKindEnum(path, location string, value *struct {
-	AchievementKind
-}) error {
+func (m *APICreateAchievementTemplateRequest) validateKindEnum(path, location string, value string) error {
 	if err := validate.EnumCase(path, location, value, apiCreateAchievementTemplateRequestTypeKindPropEnum, true); err != nil {
 		return err
 	}
@@ -122,6 +128,15 @@ func (m *APICreateAchievementTemplateRequest) validateKindEnum(path, location st
 }
 
 func (m *APICreateAchievementTemplateRequest) validateKind(formats strfmt.Registry) error {
+
+	if err := validate.Required("kind", "body", m.Kind); err != nil {
+		return err
+	}
+
+	// value enum
+	if err := m.validateKindEnum("kind", "body", *m.Kind); err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -144,22 +159,8 @@ func (m *APICreateAchievementTemplateRequest) validatePointsLimit(formats strfmt
 	return nil
 }
 
-// ContextValidate validate this api create achievement template request based on the context it is used
+// ContextValidate validates this api create achievement template request based on context it is used
 func (m *APICreateAchievementTemplateRequest) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
-	var res []error
-
-	if err := m.contextValidateKind(ctx, formats); err != nil {
-		res = append(res, err)
-	}
-
-	if len(res) > 0 {
-		return errors.CompositeValidationError(res...)
-	}
-	return nil
-}
-
-func (m *APICreateAchievementTemplateRequest) contextValidateKind(ctx context.Context, formats strfmt.Registry) error {
-
 	return nil
 }
 
