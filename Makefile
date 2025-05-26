@@ -3,6 +3,7 @@
 # Generate Go code and frontend API client
 generate:
 	go generate ./... && cd web && pnpm openapi-ts
+	go tool swagger generate client -f api/docs/swagger.json -A apiclient --target apiclient/
 
 # Spin up the development database
 dev-db:
