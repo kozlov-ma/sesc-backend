@@ -59,6 +59,13 @@ import {
 } from "@/lib/api/@tanstack/react-query.gen";
 import type { AxiosError } from "axios";
 import React from "react";
+import { ExpandableText } from "@/components/ui/expandable-text";
+
+const StatusColumnContent = ({ children }: { children: React.ReactNode }) => (
+  <div className="flex justify-center w-full">
+    {children}
+  </div>
+);
 
 export function AchievementTemplatesTable() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -235,7 +242,7 @@ export function AchievementTemplatesTable() {
         <ErrorMessage error={groupsError || templatesError || tableError} />
       )}
 
-      <div className="flex justify-between">
+      <div className="flex flex-col sm:flex-row justify-between gap-4">
         <div className="relative w-full md:w-72">
           <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
@@ -245,163 +252,226 @@ export function AchievementTemplatesTable() {
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-        <Button onClick={openCreateGroupDialog}>
+        <Button onClick={openCreateGroupDialog} className="w-full sm:w-auto">
           <PlusCircle className="h-4 w-4 mr-2" />
           Создать группу
         </Button>
       </div>
 
       {/* Achievement Groups and Templates Tree */}
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-[300px]">Название</TableHead>
-              <TableHead>Описание</TableHead>
-              <TableHead className="w-[150px]">Тип</TableHead>
-              <TableHead className="w-[100px]">Баллы</TableHead>
-              <TableHead className="w-[100px]">Статус</TableHead>
-              <TableHead className="w-[70px]"></TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filteredGroups && filteredGroups.length > 0 ? (
-              filteredGroups.map((group) => (
-                <React.Fragment key={group.id}>
-                  <TableRow className="bg-muted/50">
-                    <TableCell className="font-medium">
-                      <div className="flex items-center space-x-2">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-6 w-6"
-                          onClick={() => toggleGroup(group.id)}
-                        >
-                          {expandedGroups.has(group.id) ? (
-                            <ChevronDown className="h-4 w-4" />
-                          ) : (
-                            <ChevronRight className="h-4 w-4" />
-                          )}
-                        </Button>
-                        <span>{group.name}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell>{group.description}</TableCell>
-                    <TableCell>-</TableCell>
-                    <TableCell>-</TableCell>
-                    <TableCell>
-                      <span
-                        className={`px-2 py-1 rounded-full text-xs ${
-                          group.active
-                            ? "bg-green-100 text-green-800"
-                            : "bg-red-100 text-red-800"
-                        }`}
-                      >
-                        {group.active ? "Активна" : "Неактивна"}
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon">
-                            <MoreHorizontal className="h-4 w-4" />
+      <div className="w-full max-w-full overflow-x-auto">
+        <div className="rounded-md border">
+          <Table className="w-full min-w-0 achievement-table table-fixed">
+            <TableHeader>
+              <TableRow>
+                <TableHead className="text-pretty w-[45%]">Название</TableHead>
+                <TableHead className="hidden sm:table-cell text-pretty w-[22%]">Описание</TableHead>
+                <TableHead className="hidden md:table-cell text-pretty text-right w-[18%]">Тип</TableHead>
+                <TableHead className="text-center hidden lg:table-cell text-pretty w-[7%]">Баллы</TableHead>
+                <TableHead className="text-center text-pretty w-[8%]">Статус</TableHead>
+                <TableHead className="w-[60px]"></TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredGroups && filteredGroups.length > 0 ? (
+                filteredGroups.map((group) => (
+                  <React.Fragment key={group.id}>
+                    <TableRow className="bg-muted/50">
+                      <TableCell className="font-medium align-top py-3">
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6 flex-shrink-0"
+                            onClick={() => toggleGroup(group.id)}
+                          >
+                            {expandedGroups.has(group.id) ? (
+                              <ChevronDown className="h-4 w-4" />
+                            ) : (
+                              <ChevronRight className="h-4 w-4" />
+                            )}
                           </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuLabel>Действия</DropdownMenuLabel>
-                          <DropdownMenuItem
-                            onClick={() => openEditGroupDialog(group)}
-                          >
-                            Редактировать
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={() => openCreateTemplateInGroup(group.id)}
-                          >
-                            Добавить шаблон
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem
-                            className={
+                          <div className="min-w-0 flex-1">
+                            <ExpandableText 
+                              text={group.name} 
+                              maxLength={80} 
+                              className="text-pretty break-words whitespace-normal" 
+                            />
+                            <div className="block sm:hidden text-xs text-muted-foreground mt-1">
+                              <ExpandableText 
+                                text={group.description} 
+                                maxLength={100} 
+                                className="text-pretty break-words whitespace-normal" 
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell className="hidden sm:table-cell align-top py-3">
+                        <ExpandableText 
+                          text={group.description} 
+                          maxLength={150} 
+                          className="text-pretty break-words whitespace-normal" 
+                        />
+                      </TableCell>
+                      <TableCell className="hidden md:table-cell align-top py-3 text-right">
+                        <span className="text-muted-foreground text-pretty">-</span>
+                      </TableCell>
+                      <TableCell className="hidden lg:table-cell align-top py-3 text-center">
+                        <span className="text-muted-foreground">-</span>
+                      </TableCell>
+                      <TableCell className="align-top py-3">
+                        <StatusColumnContent>
+                          <span
+                            className={`px-1 sm:px-2 py-1 rounded-full text-xs ${
                               group.active
-                                ? "text-destructive"
-                                : "text-green-600"
-                            }
-                            onClick={() => openDeactivateDialog(group)}
+                                ? "bg-green-100 text-green-800"
+                                : "bg-red-100 text-red-800"
+                            }`}
                           >
-                            <Ban className="h-4 w-4 mr-2" />
-                            {group.active ? "Деактивировать" : "Активировать"}
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                  {expandedGroups.has(group.id) &&
-                    filteredTemplates
-                      ?.filter((template) => template.groupId === group.id)
-                      .map((template) => (
-                        <TableRow key={template.id} className="bg-background">
-                          <TableCell className="font-medium pl-12">
-                            {template.name}
-                          </TableCell>
-                          <TableCell>{template.description}</TableCell>
-                          <TableCell>
-                            {template.kind === "olympiad" &&
-                              "Олимпиадная деятельность"}
-                            {template.kind === "development" && "Развитие"}
-                            {template.kind === "scientific" &&
-                              "Научная деятельность"}
-                          </TableCell>
-                          <TableCell>{template.pointsLimit}</TableCell>
-                          <TableCell>
-                            <span
-                              className={`px-2 py-1 rounded-full text-xs ${
-                                template.active
-                                  ? "bg-green-100 text-green-800"
-                                  : "bg-red-100 text-red-800"
-                              }`}
-                            >
-                              {template.active ? "Активен" : "Неактивен"}
+                            <span className="hidden sm:inline">
+                              {group.active ? "Активна" : "Неактивна"}
                             </span>
-                          </TableCell>
-                          <TableCell>
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon">
-                                  <MoreHorizontal className="h-4 w-4" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                <DropdownMenuLabel>Действия</DropdownMenuLabel>
-                                <DropdownMenuItem
-                                  onClick={() =>
-                                    openEditTemplateDialog(template)
-                                  }
-                                >
-                                  Редактировать
-                                </DropdownMenuItem>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem
-                                  className={
+                            <span className="sm:hidden">
+                              {group.active ? "✓" : "✗"}
+                            </span>
+                          </span>
+                        </StatusColumnContent>
+                      </TableCell>
+                      <TableCell className="align-top py-3">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuLabel>Действия</DropdownMenuLabel>
+                            <DropdownMenuItem
+                              onClick={() => openEditGroupDialog(group)}
+                            >
+                              Редактировать
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => openCreateTemplateInGroup(group.id)}
+                            >
+                              Добавить шаблон
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem
+                              className={
+                                group.active
+                                  ? "text-destructive"
+                                  : "text-green-600"
+                              }
+                              onClick={() => openDeactivateDialog(group)}
+                            >
+                              <Ban className="h-4 w-4 mr-2" />
+                              {group.active ? "Деактивировать" : "Активировать"}
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                    {expandedGroups.has(group.id) &&
+                      filteredTemplates
+                        ?.filter((template) => template.groupId === group.id)
+                        .map((template) => (
+                          <TableRow key={template.id} className="bg-background">
+                            <TableCell className="font-medium pl-8 sm:pl-12 align-top py-3">
+                              <div className="min-w-0">
+                                <ExpandableText 
+                                  text={template.name} 
+                                  maxLength={80} 
+                                  className="text-pretty break-words whitespace-normal" 
+                                />
+                                <div className="block sm:hidden text-xs text-muted-foreground mt-1 space-y-1">
+                                  <ExpandableText 
+                                    text={template.description} 
+                                    maxLength={100} 
+                                    className="text-pretty break-words whitespace-normal" 
+                                  />
+                                  <div className="flex gap-1 text-xs text-pretty">
+                                    <span>
+                                      {template.kind === "olympiad" && "Олимпиада"}
+                                      {template.kind === "development" && "Развитие"}
+                                      {template.kind === "scientific" && "Наука"}
+                                    </span>
+                                    <span>•</span>
+                                    <span>{template.pointsLimit}б</span>
+                                  </div>
+                                </div>
+                              </div>
+                            </TableCell>
+                            <TableCell className="hidden sm:table-cell align-top py-3">
+                              <ExpandableText 
+                                text={template.description} 
+                                maxLength={150} 
+                                className="text-pretty break-words whitespace-normal" 
+                              />
+                            </TableCell>
+                            <TableCell className="hidden md:table-cell align-top py-3 text-right">
+                              <div className="text-pretty break-words whitespace-normal text-right">
+                                {template.kind === "olympiad" && "Олимпиадная деятельность"}
+                                {template.kind === "development" && "Развитие"}
+                                {template.kind === "scientific" && "Научная деятельность"}
+                              </div>
+                            </TableCell>
+                            <TableCell className="hidden lg:table-cell align-top py-3 text-center">
+                              {template.pointsLimit}
+                            </TableCell>
+                            <TableCell className="align-top py-3">
+                              <StatusColumnContent>
+                                <span
+                                  className={`px-1 sm:px-2 py-1 rounded-full text-xs ${
                                     template.active
-                                      ? "text-destructive"
-                                      : "text-green-600"
-                                  }
-                                  onClick={() => openDeactivateDialog(template)}
+                                      ? "bg-green-100 text-green-800"
+                                      : "bg-red-100 text-red-800"
+                                  }`}
                                 >
-                                  <Ban className="h-4 w-4 mr-2" />
-                                  {template.active
-                                    ? "Деактивировать"
-                                    : "Активировать"}
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                  {expandedGroups.has(group.id) && (
-                    <>
+                                  <span className="hidden sm:inline">
+                                    {template.active ? "Активен" : "Неактивен"}
+                                  </span>
+                                  <span className="sm:hidden">
+                                    {template.active ? "✓" : "✗"}
+                                  </span>
+                                </span>
+                              </StatusColumnContent>
+                            </TableCell>
+                            <TableCell className="align-top py-3">
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button variant="ghost" size="icon">
+                                    <MoreHorizontal className="h-4 w-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                  <DropdownMenuLabel>Действия</DropdownMenuLabel>
+                                  <DropdownMenuItem
+                                    onClick={() => openEditTemplateDialog(template)}
+                                  >
+                                    Редактировать
+                                  </DropdownMenuItem>
+                                  <DropdownMenuSeparator />
+                                  <DropdownMenuItem
+                                    className={
+                                      template.active
+                                        ? "text-destructive"
+                                        : "text-green-600"
+                                    }
+                                    onClick={() => openDeactivateDialog(template)}
+                                  >
+                                    <Ban className="h-4 w-4 mr-2" />
+                                    {template.active ? "Деактивировать" : "Активировать"}
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                    {expandedGroups.has(group.id) && (
                       <TableRow className="bg-background">
-                        <TableCell colSpan={6} className="pl-12">
+                        <TableCell colSpan={6} className="pl-8 sm:pl-12 align-top py-3">
                           <Button
                             variant="ghost"
                             className="w-full justify-start text-muted-foreground hover:text-foreground"
@@ -412,19 +482,19 @@ export function AchievementTemplatesTable() {
                           </Button>
                         </TableCell>
                       </TableRow>
-                    </>
-                  )}
-                </React.Fragment>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell colSpan={5} className="h-24 text-center">
-                  Нет данных
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
+                    )}
+                  </React.Fragment>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={6} className="h-24 text-center">
+                    Нет данных
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </div>
       </div>
 
       <AchievementTemplateFormDialog
