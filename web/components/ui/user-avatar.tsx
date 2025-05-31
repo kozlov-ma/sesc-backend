@@ -58,12 +58,12 @@ export function UserAvatar({
 
   const tooltipContent = user ? (
     <div className="flex flex-col space-y-1.5 p-1">
-      <div className="font-medium">{`${user.firstName} ${user.lastName}`} {user.middleName && ` ${user.middleName}`}</div>
-      <div className="text-xs text-muted-foreground">{user.role.name}</div>
+      <p className="font-medium">{`${user.firstName} ${user.lastName}`} {user.middleName && ` ${user.middleName}`}</p>
+      <p className="text-xs text-muted-foreground">{user.role.name}</p>
       {user.department && (
-        <div className="text-xs text-muted-foreground">
+        <p className="text-xs text-muted-foreground">
           {user.department.name}
-        </div>
+        </p>
       )}
     </div>
   ) : null;
