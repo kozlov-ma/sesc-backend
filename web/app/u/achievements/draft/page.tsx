@@ -12,6 +12,12 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   getAchievementsOptions,
@@ -281,14 +287,27 @@ export default function DraftAchievementsPage() {
 
                 {/* Action buttons */}
                 <div className="p-5 border-t flex gap-3 justify-start">
-                  <Button
-                    variant="default"
-                    onClick={() => handleSubmitAchievement(achievement)}
-                    disabled={achievement.documents.length == 0}
-                  >
-                    <Send className="mr-2 h-4 w-4" />
-                    Отправить на проверку
-                  </Button>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <span>
+                          <Button
+                            variant="default"
+                            onClick={() => handleSubmitAchievement(achievement)}
+                            disabled={achievement.documents.length == 0}
+                          >
+                            <Send className="mr-2 h-4 w-4" />
+                            Отправить на проверку
+                          </Button>
+                        </span>
+                      </TooltipTrigger>
+                      {achievement.documents.length === 0 && (
+                        <TooltipContent>
+                          <p>Добавьте хотя бы один документ для отправки достижения</p>
+                        </TooltipContent>
+                      )}
+                    </Tooltip>
+                  </TooltipProvider>
                   <Button
                     variant="outline"
                     onClick={() => handleDeleteAchievement(achievement)}
