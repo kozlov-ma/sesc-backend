@@ -264,11 +264,11 @@ export function AchievementTemplatesTable() {
           <Table className="w-full min-w-0 achievement-table" style={{ tableLayout: 'fixed' }}>
             <TableHeader>
               <TableRow>
-                <TableHead className="text-pretty" style={{ width: '35%' }}>Название</TableHead>
-                <TableHead className="hidden sm:table-cell text-pretty" style={{ width: '25%' }}>Описание</TableHead>
-                <TableHead className="hidden md:table-cell text-pretty text-right" style={{ width: '20%' }}>Тип</TableHead>
-                <TableHead className="text-center hidden lg:table-cell text-pretty" style={{ width: '8%' }}>Баллы</TableHead>
-                <TableHead className="text-center text-pretty" style={{ width: '12%' }}>Статус</TableHead>
+                <TableHead className="text-pretty" style={{ width: '45%' }}>Название</TableHead>
+                <TableHead className="hidden sm:table-cell text-pretty" style={{ width: '22%' }}>Описание</TableHead>
+                <TableHead className="hidden md:table-cell text-pretty text-right" style={{ width: '18%' }}>Тип</TableHead>
+                <TableHead className="text-center hidden lg:table-cell text-pretty" style={{ width: '7%' }}>Баллы</TableHead>
+                <TableHead className="text-center text-pretty" style={{ width: '8%' }}>Статус</TableHead>
                 <TableHead style={{ width: '60px' }}></TableHead>
               </TableRow>
             </TableHeader>
@@ -294,13 +294,13 @@ export function AchievementTemplatesTable() {
                           <div className="min-w-0 flex-1">
                             <ExpandableText 
                               text={group.name} 
-                              maxLength={40} 
+                              maxLength={80} 
                               className="text-pretty break-words whitespace-normal" 
                             />
                             <div className="block sm:hidden text-xs text-muted-foreground mt-1">
                               <ExpandableText 
                                 text={group.description} 
-                                maxLength={60} 
+                                maxLength={100} 
                                 className="text-pretty break-words whitespace-normal" 
                               />
                             </div>
@@ -310,7 +310,7 @@ export function AchievementTemplatesTable() {
                       <TableCell className="hidden sm:table-cell align-top py-3">
                         <ExpandableText 
                           text={group.description} 
-                          maxLength={80} 
+                          maxLength={150} 
                           className="text-pretty break-words whitespace-normal" 
                         />
                       </TableCell>
@@ -382,13 +382,13 @@ export function AchievementTemplatesTable() {
                               <div className="min-w-0">
                                 <ExpandableText 
                                   text={template.name} 
-                                  maxLength={40} 
+                                  maxLength={80} 
                                   className="text-pretty break-words whitespace-normal" 
                                 />
                                 <div className="block sm:hidden text-xs text-muted-foreground mt-1 space-y-1">
                                   <ExpandableText 
                                     text={template.description} 
-                                    maxLength={60} 
+                                    maxLength={100} 
                                     className="text-pretty break-words whitespace-normal" 
                                   />
                                   <div className="flex gap-1 text-xs text-pretty">
@@ -406,7 +406,7 @@ export function AchievementTemplatesTable() {
                             <TableCell className="hidden sm:table-cell align-top py-3">
                               <ExpandableText 
                                 text={template.description} 
-                                maxLength={80} 
+                                maxLength={150} 
                                 className="text-pretty break-words whitespace-normal" 
                               />
                             </TableCell>
