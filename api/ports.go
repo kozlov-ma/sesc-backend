@@ -7,6 +7,7 @@ import (
 	"github.com/gofrs/uuid/v5"
 	"github.com/kozlov-ma/sesc-backend/achievement"
 	"github.com/kozlov-ma/sesc-backend/iam"
+	"github.com/kozlov-ma/sesc-backend/internal/sescsvc"
 	"github.com/kozlov-ma/sesc-backend/pkg/event"
 	"github.com/kozlov-ma/sesc-backend/sesc"
 )
@@ -99,6 +100,17 @@ type (
 			ctx context.Context,
 			offset, limit int,
 		) (map[uuid.UUID][]achievement.Achievement, int, error)
+
+		// Добавьте эти два недостающих метода:
+		GetUserAchievementsByID(
+			ctx context.Context,
+			userID uuid.UUID,
+			offset, limit int,
+		) ([]achievement.Achievement, int, error)
+		GetUsersWithAchievements(
+			ctx context.Context,
+			offset, limit int,
+		) ([]sescsvc.UserWithAchievementCount, int, error)
 
 		CreateAchievement(ctx context.Context, opt achievement.CreateOptions) (achievement.Achievement, error)
 		DeleteAchievement(ctx context.Context, opt achievement.DeleteOptions) error

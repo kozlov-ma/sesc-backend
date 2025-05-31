@@ -11,6 +11,7 @@ import (
 	"github.com/gofrs/uuid/v5"
 	"github.com/kozlov-ma/sesc-backend/achievement"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent"
+	entAchievement "github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievement"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievementgroup"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievementtemplate"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/user"
@@ -1344,4 +1345,193 @@ func (s *SESC) UpdateAchievementTemplate(
 
 	rec.Add("updated_template", result)
 	return result, nil
+}
+
+// UserWithAchievementCount represents a user with their achievement count
+type UserWithAchievementCount struct {
+	UserID           UUID   `json:"userId"`
+	UserName         string `json:"userName"`
+	AchievementCount int    `json:"achievementCount"`
+}
+
+// GetUsersWithAchievements retrieves all users who have at least one achievement
+func (s *SESC) GetUsersWithAchievements(ctx context.Context, offset, limit int) ([]UserWithAchievementCount, int, error) {
+	rec := event.Get(ctx).Sub("sesc/get_users_with_achievements")
+	rootRec := event.Root(ctx)
+	statrec := rootRec.Sub("stats")
+
+	rec.Sub("params").Set(
+		"offset", offset,
+		"limit", limit,
+	)
+
+	// Get users with achievements using raw SQL for better performance
+	ctx = rec.Sub("query_users_with_achievements").Wrap(ctx)
+	users, err := s.queryUsersWithAchievements(ctx, statrec, offset, limit)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	// Get total count
+	ctx = rec.Sub("count_users_with_achievements").Wrap(ctx)
+	totalCount, err := s.countUsersWithAchievements(ctx, statrec)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	rec.Set("success", true)
+	rec.Set("users_count", len(users))
+	rec.Set("total_count", totalCount)
+
+	return users, totalCount, nil
+}
+
+// queryUsersWithAchievements queries users with achievements from the database
+func (s *SESC) queryUsersWithAchievements(ctx context.Context, statrec *event.Record, offset, limit int) ([]UserWithAchievementCount, error) {
+	rec := event.Get(ctx)
+
+	// Use ent query instead of raw SQL
+	startTime := time.Now()
+	statrec.Add(events.PostgresQueries, 1)
+
+	users, err := s.client.User.Query().
+		Where(user.HasAchievements()).
+		WithAchievements().
+		Offset(offset).
+		Limit(limit).
+		All(ctx)
+	if err != nil {
+		err := fmt.Errorf("failed to query users with achievements: %w", err)
+		rec.Add(events.Error, err)
+		statrec.Add(events.PostgresTime, time.Since(startTime))
+		return nil, err
+	}
+
+	statrec.Add(events.PostgresTime, time.Since(startTime))
+
+	var result []UserWithAchievementCount
+	for _, user := range users {
+		if len(user.Edges.Achievements) > 0 {
+			result = append(result, UserWithAchievementCount{
+				UserID:           user.ID,
+				UserName:         user.FirstName + " " + user.LastName,
+				AchievementCount: len(user.Edges.Achievements),
+			})
+		}
+	}
+
+	rec.Set("success", true)
+	rec.Set("users_found", len(result))
+	return result, nil
+}
+
+// countUsersWithAchievements counts the total number of users with achievements
+func (s *SESC) countUsersWithAchievements(ctx context.Context, statrec *event.Record) (int, error) {
+	rec := event.Get(ctx)
+
+	startTime := time.Now()
+	statrec.Add(events.PostgresQueries, 1)
+
+	count, err := s.client.User.Query().
+		Where(user.HasAchievements()).
+		Count(ctx)
+	statrec.Add(events.PostgresTime, time.Since(startTime))
+
+	if err != nil {
+		err := fmt.Errorf("failed to count users with achievements: %w", err)
+		rec.Add(events.Error, err)
+		return 0, err
+	}
+
+	rec.Set("success", true)
+	rec.Set("total_count", count)
+	return count, nil
+}
+
+// GetUserAchievementsByID retrieves achievements for a specific user (rename to avoid conflict)
+func (s *SESC) GetUserAchievementsByID(ctx context.Context, userID UUID, offset, limit int) ([]achievement.Achievement, int, error) {
+	rec := event.Get(ctx).Sub("sesc/get_user_achievements_by_id")
+	rootRec := event.Root(ctx)
+	statrec := rootRec.Sub("stats")
+
+	rec.Sub("params").Set(
+		"user_id", userID,
+		"offset", offset,
+		"limit", limit,
+	)
+
+	// Query user achievements using ent - используйте правильные предикаты
+	startTime := time.Now()
+	statrec.Add(events.PostgresQueries, 1)
+
+	entAchievements, err := s.client.Achievement.Query().
+		Where(entAchievement.HasOwnerWith(user.IDEQ(userID))).
+		WithOwner().
+		WithTemplate().
+		Offset(offset).
+		Limit(limit).
+		All(ctx)
+	if err != nil {
+		err := fmt.Errorf("failed to query user achievements: %w", err)
+		rec.Add(events.Error, err)
+		statrec.Add(events.PostgresTime, time.Since(startTime))
+		return nil, 0, err
+	}
+
+	statrec.Add(events.PostgresTime, time.Since(startTime))
+
+	// Convert ent achievements to domain achievements
+	var result []achievement.Achievement
+	for _, entAch := range entAchievements {
+		// Convert owner
+		owner, err := convertUser(entAch.Edges.Owner)
+		if err != nil {
+			rec.Add(events.Error, fmt.Errorf("failed to convert user: %w", err))
+			return nil, 0, err
+		}
+
+		// Convert template
+		template := achievement.Template{
+			ID:          entAch.Edges.Template.ID,
+			Name:        entAch.Edges.Template.Name,
+			Description: entAch.Edges.Template.Description,
+			PointsLimit: entAch.Edges.Template.PointsLimit,
+			GroupID:     entAch.Edges.Template.GroupID,
+			Active:      entAch.Edges.Template.Active,
+			Kind:        achievement.Kind(entAch.Edges.Template.Kind),
+		}
+
+		domainAch := achievement.Achievement{
+			ID:       entAch.ID,
+			Owner:    owner,
+			Template: template,
+			Status:   achievement.Status(entAch.Status),
+			Points:   entAch.Points,
+			// Documents and Reviews would need separate queries if needed
+			Documents: []achievement.Document{}, // Initialize empty slice
+			Reviews:   []achievement.Review{},   // Initialize empty slice
+		}
+		result = append(result, domainAch)
+	}
+
+	// Get total count
+	startTime = time.Now()
+	statrec.Add(events.PostgresQueries, 1)
+
+	totalCount, err := s.client.Achievement.Query().
+		Where(entAchievement.HasOwnerWith(user.IDEQ(userID))).
+		Count(ctx)
+	statrec.Add(events.PostgresTime, time.Since(startTime))
+
+	if err != nil {
+		err := fmt.Errorf("failed to count user achievements: %w", err)
+		rec.Add(events.Error, err)
+		return nil, 0, err
+	}
+
+	rec.Set("success", true)
+	rec.Set("achievements_count", len(result))
+	rec.Set("total_count", totalCount)
+
+	return result, totalCount, nil
 }

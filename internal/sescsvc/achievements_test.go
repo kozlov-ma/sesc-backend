@@ -1011,3 +1011,296 @@ func TestDetermineNewStatus(t *testing.T) {
 		})
 	}
 }
+
+func TestGetUsersWithAchievements(t *testing.T) {
+	setup := func(t *testing.T) (ctx context.Context, svc *SESC, users []User, achievements []achievement.Achievement) {
+		ctx = t.Context()
+		ctx, _ = event.NewRecord(ctx, "test")
+		svc = setupSESC(t)
+		template := createTestTemplate(t, svc)
+
+		// Create 3 users with achievements and 1 user without
+		users = make([]User, 4)
+		achievements = make([]achievement.Achievement, 0)
+
+		for i := range 4 {
+			users[i] = createTestUser(t, svc)
+
+			// Only first 3 users get achievements
+			if i < 3 {
+				// Create 2 achievements per user
+				for range 2 {
+					ach := createTestAchievement(t, svc, users[i], template)
+					achievements = append(achievements, ach)
+				}
+			}
+		}
+
+		return ctx, svc, users, achievements
+	}
+
+	t.Run("success with pagination", func(t *testing.T) {
+		ctx, svc, users, _ := setup(t)
+
+		// Get first page (2 users)
+		usersWithAchievements, total, err := svc.GetUsersWithAchievements(ctx, 0, 2)
+		require.NoError(t, err, "GetUsersWithAchievements failed")
+		require.Equal(t, 3, total, "Wrong total count - should be 3 users with achievements")
+		require.Len(t, usersWithAchievements, 2, "Wrong number of users returned for first page")
+
+		// Verify each user has correct achievement count
+		for _, userWithCount := range usersWithAchievements {
+			require.Equal(t, 2, userWithCount.AchievementCount, "Each user should have 2 achievements")
+			require.NotEmpty(t, userWithCount.UserName, "User name should not be empty")
+			require.NotEqual(t, uuid.Nil, userWithCount.UserID, "User ID should not be nil")
+		}
+
+		// Get second page (1 user)
+		usersWithAchievements2, total2, err := svc.GetUsersWithAchievements(ctx, 2, 2)
+		require.NoError(t, err, "GetUsersWithAchievements failed for second page")
+		require.Equal(t, 3, total2, "Total count should be consistent")
+		require.Len(t, usersWithAchievements2, 1, "Wrong number of users returned for second page")
+
+		// Ensure no overlap between pages
+		page1IDs := make(map[UUID]bool)
+		for _, userWithCount := range usersWithAchievements {
+			page1IDs[userWithCount.UserID] = true
+		}
+		for _, userWithCount := range usersWithAchievements2 {
+			require.False(t, page1IDs[userWithCount.UserID], "User should not appear on both pages")
+		}
+
+		// Verify at least one user from setup is returned
+		foundExpectedUser := false
+		allUsers := append(usersWithAchievements, usersWithAchievements2...)
+		for _, userWithCount := range allUsers {
+			for i := 0; i < 3; i++ { // First 3 users have achievements
+				if userWithCount.UserID == users[i].ID {
+					foundExpectedUser = true
+					break
+				}
+			}
+		}
+		require.True(t, foundExpectedUser, "Should find at least one expected user with achievements")
+	})
+
+	t.Run("no users with achievements", func(t *testing.T) {
+		ctx := t.Context()
+		ctx, _ = event.NewRecord(ctx, "test")
+		svc := setupSESC(t)
+
+		// Create a user but no achievements
+		_ = createTestUser(t, svc)
+
+		usersWithAchievements, total, err := svc.GetUsersWithAchievements(ctx, 0, 10)
+		require.NoError(t, err, "GetUsersWithAchievements failed")
+		require.Zero(t, total, "Expected zero total when no users have achievements")
+		require.Empty(t, usersWithAchievements, "Expected empty users list")
+	})
+
+	t.Run("offset beyond available data", func(t *testing.T) {
+		ctx, svc, _, _ := setup(t)
+
+		// Request offset beyond available data
+		usersWithAchievements, total, err := svc.GetUsersWithAchievements(ctx, 10, 5)
+		require.NoError(t, err, "GetUsersWithAchievements failed")
+		require.Equal(t, 3, total, "Total count should still be correct")
+		require.Empty(t, usersWithAchievements, "Should return empty list for offset beyond data")
+	})
+
+	t.Run("verify user names are constructed correctly", func(t *testing.T) {
+		ctx, svc, users, _ := setup(t)
+
+		usersWithAchievements, _, err := svc.GetUsersWithAchievements(ctx, 0, 10)
+		require.NoError(t, err, "GetUsersWithAchievements failed")
+
+		// Create expected names map
+		expectedNames := make(map[UUID]string)
+		for i := 0; i < 3; i++ { // Only first 3 users have achievements
+			expectedNames[users[i].ID] = users[i].FirstName + " " + users[i].LastName
+		}
+
+		// Verify names
+		for _, userWithCount := range usersWithAchievements {
+			expectedName, exists := expectedNames[userWithCount.UserID]
+			require.True(t, exists, "User should be in expected names")
+			require.Equal(t, expectedName, userWithCount.UserName, "User name should be correctly constructed")
+		}
+	})
+}
+
+func TestGetUserAchievementsByID(t *testing.T) {
+	setup := func(t *testing.T) (ctx context.Context, svc *SESC, user User, achievements []achievement.Achievement) {
+		ctx = t.Context()
+		ctx, _ = event.NewRecord(ctx, "test")
+		svc = setupSESC(t)
+		user = createTestUser(t, svc)
+		template := createTestTemplate(t, svc)
+
+		// Create multiple achievements for the user
+		achievements = make([]achievement.Achievement, 5)
+		for i := range 5 {
+			achievements[i] = createTestAchievement(t, svc, user, template)
+		}
+
+		return ctx, svc, user, achievements
+	}
+
+	t.Run("success with pagination", func(t *testing.T) {
+		ctx, svc, user, expectedAchievements := setup(t)
+
+		// Get first page (3 achievements)
+		achievements, total, err := svc.GetUserAchievementsByID(ctx, user.ID, 0, 3)
+		require.NoError(t, err, "GetUserAchievementsByID failed")
+		require.Equal(t, len(expectedAchievements), total, "Wrong total count")
+		require.Len(t, achievements, 3, "Wrong number of achievements returned")
+
+		// Verify achievement structure
+		for _, ach := range achievements {
+			require.NotEqual(t, uuid.Nil, ach.ID, "Achievement ID should not be nil")
+			require.Equal(t, user.ID, ach.Owner.ID, "Achievement owner should match requested user")
+			require.NotEqual(t, uuid.Nil, ach.Template.ID, "Achievement template should be populated")
+			require.NotEmpty(t, ach.Template.Name, "Achievement template name should be populated")
+			require.NotNil(t, ach.Documents, "Documents slice should be initialized")
+			require.NotNil(t, ach.Reviews, "Reviews slice should be initialized")
+		}
+
+		// Get second page (2 achievements)
+		achievements2, total2, err := svc.GetUserAchievementsByID(ctx, user.ID, 3, 3)
+		require.NoError(t, err, "GetUserAchievementsByID failed for second page")
+		require.Equal(t, total, total2, "Total count should be consistent")
+		require.Len(t, achievements2, 2, "Wrong number of achievements returned for second page")
+
+		// Ensure no overlap between pages
+		page1IDs := make(map[uuid.UUID]bool)
+		for _, ach := range achievements {
+			page1IDs[ach.ID] = true
+		}
+		for _, ach := range achievements2 {
+			require.False(t, page1IDs[ach.ID], "Achievement should not appear on both pages")
+		}
+	})
+
+	t.Run("user with no achievements", func(t *testing.T) {
+		ctx := t.Context()
+		ctx, _ = event.NewRecord(ctx, "test")
+		svc := setupSESC(t)
+		user := createTestUser(t, svc)
+
+		achievements, total, err := svc.GetUserAchievementsByID(ctx, user.ID, 0, 10)
+		require.NoError(t, err, "GetUserAchievementsByID failed")
+		require.Zero(t, total, "Expected zero total for user with no achievements")
+		require.Empty(t, achievements, "Expected empty achievements list")
+	})
+
+	t.Run("non-existent user", func(t *testing.T) {
+		ctx := t.Context()
+		ctx, _ = event.NewRecord(ctx, "test")
+		svc := setupSESC(t)
+
+		achievements, total, err := svc.GetUserAchievementsByID(ctx, uuid.Must(uuid.NewV7()), 0, 10)
+		require.NoError(t, err, "GetUserAchievementsByID should not fail for non-existent user")
+		require.Zero(t, total, "Expected zero total for non-existent user")
+		require.Empty(t, achievements, "Expected empty achievements list for non-existent user")
+	})
+
+	t.Run("achievement owner and template are properly loaded", func(t *testing.T) {
+		ctx, svc, user, _ := setup(t)
+
+		achievements, _, err := svc.GetUserAchievementsByID(ctx, user.ID, 0, 1)
+		require.NoError(t, err, "GetUserAchievementsByID failed")
+		require.Len(t, achievements, 1, "Should return exactly one achievement")
+
+		ach := achievements[0]
+
+		// Verify owner is properly loaded
+		require.Equal(t, user.ID, ach.Owner.ID, "Owner ID should match")
+		require.Equal(t, user.FirstName, ach.Owner.FirstName, "Owner FirstName should be loaded")
+		require.Equal(t, user.LastName, ach.Owner.LastName, "Owner LastName should be loaded")
+
+		// Verify template is properly loaded
+		require.NotEqual(t, uuid.Nil, ach.Template.ID, "Template ID should not be nil")
+		require.NotEmpty(t, ach.Template.Name, "Template name should be loaded")
+		require.NotEmpty(t, ach.Template.Description, "Template description should be loaded")
+		require.Greater(t, ach.Template.PointsLimit, 0, "Template points limit should be positive")
+	})
+
+	t.Run("pagination with zero limit returns all", func(t *testing.T) {
+		ctx, svc, user, _ := setup(t)
+
+		achievements, total, err := svc.GetUserAchievementsByID(ctx, user.ID, 0, 0)
+		require.NoError(t, err, "GetUserAchievementsByID should handle zero limit")
+		require.Equal(t, 5, total, "Total count should still be correct")
+		require.Len(t, achievements, 5, "Should return all achievements with zero limit")
+	})
+
+	t.Run("offset beyond available data", func(t *testing.T) {
+		ctx, svc, user, _ := setup(t)
+
+		achievements, total, err := svc.GetUserAchievementsByID(ctx, user.ID, 10, 5)
+		require.NoError(t, err, "GetUserAchievementsByID failed")
+		require.Equal(t, 5, total, "Total count should still be correct")
+		require.Empty(t, achievements, "Should return empty list for offset beyond data")
+	})
+}
+
+func TestGetUserAchievementsByIDWithDifferentStatuses(t *testing.T) {
+	setup := func(t *testing.T) (ctx context.Context, svc *SESC, user User, achievements []achievement.Achievement) {
+		ctx = t.Context()
+		ctx, _ = event.NewRecord(ctx, "test")
+		svc = setupSESC(t)
+		user = createTestUser(t, svc)
+		template := createTestTemplate(t, svc)
+
+		// Create achievements with different statuses
+		achievements = make([]achievement.Achievement, 3)
+
+		// Draft achievement
+		achievements[0] = createTestAchievement(t, svc, user, template)
+
+		// Submitted achievement
+		achievements[1] = createTestAchievement(t, svc, user, template)
+		submitOpt := achievement.SubmitOptions{
+			OwnerID:       user.ID,
+			AchievementID: achievements[1].ID,
+		}
+		submittedAch, err := svc.SubmitAchievement(ctx, submitOpt)
+		require.NoError(t, err)
+		achievements[1] = submittedAch
+
+		// Done achievement (simulated by updating database directly)
+		achievements[2] = createTestAchievement(t, svc, user, template)
+		err = svc.client.Achievement.UpdateOne(
+			svc.client.Achievement.GetX(ctx, achievements[2].ID),
+		).SetStatus(string(achievement.StatusDone)).Exec(ctx)
+		require.NoError(t, err)
+
+		return ctx, svc, user, achievements
+	}
+
+	t.Run("returns achievements with different statuses", func(t *testing.T) {
+		ctx, svc, user, expectedAchievements := setup(t)
+
+		// Get all achievements for the user
+		achievements, total, err := svc.GetUserAchievementsByID(ctx, user.ID, 0, 10)
+		require.NoError(t, err, "GetUserAchievementsByID failed")
+		require.Equal(t, 3, total, "Should have 3 total achievements")
+		require.Len(t, achievements, 3, "Should return 3 achievements")
+
+		// Create a map for easy lookup
+		achievementMap := make(map[UUID]achievement.Achievement)
+		for _, ach := range achievements {
+			achievementMap[ach.ID] = ach
+		}
+
+		// Verify each achievement has the correct status
+		draftAch := achievementMap[expectedAchievements[0].ID]
+		require.Equal(t, string(achievement.StatusDraft), string(draftAch.Status), "Draft achievement should have draft status")
+
+		submittedAch := achievementMap[expectedAchievements[1].ID]
+		require.Equal(t, string(achievement.StatusDepheadReview), string(submittedAch.Status), "Submitted achievement should have dephead_review status")
+
+		doneAch := achievementMap[expectedAchievements[2].ID]
+		require.Equal(t, string(achievement.StatusDone), string(doneAch.Status), "Done achievement should have done status")
+	})
+}
