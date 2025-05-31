@@ -61,26 +61,6 @@ import type { AxiosError } from "axios";
 import React from "react";
 import { ExpandableText } from "@/components/ui/expandable-text";
 
-const CustomStyles = () => (
-  <style jsx global>{`
-    .achievement-table .type-column {
-      padding-left: 120px !important;
-    }
-    .achievement-table .type-content {
-      position: relative;
-      left: 120px;
-    }
-  `}</style>
-);
-
-const TypeColumnContent = ({ children }: { children: React.ReactNode }) => (
-  <div className="relative w-full">
-    <div className="absolute" style={{ left: '120px', whiteSpace: 'nowrap' }}>
-      {children}
-    </div>
-  </div>
-);
-
 const StatusColumnContent = ({ children }: { children: React.ReactNode }) => (
   <div className="flex justify-center w-full">
     {children}
@@ -258,7 +238,6 @@ export function AchievementTemplatesTable() {
 
   return (
     <div className="space-y-4">
-      <CustomStyles />
       {(groupsError || templatesError || tableError) && (
         <ErrorMessage error={groupsError || templatesError || tableError} />
       )}
@@ -285,11 +264,11 @@ export function AchievementTemplatesTable() {
           <Table className="w-full min-w-0 achievement-table" style={{ tableLayout: 'fixed' }}>
             <TableHeader>
               <TableRow>
-                <TableHead style={{ width: '38%' }}>Название</TableHead>
-                <TableHead className="hidden sm:table-cell" style={{ width: '30%' }}>Описание</TableHead>
-                <TableHead className="hidden md:table-cell type-column" style={{ width: '17%' }}>Тип</TableHead>
-                <TableHead className="text-center hidden lg:table-cell" style={{ width: '8%' }}>Баллы</TableHead>
-                <TableHead className="text-center" style={{ width: '12%' }}>Статус</TableHead>
+                <TableHead className="text-pretty" style={{ width: '35%' }}>Название</TableHead>
+                <TableHead className="hidden sm:table-cell text-pretty" style={{ width: '25%' }}>Описание</TableHead>
+                <TableHead className="hidden md:table-cell text-pretty text-right" style={{ width: '20%' }}>Тип</TableHead>
+                <TableHead className="text-center hidden lg:table-cell text-pretty" style={{ width: '8%' }}>Баллы</TableHead>
+                <TableHead className="text-center text-pretty" style={{ width: '12%' }}>Статус</TableHead>
                 <TableHead style={{ width: '60px' }}></TableHead>
               </TableRow>
             </TableHeader>
@@ -298,7 +277,7 @@ export function AchievementTemplatesTable() {
                 filteredGroups.map((group) => (
                   <React.Fragment key={group.id}>
                     <TableRow className="bg-muted/50">
-                      <TableCell className="font-medium align-top py-3 table-cell-constrained">
+                      <TableCell className="font-medium align-top py-3">
                         <div className="flex items-center gap-2">
                           <Button
                             variant="ghost"
@@ -313,23 +292,32 @@ export function AchievementTemplatesTable() {
                             )}
                           </Button>
                           <div className="min-w-0 flex-1">
-                            <ExpandableText text={group.name} maxLength={40} />
-                            {/* Show description on mobile */}
+                            <ExpandableText 
+                              text={group.name} 
+                              maxLength={40} 
+                              className="text-pretty break-words whitespace-normal" 
+                            />
                             <div className="block sm:hidden text-xs text-muted-foreground mt-1">
-                              <ExpandableText text={group.description} maxLength={60} />
+                              <ExpandableText 
+                                text={group.description} 
+                                maxLength={60} 
+                                className="text-pretty break-words whitespace-normal" 
+                              />
                             </div>
                           </div>
                         </div>
                       </TableCell>
-                      <TableCell className="hidden sm:table-cell align-top py-3 table-cell-constrained">
-                        <ExpandableText text={group.description} maxLength={80} />
+                      <TableCell className="hidden sm:table-cell align-top py-3">
+                        <ExpandableText 
+                          text={group.description} 
+                          maxLength={80} 
+                          className="text-pretty break-words whitespace-normal" 
+                        />
                       </TableCell>
-                      <TableCell className="hidden md:table-cell align-top py-3">
-                        <TypeColumnContent>
-                          <span className="text-muted-foreground">-</span>
-                        </TypeColumnContent>
+                      <TableCell className="hidden md:table-cell align-top py-3 text-right">
+                        <span className="text-muted-foreground text-pretty">-</span>
                       </TableCell>
-                      <TableCell className="align-top py-3" style={{ textAlign: 'center' }}>
+                      <TableCell className="hidden lg:table-cell align-top py-3" style={{ textAlign: 'center' }}>
                         <span className="text-muted-foreground">-</span>
                       </TableCell>
                       <TableCell className="align-top py-3">
@@ -390,13 +378,20 @@ export function AchievementTemplatesTable() {
                         ?.filter((template) => template.groupId === group.id)
                         .map((template) => (
                           <TableRow key={template.id} className="bg-background">
-                            <TableCell className="font-medium pl-8 sm:pl-12 align-top py-3 table-cell-constrained">
+                            <TableCell className="font-medium pl-8 sm:pl-12 align-top py-3">
                               <div className="min-w-0">
-                                <ExpandableText text={template.name} maxLength={40} />
-                                {/* Show additional info on mobile */}
+                                <ExpandableText 
+                                  text={template.name} 
+                                  maxLength={40} 
+                                  className="text-pretty break-words whitespace-normal" 
+                                />
                                 <div className="block sm:hidden text-xs text-muted-foreground mt-1 space-y-1">
-                                  <ExpandableText text={template.description} maxLength={60} />
-                                  <div className="flex gap-1 text-xs">
+                                  <ExpandableText 
+                                    text={template.description} 
+                                    maxLength={60} 
+                                    className="text-pretty break-words whitespace-normal" 
+                                  />
+                                  <div className="flex gap-1 text-xs text-pretty">
                                     <span>
                                       {template.kind === "olympiad" && "Олимпиада"}
                                       {template.kind === "development" && "Развитие"}
@@ -408,23 +403,21 @@ export function AchievementTemplatesTable() {
                                 </div>
                               </div>
                             </TableCell>
-                            <TableCell className="hidden sm:table-cell align-top py-3 table-cell-constrained">
-                              <ExpandableText text={template.description} maxLength={80} />
+                            <TableCell className="hidden sm:table-cell align-top py-3">
+                              <ExpandableText 
+                                text={template.description} 
+                                maxLength={80} 
+                                className="text-pretty break-words whitespace-normal" 
+                              />
                             </TableCell>
-                            <TableCell className="hidden md:table-cell align-top py-3">
-                              <TypeColumnContent>
-                                <ExpandableText 
-                                  text={
-                                    template.kind === "olympiad" ? "Олимпиадная деятельность" :
-                                    template.kind === "development" ? "Развитие" :
-                                    template.kind === "scientific" ? "Научная деятельность" : ""
-                                  } 
-                                  maxLength={25}
-                                  className="text-foreground"
-                                />
-                              </TypeColumnContent>
+                            <TableCell className="hidden md:table-cell align-top py-3 text-right">
+                              <div className="text-pretty break-words whitespace-normal text-right">
+                                {template.kind === "olympiad" && "Олимпиадная деятельность"}
+                                {template.kind === "development" && "Развитие"}
+                                {template.kind === "scientific" && "Научная деятельность"}
+                              </div>
                             </TableCell>
-                            <TableCell className="align-top py-3" style={{ textAlign: 'center' }}>
+                            <TableCell className="hidden lg:table-cell align-top py-3" style={{ textAlign: 'center' }}>
                               {template.pointsLimit}
                             </TableCell>
                             <TableCell className="align-top py-3">
@@ -455,9 +448,7 @@ export function AchievementTemplatesTable() {
                                 <DropdownMenuContent align="end">
                                   <DropdownMenuLabel>Действия</DropdownMenuLabel>
                                   <DropdownMenuItem
-                                    onClick={() =>
-                                      openEditTemplateDialog(template)
-                                    }
+                                    onClick={() => openEditTemplateDialog(template)}
                                   >
                                     Редактировать
                                   </DropdownMenuItem>
@@ -471,9 +462,7 @@ export function AchievementTemplatesTable() {
                                     onClick={() => openDeactivateDialog(template)}
                                   >
                                     <Ban className="h-4 w-4 mr-2" />
-                                    {template.active
-                                      ? "Деактивировать"
-                                      : "Активировать"}
+                                    {template.active ? "Деактивировать" : "Активировать"}
                                   </DropdownMenuItem>
                                 </DropdownMenuContent>
                               </DropdownMenu>
@@ -481,20 +470,18 @@ export function AchievementTemplatesTable() {
                           </TableRow>
                         ))}
                     {expandedGroups.has(group.id) && (
-                      <>
-                        <TableRow className="bg-background">
-                          <TableCell colSpan={6} className="pl-8 sm:pl-12 align-top py-3">
-                            <Button
-                              variant="ghost"
-                              className="w-full justify-start text-muted-foreground hover:text-foreground"
-                              onClick={() => openCreateTemplateInGroup(group.id)}
-                            >
-                              <PlusCircle className="h-4 w-4 mr-2" />
-                              Добавить шаблон
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      </>
+                      <TableRow className="bg-background">
+                        <TableCell colSpan={6} className="pl-8 sm:pl-12 align-top py-3">
+                          <Button
+                            variant="ghost"
+                            className="w-full justify-start text-muted-foreground hover:text-foreground"
+                            onClick={() => openCreateTemplateInGroup(group.id)}
+                          >
+                            <PlusCircle className="h-4 w-4 mr-2" />
+                            Добавить шаблон
+                          </Button>
+                        </TableCell>
+                      </TableRow>
                     )}
                   </React.Fragment>
                 ))

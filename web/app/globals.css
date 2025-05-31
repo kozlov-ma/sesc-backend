@@ -139,4 +139,12 @@
         overflow-wrap: break-word;
         word-break: break-word;
     }
+
+    .expandable-text-container {
+        max-width: 100%;
+        overflow: hidden;
+        word-wrap: break-word;
+        word-break: break-word;
+        hyphens: auto;
+    }
 }
