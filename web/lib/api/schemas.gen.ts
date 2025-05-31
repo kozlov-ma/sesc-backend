@@ -794,6 +794,19 @@ export const api_InvalidUUIDErrorSchema = {
   },
 } as const;
 
+export const api_MarkAchievementsAsAccountedRequestSchema = {
+  type: "object",
+  required: ["achievementIds"],
+  properties: {
+    achievementIds: {
+      type: "array",
+      items: {
+        type: "string",
+      },
+    },
+  },
+} as const;
+
 export const api_PaginatedAchievementsResponseSchema = {
   type: "object",
   required: ["items", "limit", "offset", "totalCount"],

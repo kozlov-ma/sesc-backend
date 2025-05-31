@@ -243,6 +243,10 @@ export type ApiInvalidUuidError = {
   ruMessage?: string;
 };
 
+export type ApiMarkAchievementsAsAccountedRequest = {
+  achievementIds: Array<string>;
+};
+
 export type ApiPaginatedAchievementsResponse = {
   items: Array<ApiAchievementResponse>;
   limit: number;
@@ -1809,6 +1813,94 @@ export type GetPermissionsResponses = {
 
 export type GetPermissionsResponse =
   GetPermissionsResponses[keyof GetPermissionsResponses];
+
+export type PostReportsMarkAccountedData = {
+  /**
+   * Achievement IDs to mark as accounted
+   */
+  body: ApiMarkAchievementsAsAccountedRequest;
+  headers: {
+    /**
+     * Bearer JWT token
+     */
+    Authorization: string;
+  };
+  path?: never;
+  query?: never;
+  url: "/reports/mark-accounted";
+};
+
+export type PostReportsMarkAccountedErrors = {
+  /**
+   * Bad request
+   */
+  400: ApiError;
+  /**
+   * Unauthorized
+   */
+  401: ApiError;
+  /**
+   * Forbidden - Admin access required
+   */
+  403: ApiError;
+  /**
+   * Internal server error
+   */
+  500: ApiError;
+};
+
+export type PostReportsMarkAccountedError =
+  PostReportsMarkAccountedErrors[keyof PostReportsMarkAccountedErrors];
+
+export type PostReportsMarkAccountedResponses = {
+  /**
+   * Success response
+   */
+  200: {
+    [key: string]: unknown;
+  };
+};
+
+export type PostReportsMarkAccountedResponse =
+  PostReportsMarkAccountedResponses[keyof PostReportsMarkAccountedResponses];
+
+export type GetReportsUserPointsData = {
+  body?: never;
+  headers: {
+    /**
+     * Bearer JWT token
+     */
+    Authorization: string;
+  };
+  path?: never;
+  query?: never;
+  url: "/reports/user-points";
+};
+
+export type GetReportsUserPointsErrors = {
+  /**
+   * Unauthorized
+   */
+  401: ApiError;
+  /**
+   * Forbidden - Admin access required
+   */
+  403: ApiError;
+  /**
+   * Internal server error
+   */
+  500: ApiError;
+};
+
+export type GetReportsUserPointsError =
+  GetReportsUserPointsErrors[keyof GetReportsUserPointsErrors];
+
+export type GetReportsUserPointsResponses = {
+  /**
+   * Excel file with user points report
+   */
+  200: unknown;
+};
 
 export type GetRolesData = {
   body?: never;

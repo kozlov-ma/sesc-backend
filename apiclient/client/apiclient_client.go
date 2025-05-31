@@ -17,6 +17,7 @@ import (
 	"github.com/kozlov-ma/sesc-backend/apiclient/client/departments"
 	"github.com/kozlov-ma/sesc-backend/apiclient/client/files"
 	"github.com/kozlov-ma/sesc-backend/apiclient/client/permissions"
+	"github.com/kozlov-ma/sesc-backend/apiclient/client/reports"
 	"github.com/kozlov-ma/sesc-backend/apiclient/client/roles"
 	"github.com/kozlov-ma/sesc-backend/apiclient/client/users"
 )
@@ -70,6 +71,7 @@ func New(transport runtime.ClientTransport, formats strfmt.Registry) *Apiclient 
 	cli.Departments = departments.New(transport, formats)
 	cli.Files = files.New(transport, formats)
 	cli.Permissions = permissions.New(transport, formats)
+	cli.Reports = reports.New(transport, formats)
 	cli.Roles = roles.New(transport, formats)
 	cli.Users = users.New(transport, formats)
 	return cli
@@ -130,6 +132,8 @@ type Apiclient struct {
 
 	Permissions permissions.ClientService
 
+	Reports reports.ClientService
+
 	Roles roles.ClientService
 
 	Users users.ClientService
@@ -147,6 +151,7 @@ func (c *Apiclient) SetTransport(transport runtime.ClientTransport) {
 	c.Departments.SetTransport(transport)
 	c.Files.SetTransport(transport)
 	c.Permissions.SetTransport(transport)
+	c.Reports.SetTransport(transport)
 	c.Roles.SetTransport(transport)
 	c.Users.SetTransport(transport)
 }

@@ -1,6 +1,7 @@
 package api
 
 import (
+	"bytes"
 	"context"
 	"io"
 
@@ -114,6 +115,12 @@ type (
 			ctx context.Context,
 			opt achievement.ReviewOptions,
 		) (achievement.Achievement, error)
+
+		// GenerateUserPointsReport generates an Excel report with user achievement points
+		GenerateUserPointsReport(ctx context.Context) (*bytes.Buffer, error)
+
+		// MarkAchievementsAsAccounted marks achievements with "done" status as "accounted"
+		MarkAchievementsAsAccounted(ctx context.Context, achievementIDs []uuid.UUID) error
 	}
 
 	// FileService defines the file operations interface required by the API

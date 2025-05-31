@@ -583,6 +583,15 @@ definitions:
         example: Некорректный формат UUID
         type: string
     type: object
+  api.MarkAchievementsAsAccountedRequest:
+    properties:
+      achievementIds:
+        items:
+          type: string
+        type: array
+    required:
+    - achievementIds
+    type: object
   api.PaginatedAchievementsResponse:
     properties:
       items:
@@ -2200,6 +2209,88 @@ paths:
       summary: List all permissions
       tags:
       - permissions
+  /reports/mark-accounted:
+    post:
+      consumes:
+      - application/json
+      description: Marks achievements with "done" status as "accounted" in the system
+      parameters:
+      - description: Bearer JWT token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Achievement IDs to mark as accounted
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/api.MarkAchievementsAsAccountedRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success response
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/api.Error'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/api.Error'
+        "403":
+          description: Forbidden - Admin access required
+          schema:
+            $ref: '#/definitions/api.Error'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/api.Error'
+      security:
+      - BearerAuth: []
+      summary: Mark achievements as accounted
+      tags:
+      - reports
+  /reports/user-points:
+    get:
+      consumes:
+      - application/json
+      description: Generates an Excel report containing all users with their achievement
+        points summary
+      parameters:
+      - description: Bearer JWT token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
+      responses:
+        "200":
+          description: Excel file with user points report
+          schema:
+            type: file
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/api.Error'
+        "403":
+          description: Forbidden - Admin access required
+          schema:
+            $ref: '#/definitions/api.Error'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/api.Error'
+      security:
+      - BearerAuth: []
+      summary: Generate user points report
+      tags:
+      - reports
   /roles:
     get:
       description: Retrieves all system roles with their permissions

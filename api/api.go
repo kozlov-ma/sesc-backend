@@ -203,6 +203,10 @@ func (a *API) RegisterRoutes(r chi.Router) {
 		// Credential management
 		r.Delete("/auth/credentials/{id}", a.DeleteCredentials)
 		r.Get("/auth/credentials/{id}", a.GetCredentials)
+
+		// Reports
+		r.Get("/reports/user-points", a.GenerateUserPointsReport)
+		r.Post("/reports/mark-accounted", a.MarkAchievementsAsAccounted)
 	})
 
 	// Swagger UI

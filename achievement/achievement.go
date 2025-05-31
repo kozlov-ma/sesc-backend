@@ -45,6 +45,10 @@ const (
 	// 2) Achievement passed the inspector review
 	// Then, the Achievement can be used to calculate total points for the user.
 	StatusDone = "done"
+
+	// StatusAccounted is assigned to achievements that are done and have been accounted for in reports.
+	// This status indicates that the achievement points have been included in financial calculations.
+	StatusAccounted = "accounted"
 )
 
 // An Achievement is an report of achievement that belongs to a SESC teacher.
