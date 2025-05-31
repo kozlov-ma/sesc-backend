@@ -53,7 +53,7 @@ type CreateUserRequest struct {
 	Honors            string  `json:"honors,omitzero"        example:"Заслуженный деятель науки"`
 	Category          string  `json:"category,omitzero"      example:"Высшая"`
 
-	DateOfEmployment time.Time `json:"dateOfEmployment,omitzero" example:"2020-01-15T00:00:00Z" validate:"required"`
+	DateOfEmployment time.Time `json:"dateOfEmployment,omitzero" example:"2020-01-15T00:00:00Z"`
 	UnemploymentDate time.Time `json:"unemploymentDate,omitzero" example:"2023-12-31T00:00:00Z"`
 }
 

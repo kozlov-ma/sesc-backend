@@ -81,7 +81,7 @@ export type ApiCreateUserRequest = {
   academicDegree?: number;
   academicTitle?: string;
   category?: string;
-  dateOfEmployment: string;
+  dateOfEmployment?: string;
   departmentId?: string;
   employmentRate: number;
   employmentType: number;

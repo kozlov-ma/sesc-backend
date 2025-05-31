@@ -274,7 +274,6 @@ export const api_CreateDepartmentRequestSchema = {
 export const api_CreateUserRequestSchema = {
   type: "object",
   required: [
-    "dateOfEmployment",
     "employmentRate",
     "employmentType",
     "firstName",

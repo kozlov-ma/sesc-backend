@@ -33,8 +33,7 @@ type APICreateUserRequest struct {
 
 	// date of employment
 	// Example: 2020-01-15T00:00:00Z
-	// Required: true
-	DateOfEmployment *string `json:"dateOfEmployment"`
+	DateOfEmployment string `json:"dateOfEmployment,omitempty"`
 
 	// department Id
 	// Example: 550e8400-e29b-41d4-a716-446655440000
@@ -101,10 +100,6 @@ type APICreateUserRequest struct {
 func (m *APICreateUserRequest) Validate(formats strfmt.Registry) error {
 	var res []error
 
-	if err := m.validateDateOfEmployment(formats); err != nil {
-		res = append(res, err)
-	}
-
 	if err := m.validateEmploymentRate(formats); err != nil {
 		res = append(res, err)
 	}
@@ -140,15 +135,6 @@ func (m *APICreateUserRequest) Validate(formats strfmt.Registry) error {
 	if len(res) > 0 {
 		return errors.CompositeValidationError(res...)
 	}
-	return nil
-}
-
-func (m *APICreateUserRequest) validateDateOfEmployment(formats strfmt.Registry) error {
-
-	if err := validate.Required("dateOfEmployment", "body", m.DateOfEmployment); err != nil {
-		return err
-	}
-
 	return nil
 }
 

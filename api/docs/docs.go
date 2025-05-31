@@ -2639,7 +2639,6 @@ const docTemplate = `{
         "api.CreateUserRequest": {
             "type": "object",
             "required": [
-                "dateOfEmployment",
                 "employmentRate",
                 "employmentType",
                 "firstName",

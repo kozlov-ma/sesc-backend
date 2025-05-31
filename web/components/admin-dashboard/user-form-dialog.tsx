@@ -264,7 +264,9 @@ function UserFormDialog({
     clearFormError();
 
     // Parse date strings to proper date format
-    const parsedDateOfEmployment = parseDateString(values.dateOfEmployment);
+    const parsedDateOfEmployment = values.dateOfEmployment
+      ? parseDateString(values.dateOfEmployment)
+      : undefined;
     const parsedUnemploymentDate = values.unemploymentDate
       ? parseDateString(values.unemploymentDate)
       : undefined;
