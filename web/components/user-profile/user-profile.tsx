@@ -43,8 +43,7 @@ interface UserProfileProps {
 export function UserProfile({
   user,
   isLoading,
-  error,
-  isOwnProfile = true,
+  error
 }: UserProfileProps) {
   if (isLoading) {
     return <UserProfileSkeleton />;
@@ -61,11 +60,6 @@ export function UserProfile({
   return (
     <div className="space-y-6">
       <Card>
-        <CardHeader>
-          <CardTitle className="text-xl">
-            {isOwnProfile ? "Личная информация" : "Информация о пользователе"}
-          </CardTitle>
-        </CardHeader>
         <CardContent>
           <div className="flex flex-col md:flex-row gap-6">
             <div className="flex flex-col items-center gap-4">
@@ -85,29 +79,16 @@ export function UserProfile({
 
             <div className="flex-1 space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <div className="flex items-center text-muted-foreground">
-                    <User className="mr-2 h-4 w-4" />
-                    <span className="text-sm">Имя</span>
+                 
+                  <div className="space-y-2">
+                    <div className="flex items-center text-muted-foreground ">
+                      <User className="mr-2 h-4 w-4" />
+                      <span className="text-sm">ФИО</span>
+                    </div>
+                    <p className="font-medium">{user.lastName || "—"} {user.firstName || "—"} {user.middleName || "—"}</p>
                   </div>
-                  <p className="font-medium">{user.firstName || "—"}</p>
-                </div>
+                
 
-                <div className="space-y-2">
-                  <div className="flex items-center text-muted-foreground">
-                    <User className="mr-2 h-4 w-4" />
-                    <span className="text-sm">Фамилия</span>
-                  </div>
-                  <p className="font-medium">{user.lastName || "—"}</p>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <div className="flex items-center text-muted-foreground">
-                  <User className="mr-2 h-4 w-4" />
-                  <span className="text-sm">Отчество</span>
-                </div>
-                <p className="font-medium">{user.middleName || "—"}</p>
               </div>
 
               <Separator />
