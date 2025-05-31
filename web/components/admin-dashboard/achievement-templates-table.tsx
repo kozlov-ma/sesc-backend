@@ -261,15 +261,15 @@ export function AchievementTemplatesTable() {
       {/* Achievement Groups and Templates Tree */}
       <div className="w-full max-w-full overflow-x-auto">
         <div className="rounded-md border">
-          <Table className="w-full min-w-0 achievement-table" style={{ tableLayout: 'fixed' }}>
+          <Table className="w-full min-w-0 achievement-table table-fixed">
             <TableHeader>
               <TableRow>
-                <TableHead className="text-pretty" style={{ width: '45%' }}>Название</TableHead>
-                <TableHead className="hidden sm:table-cell text-pretty" style={{ width: '22%' }}>Описание</TableHead>
-                <TableHead className="hidden md:table-cell text-pretty text-right" style={{ width: '18%' }}>Тип</TableHead>
-                <TableHead className="text-center hidden lg:table-cell text-pretty" style={{ width: '7%' }}>Баллы</TableHead>
-                <TableHead className="text-center text-pretty" style={{ width: '8%' }}>Статус</TableHead>
-                <TableHead style={{ width: '60px' }}></TableHead>
+                <TableHead className="text-pretty w-[45%]">Название</TableHead>
+                <TableHead className="hidden sm:table-cell text-pretty w-[22%]">Описание</TableHead>
+                <TableHead className="hidden md:table-cell text-pretty text-right w-[18%]">Тип</TableHead>
+                <TableHead className="text-center hidden lg:table-cell text-pretty w-[7%]">Баллы</TableHead>
+                <TableHead className="text-center text-pretty w-[8%]">Статус</TableHead>
+                <TableHead className="w-[60px]"></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -317,7 +317,7 @@ export function AchievementTemplatesTable() {
                       <TableCell className="hidden md:table-cell align-top py-3 text-right">
                         <span className="text-muted-foreground text-pretty">-</span>
                       </TableCell>
-                      <TableCell className="hidden lg:table-cell align-top py-3" style={{ textAlign: 'center' }}>
+                      <TableCell className="hidden lg:table-cell align-top py-3 text-center">
                         <span className="text-muted-foreground">-</span>
                       </TableCell>
                       <TableCell className="align-top py-3">
@@ -417,7 +417,7 @@ export function AchievementTemplatesTable() {
                                 {template.kind === "scientific" && "Научная деятельность"}
                               </div>
                             </TableCell>
-                            <TableCell className="hidden lg:table-cell align-top py-3" style={{ textAlign: 'center' }}>
+                            <TableCell className="hidden lg:table-cell align-top py-3 text-center">
                               {template.pointsLimit}
                             </TableCell>
                             <TableCell className="align-top py-3">
