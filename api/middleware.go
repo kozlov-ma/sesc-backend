@@ -297,6 +297,50 @@ func (a *API) EventMiddleware(next http.Handler) http.Handler {
 	})
 }
 
+// RequireReportManagementPermissionMiddleware ensures the user has report management permission
+func (a *API) RequireReportManagementPermissionMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+		rec := event.Get(ctx)
+
+		rec.Sub("http").Set("requires_report_permission", true)
+
+		// Get identity from context
+		identity, ok := GetIdentityFromContext(ctx)
+		if !ok {
+			writeError(ctx, w, UnauthorizedError{
+				Code:      "UNAUTHORIZED",
+				Message:   "Authentication required",
+				RuMessage: "Требуется аутентификация",
+				Details:   "Authentication required",
+			}.WithStatus(http.StatusUnauthorized))
+			return
+		}
+
+		// Get user from database to check permissions
+		user, err := a.sesc.User(ctx, identity.ID)
+		if err != nil {
+			rec.Add(events.Error, fmt.Errorf("couldn't get user data: %w", err))
+			writeError(ctx, w, sescError(err))
+			return
+		}
+
+		// Check if user has report management permission
+		if user.Role != sesc.ChiefEconomist {
+			writeError(ctx, w, ForbiddenError{
+				Code:      "INSUFFICIENT_PERMISSIONS",
+				Message:   "Insufficient permissions for report management",
+				RuMessage: "Недостаточно прав для управления отчетами",
+				Details:   "Report management permission required",
+			}.WithStatus(http.StatusForbidden))
+			return
+		}
+
+		rec.Set("has_report_permission", true)
+		next.ServeHTTP(w, r)
+	})
+}
+
 func formValues(vals url.Values) *event.Record {
 	const recordValuesPerFormValue = 2
 	values := make([]any, 0, len(vals)*recordValuesPerFormValue)

@@ -203,8 +203,13 @@ func (a *API) RegisterRoutes(r chi.Router) {
 		// Credential management
 		r.Delete("/auth/credentials/{id}", a.DeleteCredentials)
 		r.Get("/auth/credentials/{id}", a.GetCredentials)
+	})
 
-		// Reports
+	// Reports routes (economist-only)
+	r.Group(func(r chi.Router) {
+		r.Use(a.RequireAuthMiddleware)
+		r.Use(a.RequireReportManagementPermissionMiddleware)
+
 		r.Get("/reports/user-points", a.GenerateUserPointsReport)
 		r.Post("/reports/mark-accounted", a.MarkAchievementsAsAccounted)
 	})

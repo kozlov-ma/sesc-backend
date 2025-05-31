@@ -1,6 +1,6 @@
 "use client";
 
-import { User, Home, FolderPlus, FolderOpen } from "lucide-react";
+import { User, Home, FolderPlus, FolderOpen, FileText } from "lucide-react";
 
 import { Separator } from "@/components/ui/separator";
 import {
@@ -68,6 +68,17 @@ export default function DashboardLayout({
           name: "Проверка Достижений",
           url: "/u/achievements/review",
           icon: FolderOpen,
+        },
+      ],
+    });
+  } else if (user?.role && user.role.id === 6) {
+    groups.push({
+      name: "Отчеты",
+      routes: [
+        {
+          name: "Отчет по баллам",
+          url: "/u/reports/user-points",
+          icon: FileText,
         },
       ],
     });
