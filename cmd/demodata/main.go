@@ -509,7 +509,7 @@ func createRandomUser(
 		FirstName:  &firstName,
 		LastName:   &lastName,
 		MiddleName: middleName,
-		RoleID:     &roleID,
+		RoleID:     struct{ models.SescRole }{models.SescRole(roleID)},
 		PictureURL: pictureURL,
 	})
 
