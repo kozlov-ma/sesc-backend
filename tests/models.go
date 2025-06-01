@@ -47,7 +47,7 @@ type CreateUserRequest struct {
 	FirstName    string    `json:"firstName"`
 	LastName     string    `json:"lastName"`
 	MiddleName   string    `json:"middleName,omitempty"`
-	RoleID       int32     `json:"roleId"`
+	Role         int       `json:"role"`
 	PictureURL   string    `json:"pictureUrl,omitempty"`
 	DepartmentID uuid.UUID `json:"departmentId,omitempty"`
 
@@ -73,7 +73,7 @@ type PatchUserRequest struct {
 	PictureURL   *string    `json:"pictureUrl,omitempty"`
 	Suspended    *bool      `json:"suspended,omitempty"`
 	DepartmentID *uuid.UUID `json:"departmentId,omitempty"`
-	RoleID       *int32     `json:"roleId,omitempty"`
+	Role         *int       `json:"role,omitempty"`
 
 	Subdivision       *string  `json:"subdivision,omitempty"`
 	JobTitle          *string  `json:"jobTitle,omitempty"`
