@@ -131,24 +131,24 @@ func (uu *UserUpdate) ClearDepartmentID() *UserUpdate {
 	return uu
 }
 
-// SetRoleID sets the "role_id" field.
-func (uu *UserUpdate) SetRoleID(i int32) *UserUpdate {
-	uu.mutation.ResetRoleID()
-	uu.mutation.SetRoleID(i)
+// SetRole sets the "role" field.
+func (uu *UserUpdate) SetRole(s sesc.Role) *UserUpdate {
+	uu.mutation.ResetRole()
+	uu.mutation.SetRole(s)
 	return uu
 }
 
-// SetNillableRoleID sets the "role_id" field if the given value is not nil.
-func (uu *UserUpdate) SetNillableRoleID(i *int32) *UserUpdate {
-	if i != nil {
-		uu.SetRoleID(*i)
+// SetNillableRole sets the "role" field if the given value is not nil.
+func (uu *UserUpdate) SetNillableRole(s *sesc.Role) *UserUpdate {
+	if s != nil {
+		uu.SetRole(*s)
 	}
 	return uu
 }
 
-// AddRoleID adds i to the "role_id" field.
-func (uu *UserUpdate) AddRoleID(i int32) *UserUpdate {
-	uu.mutation.AddRoleID(i)
+// AddRole adds s to the "role" field.
+func (uu *UserUpdate) AddRole(s sesc.Role) *UserUpdate {
+	uu.mutation.AddRole(s)
 	return uu
 }
 
@@ -582,11 +582,11 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := uu.mutation.Suspended(); ok {
 		_spec.SetField(user.FieldSuspended, field.TypeBool, value)
 	}
-	if value, ok := uu.mutation.RoleID(); ok {
-		_spec.SetField(user.FieldRoleID, field.TypeInt32, value)
+	if value, ok := uu.mutation.Role(); ok {
+		_spec.SetField(user.FieldRole, field.TypeInt, value)
 	}
-	if value, ok := uu.mutation.AddedRoleID(); ok {
-		_spec.AddField(user.FieldRoleID, field.TypeInt32, value)
+	if value, ok := uu.mutation.AddedRole(); ok {
+		_spec.AddField(user.FieldRole, field.TypeInt, value)
 	}
 	if value, ok := uu.mutation.Subdivision(); ok {
 		_spec.SetField(user.FieldSubdivision, field.TypeString, value)
@@ -960,24 +960,24 @@ func (uuo *UserUpdateOne) ClearDepartmentID() *UserUpdateOne {
 	return uuo
 }
 
-// SetRoleID sets the "role_id" field.
-func (uuo *UserUpdateOne) SetRoleID(i int32) *UserUpdateOne {
-	uuo.mutation.ResetRoleID()
-	uuo.mutation.SetRoleID(i)
+// SetRole sets the "role" field.
+func (uuo *UserUpdateOne) SetRole(s sesc.Role) *UserUpdateOne {
+	uuo.mutation.ResetRole()
+	uuo.mutation.SetRole(s)
 	return uuo
 }
 
-// SetNillableRoleID sets the "role_id" field if the given value is not nil.
-func (uuo *UserUpdateOne) SetNillableRoleID(i *int32) *UserUpdateOne {
-	if i != nil {
-		uuo.SetRoleID(*i)
+// SetNillableRole sets the "role" field if the given value is not nil.
+func (uuo *UserUpdateOne) SetNillableRole(s *sesc.Role) *UserUpdateOne {
+	if s != nil {
+		uuo.SetRole(*s)
 	}
 	return uuo
 }
 
-// AddRoleID adds i to the "role_id" field.
-func (uuo *UserUpdateOne) AddRoleID(i int32) *UserUpdateOne {
-	uuo.mutation.AddRoleID(i)
+// AddRole adds s to the "role" field.
+func (uuo *UserUpdateOne) AddRole(s sesc.Role) *UserUpdateOne {
+	uuo.mutation.AddRole(s)
 	return uuo
 }
 
@@ -1441,11 +1441,11 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 	if value, ok := uuo.mutation.Suspended(); ok {
 		_spec.SetField(user.FieldSuspended, field.TypeBool, value)
 	}
-	if value, ok := uuo.mutation.RoleID(); ok {
-		_spec.SetField(user.FieldRoleID, field.TypeInt32, value)
+	if value, ok := uuo.mutation.Role(); ok {
+		_spec.SetField(user.FieldRole, field.TypeInt, value)
 	}
-	if value, ok := uuo.mutation.AddedRoleID(); ok {
-		_spec.AddField(user.FieldRoleID, field.TypeInt32, value)
+	if value, ok := uuo.mutation.AddedRole(); ok {
+		_spec.AddField(user.FieldRole, field.TypeInt, value)
 	}
 	if value, ok := uuo.mutation.Subdivision(); ok {
 		_spec.SetField(user.FieldSubdivision, field.TypeString, value)

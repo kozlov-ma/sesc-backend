@@ -24,7 +24,6 @@ type (
 	User                             = sesc.User
 	Department                       = sesc.Department
 	Role                             = sesc.Role
-	Permission                       = sesc.Permission
 	UserUpdateOptions                = sesc.UserUpdateOptions
 	AchievementGroup                 = achievement.Group
 	AchievementTemplate              = achievement.Template
@@ -49,7 +48,7 @@ func rollback(tx *ent.Tx, err error) error {
 	return err
 }
 
-func convertUser(u *ent.User) (User, error) {
+func convertUser(u *ent.User) User {
 	var dept Department
 	dep := u.Edges.Department
 	if dep != nil {
@@ -60,11 +59,6 @@ func convertUser(u *ent.User) (User, error) {
 		}
 	}
 
-	role, ok := sesc.RoleByID(u.RoleID)
-	if !ok {
-		return User{}, sesc.ErrInvalidRole
-	}
-
 	return User{
 		ID:                u.ID,
 		FirstName:         u.FirstName,
@@ -73,7 +67,7 @@ func convertUser(u *ent.User) (User, error) {
 		PictureURL:        u.PictureURL,
 		Suspended:         u.Suspended,
 		Department:        dept,
-		Role:              role,
+		Role:              u.Role,
 		Subdivision:       u.Subdivision,
 		JobTitle:          u.JobTitle,
 		EmploymentRate:    u.EmploymentRate,
@@ -85,7 +79,7 @@ func convertUser(u *ent.User) (User, error) {
 		Category:          u.Category,
 		DateOfEmployment:  u.DateOfEmployment,
 		UnemploymentDate:  u.UnemploymentDate,
-	}, nil
+	}
 }
 
 func New(client *ent.Client) *SESC {
@@ -402,7 +396,7 @@ func (s *SESC) UpdateUser(ctx context.Context, id UUID, upd UserUpdateOptions) (
 		"picture_url", upd.PictureURL,
 		"suspended", upd.Suspended,
 		"department_id", upd.DepartmentID,
-		"new_role_id", upd.NewRoleID,
+		"new_role_id", upd.NewRole,
 	)
 
 	// Stage 1: Validate user exists
@@ -413,7 +407,7 @@ func (s *SESC) UpdateUser(ctx context.Context, id UUID, upd UserUpdateOptions) (
 
 	// Stage 2: Validate role
 	ctx = rec.Sub("validate_role").Wrap(ctx)
-	if err := s.validateRole(ctx, upd.NewRoleID); err != nil {
+	if err := sesc.ValidateRole(upd.NewRole); err != nil {
 		return User{}, err
 	}
 
@@ -467,10 +461,7 @@ func (s *SESC) UpdateUser(ctx context.Context, id UUID, upd UserUpdateOptions) (
 
 	// Stage 7: Convert user entity to domain object
 	ctx = rec.Sub("convert_user").Wrap(ctx)
-	updated, err := s.convertUserEntity(ctx, us)
-	if err != nil {
-		return User{}, err
-	}
+	updated := s.convertUserEntity(ctx, us)
 
 	rec.Set("success", true)
 	rec.Set("user", updated.EventRecord())
@@ -490,26 +481,6 @@ func (s *SESC) validateUserExists(ctx context.Context, id UUID) error {
 	}
 
 	rec.Set("exists", true)
-	return nil
-}
-
-// validateRole validates the role ID
-func (s *SESC) validateRole(ctx context.Context, roleID int32) error {
-	rec := event.Get(ctx)
-	rec.Set("role_id", roleID)
-
-	if roleID == 0 {
-		rec.Set("valid", true)
-		return nil
-	}
-
-	_, ok := sesc.RoleByID(roleID)
-	if !ok {
-		rec.Set("valid", false)
-		return sesc.ErrInvalidRole
-	}
-
-	rec.Set("valid", true)
 	return nil
 }
 
@@ -589,7 +560,7 @@ func (s *SESC) updateUserRecord(
 		SetMiddleName(upd.MiddleName).
 		SetPictureURL(upd.PictureURL).
 		SetSuspended(upd.Suspended).
-		SetRoleID(upd.NewRoleID).
+		SetRole(upd.NewRole).
 		SetSubdivision(upd.Subdivision).
 		SetJobTitle(upd.JobTitle).
 		SetEmploymentRate(upd.EmploymentRate).
@@ -648,18 +619,13 @@ func (s *SESC) queryUpdatedUser(
 func (s *SESC) convertUserEntity(
 	ctx context.Context,
 	us *ent.User,
-) (User, error) {
+) User {
 	rec := event.Get(ctx)
 
-	updated, err := convertUser(us)
-	if err != nil {
-		rec.Add(events.Error, err)
-		rec.Set("success", false)
-		return User{}, err
-	}
+	updated := convertUser(us)
 
 	rec.Set("success", true)
-	return updated, nil
+	return updated
 }
 
 // CreateUser creates a new User with a specified role.
@@ -678,7 +644,7 @@ func (s *SESC) CreateUser(ctx context.Context, opt UserUpdateOptions) (User, err
 		"picture_url", opt.PictureURL,
 		"suspended", opt.Suspended,
 		"department_id", opt.DepartmentID,
-		"new_role_id", opt.NewRoleID,
+		"new_role_id", opt.NewRole,
 	)
 
 	// Stage 1: Validate input
@@ -730,10 +696,7 @@ func (s *SESC) CreateUser(ctx context.Context, opt UserUpdateOptions) (User, err
 
 	// Stage 5: Convert user entity to domain object
 	ctx = rec.Sub("convert_user").Wrap(ctx)
-	user, err := s.convertUserEntity(ctx, us)
-	if err != nil {
-		return User{}, err
-	}
+	user := s.convertUserEntity(ctx, us)
 
 	rec.Set("success", true)
 	rec.Set("user", user.EventRecord())
@@ -770,7 +733,7 @@ func (s *SESC) createUserRecord(
 		SetLastName(opt.LastName).
 		SetMiddleName(opt.MiddleName).
 		SetPictureURL(opt.PictureURL).
-		SetRoleID(opt.NewRoleID).
+		SetRole(opt.NewRole).
 		SetSubdivision(opt.Subdivision).
 		SetJobTitle(opt.JobTitle).
 		SetEmploymentRate(opt.EmploymentRate).
@@ -892,10 +855,7 @@ func (s *SESC) UserByID(ctx context.Context, id UUID) (User, error) {
 
 	// Stage 2: Convert user entity
 	ctx = rec.Sub("convert_user_entity").Wrap(ctx)
-	userObj, err := s.convertUserFromEntity(ctx, u)
-	if err != nil {
-		return User{}, err
-	}
+	userObj := s.convertUserFromEntity(ctx, u)
 
 	return userObj, nil
 }
@@ -930,18 +890,13 @@ func (s *SESC) getUserByID(ctx context.Context, id UUID) (*ent.User, error) {
 }
 
 // convertUserFromEntity converts an ent.User to a User domain object
-func (s *SESC) convertUserFromEntity(ctx context.Context, u *ent.User) (User, error) {
+func (s *SESC) convertUserFromEntity(ctx context.Context, u *ent.User) User {
 	rec := event.Get(ctx)
 
-	userObj, err := convertUser(u)
-	if err != nil {
-		rec.Add(events.Error, err)
-		rec.Set("success", false)
-		return User{}, err
-	}
+	userObj := convertUser(u)
 
 	rec.Set("success", true)
-	return userObj, nil
+	return userObj
 }
 
 // Users gets all users.
@@ -958,10 +913,7 @@ func (s *SESC) Users(ctx context.Context) ([]User, error) {
 
 	// Stage 2: Convert all users
 	ctx = rec.Sub("convert_all_users").Wrap(ctx)
-	users, err := s.convertAllUsers(ctx, res)
-	if err != nil {
-		return nil, err
-	}
+	users := s.convertAllUsers(ctx, res)
 
 	return users, nil
 }
@@ -989,22 +941,16 @@ func (s *SESC) queryAllUsers(ctx context.Context) ([]*ent.User, error) {
 }
 
 // convertAllUsers converts all ent.User objects to User domain objects
-func (s *SESC) convertAllUsers(ctx context.Context, entUsers []*ent.User) ([]User, error) {
+func (s *SESC) convertAllUsers(ctx context.Context, entUsers []*ent.User) []User {
 	rec := event.Get(ctx)
 
 	users := make([]User, len(entUsers))
 	for i, r := range entUsers {
-		var err error
-		users[i], err = convertUser(r)
-		if err != nil {
-			rec.Add(events.Error, err)
-			rec.Set("success", false)
-			return nil, fmt.Errorf("couldn't convert user: %w", err)
-		}
+		users[i] = convertUser(r)
 	}
 
 	rec.Set("success", true)
-	return users, nil
+	return users
 }
 
 // User returns a User by ID. Alias for UserByID.

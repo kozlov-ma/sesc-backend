@@ -51,7 +51,7 @@ func (u User) EventRecord() *event.Record {
 		"suspended", u.Suspended,
 		"department_id", u.Department.ID,
 		"department", u.Department,
-		"role_id", u.Role.ID,
+		"role_id", u.Role,
 		"role", u.Role,
 		"subdivision", u.Subdivision,
 		"job_title", u.JobTitle,
@@ -63,10 +63,6 @@ func (u User) EventRecord() *event.Record {
 	)
 }
 
-func (u User) HasPermission(permission Permission) bool {
-	return u.Role.HasPermission(permission)
-}
-
 // UserUpdateOptions represents the options for updating a user.
 type UserUpdateOptions struct {
 	FirstName         string
@@ -75,7 +71,7 @@ type UserUpdateOptions struct {
 	PictureURL        string
 	Suspended         bool
 	DepartmentID      UUID
-	NewRoleID         int32
+	NewRole           Role
 	Subdivision       string
 	JobTitle          string
 	EmploymentRate    float64
@@ -94,8 +90,8 @@ func (u UserUpdateOptions) Validate() error {
 		return ErrInvalidUserName
 	}
 
-	if _, ok := RoleByID(u.NewRoleID); !ok {
-		return ErrInvalidRole
+	if err := ValidateRole(u.NewRole); err != nil {
+		return err
 	}
 
 	if u.EmploymentRate < 0 || u.EmploymentRate > 1 {
@@ -113,7 +109,7 @@ func (u User) UpdateOptions() UserUpdateOptions {
 		PictureURL:        u.PictureURL,
 		Suspended:         u.Suspended,
 		DepartmentID:      u.Department.ID,
-		NewRoleID:         u.Role.ID,
+		NewRole:           u.Role,
 		Subdivision:       u.Subdivision,
 		JobTitle:          u.JobTitle,
 		EmploymentRate:    u.EmploymentRate,

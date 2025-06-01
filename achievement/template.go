@@ -16,7 +16,7 @@ const (
 func (k Kind) InspectorRole() sesc.Role {
 	switch k {
 	case Olympiad:
-		return sesc.ContestDeputy
+		return sesc.OlympiadDeputy
 	case Development:
 		return sesc.DevelopmentDeputy
 	case Scientific:

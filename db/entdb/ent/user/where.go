@@ -87,9 +87,10 @@ func DepartmentID(v uuid.UUID) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldDepartmentID, v))
 }
 
-// RoleID applies equality check predicate on the "role_id" field. It's identical to RoleIDEQ.
-func RoleID(v int32) predicate.User {
-	return predicate.User(sql.FieldEQ(FieldRoleID, v))
+// Role applies equality check predicate on the "role" field. It's identical to RoleEQ.
+func Role(v sesc.Role) predicate.User {
+	vc := int(v)
+	return predicate.User(sql.FieldEQ(FieldRole, vc))
 }
 
 // Subdivision applies equality check predicate on the "subdivision" field. It's identical to SubdivisionEQ.
@@ -470,44 +471,58 @@ func DepartmentIDNotNil() predicate.User {
 	return predicate.User(sql.FieldNotNull(FieldDepartmentID))
 }
 
-// RoleIDEQ applies the EQ predicate on the "role_id" field.
-func RoleIDEQ(v int32) predicate.User {
-	return predicate.User(sql.FieldEQ(FieldRoleID, v))
+// RoleEQ applies the EQ predicate on the "role" field.
+func RoleEQ(v sesc.Role) predicate.User {
+	vc := int(v)
+	return predicate.User(sql.FieldEQ(FieldRole, vc))
 }
 
-// RoleIDNEQ applies the NEQ predicate on the "role_id" field.
-func RoleIDNEQ(v int32) predicate.User {
-	return predicate.User(sql.FieldNEQ(FieldRoleID, v))
+// RoleNEQ applies the NEQ predicate on the "role" field.
+func RoleNEQ(v sesc.Role) predicate.User {
+	vc := int(v)
+	return predicate.User(sql.FieldNEQ(FieldRole, vc))
 }
 
-// RoleIDIn applies the In predicate on the "role_id" field.
-func RoleIDIn(vs ...int32) predicate.User {
-	return predicate.User(sql.FieldIn(FieldRoleID, vs...))
+// RoleIn applies the In predicate on the "role" field.
+func RoleIn(vs ...sesc.Role) predicate.User {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = int(vs[i])
+	}
+	return predicate.User(sql.FieldIn(FieldRole, v...))
 }
 
-// RoleIDNotIn applies the NotIn predicate on the "role_id" field.
-func RoleIDNotIn(vs ...int32) predicate.User {
-	return predicate.User(sql.FieldNotIn(FieldRoleID, vs...))
+// RoleNotIn applies the NotIn predicate on the "role" field.
+func RoleNotIn(vs ...sesc.Role) predicate.User {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = int(vs[i])
+	}
+	return predicate.User(sql.FieldNotIn(FieldRole, v...))
 }
 
-// RoleIDGT applies the GT predicate on the "role_id" field.
-func RoleIDGT(v int32) predicate.User {
-	return predicate.User(sql.FieldGT(FieldRoleID, v))
+// RoleGT applies the GT predicate on the "role" field.
+func RoleGT(v sesc.Role) predicate.User {
+	vc := int(v)
+	return predicate.User(sql.FieldGT(FieldRole, vc))
 }
 
-// RoleIDGTE applies the GTE predicate on the "role_id" field.
-func RoleIDGTE(v int32) predicate.User {
-	return predicate.User(sql.FieldGTE(FieldRoleID, v))
+// RoleGTE applies the GTE predicate on the "role" field.
+func RoleGTE(v sesc.Role) predicate.User {
+	vc := int(v)
+	return predicate.User(sql.FieldGTE(FieldRole, vc))
 }
 
-// RoleIDLT applies the LT predicate on the "role_id" field.
-func RoleIDLT(v int32) predicate.User {
-	return predicate.User(sql.FieldLT(FieldRoleID, v))
+// RoleLT applies the LT predicate on the "role" field.
+func RoleLT(v sesc.Role) predicate.User {
+	vc := int(v)
+	return predicate.User(sql.FieldLT(FieldRole, vc))
 }
 
-// RoleIDLTE applies the LTE predicate on the "role_id" field.
-func RoleIDLTE(v int32) predicate.User {
-	return predicate.User(sql.FieldLTE(FieldRoleID, v))
+// RoleLTE applies the LTE predicate on the "role" field.
+func RoleLTE(v sesc.Role) predicate.User {
+	vc := int(v)
+	return predicate.User(sql.FieldLTE(FieldRole, vc))
 }
 
 // SubdivisionEQ applies the EQ predicate on the "subdivision" field.

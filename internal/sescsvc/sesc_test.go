@@ -20,7 +20,7 @@ func validUserUpdateOptions() UserUpdateOptions {
 	return UserUpdateOptions{
 		FirstName:         "Test",
 		LastName:          "User",
-		NewRoleID:         1,
+		NewRole:           1,
 		Subdivision:       "Test Subdivision",
 		JobTitle:          "Test Position",
 		EmploymentRate:    1.0,
@@ -53,8 +53,8 @@ func requireUserMatches(t *testing.T, expected, actual User) {
 		)
 	}
 
-	if expected.Role.ID != 0 {
-		require.Equal(t, expected.Role.ID, actual.Role.ID, "User Role.ID mismatch")
+	if expected.Role != 0 {
+		require.Equal(t, expected.Role, actual.Role, "User Role mismatch")
 	}
 
 	if expected.PictureURL != "" {
@@ -245,7 +245,7 @@ func TestCreateUser(t *testing.T) {
 			FirstName:  opts.FirstName,
 			LastName:   opts.LastName,
 			Department: Department{ID: depID},
-			Role:       Role{ID: 1},
+			Role:       sesc.Teacher,
 		}
 		requireUserMatches(t, expected, user)
 
@@ -264,7 +264,7 @@ func TestCreateUser(t *testing.T) {
 		opts := validUserUpdateOptions()
 		opts.FirstName = "Jane"
 		opts.LastName = "Smith"
-		opts.NewRoleID = 2
+		opts.NewRole = 2
 
 		user, err := svc.CreateUser(ctx, opts)
 		require.NoError(t, err, "CreateUser failed")
@@ -274,7 +274,7 @@ func TestCreateUser(t *testing.T) {
 			FirstName:  opts.FirstName,
 			LastName:   opts.LastName,
 			Department: Department{},
-			Role:       Role{ID: opts.NewRoleID},
+			Role:       opts.NewRole,
 		}
 		requireUserMatches(t, expected, user)
 
@@ -361,7 +361,7 @@ func TestUpdateProfilePicture(t *testing.T) {
 			ID:         userID,
 			FirstName:  "John",
 			LastName:   "Doe",
-			Role:       Role{ID: 1},
+			Role:       sesc.Teacher,
 			PictureURL: newURL,
 		}
 		requireUserMatches(t, expected, user)
@@ -403,7 +403,7 @@ func TestUpdateUser(t *testing.T) {
 		opts.FirstName = "Updated"
 		opts.LastName = "User"
 		opts.DepartmentID = depID
-		opts.NewRoleID = 2
+		opts.NewRole = 2
 
 		user, err := svc.UpdateUser(ctx, userID, opts)
 		require.NoError(t, err, "UpdateUser failed")
@@ -413,7 +413,7 @@ func TestUpdateUser(t *testing.T) {
 			FirstName:  opts.FirstName,
 			LastName:   opts.LastName,
 			Department: Department{ID: depID},
-			Role:       Role{ID: opts.NewRoleID},
+			Role:       opts.NewRole,
 		}
 		requireUserMatches(t, expected, user)
 	})
@@ -439,7 +439,7 @@ func TestUpdateUser(t *testing.T) {
 		opts := validUserUpdateOptions()
 		opts.FirstName = "Updated"
 		opts.LastName = "User"
-		opts.NewRoleID = 2
+		opts.NewRole = 2
 		res, err := svc.UpdateUser(ctx, userID, opts)
 		require.NoError(t, err)
 
@@ -448,7 +448,7 @@ func TestUpdateUser(t *testing.T) {
 			FirstName:  opts.FirstName,
 			LastName:   opts.LastName,
 			Department: Department{},
-			Role:       Role{ID: opts.NewRoleID},
+			Role:       opts.NewRole,
 		}
 		requireUserMatches(t, expected, res)
 	})
@@ -458,7 +458,7 @@ func TestUpdateUser(t *testing.T) {
 		opts := validUserUpdateOptions()
 		opts.FirstName = "Updated"
 		opts.LastName = "User"
-		opts.NewRoleID = 999
+		opts.NewRole = 999
 		_, err := svc.UpdateUser(ctx, userID, opts)
 		require.ErrorIs(t, err, sesc.ErrInvalidRole)
 	})
@@ -491,7 +491,7 @@ func TestUserByID(t *testing.T) {
 			ID:        userID,
 			FirstName: "John",
 			LastName:  "Doe",
-			Role:      Role{ID: 1},
+			Role:      sesc.Teacher,
 		}
 		requireUserMatches(t, expected, user)
 	})
@@ -534,7 +534,7 @@ func TestGetAllUsers(t *testing.T) {
 			require.NotEqual(t, uuid.Nil, user.ID, "User ID should not be nil")
 			require.NotEmpty(t, user.FirstName, "User FirstName should not be empty")
 			require.NotEmpty(t, user.LastName, "User LastName should not be empty")
-			require.Equal(t, int32(1), user.Role.ID, "User Role.ID should be 1")
+			require.Equal(t, sesc.Teacher, user.Role, "User Role should be 1")
 		}
 	})
 }

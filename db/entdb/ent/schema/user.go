@@ -27,7 +27,7 @@ func (User) Fields() []ent.Field {
 		field.String("picture_url").Optional(),
 		field.Bool("suspended").Default(false),
 		field.UUID("department_id", uuid.UUID{}).Optional().Nillable(),
-		field.Int32("role_id"),
+		field.Int("role").GoType(sesc.Role(0)),
 
 		field.String("subdivision").Default(""),
 		field.String("job_title").Default(""),
@@ -71,7 +71,7 @@ func (User) Edges() []ent.Edge {
 func (User) Indexes() []ent.Index {
 	return []ent.Index{
 		index.Fields("department_id"),
-		index.Fields("role_id"),
+		index.Fields("role"),
 		index.Fields("first_name", "last_name"),
 	}
 }

@@ -1,89 +1,95 @@
-//nolint:mnd // the only magic numbers here are ids
 package sesc
 
-import "github.com/kozlov-ma/sesc-backend/pkg/event"
+type Role int
 
-// Role is a standartized set of Permissions granted to a User influenced
-// by their role in the organization.
-//
-// Roles are predefined in this file.
-type Role struct {
-	ID          int32
-	Name        string
-	Permissions []Permission
-}
-
-func (r Role) EventRecord() *event.Record {
-	return event.Group(
-		"id", r.ID,
-		"name", r.Name,
-	)
-}
-
-func (r Role) HasPermission(p Permission) bool {
-	return r.HasPermissionWithID(p.ID)
-}
-
-func (r Role) HasPermissionWithID(id int32) bool {
-	for _, p := range r.Permissions {
-		if p.ID == id {
-			return true
-		}
-	}
-	return false
-}
-
-var (
-	Teacher = Role{
-		ID:   1,
-		Name: "Преподаватель",
-		Permissions: []Permission{
-			PermissionDraftAchievementList,
-		},
-	}
-	Dephead = Role{
-		ID:   2,
-		Name: "Заведующий кафедрой",
-		Permissions: []Permission{
-			PermissionDepheadReview,
-		},
-	}
-	ContestDeputy = Role{
-		ID:   3,
-		Name: "Заместитель директора по олимпиадной работе",
-		Permissions: []Permission{
-			PermissionContestReview,
-		},
-	}
-	ScientificDeputy = Role{
-		ID:   4,
-		Name: "Заместитель директора по научной работе",
-		Permissions: []Permission{
-			PermissionScientificReview,
-		},
-	}
-	DevelopmentDeputy = Role{
-		ID:   5,
-		Name: "Заместитель директора по развитию",
-		Permissions: []Permission{
-			PermissionDevelopmentReview,
-		},
-	}
+const (
+	Teacher Role = iota + 1
+	Dephead
+	ScientificDeputy
+	DevelopmentDeputy
+	OlympiadDeputy
+	AcademicDirector
+	ChiefEconomist
 )
 
 var Roles = []Role{
 	Teacher,
 	Dephead,
-	ContestDeputy,
 	ScientificDeputy,
 	DevelopmentDeputy,
+	OlympiadDeputy,
+	AcademicDirector,
+	ChiefEconomist,
 }
 
-func RoleByID(id int32) (Role, bool) {
-	for _, r := range Roles {
-		if r.ID == id {
-			return r, true
-		}
+func (r Role) Name() string {
+	switch r {
+	case Teacher:
+		return "Преподаватель"
+	case Dephead:
+		return "Заведующий кафедрой"
+	case ScientificDeputy:
+		return "Заместитель директора по научной работе"
+	case OlympiadDeputy:
+		return "Заместитель директора по олимпиадной работе"
+	case DevelopmentDeputy:
+		return "Заместитель директора по развитию"
+	case AcademicDirector:
+		return "Академический директор"
+	case ChiefEconomist:
+		return "Ведущий экономист"
+	default:
+		return "Нет роли"
 	}
-	return Role{}, false
+}
+
+func (r Role) String() string {
+	switch r {
+	case Teacher:
+		return "teacher"
+	case Dephead:
+		return "dephead"
+	case ScientificDeputy:
+		return "scientific_deputy"
+	case DevelopmentDeputy:
+		return "development_deputy"
+	case OlympiadDeputy:
+		return "olympiad_deputy"
+	case AcademicDirector:
+		return "academic_director"
+	case ChiefEconomist:
+		return "chief_economist"
+	default:
+		return "unknown_role"
+	}
+}
+
+func FromString(s string) (Role, bool) {
+	switch s {
+	case Teacher.String():
+		return Teacher, true
+	case Dephead.String():
+		return Dephead, true
+	case ScientificDeputy.String():
+		return ScientificDeputy, true
+	case DevelopmentDeputy.String():
+		return DevelopmentDeputy, true
+	case OlympiadDeputy.String():
+		return OlympiadDeputy, true
+	case AcademicDirector.String():
+		return AcademicDirector, true
+	case ChiefEconomist.String():
+		return ChiefEconomist, true
+	default:
+		return 0, false
+	}
+}
+
+func ValidateRole[R ~int](r R) error {
+	switch Role(r) {
+	case Teacher, Dephead, ScientificDeputy, DevelopmentDeputy, OlympiadDeputy, AcademicDirector, ChiefEconomist:
+		return nil
+	default:
+		return ErrInvalidRole
+	}
 }

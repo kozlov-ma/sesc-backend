@@ -28,8 +28,8 @@ const (
 	FieldSuspended = "suspended"
 	// FieldDepartmentID holds the string denoting the department_id field in the database.
 	FieldDepartmentID = "department_id"
-	// FieldRoleID holds the string denoting the role_id field in the database.
-	FieldRoleID = "role_id"
+	// FieldRole holds the string denoting the role field in the database.
+	FieldRole = "role"
 	// FieldSubdivision holds the string denoting the subdivision field in the database.
 	FieldSubdivision = "subdivision"
 	// FieldJobTitle holds the string denoting the job_title field in the database.
@@ -114,7 +114,7 @@ var Columns = []string{
 	FieldPictureURL,
 	FieldSuspended,
 	FieldDepartmentID,
-	FieldRoleID,
+	FieldRole,
 	FieldSubdivision,
 	FieldJobTitle,
 	FieldEmploymentRate,
@@ -205,9 +205,9 @@ func ByDepartmentID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldDepartmentID, opts...).ToFunc()
 }
 
-// ByRoleID orders the results by the role_id field.
-func ByRoleID(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldRoleID, opts...).ToFunc()
+// ByRole orders the results by the role field.
+func ByRole(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldRole, opts...).ToFunc()
 }
 
 // BySubdivision orders the results by the subdivision field.

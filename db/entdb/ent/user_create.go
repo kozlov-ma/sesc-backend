@@ -95,9 +95,9 @@ func (uc *UserCreate) SetNillableDepartmentID(u *uuid.UUID) *UserCreate {
 	return uc
 }
 
-// SetRoleID sets the "role_id" field.
-func (uc *UserCreate) SetRoleID(i int32) *UserCreate {
-	uc.mutation.SetRoleID(i)
+// SetRole sets the "role" field.
+func (uc *UserCreate) SetRole(s sesc.Role) *UserCreate {
+	uc.mutation.SetRole(s)
 	return uc
 }
 
@@ -461,8 +461,8 @@ func (uc *UserCreate) check() error {
 	if _, ok := uc.mutation.Suspended(); !ok {
 		return &ValidationError{Name: "suspended", err: errors.New(`ent: missing required field "User.suspended"`)}
 	}
-	if _, ok := uc.mutation.RoleID(); !ok {
-		return &ValidationError{Name: "role_id", err: errors.New(`ent: missing required field "User.role_id"`)}
+	if _, ok := uc.mutation.Role(); !ok {
+		return &ValidationError{Name: "role", err: errors.New(`ent: missing required field "User.role"`)}
 	}
 	if _, ok := uc.mutation.Subdivision(); !ok {
 		return &ValidationError{Name: "subdivision", err: errors.New(`ent: missing required field "User.subdivision"`)}
@@ -543,9 +543,9 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 		_spec.SetField(user.FieldSuspended, field.TypeBool, value)
 		_node.Suspended = value
 	}
-	if value, ok := uc.mutation.RoleID(); ok {
-		_spec.SetField(user.FieldRoleID, field.TypeInt32, value)
-		_node.RoleID = value
+	if value, ok := uc.mutation.Role(); ok {
+		_spec.SetField(user.FieldRole, field.TypeInt, value)
+		_node.Role = value
 	}
 	if value, ok := uc.mutation.Subdivision(); ok {
 		_spec.SetField(user.FieldSubdivision, field.TypeString, value)

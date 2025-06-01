@@ -44,8 +44,9 @@ func (a *API) GetGroupedAchievements(w http.ResponseWriter, r *http.Request) {
 
 	// Check if user has permission to view grouped achievements
 	// Only department heads and deputies should have access
-	switch user.Role.ID {
-	case sesc.Dephead.ID, sesc.ContestDeputy.ID, sesc.DevelopmentDeputy.ID, sesc.ScientificDeputy.ID:
+	//nolint:exhaustive // cuz fuck it here.
+	switch user.Role {
+	case sesc.Dephead, sesc.OlympiadDeputy, sesc.DevelopmentDeputy, sesc.ScientificDeputy, sesc.AcademicDirector:
 	default:
 		writeError(ctx, w, ErrForbidden.WithStatus(http.StatusForbidden))
 		return

@@ -5188,8 +5188,8 @@ type UserMutation struct {
 	middle_name           *string
 	picture_url           *string
 	suspended             *bool
-	role_id               *int32
-	addrole_id            *int32
+	role                  *sesc.Role
+	addrole               *sesc.Role
 	subdivision           *string
 	job_title             *string
 	employment_rate       *float64
@@ -5572,60 +5572,60 @@ func (m *UserMutation) ResetDepartmentID() {
 	delete(m.clearedFields, user.FieldDepartmentID)
 }
 
-// SetRoleID sets the "role_id" field.
-func (m *UserMutation) SetRoleID(i int32) {
-	m.role_id = &i
-	m.addrole_id = nil
+// SetRole sets the "role" field.
+func (m *UserMutation) SetRole(s sesc.Role) {
+	m.role = &s
+	m.addrole = nil
 }
 
-// RoleID returns the value of the "role_id" field in the mutation.
-func (m *UserMutation) RoleID() (r int32, exists bool) {
-	v := m.role_id
+// Role returns the value of the "role" field in the mutation.
+func (m *UserMutation) Role() (r sesc.Role, exists bool) {
+	v := m.role
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldRoleID returns the old "role_id" field's value of the User entity.
+// OldRole returns the old "role" field's value of the User entity.
 // If the User object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *UserMutation) OldRoleID(ctx context.Context) (v int32, err error) {
+func (m *UserMutation) OldRole(ctx context.Context) (v sesc.Role, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldRoleID is only allowed on UpdateOne operations")
+		return v, errors.New("OldRole is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldRoleID requires an ID field in the mutation")
+		return v, errors.New("OldRole requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldRoleID: %w", err)
+		return v, fmt.Errorf("querying old value for OldRole: %w", err)
 	}
-	return oldValue.RoleID, nil
+	return oldValue.Role, nil
 }
 
-// AddRoleID adds i to the "role_id" field.
-func (m *UserMutation) AddRoleID(i int32) {
-	if m.addrole_id != nil {
-		*m.addrole_id += i
+// AddRole adds s to the "role" field.
+func (m *UserMutation) AddRole(s sesc.Role) {
+	if m.addrole != nil {
+		*m.addrole += s
 	} else {
-		m.addrole_id = &i
+		m.addrole = &s
 	}
 }
 
-// AddedRoleID returns the value that was added to the "role_id" field in this mutation.
-func (m *UserMutation) AddedRoleID() (r int32, exists bool) {
-	v := m.addrole_id
+// AddedRole returns the value that was added to the "role" field in this mutation.
+func (m *UserMutation) AddedRole() (r sesc.Role, exists bool) {
+	v := m.addrole
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// ResetRoleID resets all changes to the "role_id" field.
-func (m *UserMutation) ResetRoleID() {
-	m.role_id = nil
-	m.addrole_id = nil
+// ResetRole resets all changes to the "role" field.
+func (m *UserMutation) ResetRole() {
+	m.role = nil
+	m.addrole = nil
 }
 
 // SetSubdivision sets the "subdivision" field.
@@ -6523,8 +6523,8 @@ func (m *UserMutation) Fields() []string {
 	if m.department != nil {
 		fields = append(fields, user.FieldDepartmentID)
 	}
-	if m.role_id != nil {
-		fields = append(fields, user.FieldRoleID)
+	if m.role != nil {
+		fields = append(fields, user.FieldRole)
 	}
 	if m.subdivision != nil {
 		fields = append(fields, user.FieldSubdivision)
@@ -6585,8 +6585,8 @@ func (m *UserMutation) Field(name string) (ent.Value, bool) {
 		return m.Suspended()
 	case user.FieldDepartmentID:
 		return m.DepartmentID()
-	case user.FieldRoleID:
-		return m.RoleID()
+	case user.FieldRole:
+		return m.Role()
 	case user.FieldSubdivision:
 		return m.Subdivision()
 	case user.FieldJobTitle:
@@ -6634,8 +6634,8 @@ func (m *UserMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldSuspended(ctx)
 	case user.FieldDepartmentID:
 		return m.OldDepartmentID(ctx)
-	case user.FieldRoleID:
-		return m.OldRoleID(ctx)
+	case user.FieldRole:
+		return m.OldRole(ctx)
 	case user.FieldSubdivision:
 		return m.OldSubdivision(ctx)
 	case user.FieldJobTitle:
@@ -6713,12 +6713,12 @@ func (m *UserMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetDepartmentID(v)
 		return nil
-	case user.FieldRoleID:
-		v, ok := value.(int32)
+	case user.FieldRole:
+		v, ok := value.(sesc.Role)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetRoleID(v)
+		m.SetRole(v)
 		return nil
 	case user.FieldSubdivision:
 		v, ok := value.(string)
@@ -6819,8 +6819,8 @@ func (m *UserMutation) SetField(name string, value ent.Value) error {
 // this mutation.
 func (m *UserMutation) AddedFields() []string {
 	var fields []string
-	if m.addrole_id != nil {
-		fields = append(fields, user.FieldRoleID)
+	if m.addrole != nil {
+		fields = append(fields, user.FieldRole)
 	}
 	if m.addemployment_rate != nil {
 		fields = append(fields, user.FieldEmploymentRate)
@@ -6842,8 +6842,8 @@ func (m *UserMutation) AddedFields() []string {
 // was not set, or was not defined in the schema.
 func (m *UserMutation) AddedField(name string) (ent.Value, bool) {
 	switch name {
-	case user.FieldRoleID:
-		return m.AddedRoleID()
+	case user.FieldRole:
+		return m.AddedRole()
 	case user.FieldEmploymentRate:
 		return m.AddedEmploymentRate()
 	case user.FieldAcademicDegree:
@@ -6861,12 +6861,12 @@ func (m *UserMutation) AddedField(name string) (ent.Value, bool) {
 // type.
 func (m *UserMutation) AddField(name string, value ent.Value) error {
 	switch name {
-	case user.FieldRoleID:
-		v, ok := value.(int32)
+	case user.FieldRole:
+		v, ok := value.(sesc.Role)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.AddRoleID(v)
+		m.AddRole(v)
 		return nil
 	case user.FieldEmploymentRate:
 		v, ok := value.(float64)
@@ -6986,8 +6986,8 @@ func (m *UserMutation) ResetField(name string) error {
 	case user.FieldDepartmentID:
 		m.ResetDepartmentID()
 		return nil
-	case user.FieldRoleID:
-		m.ResetRoleID()
+	case user.FieldRole:
+		m.ResetRole()
 		return nil
 	case user.FieldSubdivision:
 		m.ResetSubdivision()

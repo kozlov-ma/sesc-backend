@@ -745,11 +745,7 @@ func (s *SESC) SubmitAchievement(
 
 	// Convert owner
 	err = rec.Operation("convert_owner", func(opRec *event.Record) error {
-		usr, err := convertUser(achievementEntity.Edges.Owner)
-		if err != nil {
-			opRec.Add(events.Error, fmt.Errorf("failed to convert owner: %w", err))
-			return err
-		}
+		usr := convertUser(achievementEntity.Edges.Owner)
 		owner = usr
 		opRec.Set("owner_id", owner.ID)
 		return nil
@@ -778,11 +774,7 @@ func (s *SESC) SubmitAchievement(
 		// Convert reviews
 		reviews = make([]achievement.Review, 0, len(achievementEntity.Edges.Reviews))
 		for _, rev := range achievementEntity.Edges.Reviews {
-			reviewer, err := convertUser(rev.Edges.Reviewer)
-			if err != nil {
-				opRec.Add(events.Error, fmt.Errorf("failed to convert reviewer: %w", err))
-				return err
-			}
+			reviewer := convertUser(rev.Edges.Reviewer)
 
 			reviews = append(reviews, achievement.Review{
 				ID:             rev.ID,
@@ -832,7 +824,7 @@ func determineNewStatus(
 	// Group parameters together
 	rec.Sub("params").Set(
 		"current_status", currentStatus,
-		"reviewer_role_id", reviewerRole.ID,
+		"reviewer_role_id", reviewerRole,
 		"reviewer_role_name", reviewerRole.Name,
 		"template_kind", templateKind,
 		"points_assigned", pointsAssigned,
@@ -843,7 +835,7 @@ func determineNewStatus(
 	switch currentStatus {
 	case achievement.StatusDepheadReview:
 		// Department head review
-		if reviewerRole.ID == sesc.Dephead.ID {
+		if reviewerRole == sesc.Dephead {
 			if pointsAssigned > 0 {
 				// If points > 0, move to inspector review
 				rec.Sub("decision").Set(
@@ -864,7 +856,7 @@ func determineNewStatus(
 		// Not a department head
 		rec.Sub("decision").Set(
 			"reason", "not_department_head",
-			"expected_role", sesc.Dephead.ID,
+			"expected_role", sesc.Dephead,
 			"is_valid_reviewer", false,
 		)
 
@@ -872,11 +864,11 @@ func determineNewStatus(
 		// Inspector review - check if reviewer has the correct role based on template kind
 		expectedRole := templateKind.InspectorRole()
 		rec.Sub("inspector_check").Set(
-			"expected_role_id", expectedRole.ID,
+			"expected_role_id", expectedRole,
 			"expected_role_name", expectedRole.Name,
 		)
 
-		if reviewerRole.ID == expectedRole.ID {
+		if reviewerRole == expectedRole {
 			// After inspector review, mark as done
 			rec.Sub("decision").Set(
 				"reason", "inspector_reviewed",
@@ -911,7 +903,7 @@ func convertAchievementToModel(
 	reviewID UUID,
 	opt achievement.ReviewOptions,
 	rec *event.Record,
-) (achievement.Achievement, error) {
+) achievement.Achievement {
 	subRec := rec.Sub("convert_achievement_to_model")
 	subRec.Set("achievement_id", achievementEntity.ID)
 	subRec.Set("reviewer_id", reviewerEntity.ID)
@@ -929,11 +921,7 @@ func convertAchievementToModel(
 	}
 
 	// Convert owner
-	owner, err := convertUser(achievementEntity.Edges.Owner)
-	if err != nil {
-		subRec.Add(events.Error, fmt.Errorf("failed to convert owner: %w", err))
-		return achievement.Achievement{}, fmt.Errorf("failed to convert owner: %w", err)
-	}
+	owner := convertUser(achievementEntity.Edges.Owner)
 
 	// Convert documents
 	documents := make([]achievement.Document, 0, len(achievementEntity.Edges.Documents))
@@ -953,11 +941,7 @@ func convertAchievementToModel(
 	// Convert existing reviews
 	reviews := make([]achievement.Review, 0, len(achievementEntity.Edges.Reviews)+1)
 	for _, rev := range achievementEntity.Edges.Reviews {
-		revUser, err := convertUser(rev.Edges.Reviewer)
-		if err != nil {
-			subRec.Add(events.Error, fmt.Errorf("failed to convert reviewer: %w", err))
-			return achievement.Achievement{}, fmt.Errorf("failed to convert reviewer: %w", err)
-		}
+		revUser := convertUser(rev.Edges.Reviewer)
 
 		reviews = append(reviews, achievement.Review{
 			ID:             rev.ID,
@@ -968,11 +952,7 @@ func convertAchievementToModel(
 	}
 
 	// Add the new review
-	reviewerUser, err := convertUser(reviewerEntity)
-	if err != nil {
-		subRec.Add(events.Error, fmt.Errorf("failed to convert reviewer: %w", err))
-		return achievement.Achievement{}, fmt.Errorf("failed to convert reviewer: %w", err)
-	}
+	reviewerUser := convertUser(reviewerEntity)
 
 	reviews = append(reviews, achievement.Review{
 		ID:             reviewID,
@@ -994,7 +974,7 @@ func convertAchievementToModel(
 
 	subRec.Set("result_status", result.Status)
 	subRec.Set("result_points", result.Points)
-	return result, nil
+	return result
 }
 
 // GetAchievement retrieves an achievement by ID and owner ID.
@@ -1694,7 +1674,7 @@ func (s *SESC) ReviewAchievement(
 		}
 
 		reviewer = user
-		opRec.Set("reviewer_role_id", reviewer.RoleID)
+		opRec.Set("reviewer_role", reviewer.Role)
 		return nil
 	})
 	if err != nil {
@@ -1705,12 +1685,12 @@ func (s *SESC) ReviewAchievement(
 	err = rec.Operation("validate_review", func(opRec *event.Record) error {
 		// Check if achievement is in the correct status for review
 		currentStatus := achievement.Status(achievementEntity.Status)
-		reviewerRole, _ := sesc.RoleByID(reviewer.RoleID)
+		reviewerRole := reviewer.Role
 		templateKind := achievement.Kind(achievementEntity.Edges.Template.Kind)
 
 		opRec.Sub("params").Set(
 			"current_status", currentStatus,
-			"reviewer_role_id", reviewerRole.ID,
+			"reviewer_role", reviewerRole,
 			"template_kind", templateKind,
 			"points_assigned", opt.PointsAssigned,
 		)
@@ -1828,11 +1808,7 @@ func (s *SESC) ReviewAchievement(
 	// Convert to domain model
 	var result achievement.Achievement
 	err = rec.Operation("convert_to_domain", func(opRec *event.Record) error {
-		domainModel, err := convertAchievementToModel(achievementEntity, reviewer, reviewID, opt, opRec)
-		if err != nil {
-			opRec.Add(events.Error, err)
-			return err
-		}
+		domainModel := convertAchievementToModel(achievementEntity, reviewer, reviewID, opt, opRec)
 
 		// Update the status and points to match the updated entity
 		domainModel.Status = achievement.Status(updatedEntity.Status)

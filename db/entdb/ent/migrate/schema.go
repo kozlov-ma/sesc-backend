@@ -234,7 +234,7 @@ var (
 		{Name: "middle_name", Type: field.TypeString, Default: ""},
 		{Name: "picture_url", Type: field.TypeString, Nullable: true},
 		{Name: "suspended", Type: field.TypeBool, Default: false},
-		{Name: "role_id", Type: field.TypeInt32},
+		{Name: "role", Type: field.TypeInt},
 		{Name: "subdivision", Type: field.TypeString, Default: ""},
 		{Name: "job_title", Type: field.TypeString, Default: ""},
 		{Name: "employment_rate", Type: field.TypeFloat64, Default: 1},
@@ -270,7 +270,7 @@ var (
 				Columns: []*schema.Column{UsersColumns[20]},
 			},
 			{
-				Name:    "user_role_id",
+				Name:    "user_role",
 				Unique:  false,
 				Columns: []*schema.Column{UsersColumns[6]},
 			},

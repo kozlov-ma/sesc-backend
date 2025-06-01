@@ -29,7 +29,7 @@ func createTestUser(t *testing.T, svc *SESC) User {
 		FirstName:    "Test",
 		LastName:     "Teacher",
 		DepartmentID: dept.ID,
-		NewRoleID:    sesc.Teacher.ID,
+		NewRole:      sesc.Teacher,
 	}
 	user, err := svc.CreateUser(ctx, opt)
 	require.NoError(t, err)
@@ -506,7 +506,7 @@ func TestReviewAchievement(t *testing.T) {
 			FirstName:    "Dept",
 			LastName:     "Head",
 			DepartmentID: teacher.Department.ID,
-			NewRoleID:    sesc.Dephead.ID,
+			NewRole:      sesc.Dephead,
 		}
 		depHead, err := svc.CreateUser(ctx, deptHeadOpt)
 		require.NoError(t, err)
@@ -516,7 +516,7 @@ func TestReviewAchievement(t *testing.T) {
 			FirstName:    "Scientific",
 			LastName:     "Deputy",
 			DepartmentID: teacher.Department.ID,
-			NewRoleID:    sesc.ScientificDeputy.ID,
+			NewRole:      sesc.ScientificDeputy,
 		}
 		inspector, err = svc.CreateUser(ctx, inspectorOpt)
 		require.NoError(t, err)
@@ -647,7 +647,7 @@ func TestReviewAchievement(t *testing.T) {
 			FirstName:    "Wrong",
 			LastName:     "Reviewer",
 			DepartmentID: ach.Owner.Department.ID, // Use the same department
-			NewRoleID:    sesc.Teacher.ID,
+			NewRole:      sesc.Teacher,
 		}
 		wrongReviewer, err := svc.CreateUser(ctx, reviewerOpt)
 		require.NoError(t, err)
@@ -984,7 +984,7 @@ func TestDetermineNewStatus(t *testing.T) {
 		{
 			name:            "contest deputy reviews olympiad achievement",
 			currentStatus:   achievement.StatusInspectorReview,
-			reviewerRole:    sesc.ContestDeputy,
+			reviewerRole:    sesc.OlympiadDeputy,
 			templateKind:    achievement.Olympiad,
 			pointsAssigned:  8,
 			expectedStatus:  achievement.StatusDone,

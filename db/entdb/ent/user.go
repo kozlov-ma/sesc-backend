@@ -33,8 +33,8 @@ type User struct {
 	Suspended bool `json:"suspended,omitempty"`
 	// DepartmentID holds the value of the "department_id" field.
 	DepartmentID *uuid.UUID `json:"department_id,omitempty"`
-	// RoleID holds the value of the "role_id" field.
-	RoleID int32 `json:"role_id,omitempty"`
+	// Role holds the value of the "role" field.
+	Role sesc.Role `json:"role,omitempty"`
 	// Subdivision holds the value of the "subdivision" field.
 	Subdivision string `json:"subdivision,omitempty"`
 	// JobTitle holds the value of the "job_title" field.
@@ -144,7 +144,7 @@ func (*User) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullBool)
 		case user.FieldEmploymentRate:
 			values[i] = new(sql.NullFloat64)
-		case user.FieldRoleID, user.FieldAcademicDegree, user.FieldPersonnelCategory, user.FieldEmploymentType:
+		case user.FieldRole, user.FieldAcademicDegree, user.FieldPersonnelCategory, user.FieldEmploymentType:
 			values[i] = new(sql.NullInt64)
 		case user.FieldFirstName, user.FieldLastName, user.FieldMiddleName, user.FieldPictureURL, user.FieldSubdivision, user.FieldJobTitle, user.FieldAcademicTitle, user.FieldHonors, user.FieldCategory:
 			values[i] = new(sql.NullString)
@@ -210,11 +210,11 @@ func (u *User) assignValues(columns []string, values []any) error {
 				u.DepartmentID = new(uuid.UUID)
 				*u.DepartmentID = *value.S.(*uuid.UUID)
 			}
-		case user.FieldRoleID:
+		case user.FieldRole:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
-				return fmt.Errorf("unexpected type %T for field role_id", values[i])
+				return fmt.Errorf("unexpected type %T for field role", values[i])
 			} else if value.Valid {
-				u.RoleID = int32(value.Int64)
+				u.Role = sesc.Role(value.Int64)
 			}
 		case user.FieldSubdivision:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -375,8 +375,8 @@ func (u *User) String() string {
 		builder.WriteString(fmt.Sprintf("%v", *v))
 	}
 	builder.WriteString(", ")
-	builder.WriteString("role_id=")
-	builder.WriteString(fmt.Sprintf("%v", u.RoleID))
+	builder.WriteString("role=")
+	builder.WriteString(fmt.Sprintf("%v", u.Role))
 	builder.WriteString(", ")
 	builder.WriteString("subdivision=")
 	builder.WriteString(u.Subdivision)

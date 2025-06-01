@@ -119,7 +119,6 @@ func (a *API) RegisterRoutes(r chi.Router) {
 		// Public endpoints
 		r.Get("/departments", a.Departments)
 		r.Get("/roles", a.Roles)
-		r.Get("/permissions", a.Permissions)
 	})
 
 	// Protected routes (auth required)

@@ -727,7 +727,7 @@ func (i *IAM) checkUserExistsForDrop(
 		"last_name", user.LastName,
 		"middle_name", user.MiddleName,
 		"suspended", user.Suspended,
-		"role_id", user.RoleID,
+		"role", user.Role,
 	)
 
 	return nil
