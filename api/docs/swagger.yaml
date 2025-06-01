@@ -255,10 +255,9 @@ definitions:
       pictureUrl:
         example: /images/users/ivan.jpg
         type: string
-      roleId:
-        allOf:
-        - $ref: '#/definitions/sesc.Role'
+      role:
         example: 2
+        type: integer
       subdivision:
         example: Кафедра информатики
         type: string
@@ -272,7 +271,7 @@ definitions:
     - jobTitle
     - lastName
     - personnelCategory
-    - roleId
+    - role
     - subdivision
     type: object
   api.CredentialsNotFoundError:
@@ -911,7 +910,6 @@ definitions:
         example: "2023-12-31T00:00:00Z"
         type: string
     required:
-    - dateOfEmployment
     - employmentRate
     - employmentType
     - firstName

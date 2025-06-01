@@ -71,7 +71,7 @@ export default function DashboardLayout({
         },
       ],
     });
-  } else if (user?.role && user.role.id === 6) {
+  } else if (user?.role && user.role.codeName === "chief_economist") {
     groups.push({
       name: "Отчеты",
       routes: [

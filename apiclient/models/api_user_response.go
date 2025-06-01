@@ -33,8 +33,7 @@ type APIUserResponse struct {
 
 	// date of employment
 	// Example: 2020-01-15T00:00:00Z
-	// Required: true
-	DateOfEmployment *string `json:"dateOfEmployment"`
+	DateOfEmployment string `json:"dateOfEmployment,omitempty"`
 
 	// department
 	Department *APIDepartment `json:"department,omitempty"`
@@ -109,10 +108,6 @@ type APIUserResponse struct {
 func (m *APIUserResponse) Validate(formats strfmt.Registry) error {
 	var res []error
 
-	if err := m.validateDateOfEmployment(formats); err != nil {
-		res = append(res, err)
-	}
-
 	if err := m.validateDepartment(formats); err != nil {
 		res = append(res, err)
 	}
@@ -164,15 +159,6 @@ func (m *APIUserResponse) Validate(formats strfmt.Registry) error {
 	if len(res) > 0 {
 		return errors.CompositeValidationError(res...)
 	}
-	return nil
-}
-
-func (m *APIUserResponse) validateDateOfEmployment(formats strfmt.Registry) error {
-
-	if err := validate.Required("dateOfEmployment", "body", m.DateOfEmployment); err != nil {
-		return err
-	}
-
 	return nil
 }
 

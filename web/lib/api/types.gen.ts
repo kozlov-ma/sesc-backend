@@ -92,7 +92,7 @@ export type ApiCreateUserRequest = {
   middleName?: string;
   personnelCategory: number;
   pictureUrl?: string;
-  roleId: SescRole;
+  role: number;
   subdivision: string;
   unemploymentDate?: string;
 };
@@ -360,7 +360,7 @@ export type ApiUserResponse = {
   academicDegree?: number;
   academicTitle?: string;
   category?: string;
-  dateOfEmployment: string;
+  dateOfEmployment?: string;
   department?: ApiDepartment;
   employmentRate: number;
   employmentType: number;

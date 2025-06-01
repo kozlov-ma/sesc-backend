@@ -2807,7 +2807,7 @@ const docTemplate = `{
                 "jobTitle",
                 "lastName",
                 "personnelCategory",
-                "roleId",
+                "role",
                 "subdivision"
             ],
             "properties": {
@@ -2867,12 +2867,8 @@ const docTemplate = `{
                     "type": "string",
                     "example": "/images/users/ivan.jpg"
                 },
-                "roleId": {
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/sesc.Role"
-                        }
-                    ],
+                "role": {
+                    "type": "integer",
                     "example": 2
                 },
                 "subdivision": {
@@ -3712,7 +3708,6 @@ const docTemplate = `{
         "api.UserResponse": {
             "type": "object",
             "required": [
-                "dateOfEmployment",
                 "employmentRate",
                 "employmentType",
                 "firstName",

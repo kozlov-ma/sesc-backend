@@ -444,23 +444,11 @@ func sescError(err error) Error {
 			Message:   "Invalid or missing user name",
 			RuMessage: "Указано некорректное или отсутствует имя пользователя",
 		}.WithStatus(http.StatusBadRequest)
-	case errors.Is(err, sesc.ErrInvalidUserData):
-		return InvalidRequestError{
-			Code:      "INVALID_USER_DATA",
-			Message:   "Invalid user data",
-			RuMessage: "Некорректные данные пользователя",
-		}.WithStatus(http.StatusBadRequest)
 	case errors.Is(err, sesc.ErrInvalidEmploymentRate):
 		return InvalidRequestError{
 			Code:      "INVALID_EMPLOYMENT_RATE",
 			Message:   "Invalid employment rate",
 			RuMessage: "Некорректная ставка трудоустройства",
-		}.WithStatus(http.StatusBadRequest)
-	case errors.Is(err, sesc.ErrInvalidDateOfEmployment):
-		return InvalidRequestError{
-			Code:      "INVALID_DATE_OF_EMPLOYMENT",
-			Message:   "Invalid date of employment",
-			RuMessage: "Некорректная дата трудоустройства",
 		}.WithStatus(http.StatusBadRequest)
 	case errors.Is(err, sesc.ErrInvalidDepartmentName):
 		return InvalidNameError{

@@ -280,7 +280,7 @@ export const api_CreateUserRequestSchema = {
     "jobTitle",
     "lastName",
     "personnelCategory",
-    "roleId",
+    "role",
     "subdivision",
   ],
   properties: {
@@ -340,12 +340,8 @@ export const api_CreateUserRequestSchema = {
       type: "string",
       example: "/images/users/ivan.jpg",
     },
-    roleId: {
-      allOf: [
-        {
-          $ref: "#/definitions/sesc.Role",
-        },
-      ],
+    role: {
+      type: "integer",
       example: 2,
     },
     subdivision: {
@@ -1167,7 +1163,6 @@ export const api_UserNotFoundErrorSchema = {
 export const api_UserResponseSchema = {
   type: "object",
   required: [
-    "dateOfEmployment",
     "employmentRate",
     "employmentType",
     "firstName",
