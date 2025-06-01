@@ -256,8 +256,9 @@ definitions:
         example: /images/users/ivan.jpg
         type: string
       roleId:
+        allOf:
+        - $ref: '#/definitions/sesc.Role'
         example: 2
-        type: integer
       subdivision:
         example: Кафедра информатики
         type: string
@@ -688,8 +689,9 @@ definitions:
         example: /images/users/ivan.jpg
         type: string
       roleId:
+        allOf:
+        - $ref: '#/definitions/sesc.Role'
         example: 1
-        type: integer
       subdivision:
         example: Кафедра информатики
         type: string
@@ -704,31 +706,6 @@ definitions:
     - lastName
     - roleId
     - suspended
-    type: object
-  api.Permission:
-    properties:
-      description:
-        example: Создание и заполнение листа достижений
-        type: string
-      id:
-        example: 1
-        type: integer
-      name:
-        example: draft_achievement_list
-        type: string
-    required:
-    - description
-    - id
-    - name
-    type: object
-  api.PermissionsResponse:
-    properties:
-      permissions:
-        items:
-          $ref: '#/definitions/api.Permission'
-        type: array
-    required:
-    - permissions
     type: object
   api.PointsLimitExceededError:
     properties:
@@ -780,20 +757,19 @@ definitions:
     type: object
   api.Role:
     properties:
+      codeName:
+        example: teacher
+        type: string
       id:
         example: 1
         type: integer
       name:
         example: Преподаватель
         type: string
-      permissions:
-        items:
-          $ref: '#/definitions/api.Permission'
-        type: array
     required:
+    - codeName
     - id
     - name
-    - permissions
     type: object
   api.RolesResponse:
     properties:
@@ -971,6 +947,24 @@ definitions:
         example: Достижение находится в неподходящем статусе для этой операции
         type: string
     type: object
+  sesc.Role:
+    enum:
+    - 1
+    - 2
+    - 3
+    - 4
+    - 5
+    - 6
+    - 7
+    type: integer
+    x-enum-varnames:
+    - Teacher
+    - Dephead
+    - ScientificDeputy
+    - DevelopmentDeputy
+    - OlympiadDeputy
+    - AcademicDirector
+    - ChiefEconomist
 info:
   contact: {}
   description: API for managing SESC departments, users and permissions
@@ -2196,19 +2190,6 @@ paths:
       summary: Get file by ID
       tags:
       - files
-  /permissions:
-    get:
-      description: Retrieves all available system permissions
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/api.PermissionsResponse'
-      summary: List all permissions
-      tags:
-      - permissions
   /reports/mark-accounted:
     post:
       consumes:

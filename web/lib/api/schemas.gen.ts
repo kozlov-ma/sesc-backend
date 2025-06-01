@@ -341,7 +341,11 @@ export const api_CreateUserRequestSchema = {
       example: "/images/users/ivan.jpg",
     },
     roleId: {
-      type: "integer",
+      allOf: [
+        {
+          $ref: "#/definitions/sesc.Role",
+        },
+      ],
       example: 2,
     },
     subdivision: {
@@ -934,7 +938,11 @@ export const api_PatchUserRequestSchema = {
       example: "/images/users/ivan.jpg",
     },
     roleId: {
-      type: "integer",
+      allOf: [
+        {
+          $ref: "#/definitions/sesc.Role",
+        },
+      ],
       example: 1,
     },
     subdivision: {
@@ -948,38 +956,6 @@ export const api_PatchUserRequestSchema = {
     unemploymentDate: {
       type: "string",
       example: "2023-12-31T00:00:00Z",
-    },
-  },
-} as const;
-
-export const api_PermissionSchema = {
-  type: "object",
-  required: ["description", "id", "name"],
-  properties: {
-    description: {
-      type: "string",
-      example: "Создание и заполнение листа достижений",
-    },
-    id: {
-      type: "integer",
-      example: 1,
-    },
-    name: {
-      type: "string",
-      example: "draft_achievement_list",
-    },
-  },
-} as const;
-
-export const api_PermissionsResponseSchema = {
-  type: "object",
-  required: ["permissions"],
-  properties: {
-    permissions: {
-      type: "array",
-      items: {
-        $ref: "#/definitions/api.Permission",
-      },
     },
   },
 } as const;
@@ -1049,8 +1025,12 @@ export const api_ReviewResponseSchema = {
 
 export const api_RoleSchema = {
   type: "object",
-  required: ["id", "name", "permissions"],
+  required: ["codeName", "id", "name"],
   properties: {
+    codeName: {
+      type: "string",
+      example: "teacher",
+    },
     id: {
       type: "integer",
       example: 1,
@@ -1058,12 +1038,6 @@ export const api_RoleSchema = {
     name: {
       type: "string",
       example: "Преподаватель",
-    },
-    permissions: {
-      type: "array",
-      items: {
-        $ref: "#/definitions/api.Permission",
-      },
     },
   },
 } as const;
@@ -1315,4 +1289,18 @@ export const api_WrongAchievementStatusErrorSchema = {
       example: "Достижение находится в неподходящем статусе для этой операции",
     },
   },
+} as const;
+
+export const sesc_RoleSchema = {
+  type: "integer",
+  enum: [1, 2, 3, 4, 5, 6, 7],
+  "x-enum-varnames": [
+    "Teacher",
+    "Dephead",
+    "ScientificDeputy",
+    "DevelopmentDeputy",
+    "OlympiadDeputy",
+    "AcademicDirector",
+    "ChiefEconomist",
+  ],
 } as const;

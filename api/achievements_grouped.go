@@ -46,7 +46,12 @@ func (a *API) GetGroupedAchievements(w http.ResponseWriter, r *http.Request) {
 	// Only department heads and deputies should have access
 	//nolint:exhaustive // cuz fuck it here.
 	switch user.Role {
-	case sesc.Dephead, sesc.OlympiadDeputy, sesc.DevelopmentDeputy, sesc.ScientificDeputy, sesc.AcademicDirector:
+	case sesc.Dephead,
+		sesc.OlympiadDeputy,
+		sesc.DevelopmentDeputy,
+		sesc.ScientificDeputy,
+		sesc.AcademicDirector,
+		sesc.ChiefEconomist:
 	default:
 		writeError(ctx, w, ErrForbidden.WithStatus(http.StatusForbidden))
 		return

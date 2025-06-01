@@ -86,8 +86,6 @@ import type {
   GetFilesByIdData,
   GetFilesByIdResponse,
   GetFilesByIdError,
-  GetPermissionsData,
-  GetPermissionsResponse,
   PostReportsMarkAccountedData,
   PostReportsMarkAccountedResponse,
   PostReportsMarkAccountedError,
@@ -823,23 +821,6 @@ export const getFilesById = <ThrowOnError extends boolean = false>(
       },
     ],
     url: "/files/{id}",
-    ...options,
-  });
-};
-
-/**
- * List all permissions
- * Retrieves all available system permissions
- */
-export const getPermissions = <ThrowOnError extends boolean = false>(
-  options?: Options<GetPermissionsData, ThrowOnError>,
-) => {
-  return (options?.client ?? _heyApiClient).get<
-    GetPermissionsResponse,
-    unknown,
-    ThrowOnError
-  >({
-    url: "/permissions",
     ...options,
   });
 };

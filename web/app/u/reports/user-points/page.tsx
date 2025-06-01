@@ -2,10 +2,15 @@
 
 import { useState, useEffect } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { Download, Calculator, AlertCircle, Loader2, RefreshCw } from "lucide-react";
+import {
+  Download,
+  Calculator,
+  AlertCircle,
+  Loader2,
+  RefreshCw,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -48,14 +53,15 @@ export default function UserPointsReportPage() {
       let hasMore = true;
 
       while (hasMore) {
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+        const apiUrl =
+          process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
         const response = await fetch(
           `${apiUrl}/achievements/grouped?offset=${offset}&limit=${limit}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
             },
-          }
+          },
         );
 
         if (!response.ok) {
@@ -71,7 +77,10 @@ export default function UserPointsReportPage() {
         }
 
         // Check if we have more data
-        hasMore = data.items && Object.keys(data.items).length > 0 && offset + limit < data.totalCount;
+        hasMore =
+          data.items &&
+          Object.keys(data.items).length > 0 &&
+          offset + limit < data.totalCount;
         offset += limit;
       }
 
@@ -162,7 +171,9 @@ export default function UserPointsReportPage() {
       toast.success("Отчет успешно создан и скачан");
     } catch (error) {
       console.error("Error generating report:", error);
-      toast.error(`Ошибка при создании отчета: ${(error as Error)?.message || "Неизвестная ошибка"}`);
+      toast.error(
+        `Ошибка при создании отчета: ${(error as Error)?.message || "Неизвестная ошибка"}`,
+      );
     } finally {
       setIsGeneratingReport(false);
     }
@@ -189,12 +200,9 @@ export default function UserPointsReportPage() {
   };
 
   // Get all done achievements from fetched data
-  const doneAchievements = allAchievements
-.filter(
-    (achievement) => achievement.status === "done"
+  const doneAchievements = allAchievements.filter(
+    (achievement) => achievement.status === "done",
   );
-
-
 
   return (
     <div className="space-y-6">
@@ -265,12 +273,17 @@ export default function UserPointsReportPage() {
           <div className="flex items-center justify-between">
             <div className="space-y-2">
               <p className="text-sm text-muted-foreground">
-                Достижения со статусом "Выполнено" ({doneAchievements.length} шт.)
+                Достижения со статусом "Выполнено" ({doneAchievements.length}{" "}
+                шт.)
               </p>
               {doneAchievements.length > 0 && (
                 <p className="text-sm text-muted-foreground">
-                  Общее количество баллов: <strong>
-                    {doneAchievements.reduce((sum, a) => sum + (a.points || 0), 0)}
+                  Общее количество баллов:{" "}
+                  <strong>
+                    {doneAchievements.reduce(
+                      (sum, a) => sum + (a.points || 0),
+                      0,
+                    )}
                   </strong>
                 </p>
               )}
@@ -307,12 +320,17 @@ export default function UserPointsReportPage() {
               <Alert>
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>
-                  После завершения расчета все достижения со статусом "Выполнено" будут отмечены как "Учтенные" и не будут включаться в будущие отчеты.
+                  После завершения расчета все достижения со статусом
+                  "Выполнено" будут отмечены как "Учтенные" и не будут
+                  включаться в будущие отчеты.
                 </AlertDescription>
               </Alert>
-              
+
               <div className="flex justify-center">
-                <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+                <AlertDialog
+                  open={showConfirmDialog}
+                  onOpenChange={setShowConfirmDialog}
+                >
                   <AlertDialogTrigger asChild>
                     <Button
                       onClick={handleCompleteCalculation}
@@ -336,7 +354,14 @@ export default function UserPointsReportPage() {
                     <AlertDialogHeader>
                       <AlertDialogTitle>Завершение расчета</AlertDialogTitle>
                       <AlertDialogDescription>
-                        Вы уверены, что хотите завершить расчет для всех {doneAchievements.length} выполненных достижений на общую сумму {doneAchievements.reduce((sum, a) => sum + (a.points || 0), 0)} баллов? Это действие нельзя будет отменить.
+                        Вы уверены, что хотите завершить расчет для всех{" "}
+                        {doneAchievements.length} выполненных достижений на
+                        общую сумму{" "}
+                        {doneAchievements.reduce(
+                          (sum, a) => sum + (a.points || 0),
+                          0,
+                        )}{" "}
+                        баллов? Это действие нельзя будет отменить.
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>

@@ -7,7 +7,6 @@ package models
 
 import (
 	"context"
-	"strconv"
 
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/strfmt"
@@ -20,6 +19,11 @@ import (
 // swagger:model api.Role
 type APIRole struct {
 
+	// code name
+	// Example: teacher
+	// Required: true
+	CodeName *string `json:"codeName"`
+
 	// id
 	// Example: 1
 	// Required: true
@@ -29,15 +33,15 @@ type APIRole struct {
 	// Example: Преподаватель
 	// Required: true
 	Name *string `json:"name"`
-
-	// permissions
-	// Required: true
-	Permissions []*APIPermission `json:"permissions"`
 }
 
 // Validate validates this api role
 func (m *APIRole) Validate(formats strfmt.Registry) error {
 	var res []error
+
+	if err := m.validateCodeName(formats); err != nil {
+		res = append(res, err)
+	}
 
 	if err := m.validateID(formats); err != nil {
 		res = append(res, err)
@@ -47,13 +51,18 @@ func (m *APIRole) Validate(formats strfmt.Registry) error {
 		res = append(res, err)
 	}
 
-	if err := m.validatePermissions(formats); err != nil {
-		res = append(res, err)
-	}
-
 	if len(res) > 0 {
 		return errors.CompositeValidationError(res...)
 	}
+	return nil
+}
+
+func (m *APIRole) validateCodeName(formats strfmt.Registry) error {
+
+	if err := validate.Required("codeName", "body", m.CodeName); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -75,69 +84,8 @@ func (m *APIRole) validateName(formats strfmt.Registry) error {
 	return nil
 }
 
-func (m *APIRole) validatePermissions(formats strfmt.Registry) error {
-
-	if err := validate.Required("permissions", "body", m.Permissions); err != nil {
-		return err
-	}
-
-	for i := 0; i < len(m.Permissions); i++ {
-		if swag.IsZero(m.Permissions[i]) { // not required
-			continue
-		}
-
-		if m.Permissions[i] != nil {
-			if err := m.Permissions[i].Validate(formats); err != nil {
-				if ve, ok := err.(*errors.Validation); ok {
-					return ve.ValidateName("permissions" + "." + strconv.Itoa(i))
-				} else if ce, ok := err.(*errors.CompositeError); ok {
-					return ce.ValidateName("permissions" + "." + strconv.Itoa(i))
-				}
-				return err
-			}
-		}
-
-	}
-
-	return nil
-}
-
-// ContextValidate validate this api role based on the context it is used
+// ContextValidate validates this api role based on context it is used
 func (m *APIRole) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
-	var res []error
-
-	if err := m.contextValidatePermissions(ctx, formats); err != nil {
-		res = append(res, err)
-	}
-
-	if len(res) > 0 {
-		return errors.CompositeValidationError(res...)
-	}
-	return nil
-}
-
-func (m *APIRole) contextValidatePermissions(ctx context.Context, formats strfmt.Registry) error {
-
-	for i := 0; i < len(m.Permissions); i++ {
-
-		if m.Permissions[i] != nil {
-
-			if swag.IsZero(m.Permissions[i]) { // not required
-				return nil
-			}
-
-			if err := m.Permissions[i].ContextValidate(ctx, formats); err != nil {
-				if ve, ok := err.(*errors.Validation); ok {
-					return ve.ValidateName("permissions" + "." + strconv.Itoa(i))
-				} else if ce, ok := err.(*errors.CompositeError); ok {
-					return ce.ValidateName("permissions" + "." + strconv.Itoa(i))
-				}
-				return err
-			}
-		}
-
-	}
-
 	return nil
 }
 

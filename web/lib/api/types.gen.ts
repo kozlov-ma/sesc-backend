@@ -92,7 +92,7 @@ export type ApiCreateUserRequest = {
   middleName?: string;
   personnelCategory: number;
   pictureUrl?: string;
-  roleId: number;
+  roleId: SescRole;
   subdivision: string;
   unemploymentDate?: string;
 };
@@ -283,20 +283,10 @@ export type ApiPatchUserRequest = {
   middleName?: string;
   personnelCategory?: number;
   pictureUrl?: string;
-  roleId: number;
+  roleId: SescRole;
   subdivision?: string;
   suspended: boolean;
   unemploymentDate?: string;
-};
-
-export type ApiPermission = {
-  description: string;
-  id: number;
-  name: string;
-};
-
-export type ApiPermissionsResponse = {
-  permissions: Array<ApiPermission>;
 };
 
 export type ApiPointsLimitExceededError = {
@@ -320,9 +310,9 @@ export type ApiReviewResponse = {
 };
 
 export type ApiRole = {
+  codeName: string;
   id: number;
   name: string;
-  permissions: Array<ApiPermission>;
 };
 
 export type ApiRolesResponse = {
@@ -398,6 +388,18 @@ export type ApiWrongAchievementStatusError = {
   message?: string;
   ruMessage?: string;
 };
+
+export type SescRole = 1 | 2 | 3 | 4 | 5 | 6 | 7;
+
+export const SescRole = {
+  TEACHER: 1,
+  DEPHEAD: 2,
+  SCIENTIFIC_DEPUTY: 3,
+  DEVELOPMENT_DEPUTY: 4,
+  OLYMPIAD_DEPUTY: 5,
+  ACADEMIC_DIRECTOR: 6,
+  CHIEF_ECONOMIST: 7,
+} as const;
 
 export type GetAchievementGroupsData = {
   body?: never;
@@ -1796,23 +1798,6 @@ export type GetFilesByIdResponses = {
 
 export type GetFilesByIdResponse =
   GetFilesByIdResponses[keyof GetFilesByIdResponses];
-
-export type GetPermissionsData = {
-  body?: never;
-  path?: never;
-  query?: never;
-  url: "/permissions";
-};
-
-export type GetPermissionsResponses = {
-  /**
-   * OK
-   */
-  200: ApiPermissionsResponse;
-};
-
-export type GetPermissionsResponse =
-  GetPermissionsResponses[keyof GetPermissionsResponses];
 
 export type PostReportsMarkAccountedData = {
   /**

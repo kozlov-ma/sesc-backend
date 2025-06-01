@@ -30,7 +30,6 @@ import {
   postFiles,
   deleteFilesById,
   getFilesById,
-  getPermissions,
   postReportsMarkAccounted,
   postReportsMarkAllAccounted,
   getReportsUserPoints,
@@ -114,7 +113,6 @@ import type {
   DeleteFilesByIdData,
   DeleteFilesByIdError,
   GetFilesByIdData,
-  GetPermissionsData,
   PostReportsMarkAccountedData,
   PostReportsMarkAccountedError,
   PostReportsMarkAccountedResponse,
@@ -1348,30 +1346,6 @@ export const getFilesByIdOptions = (options: Options<GetFilesByIdData>) => {
       return data;
     },
     queryKey: getFilesByIdQueryKey(options),
-  });
-};
-
-export const getPermissionsQueryKey = (options?: Options<GetPermissionsData>) =>
-  createQueryKey("getPermissions", options);
-
-/**
- * List all permissions
- * Retrieves all available system permissions
- */
-export const getPermissionsOptions = (
-  options?: Options<GetPermissionsData>,
-) => {
-  return queryOptions({
-    queryFn: async ({ queryKey, signal }) => {
-      const { data } = await getPermissions({
-        ...options,
-        ...queryKey[0],
-        signal,
-        throwOnError: true,
-      });
-      return data;
-    },
-    queryKey: getPermissionsQueryKey(options),
   });
 };
 

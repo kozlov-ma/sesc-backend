@@ -1900,26 +1900,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/permissions": {
-            "get": {
-                "description": "Retrieves all available system permissions",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "permissions"
-                ],
-                "summary": "List all permissions",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/api.PermissionsResponse"
-                        }
-                    }
-                }
-            }
-        },
         "/reports/mark-accounted": {
             "post": {
                 "security": [
@@ -2888,7 +2868,11 @@ const docTemplate = `{
                     "example": "/images/users/ivan.jpg"
                 },
                 "roleId": {
-                    "type": "integer",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/sesc.Role"
+                        }
+                    ],
                     "example": 2
                 },
                 "subdivision": {
@@ -3495,7 +3479,11 @@ const docTemplate = `{
                     "example": "/images/users/ivan.jpg"
                 },
                 "roleId": {
-                    "type": "integer",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/sesc.Role"
+                        }
+                    ],
                     "example": 1
                 },
                 "subdivision": {
@@ -3509,42 +3497,6 @@ const docTemplate = `{
                 "unemploymentDate": {
                     "type": "string",
                     "example": "2023-12-31T00:00:00Z"
-                }
-            }
-        },
-        "api.Permission": {
-            "type": "object",
-            "required": [
-                "description",
-                "id",
-                "name"
-            ],
-            "properties": {
-                "description": {
-                    "type": "string",
-                    "example": "Создание и заполнение листа достижений"
-                },
-                "id": {
-                    "type": "integer",
-                    "example": 1
-                },
-                "name": {
-                    "type": "string",
-                    "example": "draft_achievement_list"
-                }
-            }
-        },
-        "api.PermissionsResponse": {
-            "type": "object",
-            "required": [
-                "permissions"
-            ],
-            "properties": {
-                "permissions": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/api.Permission"
-                    }
                 }
             }
         },
@@ -3618,11 +3570,15 @@ const docTemplate = `{
         "api.Role": {
             "type": "object",
             "required": [
+                "codeName",
                 "id",
-                "name",
-                "permissions"
+                "name"
             ],
             "properties": {
+                "codeName": {
+                    "type": "string",
+                    "example": "teacher"
+                },
                 "id": {
                     "type": "integer",
                     "example": 1
@@ -3630,12 +3586,6 @@ const docTemplate = `{
                 "name": {
                     "type": "string",
                     "example": "Преподаватель"
-                },
-                "permissions": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/api.Permission"
-                    }
                 }
             }
         },
@@ -3884,6 +3834,27 @@ const docTemplate = `{
                     "example": "Достижение находится в неподходящем статусе для этой операции"
                 }
             }
+        },
+        "sesc.Role": {
+            "type": "integer",
+            "enum": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7
+            ],
+            "x-enum-varnames": [
+                "Teacher",
+                "Dephead",
+                "ScientificDeputy",
+                "DevelopmentDeputy",
+                "OlympiadDeputy",
+                "AcademicDirector",
+                "ChiefEconomist"
+            ]
         }
     },
     "securityDefinitions": {
