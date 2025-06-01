@@ -80,9 +80,7 @@ type APIPatchUserRequest struct {
 	// role Id
 	// Example: 1
 	// Required: true
-	RoleID struct {
-		SescRole
-	} `json:"roleId"`
+	RoleID *int64 `json:"roleId"`
 
 	// subdivision
 	// Example: Кафедра информатики
@@ -144,6 +142,10 @@ func (m *APIPatchUserRequest) validateLastName(formats strfmt.Registry) error {
 
 func (m *APIPatchUserRequest) validateRoleID(formats strfmt.Registry) error {
 
+	if err := validate.Required("roleId", "body", m.RoleID); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -156,22 +158,8 @@ func (m *APIPatchUserRequest) validateSuspended(formats strfmt.Registry) error {
 	return nil
 }
 
-// ContextValidate validate this api patch user request based on the context it is used
+// ContextValidate validates this api patch user request based on context it is used
 func (m *APIPatchUserRequest) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
-	var res []error
-
-	if err := m.contextValidateRoleID(ctx, formats); err != nil {
-		res = append(res, err)
-	}
-
-	if len(res) > 0 {
-		return errors.CompositeValidationError(res...)
-	}
-	return nil
-}
-
-func (m *APIPatchUserRequest) contextValidateRoleID(ctx context.Context, formats strfmt.Registry) error {
-
 	return nil
 }
 

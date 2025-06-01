@@ -283,7 +283,7 @@ export type ApiPatchUserRequest = {
   middleName?: string;
   personnelCategory?: number;
   pictureUrl?: string;
-  roleId: SescRole;
+  roleId: number;
   subdivision?: string;
   suspended: boolean;
   unemploymentDate?: string;
@@ -388,18 +388,6 @@ export type ApiWrongAchievementStatusError = {
   message?: string;
   ruMessage?: string;
 };
-
-export type SescRole = 1 | 2 | 3 | 4 | 5 | 6 | 7;
-
-export const SescRole = {
-  TEACHER: 1,
-  DEPHEAD: 2,
-  SCIENTIFIC_DEPUTY: 3,
-  DEVELOPMENT_DEPUTY: 4,
-  OLYMPIAD_DEPUTY: 5,
-  ACADEMIC_DIRECTOR: 6,
-  CHIEF_ECONOMIST: 7,
-} as const;
 
 export type GetAchievementGroupsData = {
   body?: never;
@@ -1804,11 +1792,11 @@ export type PostReportsMarkAccountedData = {
    * Achievement IDs to mark as accounted
    */
   body: ApiMarkAchievementsAsAccountedRequest;
-  headers: {
+  headers?: {
     /**
      * Bearer JWT token
      */
-    Authorization: string;
+    Authorization?: string;
   };
   path?: never;
   query?: never;
@@ -1851,11 +1839,11 @@ export type PostReportsMarkAccountedResponse =
 
 export type PostReportsMarkAllAccountedData = {
   body?: never;
-  headers: {
+  headers?: {
     /**
      * Bearer JWT token
      */
-    Authorization: string;
+    Authorization?: string;
   };
   path?: never;
   query?: never;
@@ -1894,11 +1882,11 @@ export type PostReportsMarkAllAccountedResponse =
 
 export type GetReportsUserPointsData = {
   body?: never;
-  headers: {
+  headers?: {
     /**
      * Bearer JWT token
      */
-    Authorization: string;
+    Authorization?: string;
   };
   path?: never;
   query?: never;

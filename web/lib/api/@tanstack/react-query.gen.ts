@@ -1403,7 +1403,7 @@ export const postReportsMarkAccountedMutation = (
 };
 
 export const postReportsMarkAllAccountedQueryKey = (
-  options: Options<PostReportsMarkAllAccountedData>,
+  options?: Options<PostReportsMarkAllAccountedData>,
 ) => createQueryKey("postReportsMarkAllAccounted", options);
 
 /**
@@ -1411,7 +1411,7 @@ export const postReportsMarkAllAccountedQueryKey = (
  * Marks all achievements with "done" status as "accounted" in the system
  */
 export const postReportsMarkAllAccountedOptions = (
-  options: Options<PostReportsMarkAllAccountedData>,
+  options?: Options<PostReportsMarkAllAccountedData>,
 ) => {
   return queryOptions({
     queryFn: async ({ queryKey, signal }) => {
@@ -1456,7 +1456,7 @@ export const postReportsMarkAllAccountedMutation = (
 };
 
 export const getReportsUserPointsQueryKey = (
-  options: Options<GetReportsUserPointsData>,
+  options?: Options<GetReportsUserPointsData>,
 ) => createQueryKey("getReportsUserPoints", options);
 
 /**
@@ -1464,7 +1464,7 @@ export const getReportsUserPointsQueryKey = (
  * Generates an Excel report containing all users with their achievement points summary
  */
 export const getReportsUserPointsOptions = (
-  options: Options<GetReportsUserPointsData>,
+  options?: Options<GetReportsUserPointsData>,
 ) => {
   return queryOptions({
     queryFn: async ({ queryKey, signal }) => {

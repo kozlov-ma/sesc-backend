@@ -1915,8 +1915,7 @@
                         "type": "string",
                         "description": "Bearer JWT token",
                         "name": "Authorization",
-                        "in": "header",
-                        "required": true
+                        "in": "header"
                     },
                     {
                         "description": "Achievement IDs to mark as accounted",
@@ -1986,8 +1985,7 @@
                         "type": "string",
                         "description": "Bearer JWT token",
                         "name": "Authorization",
-                        "in": "header",
-                        "required": true
+                        "in": "header"
                     }
                 ],
                 "responses": {
@@ -2042,8 +2040,7 @@
                         "type": "string",
                         "description": "Bearer JWT token",
                         "name": "Authorization",
-                        "in": "header",
-                        "required": true
+                        "in": "header"
                     }
                 ],
                 "responses": {
@@ -3467,11 +3464,7 @@
                     "example": "/images/users/ivan.jpg"
                 },
                 "roleId": {
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/sesc.Role"
-                        }
-                    ],
+                    "type": "integer",
                     "example": 1
                 },
                 "subdivision": {
@@ -3821,27 +3814,6 @@
                     "example": "Достижение находится в неподходящем статусе для этой операции"
                 }
             }
-        },
-        "sesc.Role": {
-            "type": "integer",
-            "enum": [
-                1,
-                2,
-                3,
-                4,
-                5,
-                6,
-                7
-            ],
-            "x-enum-varnames": [
-                "Teacher",
-                "Dephead",
-                "ScientificDeputy",
-                "DevelopmentDeputy",
-                "OlympiadDeputy",
-                "AcademicDirector",
-                "ChiefEconomist"
-            ]
         }
     },
     "securityDefinitions": {

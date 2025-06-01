@@ -11,7 +11,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	uuid "github.com/gofrs/uuid/v5"
-	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievement"
+	entachievement "github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievement"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievementreview"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/predicate"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/user"
@@ -196,7 +196,7 @@ func (aru *AchievementReviewUpdate) sqlSave(ctx context.Context) (n int, err err
 			Columns: []string{achievementreview.AchievementColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(achievement.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(entachievement.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -209,7 +209,7 @@ func (aru *AchievementReviewUpdate) sqlSave(ctx context.Context) (n int, err err
 			Columns: []string{achievementreview.AchievementColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(achievement.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(entachievement.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -462,7 +462,7 @@ func (aruo *AchievementReviewUpdateOne) sqlSave(ctx context.Context) (_node *Ach
 			Columns: []string{achievementreview.AchievementColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(achievement.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(entachievement.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -475,7 +475,7 @@ func (aruo *AchievementReviewUpdateOne) sqlSave(ctx context.Context) (_node *Ach
 			Columns: []string{achievementreview.AchievementColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(achievement.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(entachievement.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

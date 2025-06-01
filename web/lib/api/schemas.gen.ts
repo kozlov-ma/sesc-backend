@@ -934,11 +934,7 @@ export const api_PatchUserRequestSchema = {
       example: "/images/users/ivan.jpg",
     },
     roleId: {
-      allOf: [
-        {
-          $ref: "#/definitions/sesc.Role",
-        },
-      ],
+      type: "integer",
       example: 1,
     },
     subdivision: {
@@ -1284,18 +1280,4 @@ export const api_WrongAchievementStatusErrorSchema = {
       example: "Достижение находится в неподходящем статусе для этой операции",
     },
   },
-} as const;
-
-export const sesc_RoleSchema = {
-  type: "integer",
-  enum: [1, 2, 3, 4, 5, 6, 7],
-  "x-enum-varnames": [
-    "Teacher",
-    "Dephead",
-    "ScientificDeputy",
-    "DevelopmentDeputy",
-    "OlympiadDeputy",
-    "AcademicDirector",
-    "ChiefEconomist",
-  ],
 } as const;

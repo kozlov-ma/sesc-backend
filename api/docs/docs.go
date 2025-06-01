@@ -1923,8 +1923,7 @@ const docTemplate = `{
                         "type": "string",
                         "description": "Bearer JWT token",
                         "name": "Authorization",
-                        "in": "header",
-                        "required": true
+                        "in": "header"
                     },
                     {
                         "description": "Achievement IDs to mark as accounted",
@@ -1994,8 +1993,7 @@ const docTemplate = `{
                         "type": "string",
                         "description": "Bearer JWT token",
                         "name": "Authorization",
-                        "in": "header",
-                        "required": true
+                        "in": "header"
                     }
                 ],
                 "responses": {
@@ -2050,8 +2048,7 @@ const docTemplate = `{
                         "type": "string",
                         "description": "Bearer JWT token",
                         "name": "Authorization",
-                        "in": "header",
-                        "required": true
+                        "in": "header"
                     }
                 ],
                 "responses": {
@@ -3475,11 +3472,7 @@ const docTemplate = `{
                     "example": "/images/users/ivan.jpg"
                 },
                 "roleId": {
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/sesc.Role"
-                        }
-                    ],
+                    "type": "integer",
                     "example": 1
                 },
                 "subdivision": {
@@ -3829,27 +3822,6 @@ const docTemplate = `{
                     "example": "Достижение находится в неподходящем статусе для этой операции"
                 }
             }
-        },
-        "sesc.Role": {
-            "type": "integer",
-            "enum": [
-                1,
-                2,
-                3,
-                4,
-                5,
-                6,
-                7
-            ],
-            "x-enum-varnames": [
-                "Teacher",
-                "Dephead",
-                "ScientificDeputy",
-                "DevelopmentDeputy",
-                "OlympiadDeputy",
-                "AcademicDirector",
-                "ChiefEconomist"
-            ]
         }
     },
     "securityDefinitions": {

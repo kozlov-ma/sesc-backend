@@ -16,7 +16,7 @@ import (
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
-	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievement"
+	entachievement "github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievement"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievementdocument"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievementgroup"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievementreview"
@@ -283,13 +283,13 @@ func NewAchievementClient(c config) *AchievementClient {
 }
 
 // Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `achievement.Hooks(f(g(h())))`.
+// A call to `Use(f, g, h)` equals to `entachievement.Hooks(f(g(h())))`.
 func (c *AchievementClient) Use(hooks ...Hook) {
 	c.hooks.Achievement = append(c.hooks.Achievement, hooks...)
 }
 
 // Intercept adds a list of query interceptors to the interceptors stack.
-// A call to `Intercept(f, g, h)` equals to `achievement.Intercept(f(g(h())))`.
+// A call to `Intercept(f, g, h)` equals to `entachievement.Intercept(f(g(h())))`.
 func (c *AchievementClient) Intercept(interceptors ...Interceptor) {
 	c.inters.Achievement = append(c.inters.Achievement, interceptors...)
 }
@@ -351,7 +351,7 @@ func (c *AchievementClient) DeleteOne(a *Achievement) *AchievementDeleteOne {
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
 func (c *AchievementClient) DeleteOneID(id uuid.UUID) *AchievementDeleteOne {
-	builder := c.Delete().Where(achievement.ID(id))
+	builder := c.Delete().Where(entachievement.ID(id))
 	builder.mutation.id = &id
 	builder.mutation.op = OpDeleteOne
 	return &AchievementDeleteOne{builder}
@@ -368,7 +368,7 @@ func (c *AchievementClient) Query() *AchievementQuery {
 
 // Get returns a Achievement entity by its id.
 func (c *AchievementClient) Get(ctx context.Context, id uuid.UUID) (*Achievement, error) {
-	return c.Query().Where(achievement.ID(id)).Only(ctx)
+	return c.Query().Where(entachievement.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
@@ -386,9 +386,9 @@ func (c *AchievementClient) QueryDocuments(a *Achievement) *AchievementDocumentQ
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := a.ID
 		step := sqlgraph.NewStep(
-			sqlgraph.From(achievement.Table, achievement.FieldID, id),
+			sqlgraph.From(entachievement.Table, entachievement.FieldID, id),
 			sqlgraph.To(achievementdocument.Table, achievementdocument.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, achievement.DocumentsTable, achievement.DocumentsColumn),
+			sqlgraph.Edge(sqlgraph.O2M, false, entachievement.DocumentsTable, entachievement.DocumentsColumn),
 		)
 		fromV = sqlgraph.Neighbors(a.driver.Dialect(), step)
 		return fromV, nil
@@ -402,9 +402,9 @@ func (c *AchievementClient) QueryReviews(a *Achievement) *AchievementReviewQuery
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := a.ID
 		step := sqlgraph.NewStep(
-			sqlgraph.From(achievement.Table, achievement.FieldID, id),
+			sqlgraph.From(entachievement.Table, entachievement.FieldID, id),
 			sqlgraph.To(achievementreview.Table, achievementreview.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, achievement.ReviewsTable, achievement.ReviewsColumn),
+			sqlgraph.Edge(sqlgraph.O2M, false, entachievement.ReviewsTable, entachievement.ReviewsColumn),
 		)
 		fromV = sqlgraph.Neighbors(a.driver.Dialect(), step)
 		return fromV, nil
@@ -418,9 +418,9 @@ func (c *AchievementClient) QueryOwner(a *Achievement) *UserQuery {
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := a.ID
 		step := sqlgraph.NewStep(
-			sqlgraph.From(achievement.Table, achievement.FieldID, id),
+			sqlgraph.From(entachievement.Table, entachievement.FieldID, id),
 			sqlgraph.To(user.Table, user.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, achievement.OwnerTable, achievement.OwnerColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, entachievement.OwnerTable, entachievement.OwnerColumn),
 		)
 		fromV = sqlgraph.Neighbors(a.driver.Dialect(), step)
 		return fromV, nil
@@ -434,9 +434,9 @@ func (c *AchievementClient) QueryTemplate(a *Achievement) *AchievementTemplateQu
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := a.ID
 		step := sqlgraph.NewStep(
-			sqlgraph.From(achievement.Table, achievement.FieldID, id),
+			sqlgraph.From(entachievement.Table, entachievement.FieldID, id),
 			sqlgraph.To(achievementtemplate.Table, achievementtemplate.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, achievement.TemplateTable, achievement.TemplateColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, entachievement.TemplateTable, entachievement.TemplateColumn),
 		)
 		fromV = sqlgraph.Neighbors(a.driver.Dialect(), step)
 		return fromV, nil
@@ -584,7 +584,7 @@ func (c *AchievementDocumentClient) QueryAchievement(ad *AchievementDocument) *A
 		id := ad.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(achievementdocument.Table, achievementdocument.FieldID, id),
-			sqlgraph.To(achievement.Table, achievement.FieldID),
+			sqlgraph.To(entachievement.Table, entachievement.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, achievementdocument.AchievementTable, achievementdocument.AchievementColumn),
 		)
 		fromV = sqlgraph.Neighbors(ad.driver.Dialect(), step)
@@ -898,7 +898,7 @@ func (c *AchievementReviewClient) QueryAchievement(ar *AchievementReview) *Achie
 		id := ar.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(achievementreview.Table, achievementreview.FieldID, id),
-			sqlgraph.To(achievement.Table, achievement.FieldID),
+			sqlgraph.To(entachievement.Table, entachievement.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, achievementreview.AchievementTable, achievementreview.AchievementColumn),
 		)
 		fromV = sqlgraph.Neighbors(ar.driver.Dialect(), step)
@@ -1079,7 +1079,7 @@ func (c *AchievementTemplateClient) QueryAchievements(at *AchievementTemplate) *
 		id := at.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(achievementtemplate.Table, achievementtemplate.FieldID, id),
-			sqlgraph.To(achievement.Table, achievement.FieldID),
+			sqlgraph.To(entachievement.Table, entachievement.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, achievementtemplate.AchievementsTable, achievementtemplate.AchievementsColumn),
 		)
 		fromV = sqlgraph.Neighbors(at.driver.Dialect(), step)
@@ -1739,7 +1739,7 @@ func (c *UserClient) QueryAchievements(u *User) *AchievementQuery {
 		id := u.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(user.Table, user.FieldID, id),
-			sqlgraph.To(achievement.Table, achievement.FieldID),
+			sqlgraph.To(entachievement.Table, entachievement.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, user.AchievementsTable, user.AchievementsColumn),
 		)
 		fromV = sqlgraph.Neighbors(u.driver.Dialect(), step)

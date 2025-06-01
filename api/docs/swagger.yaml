@@ -688,9 +688,8 @@ definitions:
         example: /images/users/ivan.jpg
         type: string
       roleId:
-        allOf:
-        - $ref: '#/definitions/sesc.Role'
         example: 1
+        type: integer
       subdivision:
         example: Кафедра информатики
         type: string
@@ -945,24 +944,6 @@ definitions:
         example: Достижение находится в неподходящем статусе для этой операции
         type: string
     type: object
-  sesc.Role:
-    enum:
-    - 1
-    - 2
-    - 3
-    - 4
-    - 5
-    - 6
-    - 7
-    type: integer
-    x-enum-varnames:
-    - Teacher
-    - Dephead
-    - ScientificDeputy
-    - DevelopmentDeputy
-    - OlympiadDeputy
-    - AcademicDirector
-    - ChiefEconomist
 info:
   contact: {}
   description: API for managing SESC departments, users and permissions
@@ -2197,7 +2178,6 @@ paths:
       - description: Bearer JWT token
         in: header
         name: Authorization
-        required: true
         type: string
       - description: Achievement IDs to mark as accounted
         in: body
@@ -2244,7 +2224,6 @@ paths:
       - description: Bearer JWT token
         in: header
         name: Authorization
-        required: true
         type: string
       produces:
       - application/json
@@ -2281,7 +2260,6 @@ paths:
       - description: Bearer JWT token
         in: header
         name: Authorization
-        required: true
         type: string
       produces:
       - application/vnd.openxmlformats-officedocument.spreadsheetml.sheet

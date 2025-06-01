@@ -9,7 +9,7 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	uuid "github.com/gofrs/uuid/v5"
-	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievement"
+	entachievement "github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievement"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievementdocument"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/file"
 )
@@ -48,7 +48,7 @@ func (e AchievementDocumentEdges) AchievementOrErr() (*Achievement, error) {
 	if e.Achievement != nil {
 		return e.Achievement, nil
 	} else if e.loadedTypes[0] {
-		return nil, &NotFoundError{label: achievement.Label}
+		return nil, &NotFoundError{label: entachievement.Label}
 	}
 	return nil, &NotLoadedError{edge: "achievement"}
 }

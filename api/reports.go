@@ -18,7 +18,7 @@ import (
 // @Tags reports
 // @Accept json
 // @Produce application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
-// @Param Authorization header string true "Bearer JWT token"
+// @Param Authorization header string false "Bearer JWT token"
 // @Success 200 {file} binary "Excel file with user points report"
 // @Failure 401 {object} Error "Unauthorized"
 // @Failure 403 {object} Error "Forbidden - Admin access required"
@@ -71,7 +71,7 @@ type MarkAchievementsAsAccountedRequest struct {
 // @Tags reports
 // @Accept json
 // @Produce json
-// @Param Authorization header string true "Bearer JWT token"
+// @Param Authorization header string false "Bearer JWT token"
 // @Param request body MarkAchievementsAsAccountedRequest true "Achievement IDs to mark as accounted"
 // @Success 200 {object} map[string]interface{} "Success response"
 // @Failure 400 {object} Error "Bad request"
@@ -154,7 +154,7 @@ func (a *API) MarkAchievementsAsAccounted(w http.ResponseWriter, r *http.Request
 // @Tags reports
 // @Accept json
 // @Produce json
-// @Param Authorization header string true "Bearer JWT token"
+// @Param Authorization header string false "Bearer JWT token"
 // @Success 200 {object} map[string]interface{} "Success response"
 // @Failure 401 {object} Error "Unauthorized"
 // @Failure 403 {object} Error "Forbidden - Economist access required"

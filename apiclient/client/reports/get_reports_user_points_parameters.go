@@ -65,7 +65,7 @@ type GetReportsUserPointsParams struct {
 
 	   Bearer JWT token
 	*/
-	Authorization string
+	Authorization *string
 
 	timeout    time.Duration
 	Context    context.Context
@@ -121,13 +121,13 @@ func (o *GetReportsUserPointsParams) SetHTTPClient(client *http.Client) {
 }
 
 // WithAuthorization adds the authorization to the get reports user points params
-func (o *GetReportsUserPointsParams) WithAuthorization(authorization string) *GetReportsUserPointsParams {
+func (o *GetReportsUserPointsParams) WithAuthorization(authorization *string) *GetReportsUserPointsParams {
 	o.SetAuthorization(authorization)
 	return o
 }
 
 // SetAuthorization adds the authorization to the get reports user points params
-func (o *GetReportsUserPointsParams) SetAuthorization(authorization string) {
+func (o *GetReportsUserPointsParams) SetAuthorization(authorization *string) {
 	o.Authorization = authorization
 }
 
@@ -139,9 +139,12 @@ func (o *GetReportsUserPointsParams) WriteToRequest(r runtime.ClientRequest, reg
 	}
 	var res []error
 
-	// header param Authorization
-	if err := r.SetHeaderParam("Authorization", o.Authorization); err != nil {
-		return err
+	if o.Authorization != nil {
+
+		// header param Authorization
+		if err := r.SetHeaderParam("Authorization", *o.Authorization); err != nil {
+			return err
+		}
 	}
 
 	if len(res) > 0 {

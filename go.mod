@@ -226,7 +226,6 @@ require (
 	github.com/xen0n/gosmopolitan v1.3.0 // indirect
 	github.com/xo/terminfo v0.0.0-20220910002029-abceb7e1c41e // indirect
 	github.com/xuri/efp v0.0.1 // indirect
-	github.com/xuri/excelize/v2 v2.9.1 // indirect
 	github.com/xuri/nfp v0.0.1 // indirect
 	github.com/yagipy/maintidx v1.0.0 // indirect
 	github.com/yeya24/promlinter v0.3.0 // indirect
@@ -281,6 +280,7 @@ require (
 	github.com/stretchr/testify v1.10.0
 	github.com/swaggo/http-swagger v1.3.4
 	github.com/swaggo/swag v1.16.4
+	github.com/xuri/excelize/v2 v2.9.1
 	go.uber.org/mock v0.5.2
 	golang.org/x/exp v0.0.0-20250506013437-ce4c2cf36ca6
 	resty.dev/v3 v3.0.0-beta.3

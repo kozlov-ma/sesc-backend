@@ -238,7 +238,7 @@ type PatchUserRequest struct {
 	PictureURL   *string    `json:"pictureUrl,omitzero"   example:"/images/users/ivan.jpg"`
 	Suspended    *bool      `json:"suspended,omitzero"    example:"false"                                validate:"required"`
 	DepartmentID *uuid.UUID `json:"departmentId,omitzero" example:"550e8400-e29b-41d4-a716-446655440000"`
-	RoleChange   *sesc.Role `json:"roleId,omitzero"       example:"1"                                    validate:"required"`
+	RoleChange   *int       `json:"roleId,omitzero"       example:"1"                                    validate:"required"`
 
 	Subdivision       *string  `json:"subdivision,omitzero"       example:"Кафедра информатики"`
 	JobTitle          *string  `json:"jobTitle,omitzero"          example:"Профессор"`
@@ -260,7 +260,7 @@ func (a *API) validateDepartmentAssignment(req *PatchUserRequest, existing sesc.
 		return true
 	}
 
-	newRoleIsBad := (req.RoleChange != nil && *req.RoleChange != sesc.Teacher && *req.RoleChange != sesc.Dephead)
+	newRoleIsBad := (req.RoleChange != nil && *req.RoleChange != int(sesc.Teacher) && *req.RoleChange != int(sesc.Dephead))
 	noNewRoleAndOldIsBad := (req.RoleChange == nil && existing.Role != sesc.Teacher && existing.Role != sesc.Dephead)
 
 	return !newRoleIsBad && !noNewRoleAndOldIsBad
@@ -287,7 +287,7 @@ func (a *API) applyPatchUserRequest(req *PatchUserRequest, upd *sesc.UserUpdateO
 		upd.DepartmentID = *req.DepartmentID
 	}
 	if req.RoleChange != nil {
-		upd.NewRole = *req.RoleChange
+		upd.NewRole = sesc.Role(*req.RoleChange)
 	}
 	if req.Subdivision != nil {
 		upd.Subdivision = *req.Subdivision

@@ -65,7 +65,7 @@ type PostReportsMarkAllAccountedParams struct {
 
 	   Bearer JWT token
 	*/
-	Authorization string
+	Authorization *string
 
 	timeout    time.Duration
 	Context    context.Context
@@ -121,13 +121,13 @@ func (o *PostReportsMarkAllAccountedParams) SetHTTPClient(client *http.Client) {
 }
 
 // WithAuthorization adds the authorization to the post reports mark all accounted params
-func (o *PostReportsMarkAllAccountedParams) WithAuthorization(authorization string) *PostReportsMarkAllAccountedParams {
+func (o *PostReportsMarkAllAccountedParams) WithAuthorization(authorization *string) *PostReportsMarkAllAccountedParams {
 	o.SetAuthorization(authorization)
 	return o
 }
 
 // SetAuthorization adds the authorization to the post reports mark all accounted params
-func (o *PostReportsMarkAllAccountedParams) SetAuthorization(authorization string) {
+func (o *PostReportsMarkAllAccountedParams) SetAuthorization(authorization *string) {
 	o.Authorization = authorization
 }
 
@@ -139,9 +139,12 @@ func (o *PostReportsMarkAllAccountedParams) WriteToRequest(r runtime.ClientReque
 	}
 	var res []error
 
-	// header param Authorization
-	if err := r.SetHeaderParam("Authorization", o.Authorization); err != nil {
-		return err
+	if o.Authorization != nil {
+
+		// header param Authorization
+		if err := r.SetHeaderParam("Authorization", *o.Authorization); err != nil {
+			return err
+		}
 	}
 
 	if len(res) > 0 {

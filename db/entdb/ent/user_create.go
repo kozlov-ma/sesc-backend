@@ -11,7 +11,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	uuid "github.com/gofrs/uuid/v5"
-	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievement"
+	entachievement "github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievement"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievementreview"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/authuser"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/department"
@@ -656,7 +656,7 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 			Columns: []string{user.AchievementsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(achievement.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(entachievement.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

@@ -9,6 +9,7 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	uuid "github.com/gofrs/uuid/v5"
+	"github.com/kozlov-ma/sesc-backend/achievement"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievementgroup"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievementtemplate"
 )
@@ -29,7 +30,7 @@ type AchievementTemplate struct {
 	// Active holds the value of the "active" field.
 	Active bool `json:"active,omitempty"`
 	// Kind holds the value of the "kind" field.
-	Kind achievementtemplate.Kind `json:"kind,omitempty"`
+	Kind achievement.Kind `json:"kind,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the AchievementTemplateQuery when eager-loading is set.
 	Edges        AchievementTemplateEdges `json:"edges"`
@@ -135,7 +136,7 @@ func (at *AchievementTemplate) assignValues(columns []string, values []any) erro
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field kind", values[i])
 			} else if value.Valid {
-				at.Kind = achievementtemplate.Kind(value.String)
+				at.Kind = achievement.Kind(value.String)
 			}
 		default:
 			at.selectValues.Set(columns[i], values[i])

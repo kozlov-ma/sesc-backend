@@ -10,7 +10,8 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	uuid "github.com/gofrs/uuid/v5"
-	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievement"
+	"github.com/kozlov-ma/sesc-backend/achievement"
+	entachievement "github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievement"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievementgroup"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievementtemplate"
 )
@@ -69,7 +70,7 @@ func (atc *AchievementTemplateCreate) SetNillableActive(b *bool) *AchievementTem
 }
 
 // SetKind sets the "kind" field.
-func (atc *AchievementTemplateCreate) SetKind(a achievementtemplate.Kind) *AchievementTemplateCreate {
+func (atc *AchievementTemplateCreate) SetKind(a achievement.Kind) *AchievementTemplateCreate {
 	atc.mutation.SetKind(a)
 	return atc
 }
@@ -181,7 +182,7 @@ func (atc *AchievementTemplateCreate) check() error {
 		return &ValidationError{Name: "kind", err: errors.New(`ent: missing required field "AchievementTemplate.kind"`)}
 	}
 	if v, ok := atc.mutation.Kind(); ok {
-		if err := achievementtemplate.KindValidator(v); err != nil {
+		if err := v.Validate(); err != nil {
 			return &ValidationError{Name: "kind", err: fmt.Errorf(`ent: validator failed for field "AchievementTemplate.kind": %w`, err)}
 		}
 	}
@@ -240,7 +241,7 @@ func (atc *AchievementTemplateCreate) createSpec() (*AchievementTemplate, *sqlgr
 		_node.Active = value
 	}
 	if value, ok := atc.mutation.Kind(); ok {
-		_spec.SetField(achievementtemplate.FieldKind, field.TypeEnum, value)
+		_spec.SetField(achievementtemplate.FieldKind, field.TypeString, value)
 		_node.Kind = value
 	}
 	if nodes := atc.mutation.GroupIDs(); len(nodes) > 0 {
@@ -268,7 +269,7 @@ func (atc *AchievementTemplateCreate) createSpec() (*AchievementTemplate, *sqlgr
 			Columns: []string{achievementtemplate.AchievementsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(achievement.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(entachievement.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

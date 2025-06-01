@@ -859,9 +859,9 @@ export const postReportsMarkAccounted = <ThrowOnError extends boolean = false>(
 export const postReportsMarkAllAccounted = <
   ThrowOnError extends boolean = false,
 >(
-  options: Options<PostReportsMarkAllAccountedData, ThrowOnError>,
+  options?: Options<PostReportsMarkAllAccountedData, ThrowOnError>,
 ) => {
-  return (options.client ?? _heyApiClient).post<
+  return (options?.client ?? _heyApiClient).post<
     PostReportsMarkAllAccountedResponse,
     PostReportsMarkAllAccountedError,
     ThrowOnError
@@ -882,9 +882,9 @@ export const postReportsMarkAllAccounted = <
  * Generates an Excel report containing all users with their achievement points summary
  */
 export const getReportsUserPoints = <ThrowOnError extends boolean = false>(
-  options: Options<GetReportsUserPointsData, ThrowOnError>,
+  options?: Options<GetReportsUserPointsData, ThrowOnError>,
 ) => {
-  return (options.client ?? _heyApiClient).get<
+  return (options?.client ?? _heyApiClient).get<
     unknown,
     GetReportsUserPointsError,
     ThrowOnError

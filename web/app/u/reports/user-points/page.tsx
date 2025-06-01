@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Download,
   Calculator,
@@ -26,101 +26,53 @@ import {
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/use-auth";
-import { getUsersMeOptions } from "@/lib/api/@tanstack/react-query.gen";
+import {
+  getUsersMeOptions,
+  getAchievementsGroupedOptions,
+  postReportsMarkAllAccountedMutation,
+} from "@/lib/api/@tanstack/react-query.gen";
 
 export default function UserPointsReportPage() {
-  const { token } = useAuth();
-  const [isGeneratingReport, setIsGeneratingReport] = useState(false);
-  const [allAchievements, setAllAchievements] = useState<any[]>([]);
-  const [loadingAllAchievements, setLoadingAllAchievements] = useState(false);
+  const { isAuthenticated, token } = useAuth();
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const queryClient = useQueryClient();
 
   // Restrict access to Economist role (id 6)
   const { data: me, isLoading: isLoadingMe } = useQuery({
     ...getUsersMeOptions(),
-    enabled: !!token,
+    enabled: isAuthenticated,
   });
 
-  // Fetch all grouped achievements using pagination
-  const fetchAllAchievements = async () => {
-    if (!token || me?.role.id !== 6) return;
+  // Fetch all grouped achievements using TanStack Query
+  const {
+    data: groupedAchievementsData,
+    isPending: isLoadingAchievements,
+    refetch: refetchAchievements,
+  } = useQuery({
+    ...getAchievementsGroupedOptions({
+      query: {
+        limit: 100,
+      },
+    }),
+    enabled: isAuthenticated && me?.role.id === 6,
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    gcTime: 1000 * 60 * 60, // 60 minutes
+  });
 
-    setLoadingAllAchievements(true);
-    try {
-      let offset = 0;
-      const limit = 100;
-      let allResults: any[] = [];
-      let hasMore = true;
+  // Extract all achievements from grouped data
+  const allAchievements = groupedAchievementsData?.items
+    ? Object.values(groupedAchievementsData.items).flat()
+    : [];
 
-      while (hasMore) {
-        const apiUrl =
-          process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
-        const response = await fetch(
-          `${apiUrl}/achievements/grouped?offset=${offset}&limit=${limit}`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          },
-        );
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data = await response.json();
-
-        // Extract achievements from grouped data
-        if (data.items) {
-          const achievements = Object.values(data.items).flat() as any[];
-          allResults = [...allResults, ...achievements];
-        }
-
-        // Check if we have more data
-        hasMore =
-          data.items &&
-          Object.keys(data.items).length > 0 &&
-          offset + limit < data.totalCount;
-        offset += limit;
-      }
-
-      setAllAchievements(allResults);
-    } catch (error) {
-      console.error("Error fetching achievements:", error);
-      toast.error("Ошибка при загрузке достижений");
-    } finally {
-      setLoadingAllAchievements(false);
-    }
-  };
-
-  useEffect(() => {
-    if (!!token && me?.role.id === 6) {
-      fetchAllAchievements();
-    }
-  }, [token, me?.role.id]);
-
-  // Mutation to mark all done achievements as accounted
+  // Mutation to mark all done achievements as accounted using TanStack Query
   const markAllAccountedMutation = useMutation({
-    mutationFn: async () => {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
-      const response = await fetch(`${apiUrl}/reports/mark-all-accounted`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      return response.json();
-    },
+    ...postReportsMarkAllAccountedMutation(),
     onSuccess: () => {
       toast.success("Все достижения успешно отмечены как учтенные");
-      // Refresh achievements list after marking as accounted
-      fetchAllAchievements();
+      // Invalidate any queries that might be affected by this mutation
+      queryClient.invalidateQueries({
+        queryKey: getAchievementsGroupedOptions({}).queryKey,
+      });
     },
     onError: (error) => {
       console.error("Error marking all achievements as accounted:", error);
@@ -128,13 +80,16 @@ export default function UserPointsReportPage() {
     },
   });
 
+  // Generate and download Excel report
+  // Using state just for download operation to track its progress
+  const [isGeneratingReport, setIsGeneratingReport] = useState(false);
+
   // Early returns after all hooks are called
   if (isLoadingMe) return null;
-  if (me?.role.id !== 6) return null;
+  if (!isAuthenticated || me?.role.codeName != "chief_economist") return null;
 
-  // Generate and download Excel report
   const handleGenerateReport = async () => {
-    if (!token) return;
+    if (!isAuthenticated) return;
 
     setIsGeneratingReport(true);
     try {
@@ -186,8 +141,8 @@ export default function UserPointsReportPage() {
       return;
     }
 
-    if (!token) {
-      toast.error("Токен авторизации отсутствует");
+    if (!isAuthenticated) {
+      toast.error("Вы не авторизованы");
       return;
     }
 
@@ -195,7 +150,8 @@ export default function UserPointsReportPage() {
   };
 
   const confirmCompleteCalculation = () => {
-    markAllAccountedMutation.mutate();
+    // With our custom mutationFn, we don't need to pass any parameters
+    markAllAccountedMutation.mutate({});
     setShowConfirmDialog(false);
   };
 
@@ -229,15 +185,15 @@ export default function UserPointsReportPage() {
           <p className="text-sm text-muted-foreground">
             Создать Excel-отчет со всеми пользователями и их итоговыми баллами
             за выполненные достижения. Отчет включает только достижения со
-            статусом "Выполнено" (не учтенные).
+            статусом &quot;Выполнено&quot; (не учтенные).
           </p>
 
           <Alert>
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
-              В отчете колонка "Стоимость балла" будет пустой для ручного
-              заполнения. Колонка "Сумма" содержит формулу для автоматического
-              расчета.
+              В отчете колонка &quot;Стоимость балла&quot; будет пустой для
+              ручного заполнения. Колонка &quot;Сумма&quot; содержит формулу для
+              автоматического расчета.
             </AlertDescription>
           </Alert>
 
@@ -273,8 +229,8 @@ export default function UserPointsReportPage() {
           <div className="flex items-center justify-between">
             <div className="space-y-2">
               <p className="text-sm text-muted-foreground">
-                Достижения со статусом "Выполнено" ({doneAchievements.length}{" "}
-                шт.)
+                Достижения со статусом &quot;Выполнено&quot; (
+                {doneAchievements.length} шт.)
               </p>
               {doneAchievements.length > 0 && (
                 <p className="text-sm text-muted-foreground">
@@ -291,10 +247,10 @@ export default function UserPointsReportPage() {
             <Button
               variant="outline"
               size="sm"
-              onClick={fetchAllAchievements}
-              disabled={loadingAllAchievements}
+              onClick={() => refetchAchievements()}
+              disabled={isLoadingAchievements}
             >
-              {loadingAllAchievements ? (
+              {isLoadingAchievements ? (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               ) : (
                 <RefreshCw className="mr-2 h-4 w-4" />
@@ -303,7 +259,7 @@ export default function UserPointsReportPage() {
             </Button>
           </div>
 
-          {loadingAllAchievements ? (
+          {isLoadingAchievements ? (
             <div className="flex items-center justify-center py-8">
               <Loader2 className="h-8 w-8 animate-spin" />
               <span className="ml-2">Загрузка достижений...</span>
@@ -321,8 +277,8 @@ export default function UserPointsReportPage() {
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>
                   После завершения расчета все достижения со статусом
-                  "Выполнено" будут отмечены как "Учтенные" и не будут
-                  включаться в будущие отчеты.
+                  &quot;Выполнено&quot; будут отмечены как &quot;Учтенные&quot;
+                  и не будут включаться в будущие отчеты.
                 </AlertDescription>
               </Alert>
 

@@ -67,7 +67,7 @@ type PostReportsMarkAccountedParams struct {
 
 	   Bearer JWT token
 	*/
-	Authorization string
+	Authorization *string
 
 	/* Request.
 
@@ -129,13 +129,13 @@ func (o *PostReportsMarkAccountedParams) SetHTTPClient(client *http.Client) {
 }
 
 // WithAuthorization adds the authorization to the post reports mark accounted params
-func (o *PostReportsMarkAccountedParams) WithAuthorization(authorization string) *PostReportsMarkAccountedParams {
+func (o *PostReportsMarkAccountedParams) WithAuthorization(authorization *string) *PostReportsMarkAccountedParams {
 	o.SetAuthorization(authorization)
 	return o
 }
 
 // SetAuthorization adds the authorization to the post reports mark accounted params
-func (o *PostReportsMarkAccountedParams) SetAuthorization(authorization string) {
+func (o *PostReportsMarkAccountedParams) SetAuthorization(authorization *string) {
 	o.Authorization = authorization
 }
 
@@ -158,9 +158,12 @@ func (o *PostReportsMarkAccountedParams) WriteToRequest(r runtime.ClientRequest,
 	}
 	var res []error
 
-	// header param Authorization
-	if err := r.SetHeaderParam("Authorization", o.Authorization); err != nil {
-		return err
+	if o.Authorization != nil {
+
+		// header param Authorization
+		if err := r.SetHeaderParam("Authorization", *o.Authorization); err != nil {
+			return err
+		}
 	}
 	if o.Request != nil {
 		if err := r.SetBodyParam(o.Request); err != nil {
