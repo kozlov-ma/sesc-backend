@@ -147,3 +147,46 @@ func (a *API) MarkAchievementsAsAccounted(w http.ResponseWriter, r *http.Request
 	rec.Set("success", true)
 	rec.Set("marked_count", len(achievementIDs))
 }
+
+// MarkAllDoneAchievementsAsAccounted marks all achievements with "done" status as "accounted"
+// @Summary Mark all done achievements as accounted
+// @Description Marks all achievements with "done" status as "accounted" in the system
+// @Tags reports
+// @Accept json
+// @Produce json
+// @Param Authorization header string true "Bearer JWT token"
+// @Success 200 {object} map[string]interface{} "Success response"
+// @Failure 401 {object} Error "Unauthorized"
+// @Failure 403 {object} Error "Forbidden - Economist access required"
+// @Failure 500 {object} Error "Internal server error"
+// @Router /reports/mark-all-accounted [post]
+// @Security BearerAuth
+func (a *API) MarkAllDoneAchievementsAsAccounted(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	rec := event.Get(ctx).Sub("api/mark_all_done_achievements_as_accounted")
+
+	// Mark all done achievements as accounted
+	count, err := a.sesc.MarkAllDoneAchievementsAsAccounted(ctx)
+	if err != nil {
+		rec.Add(events.Error, err)
+		writeError(ctx, w, ServerError{
+			Code:      "MARK_ALL_ACCOUNTED_ERROR",
+			Message:   "Failed to mark all done achievements as accounted",
+			RuMessage: "Не удалось отметить все выполненные достижения как учтенные",
+			Details:   err.Error(),
+		}.WithStatus(http.StatusInternalServerError))
+		return
+	}
+
+	// Return success response
+	response := map[string]interface{}{
+		"success": true,
+		"message": "All done achievements marked as accounted successfully",
+		"count":   count,
+	}
+
+	a.writeJSON(ctx, w, response, http.StatusOK)
+
+	rec.Set("success", true)
+	rec.Set("marked_count", count)
+}

@@ -2255,6 +2255,43 @@ paths:
       summary: Mark achievements as accounted
       tags:
       - reports
+  /reports/mark-all-accounted:
+    post:
+      consumes:
+      - application/json
+      description: Marks all achievements with "done" status as "accounted" in the
+        system
+      parameters:
+      - description: Bearer JWT token
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success response
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/api.Error'
+        "403":
+          description: Forbidden - Economist access required
+          schema:
+            $ref: '#/definitions/api.Error'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/api.Error'
+      security:
+      - BearerAuth: []
+      summary: Mark all done achievements as accounted
+      tags:
+      - reports
   /reports/user-points:
     get:
       consumes:

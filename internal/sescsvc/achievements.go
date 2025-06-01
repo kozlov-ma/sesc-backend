@@ -1690,6 +1690,46 @@ func (s *SESC) MarkAchievementsAsAccounted(ctx context.Context, achievementIDs [
 	return nil
 }
 
+// MarkAllDoneAchievementsAsAccounted marks all achievements with "done" status as "accounted"
+func (s *SESC) MarkAllDoneAchievementsAsAccounted(ctx context.Context) (int, error) {
+	rec := event.Get(ctx).Sub("sesc/mark_all_done_achievements_as_accounted")
+
+	statsRec := event.Get(ctx).Sub("stats")
+	startTime := time.Now()
+	defer func() {
+		statsRec.Add("postgres_queries", 1)
+		statsRec.Add("total_time_ms", time.Since(startTime).Milliseconds())
+	}()
+
+	var count int
+	err := rec.Operation("update_all_done_achievements_status", func(opRec *event.Record) error {
+		queryStart := time.Now()
+		updatedCount, err := s.client.Achievement.Update().
+			Where(entAchievement.StatusEQ(string(achievement.StatusDone))).
+			SetStatus(string(achievement.StatusAccounted)).
+			Save(ctx)
+
+		statsRec.Add("total_time_ms", time.Since(queryStart).Milliseconds())
+
+		if err != nil {
+			opRec.Add(events.Error, fmt.Errorf("failed to mark all done achievements as accounted: %w", err))
+			return err
+		}
+
+		count = updatedCount
+		opRec.Set("updated_count", count)
+		return nil
+	})
+
+	if err != nil {
+		return 0, err
+	}
+
+	rec.Set("success", true)
+	rec.Set("updated_count", count)
+	return count, nil
+}
+
 // Helper function to convert achievement entity to domain model
 func convertAchievementEntityToDomain(
 	achievementEntity *ent.Achievement,

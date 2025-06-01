@@ -121,6 +121,9 @@ type (
 
 		// MarkAchievementsAsAccounted marks achievements with "done" status as "accounted"
 		MarkAchievementsAsAccounted(ctx context.Context, achievementIDs []uuid.UUID) error
+
+		// MarkAllDoneAchievementsAsAccounted marks all achievements with "done" status as "accounted"
+		MarkAllDoneAchievementsAsAccounted(ctx context.Context) (int, error)
 	}
 
 	// FileService defines the file operations interface required by the API

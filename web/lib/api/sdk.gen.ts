@@ -91,6 +91,9 @@ import type {
   PostReportsMarkAccountedData,
   PostReportsMarkAccountedResponse,
   PostReportsMarkAccountedError,
+  PostReportsMarkAllAccountedData,
+  PostReportsMarkAllAccountedResponse,
+  PostReportsMarkAllAccountedError,
   GetReportsUserPointsData,
   GetReportsUserPointsError,
   GetRolesData,
@@ -865,6 +868,31 @@ export const postReportsMarkAccounted = <ThrowOnError extends boolean = false>(
       "Content-Type": "application/json",
       ...options?.headers,
     },
+  });
+};
+
+/**
+ * Mark all done achievements as accounted
+ * Marks all achievements with "done" status as "accounted" in the system
+ */
+export const postReportsMarkAllAccounted = <
+  ThrowOnError extends boolean = false,
+>(
+  options: Options<PostReportsMarkAllAccountedData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).post<
+    PostReportsMarkAllAccountedResponse,
+    PostReportsMarkAllAccountedError,
+    ThrowOnError
+  >({
+    security: [
+      {
+        name: "Authorization",
+        type: "apiKey",
+      },
+    ],
+    url: "/reports/mark-all-accounted",
+    ...options,
   });
 };
 

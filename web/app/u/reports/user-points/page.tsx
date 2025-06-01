@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { Download, FileCheck, AlertCircle, Loader2, RefreshCw } from "lucide-react";
+import { Download, Calculator, AlertCircle, Loader2, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -22,16 +22,10 @@ import {
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/use-auth";
 import { getUsersMeOptions } from "@/lib/api/@tanstack/react-query.gen";
-import {
-  postReportsMarkAccountedMutation,
-} from "@/lib/api/@tanstack/react-query.gen";
 
 export default function UserPointsReportPage() {
   const { token } = useAuth();
   const [isGeneratingReport, setIsGeneratingReport] = useState(false);
-  const [selectedAchievements, setSelectedAchievements] = useState<string[]>(
-    [],
-  );
   const [allAchievements, setAllAchievements] = useState<any[]>([]);
   const [loadingAllAchievements, setLoadingAllAchievements] = useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
@@ -96,18 +90,32 @@ export default function UserPointsReportPage() {
     }
   }, [token, me?.role.id]);
 
-  // Mutation to mark achievements as accounted
-  const markAccountedMutation = useMutation({
-    ...postReportsMarkAccountedMutation(),
+  // Mutation to mark all done achievements as accounted
+  const markAllAccountedMutation = useMutation({
+    mutationFn: async () => {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+      const response = await fetch(`${apiUrl}/reports/mark-all-accounted`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      return response.json();
+    },
     onSuccess: () => {
-      toast.success("Достижения успешно отмечены как учтенные");
-      setSelectedAchievements([]);
+      toast.success("Все достижения успешно отмечены как учтенные");
       // Refresh achievements list after marking as accounted
       fetchAllAchievements();
     },
     onError: (error) => {
-      console.error("Error marking achievements as accounted:", error);
-      toast.error("Ошибка при отметке достижений как учтенных");
+      console.error("Error marking all achievements as accounted:", error);
+      toast.error("Ошибка при отметке всех достижений как учтенных");
     },
   });
 
@@ -160,10 +168,10 @@ export default function UserPointsReportPage() {
     }
   };
 
-  // Mark selected achievements as accounted
-  const handleMarkAsAccounted = () => {
-    if (selectedAchievements.length === 0) {
-      toast.error("Выберите достижения для отметки");
+  // Mark all done achievements as accounted
+  const handleCompleteCalculation = () => {
+    if (doneAchievements.length === 0) {
+      toast.error("Нет выполненных достижений для учета");
       return;
     }
 
@@ -175,11 +183,8 @@ export default function UserPointsReportPage() {
     setShowConfirmDialog(true);
   };
 
-  const confirmMarkAsAccounted = () => {
-    markAccountedMutation.mutate({
-      body: { achievementIds: selectedAchievements },
-      headers: { Authorization: `Bearer ${token}` },
-    });
+  const confirmCompleteCalculation = () => {
+    markAllAccountedMutation.mutate();
     setShowConfirmDialog(false);
   };
 
@@ -189,22 +194,7 @@ export default function UserPointsReportPage() {
     (achievement) => achievement.status === "done"
   );
 
-  const toggleAchievementSelection = (achievementId: string) => {
-    setSelectedAchievements((prev) =>
-      prev.includes(achievementId)
-        ? prev.filter((id) => id !== achievementId)
-        : [...prev, achievementId],
-    );
-  };
 
-  const selectAllAchievements = () => {
-    const allIds = doneAchievements.map((achievement) => achievement.id);
-    setSelectedAchievements(allIds);
-  };
-
-  const deselectAllAchievements = () => {
-    setSelectedAchievements([]);
-  };
 
   return (
     <div className="space-y-6">
@@ -267,46 +257,37 @@ export default function UserPointsReportPage() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <FileCheck className="h-5 w-5" />
-            Управление учетом достижений
+            <Calculator className="h-5 w-5" />
+            Завершение расчета
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between">
-            <p className="text-sm text-muted-foreground">
-              Достижения со статусом "Выполнено" ({doneAchievements.length} шт.)
-            </p>
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={fetchAllAchievements}
-                disabled={loadingAllAchievements}
-              >
-                {loadingAllAchievements ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                ) : (
-                  <RefreshCw className="mr-2 h-4 w-4" />
-                )}
-                Обновить
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={selectAllAchievements}
-                disabled={doneAchievements.length === 0}
-              >
-                Выбрать все
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={deselectAllAchievements}
-                disabled={selectedAchievements.length === 0}
-              >
-                Снять выбор
-              </Button>
+            <div className="space-y-2">
+              <p className="text-sm text-muted-foreground">
+                Достижения со статусом "Выполнено" ({doneAchievements.length} шт.)
+              </p>
+              {doneAchievements.length > 0 && (
+                <p className="text-sm text-muted-foreground">
+                  Общее количество баллов: <strong>
+                    {doneAchievements.reduce((sum, a) => sum + (a.points || 0), 0)}
+                  </strong>
+                </p>
+              )}
             </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={fetchAllAchievements}
+              disabled={loadingAllAchievements}
+            >
+              {loadingAllAchievements ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <RefreshCw className="mr-2 h-4 w-4" />
+              )}
+              Обновить
+            </Button>
           </div>
 
           {loadingAllAchievements ? (
@@ -322,101 +303,46 @@ export default function UserPointsReportPage() {
               </AlertDescription>
             </Alert>
           ) : (
-            <div className="space-y-2 max-h-96 overflow-y-auto">
-              {doneAchievements.map((achievement) => (
-                <div
-                  key={achievement.id}
-                  className={`p-3 border rounded-lg cursor-pointer transition-colors ${
-                    selectedAchievements.includes(achievement.id)
-                      ? "bg-primary/10 border-primary"
-                      : "hover:bg-muted/50"
-                  }`}
-                  onClick={() => toggleAchievementSelection(achievement.id)}
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium">
-                          {achievement.templateName}
-                        </span>
-                        <Badge variant="outline">
-                          {achievement.points} баллов
-                        </Badge>
-                        <Badge variant="secondary">{achievement.status}</Badge>
-                      </div>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        Владелец: {achievement.ownerName}
-                      </p>
-                    </div>
-                    <div className="ml-4">
-                      <input
-                        type="checkbox"
-                        checked={selectedAchievements.includes(achievement.id)}
-                        onChange={() =>
-                          toggleAchievementSelection(achievement.id)
-                        }
-                        className="h-4 w-4"
-                      />
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {selectedAchievements.length > 0 && (
-            <div className="pt-4 border-t">
-              <div className="flex items-center justify-between">
-                <p className="text-sm">
-                  Выбрано достижений:{" "}
-                  <span className="font-medium">
-                    {selectedAchievements.
-length}
-                  </span>
-                </p>
+            <div className="space-y-4">
+              <Alert>
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>
+                  После завершения расчета все достижения со статусом "Выполнено" будут отмечены как "Учтенные" и не будут включаться в будущие отчеты.
+                </AlertDescription>
+              </Alert>
+              
+              <div className="flex justify-center">
                 <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
                   <AlertDialogTrigger asChild>
                     <Button
-                      onClick={handleMarkAsAccounted}
-                      disabled={markAccountedMutation.isPending}
+                      onClick={handleCompleteCalculation}
+                      disabled={markAllAccountedMutation.isPending}
+                      size="lg"
                     >
-                      {markAccountedMutation.isPending ? (
+                      {markAllAccountedMutation.isPending ? (
                         <>
                           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Отмечается...
+                          Завершается расчет...
                         </>
                       ) : (
                         <>
-                          <FileCheck className="mr-2 h-4 w-4" />
-                          Отметить как учтенные
+                          <Calculator className="mr-2 h-4 w-4" />
+                          Завершить расчет для всех
                         </>
                       )}
                     </Button>
                   </AlertDialogTrigger>
                   <AlertDialogContent>
                     <AlertDialogHeader>
-                      <AlertDialogTitle>Подтверждение действия</AlertDialogTitle>
-                      <AlertDialogDescription className="space-y-2">
-                        <div>
-                          Вы уверены, что хотите отметить <strong>{selectedAchievements.length}</strong> достижений как учтенные?
-                        </div>
-                        <div className="text-sm text-muted-foreground">
-                          Общее количество баллов: <strong>
-                            {doneAchievements
-                              .filter(a => selectedAchievements.includes(a.id))
-                              .reduce((sum, a) => sum + (a.points || 0), 0)
-                            }
-                          </strong>
-                        </div>
-                        <div className="text-sm">
-                          ⚠️ Это действие изменит статус достижений и они больше не будут включаться в отчеты по неучтенным баллам.
-                        </div>
+                      <AlertDialogTitle>Завершение расчета</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Вы уверены, что хотите завершить расчет для всех {doneAchievements.length} выполненных достижений на общую сумму {doneAchievements.reduce((sum, a) => sum + (a.points || 0), 0)} баллов? Это действие нельзя будет отменить.
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                       <AlertDialogCancel>Отмена</AlertDialogCancel>
-                      <AlertDialogAction onClick={confirmMarkAsAccounted}>
-                        Да, отметить как учтенные
+                      <AlertDialogAction onClick={confirmCompleteCalculation}>
+                        Да, завершить расчет
                       </AlertDialogAction>
                     </AlertDialogFooter>
                   </AlertDialogContent>

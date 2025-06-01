@@ -212,6 +212,7 @@ func (a *API) RegisterRoutes(r chi.Router) {
 
 		r.Get("/reports/user-points", a.GenerateUserPointsReport)
 		r.Post("/reports/mark-accounted", a.MarkAchievementsAsAccounted)
+		r.Post("/reports/mark-all-accounted", a.MarkAllDoneAchievementsAsAccounted)
 	})
 
 	// Swagger UI

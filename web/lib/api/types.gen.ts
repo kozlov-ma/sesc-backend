@@ -1864,6 +1864,49 @@ export type PostReportsMarkAccountedResponses = {
 export type PostReportsMarkAccountedResponse =
   PostReportsMarkAccountedResponses[keyof PostReportsMarkAccountedResponses];
 
+export type PostReportsMarkAllAccountedData = {
+  body?: never;
+  headers: {
+    /**
+     * Bearer JWT token
+     */
+    Authorization: string;
+  };
+  path?: never;
+  query?: never;
+  url: "/reports/mark-all-accounted";
+};
+
+export type PostReportsMarkAllAccountedErrors = {
+  /**
+   * Unauthorized
+   */
+  401: ApiError;
+  /**
+   * Forbidden - Economist access required
+   */
+  403: ApiError;
+  /**
+   * Internal server error
+   */
+  500: ApiError;
+};
+
+export type PostReportsMarkAllAccountedError =
+  PostReportsMarkAllAccountedErrors[keyof PostReportsMarkAllAccountedErrors];
+
+export type PostReportsMarkAllAccountedResponses = {
+  /**
+   * Success response
+   */
+  200: {
+    [key: string]: unknown;
+  };
+};
+
+export type PostReportsMarkAllAccountedResponse =
+  PostReportsMarkAllAccountedResponses[keyof PostReportsMarkAllAccountedResponses];
+
 export type GetReportsUserPointsData = {
   body?: never;
   headers: {

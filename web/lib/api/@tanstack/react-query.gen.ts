@@ -32,6 +32,7 @@ import {
   getFilesById,
   getPermissions,
   postReportsMarkAccounted,
+  postReportsMarkAllAccounted,
   getReportsUserPoints,
   getRoles,
   getUsers,
@@ -117,6 +118,9 @@ import type {
   PostReportsMarkAccountedData,
   PostReportsMarkAccountedError,
   PostReportsMarkAccountedResponse,
+  PostReportsMarkAllAccountedData,
+  PostReportsMarkAllAccountedError,
+  PostReportsMarkAllAccountedResponse,
   GetReportsUserPointsData,
   GetRolesData,
   GetUsersData,
@@ -1414,6 +1418,59 @@ export const postReportsMarkAccountedMutation = (
   > = {
     mutationFn: async (localOptions) => {
       const { data } = await postReportsMarkAccounted({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
+export const postReportsMarkAllAccountedQueryKey = (
+  options: Options<PostReportsMarkAllAccountedData>,
+) => createQueryKey("postReportsMarkAllAccounted", options);
+
+/**
+ * Mark all done achievements as accounted
+ * Marks all achievements with "done" status as "accounted" in the system
+ */
+export const postReportsMarkAllAccountedOptions = (
+  options: Options<PostReportsMarkAllAccountedData>,
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await postReportsMarkAllAccounted({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: postReportsMarkAllAccountedQueryKey(options),
+  });
+};
+
+/**
+ * Mark all done achievements as accounted
+ * Marks all achievements with "done" status as "accounted" in the system
+ */
+export const postReportsMarkAllAccountedMutation = (
+  options?: Partial<Options<PostReportsMarkAllAccountedData>>,
+): UseMutationOptions<
+  PostReportsMarkAllAccountedResponse,
+  AxiosError<PostReportsMarkAllAccountedError>,
+  Options<PostReportsMarkAllAccountedData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    PostReportsMarkAllAccountedResponse,
+    AxiosError<PostReportsMarkAllAccountedError>,
+    Options<PostReportsMarkAllAccountedData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await postReportsMarkAllAccounted({
         ...options,
         ...localOptions,
         throwOnError: true,
