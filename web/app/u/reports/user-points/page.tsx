@@ -46,7 +46,7 @@ export default function UserPointsReportPage() {
   // Fetch all grouped achievements using TanStack Query
   const {
     data: groupedAchievementsData,
-    isPending: isLoadingAchievements,
+    isLoading: isLoadingAchievements,
     refetch: refetchAchievements,
   } = useQuery({
     ...getAchievementsGroupedOptions({
@@ -80,20 +80,9 @@ export default function UserPointsReportPage() {
     },
   });
 
-  // Generate and download Excel report
-  // Using state just for download operation to track its progress
-  const [isGeneratingReport, setIsGeneratingReport] = useState(false);
-
-  // Early returns after all hooks are called
-  if (isLoadingMe) return null;
-  if (!isAuthenticated || me?.role.codeName != "chief_economist") return null;
-
-  const handleGenerateReport = async () => {
-    if (!isAuthenticated) return;
-
-    setIsGeneratingReport(true);
-    try {
-      // Use direct fetch for blob response - this ensures proper blob handling
+  // Mutation to generate and download Excel report
+  const generateReportMutation = useMutation({
+    mutationFn: async () => {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
       const response = await fetch(`${apiUrl}/reports/user-points`, {
         method: "GET",
@@ -106,14 +95,14 @@ export default function UserPointsReportPage() {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      // Get the blob directly from response
       const blob = await response.blob();
-
-      // Verify blob has content
       if (blob.size === 0) {
         throw new Error("Received empty file from server");
       }
 
+      return blob;
+    },
+    onSuccess: (blob) => {
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
@@ -124,15 +113,18 @@ export default function UserPointsReportPage() {
       window.URL.revokeObjectURL(url);
 
       toast.success("Отчет успешно создан и скачан");
-    } catch (error) {
+    },
+    onError: (error) => {
       console.error("Error generating report:", error);
       toast.error(
         `Ошибка при создании отчета: ${(error as Error)?.message || "Неизвестная ошибка"}`,
       );
-    } finally {
-      setIsGeneratingReport(false);
-    }
-  };
+    },
+  });
+
+  // Early returns after all hooks are called
+  if (isLoadingMe) return null;
+  if (!isAuthenticated || me?.role.codeName != "chief_economist") return null;
 
   // Mark all done achievements as accounted
   const handleCompleteCalculation = () => {
@@ -150,7 +142,6 @@ export default function UserPointsReportPage() {
   };
 
   const confirmCompleteCalculation = () => {
-    // With our custom mutationFn, we don't need to pass any parameters
     markAllAccountedMutation.mutate({});
     setShowConfirmDialog(false);
   };
@@ -198,11 +189,11 @@ export default function UserPointsReportPage() {
           </Alert>
 
           <Button
-            onClick={handleGenerateReport}
-            disabled={isGeneratingReport}
+            onClick={() => generateReportMutation.mutate()}
+            disabled={generateReportMutation.isPending}
             className="w-full sm:w-auto"
           >
-            {isGeneratingReport ? (
+            {generateReportMutation.isPending ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 Создание отчета...

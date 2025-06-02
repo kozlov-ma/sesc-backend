@@ -23,7 +23,14 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { Copy, RefreshCw, Eye, EyeOff, ClipboardCopy } from "lucide-react";
+import {
+  Copy,
+  RefreshCw,
+  Eye,
+  EyeOff,
+  ClipboardCopy,
+  LogIn,
+} from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   getAuthCredentialsByIdOptions,
@@ -40,6 +47,7 @@ import { ErrorMessage } from "@/components/ui/error-message";
 import { useFormError } from "@/hooks/use-error-handler";
 import { hasErrorCode, getErrorMessage } from "@/lib/error-handler";
 import React from "react";
+import { useRouter } from "next/navigation";
 
 const credentialsSchema = z.object({
   username: z
@@ -117,6 +125,8 @@ export function UserCredentialsDialog({
     }
   }, [formError, form, handleFormError]);
 
+  const { push } = useRouter();
+
   // Update credentials mutation
   const updateCredentialsMutation = useMutation({
     ...putUsersByIdCredentialsMutation(),
@@ -192,14 +202,14 @@ export function UserCredentialsDialog({
   const generateQuickLoginUrl = (username: string, password: string) => {
     // Create credentials object
     const credentials = { username, password };
-    
+
     // Convert to JSON and encode as base64url
     const jsonStr = JSON.stringify(credentials);
     const base64 = btoa(jsonStr)
       .replace(/\+/g, "-")
       .replace(/\//g, "_")
       .replace(/=+$/, "");
-    
+
     // Create the full URL
     const origin = typeof window !== "undefined" ? window.location.origin : "";
     return `${origin}/login/${base64}`;
@@ -222,8 +232,25 @@ export function UserCredentialsDialog({
     const text = `Имя пользователя: ${username}\nПароль: ${password}\n\nСсылка для быстрого входа:\n${quickLoginUrl}`;
     navigator.clipboard.writeText(text);
     toast("Скопировано в буфер обмена", {
-      description: "Учетные данные и ссылка для быстрого входа скопированы в буфер обмена.",
+      description:
+        "Учетные данные и ссылка для быстрого входа скопированы в буфер обмена.",
     });
+  };
+
+  const quickLogin = () => {
+    const username = form.getValues("username");
+    const password = form.getValues("password");
+
+    if (!username || !password) {
+      toast.error("Ошибка", {
+        description: "Нет данных для копирования",
+      });
+      return;
+    }
+
+    const quickLoginUrl = generateQuickLoginUrl(username, password);
+
+    push(quickLoginUrl);
   };
 
   const credentialsExist = !!credentials;
@@ -246,7 +273,17 @@ export function UserCredentialsDialog({
             onSubmit={form.handleSubmit(handleSubmit)}
             className="space-y-4"
           >
-            <div className="flex justify-between">
+            <div className="flex gap-4">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={quickLogin}
+                disabled={!credentialsExist || isValidating}
+              >
+                <LogIn className="size-4 mr-2" />
+                Быстрый вход
+              </Button>
               <Button
                 type="button"
                 variant="outline"
