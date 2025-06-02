@@ -23,14 +23,14 @@ func TestUserByID(t *testing.T) {
 		expectedUser := testutil.CreateTestUser(ctx, t, client, "Test", "User", sesc.Role(1))
 
 		// Call the method being tested
-		user, err := svc.UserByID(ctx, expectedUser.ID)
+		user, err := svc.User(ctx, expectedUser.ID)
 
 		// Verify the results
 		require.NoError(t, err)
 		require.Equal(t, expectedUser.ID, user.ID)
 		require.Equal(t, expectedUser.FirstName, user.FirstName)
 		require.Equal(t, expectedUser.LastName, user.LastName)
-		require.Equal(t, expectedUser.Department.ID, user.Department.ID)
+		require.Equal(t, &expectedUser.Department.ID, user.DepartmentID)
 		require.Equal(t, expectedUser.Role, user.Role)
 	})
 
@@ -47,11 +47,11 @@ func TestUserByID(t *testing.T) {
 		nonExistentID := testutil.RandomUUID()
 
 		// Call the method being tested
-		user, err := svc.UserByID(ctx, nonExistentID)
+		user, err := svc.User(ctx, nonExistentID)
 
 		// Verify the results
 		require.Equal(t, sesc.ErrUserNotFound, err)
-		require.Empty(t, user.ID)
+		require.Nil(t, user)
 	})
 
 	t.Run("database_error", func(t *testing.T) {
@@ -70,10 +70,10 @@ func TestUserByID(t *testing.T) {
 		client.Close()
 
 		// Call the method being tested
-		user, err := svc.UserByID(ctx, testUser.ID)
+		user, err := svc.User(ctx, testUser.ID)
 
 		// Verify the results
 		require.Error(t, err)
-		require.Empty(t, user.ID)
+		require.Nil(t, user)
 	})
 }

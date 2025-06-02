@@ -12,7 +12,6 @@ import (
 	_ "github.com/kozlov-ma/sesc-backend/api/docs" // This blank import is needed to serve the swagger scheme.
 	"github.com/kozlov-ma/sesc-backend/pkg/event"
 	"github.com/kozlov-ma/sesc-backend/pkg/event/events"
-	"github.com/kozlov-ma/sesc-backend/sesc"
 	httpSwagger "github.com/swaggo/http-swagger"
 )
 
@@ -56,14 +55,6 @@ func writeError[T SpecificError](ctx context.Context, w http.ResponseWriter, api
 	err := json.NewEncoder(w).Encode(apiError)
 	if err != nil {
 		rec.Add(events.Error, fmt.Errorf("couldn't write json: %w", err))
-	}
-}
-
-func convertDepartment(d sesc.Department) Department {
-	return Department{
-		ID:          d.ID,
-		Name:        d.Name,
-		Description: d.Description,
 	}
 }
 
@@ -117,6 +108,7 @@ func (a *API) RegisterRoutes(r chi.Router) {
 		r.Post("/auth/admin/login", a.LoginAdmin)
 
 		// Public endpoints
+		r.Get("/departments/{id}", a.GetDepartment)
 		r.Get("/departments", a.Departments)
 		r.Get("/roles", a.Roles)
 	})

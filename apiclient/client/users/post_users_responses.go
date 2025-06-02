@@ -70,7 +70,7 @@ PostUsersCreated describes a response with status code 201, with default header 
 Created
 */
 type PostUsersCreated struct {
-	Payload *models.APIUserResponse
+	Payload *models.RespondUser
 }
 
 // IsSuccess returns true when this post users created response has a 2xx status code
@@ -113,13 +113,13 @@ func (o *PostUsersCreated) String() string {
 	return fmt.Sprintf("[POST /users][%d] postUsersCreated %s", 201, payload)
 }
 
-func (o *PostUsersCreated) GetPayload() *models.APIUserResponse {
+func (o *PostUsersCreated) GetPayload() *models.RespondUser {
 	return o.Payload
 }
 
 func (o *PostUsersCreated) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIUserResponse)
+	o.Payload = new(models.RespondUser)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {

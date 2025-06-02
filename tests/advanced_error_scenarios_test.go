@@ -62,7 +62,7 @@ func TestDepartmentErrors(t *testing.T) {
 		fmt.Sprintf("User_%s", randomSuffix2),
 		3,
 	)
-	userWithDept.DepartmentID = dept.ID
+	userWithDept.DepartmentID = &dept.ID
 	_, err = adminClient.CreateUser(ctx, userWithDept)
 	require.NoError(t, err)
 
@@ -203,7 +203,7 @@ func TestUserRoleBasedAccess(t *testing.T) {
 		fmt.Sprintf("User_%s", randomSuffix2),
 		3,
 	)
-	userWithDept.DepartmentID = dept.ID
+	userWithDept.DepartmentID = &dept.ID
 	_, err = adminClient.CreateUser(ctx, userWithDept)
 	require.NoError(t, err)
 
@@ -292,7 +292,7 @@ func TestAccessControlAdvanced(t *testing.T) {
 		fmt.Sprintf("User_%s", randomSuffix2),
 		3,
 	)
-	userWithDept.DepartmentID = dept.ID
+	userWithDept.DepartmentID = &dept.ID
 	_, err = adminClient.CreateUser(ctx, userWithDept)
 	require.NoError(t, err)
 

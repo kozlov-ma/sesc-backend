@@ -14,6 +14,7 @@ import (
 	"github.com/go-openapi/runtime"
 	cr "github.com/go-openapi/runtime/client"
 	"github.com/go-openapi/strfmt"
+	"github.com/go-openapi/swag"
 )
 
 // NewGetUsersParams creates a new GetUsersParams object,
@@ -67,6 +68,26 @@ type GetUsersParams struct {
 	*/
 	Authorization *string
 
+	/* Limit.
+
+	   Pagination limit
+
+	   Default: 10
+	*/
+	Limit *int64
+
+	/* Offset.
+
+	   Pagination offset
+	*/
+	Offset *int64
+
+	/* Search.
+
+	   Search by name
+	*/
+	Search *string
+
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
@@ -84,7 +105,21 @@ func (o *GetUsersParams) WithDefaults() *GetUsersParams {
 //
 // All values with no default are reset to their zero value.
 func (o *GetUsersParams) SetDefaults() {
-	// no default values defined for this parameter
+	var (
+		limitDefault = int64(10)
+
+		offsetDefault = int64(0)
+	)
+
+	val := GetUsersParams{
+		Limit:  &limitDefault,
+		Offset: &offsetDefault,
+	}
+
+	val.timeout = o.timeout
+	val.Context = o.Context
+	val.HTTPClient = o.HTTPClient
+	*o = val
 }
 
 // WithTimeout adds the timeout to the get users params
@@ -131,6 +166,39 @@ func (o *GetUsersParams) SetAuthorization(authorization *string) {
 	o.Authorization = authorization
 }
 
+// WithLimit adds the limit to the get users params
+func (o *GetUsersParams) WithLimit(limit *int64) *GetUsersParams {
+	o.SetLimit(limit)
+	return o
+}
+
+// SetLimit adds the limit to the get users params
+func (o *GetUsersParams) SetLimit(limit *int64) {
+	o.Limit = limit
+}
+
+// WithOffset adds the offset to the get users params
+func (o *GetUsersParams) WithOffset(offset *int64) *GetUsersParams {
+	o.SetOffset(offset)
+	return o
+}
+
+// SetOffset adds the offset to the get users params
+func (o *GetUsersParams) SetOffset(offset *int64) {
+	o.Offset = offset
+}
+
+// WithSearch adds the search to the get users params
+func (o *GetUsersParams) WithSearch(search *string) *GetUsersParams {
+	o.SetSearch(search)
+	return o
+}
+
+// SetSearch adds the search to the get users params
+func (o *GetUsersParams) SetSearch(search *string) {
+	o.Search = search
+}
+
 // WriteToRequest writes these params to a swagger request
 func (o *GetUsersParams) WriteToRequest(r runtime.ClientRequest, reg strfmt.Registry) error {
 
@@ -144,6 +212,57 @@ func (o *GetUsersParams) WriteToRequest(r runtime.ClientRequest, reg strfmt.Regi
 		// header param Authorization
 		if err := r.SetHeaderParam("Authorization", *o.Authorization); err != nil {
 			return err
+		}
+	}
+
+	if o.Limit != nil {
+
+		// query param limit
+		var qrLimit int64
+
+		if o.Limit != nil {
+			qrLimit = *o.Limit
+		}
+		qLimit := swag.FormatInt64(qrLimit)
+		if qLimit != "" {
+
+			if err := r.SetQueryParam("limit", qLimit); err != nil {
+				return err
+			}
+		}
+	}
+
+	if o.Offset != nil {
+
+		// query param offset
+		var qrOffset int64
+
+		if o.Offset != nil {
+			qrOffset = *o.Offset
+		}
+		qOffset := swag.FormatInt64(qrOffset)
+		if qOffset != "" {
+
+			if err := r.SetQueryParam("offset", qOffset); err != nil {
+				return err
+			}
+		}
+	}
+
+	if o.Search != nil {
+
+		// query param search
+		var qrSearch string
+
+		if o.Search != nil {
+			qrSearch = *o.Search
+		}
+		qSearch := qrSearch
+		if qSearch != "" {
+
+			if err := r.SetQueryParam("search", qSearch); err != nil {
+				return err
+			}
 		}
 	}
 

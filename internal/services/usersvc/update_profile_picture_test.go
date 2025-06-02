@@ -32,7 +32,7 @@ func TestUpdateProfilePicture(t *testing.T) {
 		require.NoError(t, err)
 
 		// Verify the profile picture was actually updated
-		updatedUser, err := svc.UserByID(ctx, user.ID)
+		updatedUser, err := svc.User(ctx, user.ID)
 		require.NoError(t, err)
 		require.Equal(t, newPictureURL, updatedUser.PictureURL)
 	})
@@ -78,7 +78,7 @@ func TestUpdateProfilePicture(t *testing.T) {
 		require.NoError(t, err)
 
 		// Verify the profile picture was actually cleared
-		updatedUser, err := svc.UserByID(ctx, user.ID)
+		updatedUser, err := svc.User(ctx, user.ID)
 		require.NoError(t, err)
 		require.Empty(t, updatedUser.PictureURL)
 	})

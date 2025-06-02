@@ -3,6 +3,7 @@ package usersvc
 import (
 	"testing"
 
+	"github.com/kozlov-ma/sesc-backend/db/entdb/ent"
 	"github.com/kozlov-ma/sesc-backend/internal/services/testutil"
 	"github.com/kozlov-ma/sesc-backend/pkg/event"
 	"github.com/kozlov-ma/sesc-backend/sesc"
@@ -25,14 +26,14 @@ func TestUsers(t *testing.T) {
 		user3 := testutil.CreateTestUser(ctx, t, client, "Third", "User", sesc.Role(1))
 
 		// Call the method being tested
-		users, err := svc.Users(ctx)
+		users, _, err := svc.Users(ctx, 0, 100, "")
 
 		// Verify the results
 		require.NoError(t, err)
 		require.Len(t, users, 3)
 
 		// Create a map of user IDs for easier verification
-		userMap := make(map[string]User)
+		userMap := make(map[string]*ent.User)
 		for _, u := range users {
 			userMap[u.ID.String()] = u
 		}
@@ -64,7 +65,7 @@ func TestUsers(t *testing.T) {
 		svc := New(client)
 
 		// Call the method being tested without creating any users
-		users, err := svc.Users(ctx)
+		users, _, err := svc.Users(ctx, 10, 10, "")
 
 		// Verify the results
 		require.NoError(t, err)
@@ -84,7 +85,7 @@ func TestUsers(t *testing.T) {
 		client.Close()
 
 		// Call the method being tested
-		users, err := svc.Users(ctx)
+		users, _, err := svc.Users(ctx, 1, 1, "")
 
 		// Verify the results
 		require.Error(t, err)

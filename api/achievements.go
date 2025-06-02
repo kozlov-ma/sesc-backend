@@ -226,6 +226,35 @@ func (a *API) CreateAchievement(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var depID uuid.UUID
+	if user.DepartmentID != nil {
+		depID = *user.DepartmentID
+	}
+
+	sus := sesc.User{
+		ID:         user.ID,
+		FirstName:  user.FirstName,
+		LastName:   user.LastName,
+		MiddleName: user.MiddleName,
+		PictureURL: user.PictureURL,
+		Suspended:  user.Suspended,
+		Department: sesc.Department{
+			ID: depID,
+		},
+		Role:              user.Role,
+		Subdivision:       user.Subdivision,
+		JobTitle:          user.JobTitle,
+		EmploymentRate:    user.EmploymentRate,
+		AcademicDegree:    user.AcademicDegree,
+		PersonnelCategory: user.PersonnelCategory,
+		EmploymentType:    user.EmploymentType,
+		AcademicTitle:     user.AcademicTitle,
+		Honors:            user.Honors,
+		Category:          user.Category,
+		DateOfEmployment:  user.DateOfEmployment,
+		UnemploymentDate:  user.UnemploymentDate,
+	}
+
 	// Parse request
 	var req CreateAchievementRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -236,7 +265,7 @@ func (a *API) CreateAchievement(w http.ResponseWriter, r *http.Request) {
 
 	// Create achievement
 	opt := achievement.CreateOptions{
-		ForUser:    user,
+		ForUser:    sus,
 		TemplateID: req.TemplateID,
 	}
 	ach, err := a.sesc.CreateAchievement(ctx, opt)

@@ -45,7 +45,7 @@ import { AxiosError } from "axios";
 import type {
   PostUsersError,
   PatchUsersByIdError,
-  ApiUserResponse,
+  RespondUser,
 } from "@/lib/api/types.gen";
 import { ErrorMessage } from "@/components/ui/error-message";
 import { useFormError } from "@/hooks/use-error-handler";
@@ -111,7 +111,7 @@ type UserFormValues = z.infer<typeof userFormSchema>;
 interface UserFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  user?: ApiUserResponse;
+  user?: RespondUser;
   onSuccess?: () => void;
 }
 
@@ -202,7 +202,7 @@ function UserFormDialog({
         lastName: user.lastName,
         middleName: user.middleName || "",
         roleId: user.role.id,
-        departmentId: user.department?.id || "",
+        departmentId: user.departmentId || "",
         pictureUrl: user.pictureUrl || "",
         suspended: user.suspended,
         subdivision: user.subdivision || "",

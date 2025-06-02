@@ -1,16 +1,12 @@
-FROM golang:1.24-alpine
+FROM golang:1.24-alpine AS builder
 
 WORKDIR /app
-
-# Install git for dependencies
-RUN apk add --no-cache git
 
 # Copy go.mod and go.sum first for better layer caching
 COPY go.mod go.sum ./
 RUN go mod download
 
 # Copy the rest of the source code
-COPY ./tests .
+COPY . .
 
-# Run the tests when the container starts - with verbose output and coverage reporting
-CMD ["go", "test", "-v", "-coverprofile=coverage.out", "./..."]
+CMD ["go", "test", "./tests/..."]

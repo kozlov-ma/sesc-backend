@@ -7,7 +7,7 @@ import { UserRound, UserRoundCheck, UserRoundX } from "lucide-react";
 import { UsersTable } from "@/components/admin-dashboard/users-table";
 import { useQuery } from "@tanstack/react-query";
 import { getUsersOptions } from "@/lib/api/@tanstack/react-query.gen";
-import type { ApiUserResponse } from "@/lib/api/types.gen";
+import type { RespondUser } from "@/lib/api/types.gen";
 
 export default function UsersPage() {
   const { isAuthenticated, role, isLoading } = useAuth();
@@ -111,7 +111,7 @@ function ActiveUsersCountDisplay() {
   if (isLoading)
     return <span className="text-muted-foreground">Загрузка...</span>;
 
-  return data?.users?.filter((user: ApiUserResponse) => !user.suspended).length;
+  return data?.users?.filter((user: RespondUser) => !user.suspended).length;
 }
 
 // Component that displays the number of suspended users
@@ -122,7 +122,7 @@ function SuspendedUsersCountDisplay() {
   if (isLoading)
     return <span className="text-muted-foreground">Загрузка...</span>;
 
-  return data?.users?.filter((user: ApiUserResponse) => user.suspended).length;
+  return data?.users?.filter((user: RespondUser) => user.suspended).length;
 }
 
 // Custom hook to fetch users data

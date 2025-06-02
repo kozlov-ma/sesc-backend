@@ -852,7 +852,53 @@ definitions:
         example: Пользователь не существует
         type: string
     type: object
-  api.UserResponse:
+  api.WrongAchievementStatusError:
+    properties:
+      code:
+        example: WRONG_ACHIEVEMENT_STATUS
+        type: string
+      details:
+        type: string
+      message:
+        example: Achievement is in wrong status for this operation
+        type: string
+      ruMessage:
+        example: Достижение находится в неподходящем статусе для этой операции
+        type: string
+    type: object
+  respond.Department:
+    properties:
+      description:
+        example: Math department
+        type: string
+      id:
+        example: 550e8400-e29b-41d4-a716-446655440000
+        type: string
+      name:
+        example: Mathematics
+        type: string
+    required:
+    - description
+    - id
+    - name
+    type: object
+  respond.Role:
+    properties:
+      codeName:
+        example: teacher
+        type: string
+      id:
+        example: 1
+        type: integer
+      name:
+        example: Преподаватель
+        type: string
+    required:
+    - codeName
+    - id
+    - name
+    type: object
+  respond.User:
     properties:
       academicDegree:
         example: 2
@@ -866,8 +912,8 @@ definitions:
       dateOfEmployment:
         example: "2020-01-15T00:00:00Z"
         type: string
-      department:
-        $ref: '#/definitions/api.Department'
+      departmentId:
+        type: string
       employmentRate:
         example: 1
         type: number
@@ -899,7 +945,7 @@ definitions:
         example: /images/users/ivan.jpg
         type: string
       role:
-        $ref: '#/definitions/api.Role'
+        $ref: '#/definitions/respond.Role'
       subdivision:
         example: Кафедра информатики
         type: string
@@ -921,28 +967,17 @@ definitions:
     - subdivision
     - suspended
     type: object
-  api.UsersResponse:
+  respond.Users:
     properties:
+      total:
+        type: integer
       users:
         items:
-          $ref: '#/definitions/api.UserResponse'
+          $ref: '#/definitions/respond.User'
         type: array
     required:
+    - total
     - users
-    type: object
-  api.WrongAchievementStatusError:
-    properties:
-      code:
-        example: WRONG_ACHIEVEMENT_STATUS
-        type: string
-      details:
-        type: string
-      message:
-        example: Achievement is in wrong status for this operation
-        type: string
-      ruMessage:
-        example: Достижение находится в неподходящем статусе для этой операции
-        type: string
     type: object
 info:
   contact: {}
@@ -1935,6 +1970,42 @@ paths:
       summary: Delete a department
       tags:
       - departments
+    get:
+      description: Retrieves detailed information about a department
+      parameters:
+      - description: Bearer JWT token
+        in: header
+        name: Authorization
+        type: string
+      - description: User UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/respond.Department'
+        "400":
+          description: Invalid UUID format
+          schema:
+            $ref: '#/definitions/api.InvalidUUIDError'
+        "404":
+          description: Department not found
+          schema:
+            $ref: '#/definitions/api.DepartmentNotFoundError'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/api.ServerError'
+      security:
+      - BearerAuth: []
+      summary: Get department details
+      tags:
+      - users
     put:
       consumes:
       - application/json
@@ -2306,6 +2377,23 @@ paths:
     get:
       description: Retrieves detailed information about all users
       parameters:
+      - default: 0
+        description: Pagination offset
+        in: query
+        minimum: 0
+        name: offset
+        type: integer
+      - default: 10
+        description: Pagination limit
+        in: query
+        maximum: 100
+        minimum: 1
+        name: limit
+        type: integer
+      - description: Search by name
+        in: query
+        name: search
+        type: string
       - description: Bearer JWT token
         in: header
         name: Authorization
@@ -2316,7 +2404,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/api.UsersResponse'
+            $ref: '#/definitions/respond.Users'
         "401":
           description: Unauthorized
           schema:
@@ -2351,7 +2439,7 @@ paths:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/api.UserResponse'
+            $ref: '#/definitions/respond.User'
         "400":
           description: Invalid name specified
           schema:
@@ -2392,7 +2480,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/api.UserResponse'
+            $ref: '#/definitions/respond.User'
         "400":
           description: Invalid UUID format
           schema:
@@ -2441,7 +2529,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/api.UserResponse'
+            $ref: '#/definitions/respond.User'
         "400":
           description: Invalid name
           schema:
@@ -2540,7 +2628,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/api.UserResponse'
+            $ref: '#/definitions/respond.User'
         "401":
           description: Unauthorized or invalid token
           schema:

@@ -25,6 +25,7 @@ import {
   getDepartments,
   postDepartments,
   deleteDepartmentsById,
+  getDepartmentsById,
   putDepartmentsById,
   getFiles,
   postFiles,
@@ -101,6 +102,7 @@ import type {
   PostDepartmentsResponse,
   DeleteDepartmentsByIdData,
   DeleteDepartmentsByIdError,
+  GetDepartmentsByIdData,
   PutDepartmentsByIdData,
   PutDepartmentsByIdError,
   PutDepartmentsByIdResponse,
@@ -122,6 +124,8 @@ import type {
   GetReportsUserPointsData,
   GetRolesData,
   GetUsersData,
+  GetUsersError,
+  GetUsersResponse,
   PostUsersData,
   PostUsersError,
   PostUsersResponse,
@@ -1150,6 +1154,31 @@ export const deleteDepartmentsByIdMutation = (
   return mutationOptions;
 };
 
+export const getDepartmentsByIdQueryKey = (
+  options: Options<GetDepartmentsByIdData>,
+) => createQueryKey("getDepartmentsById", options);
+
+/**
+ * Get department details
+ * Retrieves detailed information about a department
+ */
+export const getDepartmentsByIdOptions = (
+  options: Options<GetDepartmentsByIdData>,
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getDepartmentsById({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: getDepartmentsByIdQueryKey(options),
+  });
+};
+
 /**
  * Update department details
  * Updates an existing department with new details
@@ -1522,6 +1551,55 @@ export const getUsersOptions = (options?: Options<GetUsersData>) => {
     },
     queryKey: getUsersQueryKey(options),
   });
+};
+
+export const getUsersInfiniteQueryKey = (
+  options?: Options<GetUsersData>,
+): QueryKey<Options<GetUsersData>> => createQueryKey("getUsers", options, true);
+
+/**
+ * Get all users registered in the system
+ * Retrieves detailed information about all users
+ */
+export const getUsersInfiniteOptions = (options?: Options<GetUsersData>) => {
+  return infiniteQueryOptions<
+    GetUsersResponse,
+    AxiosError<GetUsersError>,
+    InfiniteData<GetUsersResponse>,
+    QueryKey<Options<GetUsersData>>,
+    | number
+    | Pick<
+        QueryKey<Options<GetUsersData>>[0],
+        "body" | "headers" | "path" | "query"
+      >
+  >(
+    // @ts-ignore
+    {
+      queryFn: async ({ pageParam, queryKey, signal }) => {
+        // @ts-ignore
+        const page: Pick<
+          QueryKey<Options<GetUsersData>>[0],
+          "body" | "headers" | "path" | "query"
+        > =
+          typeof pageParam === "object"
+            ? pageParam
+            : {
+                query: {
+                  offset: pageParam,
+                },
+              };
+        const params = createInfiniteParams(queryKey, page);
+        const { data } = await getUsers({
+          ...options,
+          ...params,
+          signal,
+          throwOnError: true,
+        });
+        return data;
+      },
+      queryKey: getUsersInfiniteQueryKey(options),
+    },
+  );
 };
 
 export const postUsersQueryKey = (options: Options<PostUsersData>) =>

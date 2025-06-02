@@ -76,7 +76,7 @@ PatchUsersIDOK describes a response with status code 200, with default header va
 OK
 */
 type PatchUsersIDOK struct {
-	Payload *models.APIUserResponse
+	Payload *models.RespondUser
 }
 
 // IsSuccess returns true when this patch users Id o k response has a 2xx status code
@@ -119,13 +119,13 @@ func (o *PatchUsersIDOK) String() string {
 	return fmt.Sprintf("[PATCH /users/{id}][%d] patchUsersIdOK %s", 200, payload)
 }
 
-func (o *PatchUsersIDOK) GetPayload() *models.APIUserResponse {
+func (o *PatchUsersIDOK) GetPayload() *models.RespondUser {
 	return o.Payload
 }
 
 func (o *PatchUsersIDOK) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIUserResponse)
+	o.Payload = new(models.RespondUser)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {

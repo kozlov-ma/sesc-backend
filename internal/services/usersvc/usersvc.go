@@ -4,13 +4,11 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/gofrs/uuid/v5"
 	"github.com/kozlov-ma/sesc-backend/achievement"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent"
-	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievementgroup"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/user"
 	"github.com/kozlov-ma/sesc-backend/pkg/event"
 	"github.com/kozlov-ma/sesc-backend/pkg/event/events"
@@ -52,46 +50,12 @@ func rollback(tx *ent.Tx, err error) error {
 	return err
 }
 
-func convertUser(u *ent.User) User {
-	var dept Department
-	dep := u.Edges.Department
-	if dep != nil {
-		dept = Department{
-			ID:          dep.ID,
-			Name:        dep.Name,
-			Description: dep.Description,
-		}
-	}
-
-	return User{
-		ID:                u.ID,
-		FirstName:         u.FirstName,
-		LastName:          u.LastName,
-		MiddleName:        u.MiddleName,
-		PictureURL:        u.PictureURL,
-		Suspended:         u.Suspended,
-		Department:        dept,
-		Role:              u.Role,
-		Subdivision:       u.Subdivision,
-		JobTitle:          u.JobTitle,
-		EmploymentRate:    u.EmploymentRate,
-		AcademicDegree:    u.AcademicDegree,
-		PersonnelCategory: u.PersonnelCategory,
-		EmploymentType:    u.EmploymentType,
-		AcademicTitle:     u.AcademicTitle,
-		Honors:            u.Honors,
-		Category:          u.Category,
-		DateOfEmployment:  u.DateOfEmployment,
-		UnemploymentDate:  u.UnemploymentDate,
-	}
-}
-
 // UpdateUser updates user with the new fields.
 //
 // Returns an sesc.ErrInvalidRole if the new role id is invalid.
 // Returns an sesc.ErrInvalidName if the first or last name is missing.
 // Returns an sesc.ErrUserNotFound if the user does not exist.
-func (s *USS) UpdateUser(ctx context.Context, id UUID, upd UserUpdateOptions) (User, error) {
+func (s *USS) UpdateUser(ctx context.Context, id UUID, upd UserUpdateOptions) (*ent.User, error) {
 	// Caller should create the record and use Wrap to add it to the context
 	rec := event.Get(ctx).Sub("sesc/update_user")
 	rootRec := event.Root(ctx)
@@ -111,19 +75,19 @@ func (s *USS) UpdateUser(ctx context.Context, id UUID, upd UserUpdateOptions) (U
 	// Stage 1: Validate user exists
 	ctx = rec.Sub("validate_user_exists").Wrap(ctx)
 	if err := s.validateUserExists(ctx, id); err != nil {
-		return User{}, err
+		return nil, err
 	}
 
 	// Stage 2: Validate role
 	ctx = rec.Sub("validate_role").Wrap(ctx)
 	if err := sesc.ValidateRole(upd.NewRole); err != nil {
-		return User{}, err
+		return nil, err
 	}
 
 	// Stage 3: Validate name
 	ctx = rec.Sub("validate_name").Wrap(ctx)
 	if err := s.validateName(ctx, upd.FirstName, upd.LastName); err != nil {
-		return User{}, err
+		return nil, err
 	}
 
 	txrec := rec.Sub("pg_transaction")
@@ -136,45 +100,41 @@ func (s *USS) UpdateUser(ctx context.Context, id UUID, upd UserUpdateOptions) (U
 	if err != nil {
 		err := fmt.Errorf("couldn't start transaction: %w", err)
 		txrec.Add(events.Error, err)
-		return User{}, err
+		return nil, err
 	}
 
 	// Stage 4: Check and get department if needed
 	ctx = rec.Sub("check_department").Wrap(ctx)
 	dept, err := s.checkAndGetDepartment(ctx, statrec, tx, upd.DepartmentID)
 	if err != nil {
-		return User{}, rollback(tx, err)
+		return nil, rollback(tx, err)
 	}
 
 	// Stage 5: Update user
 	ctx = rec.Sub("update_user_record").Wrap(ctx)
 	if err := s.updateUserRecord(ctx, statrec, tx, id, upd, dept); err != nil {
-		return User{}, rollback(tx, err)
+		return nil, rollback(tx, err)
 	}
 
 	// Stage 6: Query updated user
 	ctx = rec.Sub("query_updated_user").Wrap(ctx)
 	us, err := s.queryUpdatedUser(ctx, statrec, tx, id)
 	if err != nil {
-		return User{}, rollback(tx, err)
+		return nil, rollback(tx, err)
 	}
 
 	err = tx.Commit()
 	if err != nil {
 		err := fmt.Errorf("couldn't commit transaction: %w", err)
 		txrec.Add(events.Error, err)
-		return User{}, err
+		return nil, err
 	}
 
 	statrec.Add(events.PostgresTime, time.Since(txStart))
 
-	// Stage 7: Convert user entity to domain object
-	ctx = rec.Sub("convert_user").Wrap(ctx)
-	updated := s.convertUserEntity(ctx, us)
-
 	rec.Set("success", true)
-	rec.Set("user", updated.EventRecord())
-	return updated, nil
+	rec.Set("user", us)
+	return us, nil
 }
 
 // validateUserExists validates that a user exists
@@ -182,7 +142,7 @@ func (s *USS) validateUserExists(ctx context.Context, id UUID) error {
 	rec := event.Get(ctx)
 	rec.Set("user_id", id)
 
-	_, err := s.UserByID(ctx, id)
+	_, err := s.User(ctx, id)
 	if err != nil {
 		rec.Add(events.Error, err)
 		rec.Set("exists", false)
@@ -215,12 +175,12 @@ func (s *USS) checkAndGetDepartment(
 	ctx context.Context,
 	statrec *event.Record,
 	tx *ent.Tx,
-	departmentID UUID,
+	departmentID *UUID,
 ) (*ent.Department, error) {
 	rec := event.Get(ctx)
 	rec.Set("department_id", departmentID)
 
-	if departmentID == uuid.Nil {
+	if departmentID == nil {
 		rec.Set("required", false)
 		//nolint:nilnil // department should be deleted or should not be set.
 		return nil, nil
@@ -229,7 +189,7 @@ func (s *USS) checkAndGetDepartment(
 	rec.Set("required", true)
 	statrec.Add(events.PostgresQueries, 1)
 
-	dept, err := tx.Department.Get(ctx, departmentID)
+	dept, err := tx.Department.Get(ctx, *departmentID)
 	switch {
 	case ent.IsNotFound(err):
 		rec.Set("exists", false)
@@ -324,23 +284,10 @@ func (s *USS) queryUpdatedUser(
 	return us, nil
 }
 
-// convertUserEntity converts an ent.User to a User domain object
-func (s *USS) convertUserEntity(
-	ctx context.Context,
-	us *ent.User,
-) User {
-	rec := event.Get(ctx)
-
-	updated := convertUser(us)
-
-	rec.Set("success", true)
-	return updated
-}
-
 // CreateUser creates a new User with a specified role.
 //
 // Returns an sesc.ErrInvalidName if the first or last name is missing.
-func (s *USS) CreateUser(ctx context.Context, opt UserUpdateOptions) (User, error) {
+func (s *USS) CreateUser(ctx context.Context, opt UserUpdateOptions) (*ent.User, error) {
 	// Caller should create the record and use Wrap to add it to the context
 	rec := event.Get(ctx).Sub("sesc/create_user")
 	rootRec := event.Root(ctx)
@@ -359,7 +306,7 @@ func (s *USS) CreateUser(ctx context.Context, opt UserUpdateOptions) (User, erro
 	// Stage 1: Validate input
 	ctx = rec.Sub("validate_create_input").Wrap(ctx)
 	if err := s.validateCreateInput(ctx, opt); err != nil {
-		return User{}, err
+		return nil, err
 	}
 
 	txrec := rec.Sub("pg_transaction")
@@ -370,46 +317,42 @@ func (s *USS) CreateUser(ctx context.Context, opt UserUpdateOptions) (User, erro
 	if err != nil {
 		err := fmt.Errorf("couldn't begin transaction: %w", err)
 		txrec.Add(events.Error, err)
-		return User{}, err
+		return nil, err
 	}
 
 	// Stage 2: Check and get department if needed
 	ctx = rec.Sub("check_department").Wrap(ctx)
 	dept, err := s.checkAndGetDepartment(ctx, statrec, tx, opt.DepartmentID)
 	if err != nil {
-		return User{}, rollback(tx, err)
+		return nil, rollback(tx, err)
 	}
 
 	// Stage 3: Create user record
 	ctx = rec.Sub("create_user_record").Wrap(ctx)
 	userID, err := s.createUserRecord(ctx, statrec, tx, opt, dept)
 	if err != nil {
-		return User{}, rollback(tx, err)
+		return nil, rollback(tx, err)
 	}
 
 	// Stage 4: Query created user
 	ctx = rec.Sub("query_created_user").Wrap(ctx)
 	us, err := s.queryCreatedUser(ctx, statrec, tx, userID)
 	if err != nil {
-		return User{}, rollback(tx, err)
+		return nil, rollback(tx, err)
 	}
 
 	err = tx.Commit()
 	if err != nil {
 		err := fmt.Errorf("couldn't commit transaction: %w", err)
 		txrec.Add(events.Error, err)
-		return User{}, err
+		return nil, err
 	}
 
 	statrec.Add(events.PostgresTime, time.Since(txStart))
 
-	// Stage 5: Convert user entity to domain object
-	ctx = rec.Sub("convert_user").Wrap(ctx)
-	user := s.convertUserEntity(ctx, us)
-
 	rec.Set("success", true)
-	rec.Set("user", user.EventRecord())
-	return user, nil
+	rec.Set("user", us)
+	return us, nil
 }
 
 // validateCreateInput validates the create user input
@@ -547,9 +490,9 @@ func (s *USS) updateProfilePictureRecord(ctx context.Context, id UUID, pictureUR
 	return nil
 }
 
-// UserByID gets a user by their ID.
+// User gets a user by their ID.
 // Returns an sesc.ErrUserNotFound if the user does not exist.
-func (s *USS) UserByID(ctx context.Context, id UUID) (User, error) {
+func (s *USS) User(ctx context.Context, id UUID) (*ent.User, error) {
 	// Caller should create the record and use Wrap to add it to the context
 	rec := event.Get(ctx).Sub("sesc/user_by_id")
 
@@ -559,14 +502,10 @@ func (s *USS) UserByID(ctx context.Context, id UUID) (User, error) {
 	ctx = rec.Sub("query_user_by_id").Wrap(ctx)
 	u, err := s.getUserByID(ctx, id)
 	if err != nil {
-		return User{}, err
+		return nil, err
 	}
 
-	// Stage 2: Convert user entity
-	ctx = rec.Sub("convert_user_entity").Wrap(ctx)
-	userObj := s.convertUserFromEntity(ctx, u)
-
-	return userObj, nil
+	return u, nil
 }
 
 // getUserByID queries a user by ID from the database
@@ -598,118 +537,42 @@ func (s *USS) getUserByID(ctx context.Context, id UUID) (*ent.User, error) {
 	return u, nil
 }
 
-// convertUserFromEntity converts an ent.User to a User domain object
-func (s *USS) convertUserFromEntity(ctx context.Context, u *ent.User) User {
-	rec := event.Get(ctx)
-
-	userObj := convertUser(u)
-
-	rec.Set("success", true)
-	return userObj
-}
-
 // Users gets all users.
-func (s *USS) Users(ctx context.Context) ([]User, error) {
+func (s *USS) Users(ctx context.Context, offset, limit int, _ string) (ent.Users, int, error) {
 	// Caller should create the record and use Wrap to add it to the context
 	rec := event.Get(ctx).Sub("sesc/users")
 
-	// Stage 1: Query all users
-	ctx = rec.Sub("query_all_users").Wrap(ctx)
-	res, err := s.queryAllUsers(ctx)
+	var (
+		users ent.Users
+		total int
+	)
+	err := rec.Operation("query_users", func(_ *event.Record) error {
+		rootRec := event.Root(ctx)
+		statrec := rootRec.Sub("stats")
+
+		startTime := time.Now()
+		statrec.Add(events.PostgresQueries, 1)
+
+		var err error
+		users, err = s.client.User.Query().WithDepartment().Offset(offset).Limit(limit).All(ctx)
+		statrec.Add(events.PostgresTime, time.Since(startTime))
+		if err != nil {
+			return fmt.Errorf("couldn't query users: %w", err)
+		}
+
+		startTime = time.Now()
+		total, err = s.client.User.Query().WithDepartment().Count(ctx)
+		if err != nil {
+			return fmt.Errorf("couldn't query users: %w", err)
+		}
+		statrec.Add(events.PostgresTime, time.Since(startTime))
+
+		return nil
+	})
+
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
-	// Stage 2: Convert all users
-	ctx = rec.Sub("convert_all_users").Wrap(ctx)
-	users := s.convertAllUsers(ctx, res)
-
-	return users, nil
-}
-
-// queryAllUsers queries all users from the database
-func (s *USS) queryAllUsers(ctx context.Context) ([]*ent.User, error) {
-	rec := event.Get(ctx)
-	rootRec := event.Root(ctx)
-	statrec := rootRec.Sub("stats")
-
-	startTime := time.Now()
-	statrec.Add(events.PostgresQueries, 1)
-	res, err := s.client.User.Query().WithDepartment().All(ctx)
-	statrec.Add(events.PostgresTime, time.Since(startTime))
-
-	if err != nil {
-		err := fmt.Errorf("couldn't query users: %w", err)
-		rec.Add(events.Error, err)
-		rec.Set("success", false)
-		return nil, err
-	}
-
-	rec.Set("success", true)
-	return res, nil
-}
-
-// convertAllUsers converts all ent.User objects to User domain objects
-func (s *USS) convertAllUsers(ctx context.Context, entUsers []*ent.User) []User {
-	rec := event.Get(ctx)
-
-	users := make([]User, len(entUsers))
-	for i, r := range entUsers {
-		users[i] = convertUser(r)
-	}
-
-	rec.Set("success", true)
-	return users
-}
-
-// User returns a User by ID. Alias for UserByID.
-// Returns sesc.ErrUserNotFound if the user does not exist.
-func (s *USS) User(ctx context.Context, id UUID) (User, error) {
-	rec := event.Get(ctx).Sub("sesc/user")
-
-	// Create a wrapped context for UserByID
-	ctx = rec.Sub("user_by_id").Wrap(ctx)
-	return s.UserByID(ctx, id)
-}
-
-// AchievementGroups gets all achievement groups with optional filtering.
-func (s *USS) AchievementGroups(
-	ctx context.Context,
-	options AchievementGroupSearchOptions,
-) ([]AchievementGroup, error) {
-	rec := event.Get(ctx).Sub("sesc/achievement_groups")
-
-	query := s.client.AchievementGroup.Query()
-
-	// Apply filters
-	if !options.ShowInactive {
-		query = query.Where(achievementgroup.Active(true))
-	}
-
-	if options.Search != "" {
-		searchTerm := strings.ToLower(options.Search)
-		query = query.Where(achievementgroup.Or(
-			achievementgroup.NameContainsFold(searchTerm),
-			achievementgroup.DescriptionContainsFold(searchTerm),
-		))
-	}
-
-	groups, err := query.All(ctx)
-	if err != nil {
-		rec.Add(events.Error, fmt.Errorf("failed to query achievement groups: %w", err))
-		return nil, err
-	}
-
-	result := make([]AchievementGroup, 0, len(groups))
-	for _, g := range groups {
-		result = append(result, AchievementGroup{
-			ID:          g.ID,
-			Name:        g.Name,
-			Description: g.Description,
-			Active:      g.Active,
-		})
-	}
-
-	rec.Add("groups_count", len(result))
-	return result, nil
+	return users, total, nil
 }

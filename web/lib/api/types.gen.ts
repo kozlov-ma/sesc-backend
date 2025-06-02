@@ -356,12 +356,31 @@ export type ApiUserNotFoundError = {
   ruMessage?: string;
 };
 
-export type ApiUserResponse = {
+export type ApiWrongAchievementStatusError = {
+  code?: string;
+  details?: string;
+  message?: string;
+  ruMessage?: string;
+};
+
+export type RespondDepartment = {
+  description: string;
+  id: string;
+  name: string;
+};
+
+export type RespondRole = {
+  codeName: string;
+  id: number;
+  name: string;
+};
+
+export type RespondUser = {
   academicDegree?: number;
   academicTitle?: string;
   category?: string;
   dateOfEmployment?: string;
-  department?: ApiDepartment;
+  departmentId?: string;
   employmentRate: number;
   employmentType: number;
   firstName: string;
@@ -372,21 +391,15 @@ export type ApiUserResponse = {
   middleName?: string;
   personnelCategory: number;
   pictureUrl: string;
-  role: ApiRole;
+  role: RespondRole;
   subdivision: string;
   suspended: boolean;
   unemploymentDate?: string;
 };
 
-export type ApiUsersResponse = {
-  users: Array<ApiUserResponse>;
-};
-
-export type ApiWrongAchievementStatusError = {
-  code?: string;
-  details?: string;
-  message?: string;
-  ruMessage?: string;
+export type RespondUsers = {
+  total: number;
+  users: Array<RespondUser>;
 };
 
 export type GetAchievementGroupsData = {
@@ -1526,6 +1539,52 @@ export type DeleteDepartmentsByIdResponses = {
   204: unknown;
 };
 
+export type GetDepartmentsByIdData = {
+  body?: never;
+  headers?: {
+    /**
+     * Bearer JWT token
+     */
+    Authorization?: string;
+  };
+  path: {
+    /**
+     * User UUID
+     */
+    id: string;
+  };
+  query?: never;
+  url: "/departments/{id}";
+};
+
+export type GetDepartmentsByIdErrors = {
+  /**
+   * Invalid UUID format
+   */
+  400: ApiInvalidUuidError;
+  /**
+   * Department not found
+   */
+  404: ApiDepartmentNotFoundError;
+  /**
+   * Internal server error
+   */
+  500: ApiServerError;
+};
+
+export type GetDepartmentsByIdError =
+  GetDepartmentsByIdErrors[keyof GetDepartmentsByIdErrors];
+
+export type GetDepartmentsByIdResponses = {
+  /**
+   * OK
+   */
+  200: RespondDepartment;
+};
+
+export type GetDepartmentsByIdResponse =
+  GetDepartmentsByIdResponses[keyof GetDepartmentsByIdResponses];
+
 export type PutDepartmentsByIdData = {
   /**
    * Updated department details
@@ -1952,7 +2011,20 @@ export type GetUsersData = {
     Authorization?: string;
   };
   path?: never;
-  query?: never;
+  query?: {
+    /**
+     * Pagination offset
+     */
+    offset?: number;
+    /**
+     * Pagination limit
+     */
+    limit?: number;
+    /**
+     * Search by name
+     */
+    search?: string;
+  };
   url: "/users";
 };
 
@@ -1973,7 +2045,7 @@ export type GetUsersResponses = {
   /**
    * OK
    */
-  200: ApiUsersResponse;
+  200: RespondUsers;
 };
 
 export type GetUsersResponse = GetUsersResponses[keyof GetUsersResponses];
@@ -2019,7 +2091,7 @@ export type PostUsersResponses = {
   /**
    * Created
    */
-  201: ApiUserResponse;
+  201: RespondUser;
 };
 
 export type PostUsersResponse = PostUsersResponses[keyof PostUsersResponses];
@@ -2058,7 +2130,7 @@ export type GetUsersMeResponses = {
   /**
    * OK
    */
-  200: ApiUserResponse;
+  200: RespondUser;
 };
 
 export type GetUsersMeResponse = GetUsersMeResponses[keyof GetUsersMeResponses];
@@ -2106,7 +2178,7 @@ export type GetUsersByIdResponses = {
   /**
    * OK
    */
-  200: ApiUserResponse;
+  200: RespondUser;
 };
 
 export type GetUsersByIdResponse =
@@ -2163,7 +2235,7 @@ export type PatchUsersByIdResponses = {
   /**
    * OK
    */
-  200: ApiUserResponse;
+  200: RespondUser;
 };
 
 export type PatchUsersByIdResponse =

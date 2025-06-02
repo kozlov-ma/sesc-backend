@@ -251,9 +251,9 @@ func main() {
 		os.Exit(1)
 	}
 
-	roleMap := make(map[int64]*models.APIRole)
+	roleMap := make(map[int64]*models.RespondRole)
 	for _, role := range rolesResp.Payload.Roles {
-		roleMap[*role.ID] = role
+		roleMap[*role.ID] = (*models.RespondRole)(role)
 	}
 
 	// Get all users
@@ -342,12 +342,12 @@ func processUsers(
 	apiClient *client.Apiclient,
 	authInfo runtime.ClientAuthInfoWriter,
 	departmentMap map[string]*models.APIDepartment,
-	roleMap map[int64]*models.APIRole,
-	existingUsers []*models.APIUserResponse,
+	roleMap map[int64]*models.RespondRole,
+	existingUsers []*models.RespondUser,
 ) ([]UserInfo, error) {
 	// Map users by department and role
-	deptUsers := make(map[string][]*models.APIUserResponse)
-	roleUsers := make(map[int64][]*models.APIUserResponse)
+	deptUsers := make(map[string][]*models.RespondUser)
+	roleUsers := make(map[int64][]*models.RespondUser)
 
 	for _, user := range existingUsers {
 		// Skip suspended users
@@ -360,8 +360,8 @@ func processUsers(
 		roleUsers[roleID] = append(roleUsers[roleID], user)
 
 		// Add to department map if user has a department
-		if user.Department != nil {
-			deptID := *user.Department.ID
+		if user.DepartmentID != "" {
+			deptID := user.DepartmentID
 			deptUsers[deptID] = append(deptUsers[deptID], user)
 		}
 	}
@@ -463,8 +463,8 @@ func processUsers(
 					return nil, fmt.Errorf("failed to get/create credentials for deputy %s: %w", *user.ID, err)
 				}
 
-				if user.Department != nil {
-					userInfo.Department = *user.Department.Name
+				if user.DepartmentID != "" {
+					userInfo.Department = user.DepartmentID
 				} else {
 					userInfo.Department = "Нет"
 				}
@@ -549,7 +549,7 @@ func createRandomUser(
 func getOrCreateCredentials(
 	apiClient *client.Apiclient,
 	authInfo runtime.ClientAuthInfoWriter,
-	user *models.APIUserResponse,
+	user *models.RespondUser,
 ) (UserInfo, error) {
 	userInfo := UserInfo{
 		ID:         *user.ID,

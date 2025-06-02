@@ -1,9 +1,9 @@
 "use client";
 
-import { ApiUserResponse } from "@/lib/api/types.gen";
+import { RespondUser } from "@/lib/api/types.gen";
 
 // Extended user type with optional statistics
-interface UserWithStats extends ApiUserResponse {
+interface UserWithStats extends RespondUser {
   statistics?: {
     totalAchievements?: number;
     reviewedAchievements?: number;
@@ -32,6 +32,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useQuery } from "@tanstack/react-query";
+import { getDepartmentsByIdOptions } from "@/lib/api/@tanstack/react-query.gen";
 
 interface UserProfileProps {
   user: UserWithStats | null;
@@ -40,11 +42,16 @@ interface UserProfileProps {
   isOwnProfile?: boolean;
 }
 
-export function UserProfile({
-  user,
-  isLoading,
-  error
-}: UserProfileProps) {
+export function UserProfile({ user, isLoading, error }: UserProfileProps) {
+  const { data: department, isLoading: isDepLoading } = useQuery({
+    ...getDepartmentsByIdOptions({
+      path: {
+        id: user?.departmentId || "",
+      },
+    }),
+    enabled: !!(user && user.departmentId),
+  });
+
   if (isLoading) {
     return <UserProfileSkeleton />;
   }
@@ -79,16 +86,16 @@ export function UserProfile({
 
             <div className="flex-1 space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                 
-                  <div className="space-y-2">
-                    <div className="flex items-center text-muted-foreground ">
-                      <User className="mr-2 h-4 w-4" />
-                      <span className="text-sm">ФИО</span>
-                    </div>
-                    <p className="font-medium">{user.lastName || "—"} {user.firstName || "—"} {user.middleName || "—"}</p>
+                <div className="space-y-2">
+                  <div className="flex items-center text-muted-foreground ">
+                    <User className="mr-2 h-4 w-4" />
+                    <span className="text-sm">ФИО</span>
                   </div>
-                
-
+                  <p className="font-medium">
+                    {user.lastName || "—"} {user.firstName || "—"}{" "}
+                    {user.middleName || "—"}
+                  </p>
+                </div>
               </div>
 
               <Separator />
@@ -99,7 +106,13 @@ export function UserProfile({
                     <Building className="mr-2 h-4 w-4" />
                     <span className="text-sm">Кафедра</span>
                   </div>
-                  <p className="font-medium">{user.department?.name || "—"}</p>
+                  <p className="font-medium">
+                    {isDepLoading ? (
+                      <Skeleton className="w-20"></Skeleton>
+                    ) : (
+                      department?.name || "—"
+                    )}
+                  </p>
                 </div>
 
                 <div className="space-y-2">
@@ -145,10 +158,13 @@ export function UserProfile({
                     <span className="text-sm">Категория персонала</span>
                   </div>
                   <p className="font-medium">
-                    {user.personnelCategory === 1 && "Профессорско-педагогический состав"}
+                    {user.personnelCategory === 1 &&
+                      "Профессорско-педагогический состав"}
                     {user.personnelCategory === 2 && "Педагогический состав"}
-                    {user.personnelCategory === 3 && "Учебно-вспомогательный персонал"}
-                    {user.personnelCategory === 4 && "Административно-управленческий персонал"}
+                    {user.personnelCategory === 3 &&
+                      "Учебно-вспомогательный персонал"}
+                    {user.personnelCategory === 4 &&
+                      "Административно-управленческий персонал"}
                     {!user.personnelCategory && "—"}
                   </p>
                 </div>

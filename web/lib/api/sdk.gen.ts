@@ -72,6 +72,9 @@ import type {
   PostDepartmentsError,
   DeleteDepartmentsByIdData,
   DeleteDepartmentsByIdError,
+  GetDepartmentsByIdData,
+  GetDepartmentsByIdResponse,
+  GetDepartmentsByIdError,
   PutDepartmentsByIdData,
   PutDepartmentsByIdResponse,
   PutDepartmentsByIdError,
@@ -688,6 +691,29 @@ export const deleteDepartmentsById = <ThrowOnError extends boolean = false>(
   return (options.client ?? _heyApiClient).delete<
     unknown,
     DeleteDepartmentsByIdError,
+    ThrowOnError
+  >({
+    security: [
+      {
+        name: "Authorization",
+        type: "apiKey",
+      },
+    ],
+    url: "/departments/{id}",
+    ...options,
+  });
+};
+
+/**
+ * Get department details
+ * Retrieves detailed information about a department
+ */
+export const getDepartmentsById = <ThrowOnError extends boolean = false>(
+  options: Options<GetDepartmentsByIdData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).get<
+    GetDepartmentsByIdResponse,
+    GetDepartmentsByIdError,
     ThrowOnError
   >({
     security: [

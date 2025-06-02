@@ -1156,7 +1156,66 @@ export const api_UserNotFoundErrorSchema = {
   },
 } as const;
 
-export const api_UserResponseSchema = {
+export const api_WrongAchievementStatusErrorSchema = {
+  type: "object",
+  properties: {
+    code: {
+      type: "string",
+      example: "WRONG_ACHIEVEMENT_STATUS",
+    },
+    details: {
+      type: "string",
+    },
+    message: {
+      type: "string",
+      example: "Achievement is in wrong status for this operation",
+    },
+    ruMessage: {
+      type: "string",
+      example: "Достижение находится в неподходящем статусе для этой операции",
+    },
+  },
+} as const;
+
+export const respond_DepartmentSchema = {
+  type: "object",
+  required: ["description", "id", "name"],
+  properties: {
+    description: {
+      type: "string",
+      example: "Math department",
+    },
+    id: {
+      type: "string",
+      example: "550e8400-e29b-41d4-a716-446655440000",
+    },
+    name: {
+      type: "string",
+      example: "Mathematics",
+    },
+  },
+} as const;
+
+export const respond_RoleSchema = {
+  type: "object",
+  required: ["codeName", "id", "name"],
+  properties: {
+    codeName: {
+      type: "string",
+      example: "teacher",
+    },
+    id: {
+      type: "integer",
+      example: 1,
+    },
+    name: {
+      type: "string",
+      example: "Преподаватель",
+    },
+  },
+} as const;
+
+export const respond_UserSchema = {
   type: "object",
   required: [
     "employmentRate",
@@ -1188,8 +1247,8 @@ export const api_UserResponseSchema = {
       type: "string",
       example: "2020-01-15T00:00:00Z",
     },
-    department: {
-      $ref: "#/definitions/api.Department",
+    departmentId: {
+      type: "string",
     },
     employmentRate: {
       type: "number",
@@ -1232,7 +1291,7 @@ export const api_UserResponseSchema = {
       example: "/images/users/ivan.jpg",
     },
     role: {
-      $ref: "#/definitions/api.Role",
+      $ref: "#/definitions/respond.Role",
     },
     subdivision: {
       type: "string",
@@ -1248,36 +1307,18 @@ export const api_UserResponseSchema = {
   },
 } as const;
 
-export const api_UsersResponseSchema = {
+export const respond_UsersSchema = {
   type: "object",
-  required: ["users"],
+  required: ["total", "users"],
   properties: {
+    total: {
+      type: "integer",
+    },
     users: {
       type: "array",
       items: {
-        $ref: "#/definitions/api.UserResponse",
+        $ref: "#/definitions/respond.User",
       },
-    },
-  },
-} as const;
-
-export const api_WrongAchievementStatusErrorSchema = {
-  type: "object",
-  properties: {
-    code: {
-      type: "string",
-      example: "WRONG_ACHIEVEMENT_STATUS",
-    },
-    details: {
-      type: "string",
-    },
-    message: {
-      type: "string",
-      example: "Achievement is in wrong status for this operation",
-    },
-    ruMessage: {
-      type: "string",
-      example: "Достижение находится в неподходящем статусе для этой операции",
     },
   },
 } as const;

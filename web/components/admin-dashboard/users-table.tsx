@@ -20,7 +20,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type {
-  ApiUserResponse,
+  RespondUser,
   ApiPatchUserRequest,
   PatchUsersByIdError,
 } from "@/lib/api/types.gen";
@@ -40,12 +40,13 @@ import {
   patchUsersByIdMutation,
 } from "@/lib/api/@tanstack/react-query.gen";
 import type { AxiosError } from "axios";
+import { DepartmentCell } from "./department-cell";
 
 export function UsersTable() {
   const [searchTerm, setSearchTerm] = useState("");
   const [userFormOpen, setUserFormOpen] = useState(false);
   const [userCredentialsOpen, setUserCredentialsOpen] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<ApiUserResponse | undefined>(
+  const [selectedUser, setSelectedUser] = useState<RespondUser | undefined>(
     undefined,
   );
 
@@ -53,7 +54,11 @@ export function UsersTable() {
   const queryClient = useQueryClient();
   const router = useRouter();
 
-  const usersOpt = getUsersOptions();
+  const usersOpt = getUsersOptions({
+    query: {
+      limit: 500,
+    },
+  });
   const { data, error, isLoading } = useQuery(usersOpt);
 
   const toggleSuspendMutation = useMutation({
@@ -77,14 +82,14 @@ export function UsersTable() {
     },
   });
 
-  const handleToggleSuspend = async (user: ApiUserResponse) => {
+  const handleToggleSuspend = async (user: RespondUser) => {
     clearError();
     const userData: ApiPatchUserRequest = {
       firstName: user.firstName,
       lastName: user.lastName,
       middleName: user.middleName,
       roleId: user.role.id,
-      departmentId: user.department?.id,
+      departmentId: user.departmentId,
       pictureUrl: user.pictureUrl,
       suspended: !user.suspended,
     };
@@ -101,17 +106,17 @@ export function UsersTable() {
     setUserFormOpen(true);
   };
 
-  const openEditUserDialog = (user: ApiUserResponse) => {
+  const openEditUserDialog = (user: RespondUser) => {
     setSelectedUser(user);
     setUserFormOpen(true);
   };
 
-  const openCredentialsDialog = (user: ApiUserResponse) => {
+  const openCredentialsDialog = (user: RespondUser) => {
     setSelectedUser(user);
     setUserCredentialsOpen(true);
   };
-  
-  const viewUserProfile = (user: ApiUserResponse) => {
+
+  const viewUserProfile = (user: RespondUser) => {
     router.push(`/admin/users/${user.id}`);
   };
 
@@ -122,7 +127,6 @@ export function UsersTable() {
       user.firstName?.toLowerCase().includes(searchLower) ||
       user.lastName?.toLowerCase().includes(searchLower) ||
       user.middleName?.toLowerCase().includes(searchLower) ||
-      (user.department?.name || "").toLowerCase().includes(searchLower) ||
       (user.role?.name || "").toLowerCase().includes(searchLower)
     );
   });
@@ -198,7 +202,9 @@ export function UsersTable() {
                       </div>
                     </div>
                   </TableCell>
-                  <TableCell>{user.department?.name || "-"}</TableCell>
+                  <TableCell>
+                    <DepartmentCell departmentId={user.departmentId} />
+                  </TableCell>
                   <TableCell>{user.jobTitle || "-"}</TableCell>
                   <TableCell>{user.subdivision || "-"}</TableCell>
                   <TableCell>{user.role?.name || "-"}</TableCell>
@@ -218,9 +224,7 @@ export function UsersTable() {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Действия</DropdownMenuLabel>
-                        <DropdownMenuItem
-                          onClick={() => viewUserProfile(user)}
-                        >
+                        <DropdownMenuItem onClick={() => viewUserProfile(user)}>
                           <User className="h-4 w-4 mr-2" />
                           Просмотр профиля
                         </DropdownMenuItem>

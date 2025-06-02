@@ -7,6 +7,7 @@ import (
 
 	"github.com/gofrs/uuid/v5"
 	"github.com/kozlov-ma/sesc-backend/achievement"
+	"github.com/kozlov-ma/sesc-backend/db/entdb/ent"
 	"github.com/kozlov-ma/sesc-backend/iam"
 	"github.com/kozlov-ma/sesc-backend/pkg/event"
 	"github.com/kozlov-ma/sesc-backend/sesc"
@@ -46,11 +47,10 @@ type (
 		DeleteDepartment(ctx context.Context, id uuid.UUID) error
 
 		// User operations
-		Users(ctx context.Context) ([]sesc.User, error)
-		User(ctx context.Context, id uuid.UUID) (sesc.User, error)
-		UserByID(ctx context.Context, id uuid.UUID) (sesc.User, error)
-		CreateUser(ctx context.Context, options sesc.UserUpdateOptions) (sesc.User, error)
-		UpdateUser(ctx context.Context, id uuid.UUID, options sesc.UserUpdateOptions) (sesc.User, error)
+		Users(ctx context.Context, offset, limit int, search string) (ent.Users, int, error)
+		User(ctx context.Context, id uuid.UUID) (*ent.User, error)
+		CreateUser(ctx context.Context, options sesc.UserUpdateOptions) (*ent.User, error)
+		UpdateUser(ctx context.Context, id uuid.UUID, options sesc.UserUpdateOptions) (*ent.User, error)
 		UpdateProfilePicture(ctx context.Context, id uuid.UUID, pictureURL string) error
 
 		// Achievement group operations

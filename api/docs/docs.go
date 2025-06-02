@@ -1471,6 +1471,62 @@ const docTemplate = `{
             }
         },
         "/departments/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Retrieves detailed information about a department",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Get department details",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer JWT token",
+                        "name": "Authorization",
+                        "in": "header"
+                    },
+                    {
+                        "type": "string",
+                        "description": "User UUID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/respond.Department"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid UUID format",
+                        "schema": {
+                            "$ref": "#/definitions/api.InvalidUUIDError"
+                        }
+                    },
+                    "404": {
+                        "description": "Department not found",
+                        "schema": {
+                            "$ref": "#/definitions/api.DepartmentNotFoundError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/api.ServerError"
+                        }
+                    }
+                }
+            },
             "put": {
                 "security": [
                     {
@@ -2122,6 +2178,29 @@ const docTemplate = `{
                 "summary": "Get all users registered in the system",
                 "parameters": [
                     {
+                        "minimum": 0,
+                        "type": "integer",
+                        "default": 0,
+                        "description": "Pagination offset",
+                        "name": "offset",
+                        "in": "query"
+                    },
+                    {
+                        "maximum": 100,
+                        "minimum": 1,
+                        "type": "integer",
+                        "default": 10,
+                        "description": "Pagination limit",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Search by name",
+                        "name": "search",
+                        "in": "query"
+                    },
+                    {
                         "type": "string",
                         "description": "Bearer JWT token",
                         "name": "Authorization",
@@ -2132,7 +2211,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/api.UsersResponse"
+                            "$ref": "#/definitions/respond.Users"
                         }
                     },
                     "401": {
@@ -2187,7 +2266,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/api.UserResponse"
+                            "$ref": "#/definitions/respond.User"
                         }
                     },
                     "400": {
@@ -2244,7 +2323,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/api.UserResponse"
+                            "$ref": "#/definitions/respond.User"
                         }
                     },
                     "401": {
@@ -2302,7 +2381,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/api.UserResponse"
+                            "$ref": "#/definitions/respond.User"
                         }
                     },
                     "400": {
@@ -2376,7 +2455,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/api.UserResponse"
+                            "$ref": "#/definitions/respond.User"
                         }
                     },
                     "400": {
@@ -3698,7 +3777,71 @@ const docTemplate = `{
                 }
             }
         },
-        "api.UserResponse": {
+        "api.WrongAchievementStatusError": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string",
+                    "example": "WRONG_ACHIEVEMENT_STATUS"
+                },
+                "details": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "Achievement is in wrong status for this operation"
+                },
+                "ruMessage": {
+                    "type": "string",
+                    "example": "Достижение находится в неподходящем статусе для этой операции"
+                }
+            }
+        },
+        "respond.Department": {
+            "type": "object",
+            "required": [
+                "description",
+                "id",
+                "name"
+            ],
+            "properties": {
+                "description": {
+                    "type": "string",
+                    "example": "Math department"
+                },
+                "id": {
+                    "type": "string",
+                    "example": "550e8400-e29b-41d4-a716-446655440000"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "Mathematics"
+                }
+            }
+        },
+        "respond.Role": {
+            "type": "object",
+            "required": [
+                "codeName",
+                "id",
+                "name"
+            ],
+            "properties": {
+                "codeName": {
+                    "type": "string",
+                    "example": "teacher"
+                },
+                "id": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "name": {
+                    "type": "string",
+                    "example": "Преподаватель"
+                }
+            }
+        },
+        "respond.User": {
             "type": "object",
             "required": [
                 "employmentRate",
@@ -3730,8 +3873,8 @@ const docTemplate = `{
                     "type": "string",
                     "example": "2020-01-15T00:00:00Z"
                 },
-                "department": {
-                    "$ref": "#/definitions/api.Department"
+                "departmentId": {
+                    "type": "string"
                 },
                 "employmentRate": {
                     "type": "number",
@@ -3774,7 +3917,7 @@ const docTemplate = `{
                     "example": "/images/users/ivan.jpg"
                 },
                 "role": {
-                    "$ref": "#/definitions/api.Role"
+                    "$ref": "#/definitions/respond.Role"
                 },
                 "subdivision": {
                     "type": "string",
@@ -3789,37 +3932,21 @@ const docTemplate = `{
                 }
             }
         },
-        "api.UsersResponse": {
+        "respond.Users": {
             "type": "object",
             "required": [
+                "total",
                 "users"
             ],
             "properties": {
+                "total": {
+                    "type": "integer"
+                },
                 "users": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/api.UserResponse"
+                        "$ref": "#/definitions/respond.User"
                     }
-                }
-            }
-        },
-        "api.WrongAchievementStatusError": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "type": "string",
-                    "example": "WRONG_ACHIEVEMENT_STATUS"
-                },
-                "details": {
-                    "type": "string"
-                },
-                "message": {
-                    "type": "string",
-                    "example": "Achievement is in wrong status for this operation"
-                },
-                "ruMessage": {
-                    "type": "string",
-                    "example": "Достижение находится в неподходящем статусе для этой операции"
                 }
             }
         }

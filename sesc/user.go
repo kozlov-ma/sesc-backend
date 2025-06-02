@@ -3,6 +3,7 @@ package sesc
 import (
 	"time"
 
+	"github.com/gofrs/uuid/v5"
 	"github.com/kozlov-ma/sesc-backend/pkg/event"
 )
 
@@ -70,7 +71,7 @@ type UserUpdateOptions struct {
 	MiddleName        string
 	PictureURL        string
 	Suspended         bool
-	DepartmentID      UUID
+	DepartmentID      *UUID
 	NewRole           Role
 	Subdivision       string
 	JobTitle          string
@@ -102,13 +103,17 @@ func (u UserUpdateOptions) Validate() error {
 }
 
 func (u User) UpdateOptions() UserUpdateOptions {
+	var depID *UUID
+	if u.Department.ID != uuid.Nil {
+		depID = &u.Department.ID
+	}
 	return UserUpdateOptions{
 		FirstName:         u.FirstName,
 		LastName:          u.LastName,
 		MiddleName:        u.MiddleName,
 		PictureURL:        u.PictureURL,
 		Suspended:         u.Suspended,
-		DepartmentID:      u.Department.ID,
+		DepartmentID:      depID,
 		NewRole:           u.Role,
 		Subdivision:       u.Subdivision,
 		JobTitle:          u.JobTitle,

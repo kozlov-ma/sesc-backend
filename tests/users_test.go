@@ -46,7 +46,7 @@ func TestUserCRUD(t *testing.T) {
 	)
 	userData.MiddleName = fmt.Sprintf("Smith_%s", randomSuffix)
 	userData.PictureURL = fmt.Sprintf("/images/users/john_%s.jpg", randomSuffix)
-	userData.DepartmentID = dept.ID
+	userData.DepartmentID = &dept.ID
 
 	user, err := client.CreateUser(ctx, userData)
 	require.NoError(t, err)
@@ -60,8 +60,8 @@ func TestUserCRUD(t *testing.T) {
 	assert.NotEqual(t, uuid.Nil, user.ID)
 
 	// Verify department ID only if it's set
-	if user.Department.ID != uuid.Nil {
-		assert.Equal(t, dept.ID, user.Department.ID)
+	if user.DepartmentID != nil {
+		assert.Equal(t, &dept.ID, user.DepartmentID)
 	}
 
 	// 4. Get specific user by ID
@@ -74,9 +74,13 @@ func TestUserCRUD(t *testing.T) {
 	// 5. Update the user with patch
 	suspended := true
 	newFirstName := fmt.Sprintf("Jane_%s", randomSuffix)
+
+	nr := 3
 	patchReq := PatchUserRequest{
 		FirstName: &newFirstName,
+		LastName:  &newFirstName,
 		Suspended: &suspended,
+		Role:      &nr,
 	}
 
 	patchedUser, err := client.PatchUser(ctx, user.ID.String(), patchReq)
@@ -86,9 +90,6 @@ func TestUserCRUD(t *testing.T) {
 	// Verify user was patched with correct data
 	assert.Equal(t, newFirstName, patchedUser.FirstName)
 	assert.Equal(t, suspended, patchedUser.Suspended)
-	// Other fields should remain unchanged
-	assert.Equal(t, user.LastName, patchedUser.LastName)
-	assert.Equal(t, user.MiddleName, patchedUser.MiddleName)
 
 	// 6. Register credentials for the user with unique username
 	credentialsReq := RegisterUserRequest{

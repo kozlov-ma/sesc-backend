@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/felixge/httpsnoop"
+	"github.com/kozlov-ma/sesc-backend/db/entdb/ent"
 	"github.com/kozlov-ma/sesc-backend/iam"
 	"github.com/kozlov-ma/sesc-backend/pkg/event"
 	"github.com/kozlov-ma/sesc-backend/pkg/event/events"
@@ -29,8 +30,8 @@ func GetIdentityFromContext(ctx context.Context) (iam.Identity, bool) {
 }
 
 // GetUserFromContext retrieves the user from the request context if it exists
-func GetUserFromContext(ctx context.Context) (sesc.User, bool) {
-	user, ok := ctx.Value(userContextKey).(sesc.User)
+func GetUserFromContext(ctx context.Context) (*ent.User, bool) {
+	user, ok := ctx.Value(userContextKey).(*ent.User)
 	return user, ok
 }
 
@@ -229,7 +230,7 @@ func (a *API) CurrentUserMiddleware(next http.Handler) http.Handler {
 				return
 			}
 
-			rec.Set("user", user.EventRecord())
+			rec.Set("user", user)
 
 			ctx = context.WithValue(ctx, userContextKey, user)
 		}

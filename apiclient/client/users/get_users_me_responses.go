@@ -64,7 +64,7 @@ GetUsersMeOK describes a response with status code 200, with default header valu
 OK
 */
 type GetUsersMeOK struct {
-	Payload *models.APIUserResponse
+	Payload *models.RespondUser
 }
 
 // IsSuccess returns true when this get users me o k response has a 2xx status code
@@ -107,13 +107,13 @@ func (o *GetUsersMeOK) String() string {
 	return fmt.Sprintf("[GET /users/me][%d] getUsersMeOK %s", 200, payload)
 }
 
-func (o *GetUsersMeOK) GetPayload() *models.APIUserResponse {
+func (o *GetUsersMeOK) GetPayload() *models.RespondUser {
 	return o.Payload
 }
 
 func (o *GetUsersMeOK) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIUserResponse)
+	o.Payload = new(models.RespondUser)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {

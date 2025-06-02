@@ -6,6 +6,8 @@ import (
 	"net/http"
 
 	"github.com/gofrs/uuid/v5"
+	"github.com/kozlov-ma/sesc-backend/api/respond"
+	"github.com/kozlov-ma/sesc-backend/db/entdb/ent"
 	"github.com/kozlov-ma/sesc-backend/pkg/event"
 	"github.com/kozlov-ma/sesc-backend/pkg/event/events"
 )
@@ -320,4 +322,47 @@ func (a *API) DeleteDepartment(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusNoContent)
+}
+
+// GetDepartment godoc
+// @Summary Get department details
+// @Description Retrieves detailed information about a department
+// @Tags users
+// @Produce json
+// @Security BearerAuth
+// @Param Authorization header string false "Bearer JWT token"
+// @Param id path string true "User UUID"
+// @Success 200 {object} respond.Department
+// @Failure 400 {object} InvalidUUIDError "Invalid UUID format"
+// @Failure 404 {object} DepartmentNotFoundError "Department not found"
+// @Failure 500 {object} ServerError "Internal server error"
+// @Router /departments/{id} [get]
+func (a *API) GetDepartment(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	rec := event.Get(ctx)
+
+	idStr := r.PathValue("id")
+
+	depID, err := uuid.FromString(idStr)
+	if err != nil {
+		writeError(ctx, w, InvalidUUIDError{
+			Code:      "INVALID_UUID",
+			Message:   "Invalid user ID format",
+			RuMessage: "Некорректный формат ID пользователя",
+		}.WithStatus(http.StatusBadRequest))
+		return
+	}
+
+	dep, err := a.sesc.DepartmentByID(ctx, depID)
+	if err != nil {
+		rec.Add(events.Error, err)
+		writeError(ctx, w, sescError(err))
+		return
+	}
+
+	a.writeJSON(ctx, w, respond.WithDepartment(&ent.Department{
+		ID:          depID,
+		Name:        dep.Name,
+		Description: dep.Description,
+	}), http.StatusOK)
 }

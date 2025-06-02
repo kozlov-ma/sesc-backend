@@ -2,6 +2,8 @@ package tests
 
 import (
 	"github.com/gofrs/uuid/v5"
+	"github.com/kozlov-ma/sesc-backend/api"
+	"github.com/kozlov-ma/sesc-backend/api/respond"
 )
 
 // API request/response models for use in tests
@@ -18,52 +20,10 @@ type LoginResponse struct {
 }
 
 // User represents a user in the system
-type User struct {
-	ID         uuid.UUID  `json:"id"`
-	FirstName  string     `json:"firstName"`
-	LastName   string     `json:"lastName"`
-	MiddleName string     `json:"middleName,omitempty"`
-	PictureURL string     `json:"pictureUrl"`
-	Role       Role       `json:"role"`
-	Suspended  bool       `json:"suspended"`
-	Department Department `json:"department,omitempty"`
-
-	Subdivision       string  `json:"subdivision"`
-	JobTitle          string  `json:"jobTitle"`
-	EmploymentRate    float64 `json:"employmentRate"`
-	AcademicDegree    int     `json:"academicDegree,omitempty"`
-	PersonnelCategory int     `json:"personnelCategory"`
-	EmploymentType    int     `json:"employmentType"`
-	AcademicTitle     string  `json:"academicTitle,omitempty"`
-	Honors            string  `json:"honors,omitempty"`
-	Category          string  `json:"category,omitempty"`
-
-	DateOfEmployment string `json:"dateOfEmployment"`
-	UnemploymentDate string `json:"unemploymentDate,omitempty"`
-}
+type User = respond.User
 
 // CreateUserRequest is used to create a new user
-type CreateUserRequest struct {
-	FirstName    string    `json:"firstName"`
-	LastName     string    `json:"lastName"`
-	MiddleName   string    `json:"middleName,omitempty"`
-	Role         int       `json:"role"`
-	PictureURL   string    `json:"pictureUrl,omitempty"`
-	DepartmentID uuid.UUID `json:"departmentId,omitempty"`
-
-	Subdivision       string  `json:"subdivision"`
-	JobTitle          string  `json:"jobTitle"`
-	EmploymentRate    float64 `json:"employmentRate"`
-	AcademicDegree    int     `json:"academicDegree,omitempty"`
-	PersonnelCategory int     `json:"personnelCategory"`
-	EmploymentType    int     `json:"employmentType"`
-	AcademicTitle     string  `json:"academicTitle,omitempty"`
-	Honors            string  `json:"honors,omitempty"`
-	Category          string  `json:"category,omitempty"`
-
-	DateOfEmployment string `json:"dateOfEmployment"`
-	UnemploymentDate string `json:"unemploymentDate,omitempty"`
-}
+type CreateUserRequest = api.CreateUserRequest
 
 // PatchUserRequest is used to update a user
 type PatchUserRequest struct {
@@ -73,7 +33,7 @@ type PatchUserRequest struct {
 	PictureURL   *string    `json:"pictureUrl,omitempty"`
 	Suspended    *bool      `json:"suspended,omitempty"`
 	DepartmentID *uuid.UUID `json:"departmentId,omitempty"`
-	Role         *int       `json:"role,omitempty"`
+	Role         *int       `json:"roleId,omitempty"`
 
 	Subdivision       *string  `json:"subdivision,omitempty"`
 	JobTitle          *string  `json:"jobTitle,omitempty"`
@@ -115,11 +75,7 @@ type UpdateDepartmentRequest struct {
 }
 
 // Role represents a role in the system
-type Role struct {
-	ID          int32        `json:"id"`
-	Name        string       `json:"name"`
-	Permissions []Permission `json:"permissions"`
-}
+type Role = respond.Role
 
 // Permission represents a permission in the system
 type Permission struct {

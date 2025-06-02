@@ -4,9 +4,6 @@ import (
 	"fmt"
 	"os"
 	"testing"
-	"time"
-
-	"github.com/gofrs/uuid/v5"
 )
 
 // SkipIfNoTestAPI skips the integration test if TEST_API_URL is not set
@@ -26,7 +23,6 @@ func CreateValidUserData(firstName, lastName string, role int) CreateUserRequest
 		MiddleName:        "",
 		Role:              role,
 		PictureURL:        "",
-		DepartmentID:      uuid.UUID{},
 		Subdivision:       "Test Subdivision",
 		JobTitle:          "Test Position",
 		EmploymentRate:    1.0,
@@ -36,8 +32,6 @@ func CreateValidUserData(firstName, lastName string, role int) CreateUserRequest
 		AcademicTitle:     "",
 		Honors:            "",
 		Category:          "",
-		DateOfEmployment:  time.Now().Format(time.RFC3339),
-		UnemploymentDate:  "",
 	}
 }
 

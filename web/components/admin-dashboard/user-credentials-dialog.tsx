@@ -41,7 +41,7 @@ import { AxiosError } from "axios";
 import type {
   PutUsersByIdCredentialsError,
   DeleteAuthCredentialsByIdError,
-  ApiUserResponse,
+  RespondUser,
 } from "@/lib/api/types.gen";
 import { ErrorMessage } from "@/components/ui/error-message";
 import { useFormError } from "@/hooks/use-error-handler";
@@ -61,7 +61,7 @@ type CredentialsFormValues = z.infer<typeof credentialsSchema>;
 interface UserCredentialsDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  user: ApiUserResponse;
+  user: RespondUser;
 }
 
 export function UserCredentialsDialog({
