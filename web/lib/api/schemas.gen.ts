@@ -280,7 +280,7 @@ export const api_CreateUserRequestSchema = {
     "jobTitle",
     "lastName",
     "personnelCategory",
-    "roleId",
+    "role",
     "subdivision",
   ],
   properties: {
@@ -340,7 +340,7 @@ export const api_CreateUserRequestSchema = {
       type: "string",
       example: "/images/users/ivan.jpg",
     },
-    roleId: {
+    role: {
       type: "integer",
       example: 2,
     },
@@ -794,6 +794,19 @@ export const api_InvalidUUIDErrorSchema = {
   },
 } as const;
 
+export const api_MarkAchievementsAsAccountedRequestSchema = {
+  type: "object",
+  required: ["achievementIds"],
+  properties: {
+    achievementIds: {
+      type: "array",
+      items: {
+        type: "string",
+      },
+    },
+  },
+} as const;
+
 export const api_PaginatedAchievementsResponseSchema = {
   type: "object",
   required: ["items", "limit", "offset", "totalCount"],
@@ -939,38 +952,6 @@ export const api_PatchUserRequestSchema = {
   },
 } as const;
 
-export const api_PermissionSchema = {
-  type: "object",
-  required: ["description", "id", "name"],
-  properties: {
-    description: {
-      type: "string",
-      example: "Создание и заполнение листа достижений",
-    },
-    id: {
-      type: "integer",
-      example: 1,
-    },
-    name: {
-      type: "string",
-      example: "draft_achievement_list",
-    },
-  },
-} as const;
-
-export const api_PermissionsResponseSchema = {
-  type: "object",
-  required: ["permissions"],
-  properties: {
-    permissions: {
-      type: "array",
-      items: {
-        $ref: "#/definitions/api.Permission",
-      },
-    },
-  },
-} as const;
-
 export const api_PointsLimitExceededErrorSchema = {
   type: "object",
   properties: {
@@ -1036,8 +1017,12 @@ export const api_ReviewResponseSchema = {
 
 export const api_RoleSchema = {
   type: "object",
-  required: ["id", "name", "permissions"],
+  required: ["codeName", "id", "name"],
   properties: {
+    codeName: {
+      type: "string",
+      example: "teacher",
+    },
     id: {
       type: "integer",
       example: 1,
@@ -1045,12 +1030,6 @@ export const api_RoleSchema = {
     name: {
       type: "string",
       example: "Преподаватель",
-    },
-    permissions: {
-      type: "array",
-      items: {
-        $ref: "#/definitions/api.Permission",
-      },
     },
   },
 } as const;
@@ -1180,7 +1159,6 @@ export const api_UserNotFoundErrorSchema = {
 export const api_UserResponseSchema = {
   type: "object",
   required: [
-    "dateOfEmployment",
     "employmentRate",
     "employmentType",
     "firstName",

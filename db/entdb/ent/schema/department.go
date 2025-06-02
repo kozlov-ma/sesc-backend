@@ -16,7 +16,7 @@ type Department struct {
 
 func (Department) Fields() []ent.Field {
 	return []ent.Field{
-		field.UUID("id", uuid.UUID{}).Unique(),
+		field.UUID("id", uuid.UUID{}).Default(func() uuid.UUID { return uuid.Must(uuid.NewV7()) }).Unique(),
 		field.String("name").
 			Unique().
 			NotEmpty(),

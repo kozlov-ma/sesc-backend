@@ -31,7 +31,7 @@ type UserResponse struct {
 	Honors            string  `json:"honors"            example:"Заслуженный деятель науки"`
 	Category          string  `json:"category"          example:"Высшая"`
 
-	DateOfEmployment time.Time `json:"dateOfEmployment,omitzero" example:"2020-01-15T00:00:00Z" validate:"required"`
+	DateOfEmployment time.Time `json:"dateOfEmployment,omitzero" example:"2020-01-15T00:00:00Z"`
 	UnemploymentDate time.Time `json:"unemploymentDate,omitzero" example:"2023-12-31T00:00:00Z"`
 }
 
@@ -39,7 +39,7 @@ type CreateUserRequest struct {
 	FirstName    string    `json:"firstName"             example:"Anna"                                 validate:"required"`
 	LastName     string    `json:"lastName"              example:"Smirnova"                             validate:"required"`
 	MiddleName   string    `json:"middleName"            example:"Olegovna"`
-	Role         sesc.Role `json:"roleId"                example:"2"                                    validate:"required"`
+	Role         int       `json:"role"                  example:"2"                                    validate:"required"`
 	PictureURL   string    `json:"pictureUrl,omitzero"   example:"/images/users/ivan.jpg"`
 	DepartmentID uuid.UUID `json:"departmentId,omitzero" example:"550e8400-e29b-41d4-a716-446655440000"`
 
@@ -175,7 +175,7 @@ func (a *API) CreateUser(w http.ResponseWriter, r *http.Request) {
 	var req CreateUserRequest
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		writeError(ctx, w, ErrInvalidRequest.WithStatus(http.StatusBadRequest))
+		writeError(ctx, w, ErrInvalidRequest.WithStatus(http.StatusBadRequest).WithDetails(err.Error()))
 		return
 	}
 
@@ -185,7 +185,7 @@ func (a *API) CreateUser(w http.ResponseWriter, r *http.Request) {
 		MiddleName:        req.MiddleName,
 		PictureURL:        req.PictureURL,
 		DepartmentID:      req.DepartmentID,
-		NewRole:           req.Role,
+		NewRole:           sesc.Role(req.Role),
 		Subdivision:       req.Subdivision,
 		JobTitle:          req.JobTitle,
 		EmploymentRate:    req.EmploymentRate,
@@ -238,7 +238,7 @@ type PatchUserRequest struct {
 	PictureURL   *string    `json:"pictureUrl,omitzero"   example:"/images/users/ivan.jpg"`
 	Suspended    *bool      `json:"suspended,omitzero"    example:"false"                                validate:"required"`
 	DepartmentID *uuid.UUID `json:"departmentId,omitzero" example:"550e8400-e29b-41d4-a716-446655440000"`
-	RoleChange   *sesc.Role `json:"roleId,omitzero"       example:"1"                                    validate:"required"`
+	RoleChange   *int       `json:"roleId,omitzero"       example:"1"                                    validate:"required"`
 
 	Subdivision       *string  `json:"subdivision,omitzero"       example:"Кафедра информатики"`
 	JobTitle          *string  `json:"jobTitle,omitzero"          example:"Профессор"`
@@ -260,7 +260,7 @@ func (a *API) validateDepartmentAssignment(req *PatchUserRequest, existing sesc.
 		return true
 	}
 
-	newRoleIsBad := (req.RoleChange != nil && *req.RoleChange != sesc.Teacher && *req.RoleChange != sesc.Dephead)
+	newRoleIsBad := (req.RoleChange != nil && *req.RoleChange != int(sesc.Teacher) && *req.RoleChange != int(sesc.Dephead))
 	noNewRoleAndOldIsBad := (req.RoleChange == nil && existing.Role != sesc.Teacher && existing.Role != sesc.Dephead)
 
 	return !newRoleIsBad && !noNewRoleAndOldIsBad
@@ -287,7 +287,7 @@ func (a *API) applyPatchUserRequest(req *PatchUserRequest, upd *sesc.UserUpdateO
 		upd.DepartmentID = *req.DepartmentID
 	}
 	if req.RoleChange != nil {
-		upd.NewRole = *req.RoleChange
+		upd.NewRole = sesc.Role(*req.RoleChange)
 	}
 	if req.Subdivision != nil {
 		upd.Subdivision = *req.Subdivision

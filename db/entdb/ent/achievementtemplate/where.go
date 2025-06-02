@@ -6,6 +6,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	uuid "github.com/gofrs/uuid/v5"
+	"github.com/kozlov-ma/sesc-backend/achievement"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/predicate"
 )
 
@@ -77,6 +78,12 @@ func GroupID(v uuid.UUID) predicate.AchievementTemplate {
 // Active applies equality check predicate on the "active" field. It's identical to ActiveEQ.
 func Active(v bool) predicate.AchievementTemplate {
 	return predicate.AchievementTemplate(sql.FieldEQ(FieldActive, v))
+}
+
+// Kind applies equality check predicate on the "kind" field. It's identical to KindEQ.
+func Kind(v achievement.Kind) predicate.AchievementTemplate {
+	vc := string(v)
+	return predicate.AchievementTemplate(sql.FieldEQ(FieldKind, vc))
 }
 
 // NameEQ applies the EQ predicate on the "name" field.
@@ -290,23 +297,87 @@ func ActiveNEQ(v bool) predicate.AchievementTemplate {
 }
 
 // KindEQ applies the EQ predicate on the "kind" field.
-func KindEQ(v Kind) predicate.AchievementTemplate {
-	return predicate.AchievementTemplate(sql.FieldEQ(FieldKind, v))
+func KindEQ(v achievement.Kind) predicate.AchievementTemplate {
+	vc := string(v)
+	return predicate.AchievementTemplate(sql.FieldEQ(FieldKind, vc))
 }
 
 // KindNEQ applies the NEQ predicate on the "kind" field.
-func KindNEQ(v Kind) predicate.AchievementTemplate {
-	return predicate.AchievementTemplate(sql.FieldNEQ(FieldKind, v))
+func KindNEQ(v achievement.Kind) predicate.AchievementTemplate {
+	vc := string(v)
+	return predicate.AchievementTemplate(sql.FieldNEQ(FieldKind, vc))
 }
 
 // KindIn applies the In predicate on the "kind" field.
-func KindIn(vs ...Kind) predicate.AchievementTemplate {
-	return predicate.AchievementTemplate(sql.FieldIn(FieldKind, vs...))
+func KindIn(vs ...achievement.Kind) predicate.AchievementTemplate {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = string(vs[i])
+	}
+	return predicate.AchievementTemplate(sql.FieldIn(FieldKind, v...))
 }
 
 // KindNotIn applies the NotIn predicate on the "kind" field.
-func KindNotIn(vs ...Kind) predicate.AchievementTemplate {
-	return predicate.AchievementTemplate(sql.FieldNotIn(FieldKind, vs...))
+func KindNotIn(vs ...achievement.Kind) predicate.AchievementTemplate {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = string(vs[i])
+	}
+	return predicate.AchievementTemplate(sql.FieldNotIn(FieldKind, v...))
+}
+
+// KindGT applies the GT predicate on the "kind" field.
+func KindGT(v achievement.Kind) predicate.AchievementTemplate {
+	vc := string(v)
+	return predicate.AchievementTemplate(sql.FieldGT(FieldKind, vc))
+}
+
+// KindGTE applies the GTE predicate on the "kind" field.
+func KindGTE(v achievement.Kind) predicate.AchievementTemplate {
+	vc := string(v)
+	return predicate.AchievementTemplate(sql.FieldGTE(FieldKind, vc))
+}
+
+// KindLT applies the LT predicate on the "kind" field.
+func KindLT(v achievement.Kind) predicate.AchievementTemplate {
+	vc := string(v)
+	return predicate.AchievementTemplate(sql.FieldLT(FieldKind, vc))
+}
+
+// KindLTE applies the LTE predicate on the "kind" field.
+func KindLTE(v achievement.Kind) predicate.AchievementTemplate {
+	vc := string(v)
+	return predicate.AchievementTemplate(sql.FieldLTE(FieldKind, vc))
+}
+
+// KindContains applies the Contains predicate on the "kind" field.
+func KindContains(v achievement.Kind) predicate.AchievementTemplate {
+	vc := string(v)
+	return predicate.AchievementTemplate(sql.FieldContains(FieldKind, vc))
+}
+
+// KindHasPrefix applies the HasPrefix predicate on the "kind" field.
+func KindHasPrefix(v achievement.Kind) predicate.AchievementTemplate {
+	vc := string(v)
+	return predicate.AchievementTemplate(sql.FieldHasPrefix(FieldKind, vc))
+}
+
+// KindHasSuffix applies the HasSuffix predicate on the "kind" field.
+func KindHasSuffix(v achievement.Kind) predicate.AchievementTemplate {
+	vc := string(v)
+	return predicate.AchievementTemplate(sql.FieldHasSuffix(FieldKind, vc))
+}
+
+// KindEqualFold applies the EqualFold predicate on the "kind" field.
+func KindEqualFold(v achievement.Kind) predicate.AchievementTemplate {
+	vc := string(v)
+	return predicate.AchievementTemplate(sql.FieldEqualFold(FieldKind, vc))
+}
+
+// KindContainsFold applies the ContainsFold predicate on the "kind" field.
+func KindContainsFold(v achievement.Kind) predicate.AchievementTemplate {
+	vc := string(v)
+	return predicate.AchievementTemplate(sql.FieldContainsFold(FieldKind, vc))
 }
 
 // HasGroup applies the HasEdge predicate on the "group" edge.

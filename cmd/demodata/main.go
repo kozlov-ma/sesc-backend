@@ -18,6 +18,7 @@ import (
 	"github.com/kozlov-ma/sesc-backend/apiclient/client/roles"
 	"github.com/kozlov-ma/sesc-backend/apiclient/client/users"
 	"github.com/kozlov-ma/sesc-backend/apiclient/models"
+	"github.com/kozlov-ma/sesc-backend/sesc"
 )
 
 // Department data to be created if not exists
@@ -58,16 +59,6 @@ var departmentsData = []struct {
 		Description: "Кафедра была организована в 1990 году. Первым заведующим кафедрой был В. Р. Малкин.",
 	},
 }
-
-// Role IDs
-const (
-	RoleTeacher           = 1
-	RoleDephead           = 2
-	RoleContestDeputy     = 3
-	RoleScientificDeputy  = 4
-	RoleDevelopmentDeputy = 5
-	RoleAdmin             = 6
-)
 
 // Russian first names for random user generation
 var firstNames = []string{
@@ -383,7 +374,7 @@ func processUsers(
 		// Check if department has a head
 		hasDephead := false
 		for _, user := range deptUsers[deptID] {
-			if *user.Role.ID == RoleDephead {
+			if *user.Role.ID == int64(sesc.Dephead) {
 				hasDephead = true
 
 				// Get or create credentials for existing dephead
@@ -402,12 +393,12 @@ func processUsers(
 
 		// Create department head if needed
 		if !hasDephead {
-			userInfo, err := createRandomUser(apiClient, authInfo, deptID, RoleDephead)
+			userInfo, err := createRandomUser(apiClient, authInfo, deptID, int64(sesc.Dephead))
 			if err != nil {
 				return nil, fmt.Errorf("failed to create dephead for department %s: %w", deptID, err)
 			}
 			userInfo.Department = *dept.Name
-			userInfo.Role = *roleMap[RoleDephead].Name
+			userInfo.Role = *roleMap[int64(sesc.Dephead)].Name
 
 			allUserInfos = append(allUserInfos, userInfo)
 
@@ -422,7 +413,7 @@ func processUsers(
 		// Ensure department has at least 5 teachers
 		teacherCount := 0
 		for _, user := range deptUsers[deptID] {
-			if *user.Role.ID == RoleTeacher {
+			if *user.Role.ID == int64(sesc.Teacher) {
 				teacherCount++
 
 				// Get or create credentials for existing teacher
@@ -440,12 +431,12 @@ func processUsers(
 
 		// Create additional teachers if needed
 		for teacherCount < 5 {
-			userInfo, err := createRandomUser(apiClient, authInfo, deptID, RoleTeacher)
+			userInfo, err := createRandomUser(apiClient, authInfo, deptID, int64(sesc.Teacher))
 			if err != nil {
 				return nil, fmt.Errorf("failed to create teacher for department %s: %w", deptID, err)
 			}
 			userInfo.Department = *dept.Name
-			userInfo.Role = *roleMap[RoleTeacher].Name
+			userInfo.Role = *roleMap[int64(sesc.Teacher)].Name
 
 			allUserInfos = append(allUserInfos, userInfo)
 			teacherCount++
@@ -453,7 +444,7 @@ func processUsers(
 	}
 
 	// Ensure all deputy roles are filled
-	deputyRoles := []int64{RoleContestDeputy, RoleScientificDeputy, RoleDevelopmentDeputy}
+	deputyRoles := []int64{int64(sesc.OlympiadDeputy), int64(sesc.ScientificDeputy), int64(sesc.DevelopmentDeputy)}
 	for _, roleID := range deputyRoles {
 		if len(roleUsers[roleID]) == 0 {
 			// Create deputy without department
@@ -509,7 +500,7 @@ func createRandomUser(
 		FirstName:  &firstName,
 		LastName:   &lastName,
 		MiddleName: middleName,
-		RoleID:     &roleID,
+		Role:       &roleID,
 		PictureURL: pictureURL,
 	})
 

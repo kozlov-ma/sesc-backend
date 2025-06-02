@@ -10,7 +10,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	uuid "github.com/gofrs/uuid/v5"
-	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievement"
+	entachievement "github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievement"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievementdocument"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievementreview"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievementtemplate"
@@ -154,15 +154,15 @@ func (ac *AchievementCreate) ExecX(ctx context.Context) {
 // defaults sets the default values of the builder before save.
 func (ac *AchievementCreate) defaults() {
 	if _, ok := ac.mutation.Status(); !ok {
-		v := achievement.DefaultStatus
+		v := entachievement.DefaultStatus
 		ac.mutation.SetStatus(v)
 	}
 	if _, ok := ac.mutation.Points(); !ok {
-		v := achievement.DefaultPoints
+		v := entachievement.DefaultPoints
 		ac.mutation.SetPoints(v)
 	}
 	if _, ok := ac.mutation.ID(); !ok {
-		v := achievement.DefaultID()
+		v := entachievement.DefaultID()
 		ac.mutation.SetID(v)
 	}
 }
@@ -179,7 +179,7 @@ func (ac *AchievementCreate) check() error {
 		return &ValidationError{Name: "status", err: errors.New(`ent: missing required field "Achievement.status"`)}
 	}
 	if v, ok := ac.mutation.Status(); ok {
-		if err := achievement.StatusValidator(v); err != nil {
+		if err := entachievement.StatusValidator(v); err != nil {
 			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "Achievement.status": %w`, err)}
 		}
 	}
@@ -221,26 +221,26 @@ func (ac *AchievementCreate) sqlSave(ctx context.Context) (*Achievement, error) 
 func (ac *AchievementCreate) createSpec() (*Achievement, *sqlgraph.CreateSpec) {
 	var (
 		_node = &Achievement{config: ac.config}
-		_spec = sqlgraph.NewCreateSpec(achievement.Table, sqlgraph.NewFieldSpec(achievement.FieldID, field.TypeUUID))
+		_spec = sqlgraph.NewCreateSpec(entachievement.Table, sqlgraph.NewFieldSpec(entachievement.FieldID, field.TypeUUID))
 	)
 	if id, ok := ac.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = &id
 	}
 	if value, ok := ac.mutation.Status(); ok {
-		_spec.SetField(achievement.FieldStatus, field.TypeString, value)
+		_spec.SetField(entachievement.FieldStatus, field.TypeString, value)
 		_node.Status = value
 	}
 	if value, ok := ac.mutation.Points(); ok {
-		_spec.SetField(achievement.FieldPoints, field.TypeInt, value)
+		_spec.SetField(entachievement.FieldPoints, field.TypeInt, value)
 		_node.Points = value
 	}
 	if nodes := ac.mutation.DocumentsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   achievement.DocumentsTable,
-			Columns: []string{achievement.DocumentsColumn},
+			Table:   entachievement.DocumentsTable,
+			Columns: []string{entachievement.DocumentsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(achievementdocument.FieldID, field.TypeUUID),
@@ -255,8 +255,8 @@ func (ac *AchievementCreate) createSpec() (*Achievement, *sqlgraph.CreateSpec) {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   achievement.ReviewsTable,
-			Columns: []string{achievement.ReviewsColumn},
+			Table:   entachievement.ReviewsTable,
+			Columns: []string{entachievement.ReviewsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(achievementreview.FieldID, field.TypeUUID),
@@ -271,8 +271,8 @@ func (ac *AchievementCreate) createSpec() (*Achievement, *sqlgraph.CreateSpec) {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   achievement.OwnerTable,
-			Columns: []string{achievement.OwnerColumn},
+			Table:   entachievement.OwnerTable,
+			Columns: []string{entachievement.OwnerColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
@@ -288,8 +288,8 @@ func (ac *AchievementCreate) createSpec() (*Achievement, *sqlgraph.CreateSpec) {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   achievement.TemplateTable,
-			Columns: []string{achievement.TemplateColumn},
+			Table:   entachievement.TemplateTable,
+			Columns: []string{entachievement.TemplateColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(achievementtemplate.FieldID, field.TypeUUID),

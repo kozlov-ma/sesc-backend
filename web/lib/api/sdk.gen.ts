@@ -86,8 +86,14 @@ import type {
   GetFilesByIdData,
   GetFilesByIdResponse,
   GetFilesByIdError,
-  GetPermissionsData,
-  GetPermissionsResponse,
+  PostReportsMarkAccountedData,
+  PostReportsMarkAccountedResponse,
+  PostReportsMarkAccountedError,
+  PostReportsMarkAllAccountedData,
+  PostReportsMarkAllAccountedResponse,
+  PostReportsMarkAllAccountedError,
+  GetReportsUserPointsData,
+  GetReportsUserPointsError,
   GetRolesData,
   GetRolesResponse,
   GetRolesError,
@@ -820,18 +826,77 @@ export const getFilesById = <ThrowOnError extends boolean = false>(
 };
 
 /**
- * List all permissions
- * Retrieves all available system permissions
+ * Mark achievements as accounted
+ * Marks achievements with "done" status as "accounted" in the system
  */
-export const getPermissions = <ThrowOnError extends boolean = false>(
-  options?: Options<GetPermissionsData, ThrowOnError>,
+export const postReportsMarkAccounted = <ThrowOnError extends boolean = false>(
+  options: Options<PostReportsMarkAccountedData, ThrowOnError>,
 ) => {
-  return (options?.client ?? _heyApiClient).get<
-    GetPermissionsResponse,
-    unknown,
+  return (options.client ?? _heyApiClient).post<
+    PostReportsMarkAccountedResponse,
+    PostReportsMarkAccountedError,
     ThrowOnError
   >({
-    url: "/permissions",
+    security: [
+      {
+        name: "Authorization",
+        type: "apiKey",
+      },
+    ],
+    url: "/reports/mark-accounted",
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...options?.headers,
+    },
+  });
+};
+
+/**
+ * Mark all done achievements as accounted
+ * Marks all achievements with "done" status as "accounted" in the system
+ */
+export const postReportsMarkAllAccounted = <
+  ThrowOnError extends boolean = false,
+>(
+  options?: Options<PostReportsMarkAllAccountedData, ThrowOnError>,
+) => {
+  return (options?.client ?? _heyApiClient).post<
+    PostReportsMarkAllAccountedResponse,
+    PostReportsMarkAllAccountedError,
+    ThrowOnError
+  >({
+    security: [
+      {
+        name: "Authorization",
+        type: "apiKey",
+      },
+    ],
+    url: "/reports/mark-all-accounted",
+    ...options,
+  });
+};
+
+/**
+ * Generate user points report
+ * Generates an Excel report containing all users with their achievement points summary
+ */
+export const getReportsUserPoints = <ThrowOnError extends boolean = false>(
+  options?: Options<GetReportsUserPointsData, ThrowOnError>,
+) => {
+  return (options?.client ?? _heyApiClient).get<
+    unknown,
+    GetReportsUserPointsError,
+    ThrowOnError
+  >({
+    responseType: "blob",
+    security: [
+      {
+        name: "Authorization",
+        type: "apiKey",
+      },
+    ],
+    url: "/reports/user-points",
     ...options,
   });
 };

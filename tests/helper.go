@@ -19,12 +19,12 @@ func SkipIfNoTestAPI(t *testing.T) {
 }
 
 // CreateValidUserData creates a CreateUserRequest with all required fields filled with valid data
-func CreateValidUserData(firstName, lastName string, roleID int32) CreateUserRequest {
+func CreateValidUserData(firstName, lastName string, role int) CreateUserRequest {
 	return CreateUserRequest{
 		FirstName:         firstName,
 		LastName:          lastName,
 		MiddleName:        "",
-		RoleID:            roleID,
+		Role:              role,
 		PictureURL:        "",
 		DepartmentID:      uuid.UUID{},
 		Subdivision:       "Test Subdivision",
@@ -42,10 +42,10 @@ func CreateValidUserData(firstName, lastName string, roleID int32) CreateUserReq
 }
 
 // CreateValidUserDataWithSuffix creates a CreateUserRequest with unique names and valid data
-func CreateValidUserDataWithSuffix(suffix string, roleID int32) CreateUserRequest {
+func CreateValidUserDataWithSuffix(suffix string, role int) CreateUserRequest {
 	return CreateValidUserData(
 		fmt.Sprintf("Test_%s", suffix),
 		fmt.Sprintf("User_%s", suffix),
-		roleID,
+		role,
 	)
 }

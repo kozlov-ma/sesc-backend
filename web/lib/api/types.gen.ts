@@ -92,7 +92,7 @@ export type ApiCreateUserRequest = {
   middleName?: string;
   personnelCategory: number;
   pictureUrl?: string;
-  roleId: number;
+  role: number;
   subdivision: string;
   unemploymentDate?: string;
 };
@@ -243,6 +243,10 @@ export type ApiInvalidUuidError = {
   ruMessage?: string;
 };
 
+export type ApiMarkAchievementsAsAccountedRequest = {
+  achievementIds: Array<string>;
+};
+
 export type ApiPaginatedAchievementsResponse = {
   items: Array<ApiAchievementResponse>;
   limit: number;
@@ -285,16 +289,6 @@ export type ApiPatchUserRequest = {
   unemploymentDate?: string;
 };
 
-export type ApiPermission = {
-  description: string;
-  id: number;
-  name: string;
-};
-
-export type ApiPermissionsResponse = {
-  permissions: Array<ApiPermission>;
-};
-
 export type ApiPointsLimitExceededError = {
   code?: string;
   details?: string;
@@ -316,9 +310,9 @@ export type ApiReviewResponse = {
 };
 
 export type ApiRole = {
+  codeName: string;
   id: number;
   name: string;
-  permissions: Array<ApiPermission>;
 };
 
 export type ApiRolesResponse = {
@@ -366,7 +360,7 @@ export type ApiUserResponse = {
   academicDegree?: number;
   academicTitle?: string;
   category?: string;
-  dateOfEmployment: string;
+  dateOfEmployment?: string;
   department?: ApiDepartment;
   employmentRate: number;
   employmentType: number;
@@ -1793,22 +1787,136 @@ export type GetFilesByIdResponses = {
 export type GetFilesByIdResponse =
   GetFilesByIdResponses[keyof GetFilesByIdResponses];
 
-export type GetPermissionsData = {
-  body?: never;
+export type PostReportsMarkAccountedData = {
+  /**
+   * Achievement IDs to mark as accounted
+   */
+  body: ApiMarkAchievementsAsAccountedRequest;
+  headers?: {
+    /**
+     * Bearer JWT token
+     */
+    Authorization?: string;
+  };
   path?: never;
   query?: never;
-  url: "/permissions";
+  url: "/reports/mark-accounted";
 };
 
-export type GetPermissionsResponses = {
+export type PostReportsMarkAccountedErrors = {
   /**
-   * OK
+   * Bad request
    */
-  200: ApiPermissionsResponse;
+  400: ApiError;
+  /**
+   * Unauthorized
+   */
+  401: ApiError;
+  /**
+   * Forbidden - Admin access required
+   */
+  403: ApiError;
+  /**
+   * Internal server error
+   */
+  500: ApiError;
 };
 
-export type GetPermissionsResponse =
-  GetPermissionsResponses[keyof GetPermissionsResponses];
+export type PostReportsMarkAccountedError =
+  PostReportsMarkAccountedErrors[keyof PostReportsMarkAccountedErrors];
+
+export type PostReportsMarkAccountedResponses = {
+  /**
+   * Success response
+   */
+  200: {
+    [key: string]: unknown;
+  };
+};
+
+export type PostReportsMarkAccountedResponse =
+  PostReportsMarkAccountedResponses[keyof PostReportsMarkAccountedResponses];
+
+export type PostReportsMarkAllAccountedData = {
+  body?: never;
+  headers?: {
+    /**
+     * Bearer JWT token
+     */
+    Authorization?: string;
+  };
+  path?: never;
+  query?: never;
+  url: "/reports/mark-all-accounted";
+};
+
+export type PostReportsMarkAllAccountedErrors = {
+  /**
+   * Unauthorized
+   */
+  401: ApiError;
+  /**
+   * Forbidden - Economist access required
+   */
+  403: ApiError;
+  /**
+   * Internal server error
+   */
+  500: ApiError;
+};
+
+export type PostReportsMarkAllAccountedError =
+  PostReportsMarkAllAccountedErrors[keyof PostReportsMarkAllAccountedErrors];
+
+export type PostReportsMarkAllAccountedResponses = {
+  /**
+   * Success response
+   */
+  200: {
+    [key: string]: unknown;
+  };
+};
+
+export type PostReportsMarkAllAccountedResponse =
+  PostReportsMarkAllAccountedResponses[keyof PostReportsMarkAllAccountedResponses];
+
+export type GetReportsUserPointsData = {
+  body?: never;
+  headers?: {
+    /**
+     * Bearer JWT token
+     */
+    Authorization?: string;
+  };
+  path?: never;
+  query?: never;
+  url: "/reports/user-points";
+};
+
+export type GetReportsUserPointsErrors = {
+  /**
+   * Unauthorized
+   */
+  401: ApiError;
+  /**
+   * Forbidden - Admin access required
+   */
+  403: ApiError;
+  /**
+   * Internal server error
+   */
+  500: ApiError;
+};
+
+export type GetReportsUserPointsError =
+  GetReportsUserPointsErrors[keyof GetReportsUserPointsErrors];
+
+export type GetReportsUserPointsResponses = {
+  /**
+   * Excel file with user points report
+   */
+  200: unknown;
+};
 
 export type GetRolesData = {
   body?: never;

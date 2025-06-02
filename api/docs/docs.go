@@ -1900,21 +1900,180 @@ const docTemplate = `{
                 }
             }
         },
-        "/permissions": {
-            "get": {
-                "description": "Retrieves all available system permissions",
+        "/reports/mark-accounted": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Marks achievements with \"done\" status as \"accounted\" in the system",
+                "consumes": [
+                    "application/json"
+                ],
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "permissions"
+                    "reports"
                 ],
-                "summary": "List all permissions",
+                "summary": "Mark achievements as accounted",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer JWT token",
+                        "name": "Authorization",
+                        "in": "header"
+                    },
+                    {
+                        "description": "Achievement IDs to mark as accounted",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/api.MarkAchievementsAsAccountedRequest"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "Success response",
                         "schema": {
-                            "$ref": "#/definitions/api.PermissionsResponse"
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "$ref": "#/definitions/api.Error"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/api.Error"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden - Admin access required",
+                        "schema": {
+                            "$ref": "#/definitions/api.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/api.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/reports/mark-all-accounted": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Marks all achievements with \"done\" status as \"accounted\" in the system",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "reports"
+                ],
+                "summary": "Mark all done achievements as accounted",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer JWT token",
+                        "name": "Authorization",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success response",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/api.Error"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden - Economist access required",
+                        "schema": {
+                            "$ref": "#/definitions/api.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/api.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/reports/user-points": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Generates an Excel report containing all users with their achievement points summary",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                ],
+                "tags": [
+                    "reports"
+                ],
+                "summary": "Generate user points report",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer JWT token",
+                        "name": "Authorization",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Excel file with user points report",
+                        "schema": {
+                            "type": "file"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/api.Error"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden - Admin access required",
+                        "schema": {
+                            "$ref": "#/definitions/api.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/api.Error"
                         }
                     }
                 }
@@ -2645,7 +2804,7 @@ const docTemplate = `{
                 "jobTitle",
                 "lastName",
                 "personnelCategory",
-                "roleId",
+                "role",
                 "subdivision"
             ],
             "properties": {
@@ -2705,7 +2864,7 @@ const docTemplate = `{
                     "type": "string",
                     "example": "/images/users/ivan.jpg"
                 },
-                "roleId": {
+                "role": {
                     "type": "integer",
                     "example": 2
                 },
@@ -3161,6 +3320,20 @@ const docTemplate = `{
                 }
             }
         },
+        "api.MarkAchievementsAsAccountedRequest": {
+            "type": "object",
+            "required": [
+                "achievementIds"
+            ],
+            "properties": {
+                "achievementIds": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
         "api.PaginatedAchievementsResponse": {
             "type": "object",
             "required": [
@@ -3316,42 +3489,6 @@ const docTemplate = `{
                 }
             }
         },
-        "api.Permission": {
-            "type": "object",
-            "required": [
-                "description",
-                "id",
-                "name"
-            ],
-            "properties": {
-                "description": {
-                    "type": "string",
-                    "example": "Создание и заполнение листа достижений"
-                },
-                "id": {
-                    "type": "integer",
-                    "example": 1
-                },
-                "name": {
-                    "type": "string",
-                    "example": "draft_achievement_list"
-                }
-            }
-        },
-        "api.PermissionsResponse": {
-            "type": "object",
-            "required": [
-                "permissions"
-            ],
-            "properties": {
-                "permissions": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/api.Permission"
-                    }
-                }
-            }
-        },
         "api.PointsLimitExceededError": {
             "type": "object",
             "properties": {
@@ -3422,11 +3559,15 @@ const docTemplate = `{
         "api.Role": {
             "type": "object",
             "required": [
+                "codeName",
                 "id",
-                "name",
-                "permissions"
+                "name"
             ],
             "properties": {
+                "codeName": {
+                    "type": "string",
+                    "example": "teacher"
+                },
                 "id": {
                     "type": "integer",
                     "example": 1
@@ -3434,12 +3575,6 @@ const docTemplate = `{
                 "name": {
                     "type": "string",
                     "example": "Преподаватель"
-                },
-                "permissions": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/api.Permission"
-                    }
                 }
             }
         },
@@ -3566,7 +3701,6 @@ const docTemplate = `{
         "api.UserResponse": {
             "type": "object",
             "required": [
-                "dateOfEmployment",
                 "employmentRate",
                 "employmentType",
                 "firstName",

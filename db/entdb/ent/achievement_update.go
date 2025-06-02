@@ -11,7 +11,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	uuid "github.com/gofrs/uuid/v5"
-	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievement"
+	entachievement "github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievement"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievementdocument"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievementreview"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievementtemplate"
@@ -224,7 +224,7 @@ func (au *AchievementUpdate) ExecX(ctx context.Context) {
 // check runs all checks and user-defined validators on the builder.
 func (au *AchievementUpdate) check() error {
 	if v, ok := au.mutation.Status(); ok {
-		if err := achievement.StatusValidator(v); err != nil {
+		if err := entachievement.StatusValidator(v); err != nil {
 			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "Achievement.status": %w`, err)}
 		}
 	}
@@ -241,7 +241,7 @@ func (au *AchievementUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if err := au.check(); err != nil {
 		return n, err
 	}
-	_spec := sqlgraph.NewUpdateSpec(achievement.Table, achievement.Columns, sqlgraph.NewFieldSpec(achievement.FieldID, field.TypeUUID))
+	_spec := sqlgraph.NewUpdateSpec(entachievement.Table, entachievement.Columns, sqlgraph.NewFieldSpec(entachievement.FieldID, field.TypeUUID))
 	if ps := au.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -250,20 +250,20 @@ func (au *AchievementUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 	}
 	if value, ok := au.mutation.Status(); ok {
-		_spec.SetField(achievement.FieldStatus, field.TypeString, value)
+		_spec.SetField(entachievement.FieldStatus, field.TypeString, value)
 	}
 	if value, ok := au.mutation.Points(); ok {
-		_spec.SetField(achievement.FieldPoints, field.TypeInt, value)
+		_spec.SetField(entachievement.FieldPoints, field.TypeInt, value)
 	}
 	if value, ok := au.mutation.AddedPoints(); ok {
-		_spec.AddField(achievement.FieldPoints, field.TypeInt, value)
+		_spec.AddField(entachievement.FieldPoints, field.TypeInt, value)
 	}
 	if au.mutation.DocumentsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   achievement.DocumentsTable,
-			Columns: []string{achievement.DocumentsColumn},
+			Table:   entachievement.DocumentsTable,
+			Columns: []string{entachievement.DocumentsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(achievementdocument.FieldID, field.TypeUUID),
@@ -275,8 +275,8 @@ func (au *AchievementUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   achievement.DocumentsTable,
-			Columns: []string{achievement.DocumentsColumn},
+			Table:   entachievement.DocumentsTable,
+			Columns: []string{entachievement.DocumentsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(achievementdocument.FieldID, field.TypeUUID),
@@ -291,8 +291,8 @@ func (au *AchievementUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   achievement.DocumentsTable,
-			Columns: []string{achievement.DocumentsColumn},
+			Table:   entachievement.DocumentsTable,
+			Columns: []string{entachievement.DocumentsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(achievementdocument.FieldID, field.TypeUUID),
@@ -307,8 +307,8 @@ func (au *AchievementUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   achievement.ReviewsTable,
-			Columns: []string{achievement.ReviewsColumn},
+			Table:   entachievement.ReviewsTable,
+			Columns: []string{entachievement.ReviewsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(achievementreview.FieldID, field.TypeUUID),
@@ -320,8 +320,8 @@ func (au *AchievementUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   achievement.ReviewsTable,
-			Columns: []string{achievement.ReviewsColumn},
+			Table:   entachievement.ReviewsTable,
+			Columns: []string{entachievement.ReviewsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(achievementreview.FieldID, field.TypeUUID),
@@ -336,8 +336,8 @@ func (au *AchievementUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   achievement.ReviewsTable,
-			Columns: []string{achievement.ReviewsColumn},
+			Table:   entachievement.ReviewsTable,
+			Columns: []string{entachievement.ReviewsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(achievementreview.FieldID, field.TypeUUID),
@@ -352,8 +352,8 @@ func (au *AchievementUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   achievement.OwnerTable,
-			Columns: []string{achievement.OwnerColumn},
+			Table:   entachievement.OwnerTable,
+			Columns: []string{entachievement.OwnerColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
@@ -365,8 +365,8 @@ func (au *AchievementUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   achievement.OwnerTable,
-			Columns: []string{achievement.OwnerColumn},
+			Table:   entachievement.OwnerTable,
+			Columns: []string{entachievement.OwnerColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
@@ -381,8 +381,8 @@ func (au *AchievementUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   achievement.TemplateTable,
-			Columns: []string{achievement.TemplateColumn},
+			Table:   entachievement.TemplateTable,
+			Columns: []string{entachievement.TemplateColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(achievementtemplate.FieldID, field.TypeUUID),
@@ -394,8 +394,8 @@ func (au *AchievementUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   achievement.TemplateTable,
-			Columns: []string{achievement.TemplateColumn},
+			Table:   entachievement.TemplateTable,
+			Columns: []string{entachievement.TemplateColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(achievementtemplate.FieldID, field.TypeUUID),
@@ -408,7 +408,7 @@ func (au *AchievementUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if n, err = sqlgraph.UpdateNodes(ctx, au.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
-			err = &NotFoundError{achievement.Label}
+			err = &NotFoundError{entachievement.Label}
 		} else if sqlgraph.IsConstraintError(err) {
 			err = &ConstraintError{msg: err.Error(), wrap: err}
 		}
@@ -631,7 +631,7 @@ func (auo *AchievementUpdateOne) ExecX(ctx context.Context) {
 // check runs all checks and user-defined validators on the builder.
 func (auo *AchievementUpdateOne) check() error {
 	if v, ok := auo.mutation.Status(); ok {
-		if err := achievement.StatusValidator(v); err != nil {
+		if err := entachievement.StatusValidator(v); err != nil {
 			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "Achievement.status": %w`, err)}
 		}
 	}
@@ -648,7 +648,7 @@ func (auo *AchievementUpdateOne) sqlSave(ctx context.Context) (_node *Achievemen
 	if err := auo.check(); err != nil {
 		return _node, err
 	}
-	_spec := sqlgraph.NewUpdateSpec(achievement.Table, achievement.Columns, sqlgraph.NewFieldSpec(achievement.FieldID, field.TypeUUID))
+	_spec := sqlgraph.NewUpdateSpec(entachievement.Table, entachievement.Columns, sqlgraph.NewFieldSpec(entachievement.FieldID, field.TypeUUID))
 	id, ok := auo.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`ent: missing "Achievement.id" for update`)}
@@ -656,12 +656,12 @@ func (auo *AchievementUpdateOne) sqlSave(ctx context.Context) (_node *Achievemen
 	_spec.Node.ID.Value = id
 	if fields := auo.fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
-		_spec.Node.Columns = append(_spec.Node.Columns, achievement.FieldID)
+		_spec.Node.Columns = append(_spec.Node.Columns, entachievement.FieldID)
 		for _, f := range fields {
-			if !achievement.ValidColumn(f) {
+			if !entachievement.ValidColumn(f) {
 				return nil, &ValidationError{Name: f, err: fmt.Errorf("ent: invalid field %q for query", f)}
 			}
-			if f != achievement.FieldID {
+			if f != entachievement.FieldID {
 				_spec.Node.Columns = append(_spec.Node.Columns, f)
 			}
 		}
@@ -674,20 +674,20 @@ func (auo *AchievementUpdateOne) sqlSave(ctx context.Context) (_node *Achievemen
 		}
 	}
 	if value, ok := auo.mutation.Status(); ok {
-		_spec.SetField(achievement.FieldStatus, field.TypeString, value)
+		_spec.SetField(entachievement.FieldStatus, field.TypeString, value)
 	}
 	if value, ok := auo.mutation.Points(); ok {
-		_spec.SetField(achievement.FieldPoints, field.TypeInt, value)
+		_spec.SetField(entachievement.FieldPoints, field.TypeInt, value)
 	}
 	if value, ok := auo.mutation.AddedPoints(); ok {
-		_spec.AddField(achievement.FieldPoints, field.TypeInt, value)
+		_spec.AddField(entachievement.FieldPoints, field.TypeInt, value)
 	}
 	if auo.mutation.DocumentsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   achievement.DocumentsTable,
-			Columns: []string{achievement.DocumentsColumn},
+			Table:   entachievement.DocumentsTable,
+			Columns: []string{entachievement.DocumentsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(achievementdocument.FieldID, field.TypeUUID),
@@ -699,8 +699,8 @@ func (auo *AchievementUpdateOne) sqlSave(ctx context.Context) (_node *Achievemen
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   achievement.DocumentsTable,
-			Columns: []string{achievement.DocumentsColumn},
+			Table:   entachievement.DocumentsTable,
+			Columns: []string{entachievement.DocumentsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(achievementdocument.FieldID, field.TypeUUID),
@@ -715,8 +715,8 @@ func (auo *AchievementUpdateOne) sqlSave(ctx context.Context) (_node *Achievemen
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   achievement.DocumentsTable,
-			Columns: []string{achievement.DocumentsColumn},
+			Table:   entachievement.DocumentsTable,
+			Columns: []string{entachievement.DocumentsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(achievementdocument.FieldID, field.TypeUUID),
@@ -731,8 +731,8 @@ func (auo *AchievementUpdateOne) sqlSave(ctx context.Context) (_node *Achievemen
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   achievement.ReviewsTable,
-			Columns: []string{achievement.ReviewsColumn},
+			Table:   entachievement.ReviewsTable,
+			Columns: []string{entachievement.ReviewsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(achievementreview.FieldID, field.TypeUUID),
@@ -744,8 +744,8 @@ func (auo *AchievementUpdateOne) sqlSave(ctx context.Context) (_node *Achievemen
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   achievement.ReviewsTable,
-			Columns: []string{achievement.ReviewsColumn},
+			Table:   entachievement.ReviewsTable,
+			Columns: []string{entachievement.ReviewsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(achievementreview.FieldID, field.TypeUUID),
@@ -760,8 +760,8 @@ func (auo *AchievementUpdateOne) sqlSave(ctx context.Context) (_node *Achievemen
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
 			Inverse: false,
-			Table:   achievement.ReviewsTable,
-			Columns: []string{achievement.ReviewsColumn},
+			Table:   entachievement.ReviewsTable,
+			Columns: []string{entachievement.ReviewsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(achievementreview.FieldID, field.TypeUUID),
@@ -776,8 +776,8 @@ func (auo *AchievementUpdateOne) sqlSave(ctx context.Context) (_node *Achievemen
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   achievement.OwnerTable,
-			Columns: []string{achievement.OwnerColumn},
+			Table:   entachievement.OwnerTable,
+			Columns: []string{entachievement.OwnerColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
@@ -789,8 +789,8 @@ func (auo *AchievementUpdateOne) sqlSave(ctx context.Context) (_node *Achievemen
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   achievement.OwnerTable,
-			Columns: []string{achievement.OwnerColumn},
+			Table:   entachievement.OwnerTable,
+			Columns: []string{entachievement.OwnerColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
@@ -805,8 +805,8 @@ func (auo *AchievementUpdateOne) sqlSave(ctx context.Context) (_node *Achievemen
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   achievement.TemplateTable,
-			Columns: []string{achievement.TemplateColumn},
+			Table:   entachievement.TemplateTable,
+			Columns: []string{entachievement.TemplateColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(achievementtemplate.FieldID, field.TypeUUID),
@@ -818,8 +818,8 @@ func (auo *AchievementUpdateOne) sqlSave(ctx context.Context) (_node *Achievemen
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
 			Inverse: true,
-			Table:   achievement.TemplateTable,
-			Columns: []string{achievement.TemplateColumn},
+			Table:   entachievement.TemplateTable,
+			Columns: []string{entachievement.TemplateColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(achievementtemplate.FieldID, field.TypeUUID),
@@ -835,7 +835,7 @@ func (auo *AchievementUpdateOne) sqlSave(ctx context.Context) (_node *Achievemen
 	_spec.ScanValues = _node.scanValues
 	if err = sqlgraph.UpdateNode(ctx, auo.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
-			err = &NotFoundError{achievement.Label}
+			err = &NotFoundError{entachievement.Label}
 		} else if sqlgraph.IsConstraintError(err) {
 			err = &ConstraintError{msg: err.Error(), wrap: err}
 		}

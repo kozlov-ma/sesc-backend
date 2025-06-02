@@ -51,6 +51,8 @@ export function getStatusLabel(status: string) {
       return "Проверка контролирующего лица";
     case "done":
       return "Проверка завершена";
+    case "accounted":
+      return "Начислены баллы";
     default:
       return status;
   }

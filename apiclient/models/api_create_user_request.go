@@ -81,10 +81,10 @@ type APICreateUserRequest struct {
 	// Example: /images/users/ivan.jpg
 	PictureURL string `json:"pictureUrl,omitempty"`
 
-	// role Id
+	// role
 	// Example: 2
 	// Required: true
-	RoleID *int64 `json:"roleId"`
+	Role *int64 `json:"role"`
 
 	// subdivision
 	// Example: Кафедра информатики
@@ -124,7 +124,7 @@ func (m *APICreateUserRequest) Validate(formats strfmt.Registry) error {
 		res = append(res, err)
 	}
 
-	if err := m.validateRoleID(formats); err != nil {
+	if err := m.validateRole(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -192,9 +192,9 @@ func (m *APICreateUserRequest) validatePersonnelCategory(formats strfmt.Registry
 	return nil
 }
 
-func (m *APICreateUserRequest) validateRoleID(formats strfmt.Registry) error {
+func (m *APICreateUserRequest) validateRole(formats strfmt.Registry) error {
 
-	if err := validate.Required("roleId", "body", m.RoleID); err != nil {
+	if err := validate.Required("role", "body", m.Role); err != nil {
 		return err
 	}
 

@@ -3,8 +3,6 @@
 package achievementtemplate
 
 import (
-	"fmt"
-
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	uuid "github.com/gofrs/uuid/v5"
@@ -43,7 +41,7 @@ const (
 	// AchievementsTable is the table that holds the achievements relation/edge.
 	AchievementsTable = "achievements"
 	// AchievementsInverseTable is the table name for the Achievement entity.
-	// It exists in this package in order to avoid circular dependency with the "achievement" package.
+	// It exists in this package in order to avoid circular dependency with the "entachievement" package.
 	AchievementsInverseTable = "achievements"
 	// AchievementsColumn is the table column denoting the achievements relation/edge.
 	AchievementsColumn = "template_id"
@@ -80,30 +78,6 @@ var (
 	// DefaultID holds the default value on creation for the "id" field.
 	DefaultID func() uuid.UUID
 )
-
-// Kind defines the type for the "kind" enum field.
-type Kind string
-
-// Kind values.
-const (
-	KindOlympiad    Kind = "olympiad"
-	KindDevelopment Kind = "development"
-	KindScientific  Kind = "scientific"
-)
-
-func (k Kind) String() string {
-	return string(k)
-}
-
-// KindValidator is a validator for the "kind" field enum values. It is called by the builders before save.
-func KindValidator(k Kind) error {
-	switch k {
-	case KindOlympiad, KindDevelopment, KindScientific:
-		return nil
-	default:
-		return fmt.Errorf("achievementtemplate: invalid enum value for kind field: %q", k)
-	}
-}
 
 // OrderOption defines the ordering options for the AchievementTemplate queries.
 type OrderOption func(*sql.Selector)

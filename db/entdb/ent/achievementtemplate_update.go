@@ -11,7 +11,8 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	uuid "github.com/gofrs/uuid/v5"
-	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievement"
+	"github.com/kozlov-ma/sesc-backend/achievement"
+	entachievement "github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievement"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievementgroup"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievementtemplate"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/predicate"
@@ -114,13 +115,13 @@ func (atu *AchievementTemplateUpdate) SetNillableActive(b *bool) *AchievementTem
 }
 
 // SetKind sets the "kind" field.
-func (atu *AchievementTemplateUpdate) SetKind(a achievementtemplate.Kind) *AchievementTemplateUpdate {
+func (atu *AchievementTemplateUpdate) SetKind(a achievement.Kind) *AchievementTemplateUpdate {
 	atu.mutation.SetKind(a)
 	return atu
 }
 
 // SetNillableKind sets the "kind" field if the given value is not nil.
-func (atu *AchievementTemplateUpdate) SetNillableKind(a *achievementtemplate.Kind) *AchievementTemplateUpdate {
+func (atu *AchievementTemplateUpdate) SetNillableKind(a *achievement.Kind) *AchievementTemplateUpdate {
 	if a != nil {
 		atu.SetKind(*a)
 	}
@@ -219,7 +220,7 @@ func (atu *AchievementTemplateUpdate) check() error {
 		}
 	}
 	if v, ok := atu.mutation.Kind(); ok {
-		if err := achievementtemplate.KindValidator(v); err != nil {
+		if err := v.Validate(); err != nil {
 			return &ValidationError{Name: "kind", err: fmt.Errorf(`ent: validator failed for field "AchievementTemplate.kind": %w`, err)}
 		}
 	}
@@ -260,7 +261,7 @@ func (atu *AchievementTemplateUpdate) sqlSave(ctx context.Context) (n int, err e
 		_spec.SetField(achievementtemplate.FieldActive, field.TypeBool, value)
 	}
 	if value, ok := atu.mutation.Kind(); ok {
-		_spec.SetField(achievementtemplate.FieldKind, field.TypeEnum, value)
+		_spec.SetField(achievementtemplate.FieldKind, field.TypeString, value)
 	}
 	if atu.mutation.GroupCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -299,7 +300,7 @@ func (atu *AchievementTemplateUpdate) sqlSave(ctx context.Context) (n int, err e
 			Columns: []string{achievementtemplate.AchievementsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(achievement.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(entachievement.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -312,7 +313,7 @@ func (atu *AchievementTemplateUpdate) sqlSave(ctx context.Context) (n int, err e
 			Columns: []string{achievementtemplate.AchievementsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(achievement.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(entachievement.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -328,7 +329,7 @@ func (atu *AchievementTemplateUpdate) sqlSave(ctx context.Context) (n int, err e
 			Columns: []string{achievementtemplate.AchievementsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(achievement.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(entachievement.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -440,13 +441,13 @@ func (atuo *AchievementTemplateUpdateOne) SetNillableActive(b *bool) *Achievemen
 }
 
 // SetKind sets the "kind" field.
-func (atuo *AchievementTemplateUpdateOne) SetKind(a achievementtemplate.Kind) *AchievementTemplateUpdateOne {
+func (atuo *AchievementTemplateUpdateOne) SetKind(a achievement.Kind) *AchievementTemplateUpdateOne {
 	atuo.mutation.SetKind(a)
 	return atuo
 }
 
 // SetNillableKind sets the "kind" field if the given value is not nil.
-func (atuo *AchievementTemplateUpdateOne) SetNillableKind(a *achievementtemplate.Kind) *AchievementTemplateUpdateOne {
+func (atuo *AchievementTemplateUpdateOne) SetNillableKind(a *achievement.Kind) *AchievementTemplateUpdateOne {
 	if a != nil {
 		atuo.SetKind(*a)
 	}
@@ -558,7 +559,7 @@ func (atuo *AchievementTemplateUpdateOne) check() error {
 		}
 	}
 	if v, ok := atuo.mutation.Kind(); ok {
-		if err := achievementtemplate.KindValidator(v); err != nil {
+		if err := v.Validate(); err != nil {
 			return &ValidationError{Name: "kind", err: fmt.Errorf(`ent: validator failed for field "AchievementTemplate.kind": %w`, err)}
 		}
 	}
@@ -616,7 +617,7 @@ func (atuo *AchievementTemplateUpdateOne) sqlSave(ctx context.Context) (_node *A
 		_spec.SetField(achievementtemplate.FieldActive, field.TypeBool, value)
 	}
 	if value, ok := atuo.mutation.Kind(); ok {
-		_spec.SetField(achievementtemplate.FieldKind, field.TypeEnum, value)
+		_spec.SetField(achievementtemplate.FieldKind, field.TypeString, value)
 	}
 	if atuo.mutation.GroupCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -655,7 +656,7 @@ func (atuo *AchievementTemplateUpdateOne) sqlSave(ctx context.Context) (_node *A
 			Columns: []string{achievementtemplate.AchievementsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(achievement.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(entachievement.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -668,7 +669,7 @@ func (atuo *AchievementTemplateUpdateOne) sqlSave(ctx context.Context) (_node *A
 			Columns: []string{achievementtemplate.AchievementsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(achievement.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(entachievement.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -684,7 +685,7 @@ func (atuo *AchievementTemplateUpdateOne) sqlSave(ctx context.Context) (_node *A
 			Columns: []string{achievementtemplate.AchievementsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(achievement.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(entachievement.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

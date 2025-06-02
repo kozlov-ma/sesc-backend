@@ -6,7 +6,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 )
 
-// Achievement is the predicate function for achievement builders.
+// Achievement is the predicate function for entachievement builders.
 type Achievement func(*sql.Selector)
 
 // AchievementDocument is the predicate function for achievementdocument builders.

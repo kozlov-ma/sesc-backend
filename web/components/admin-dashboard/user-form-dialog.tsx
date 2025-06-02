@@ -307,7 +307,7 @@ function UserFormDialog({
           middleName: values.middleName,
           departmentId: values.departmentId || undefined,
           pictureUrl: values.pictureUrl || undefined,
-          roleId: values.roleId,
+          role: values.roleId,
           subdivision: values.subdivision || "",
           jobTitle: values.jobTitle || "",
           employmentRate: values.employmentRate,

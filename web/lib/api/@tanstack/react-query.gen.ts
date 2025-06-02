@@ -30,7 +30,9 @@ import {
   postFiles,
   deleteFilesById,
   getFilesById,
-  getPermissions,
+  postReportsMarkAccounted,
+  postReportsMarkAllAccounted,
+  getReportsUserPoints,
   getRoles,
   getUsers,
   postUsers,
@@ -111,7 +113,13 @@ import type {
   DeleteFilesByIdData,
   DeleteFilesByIdError,
   GetFilesByIdData,
-  GetPermissionsData,
+  PostReportsMarkAccountedData,
+  PostReportsMarkAccountedError,
+  PostReportsMarkAccountedResponse,
+  PostReportsMarkAllAccountedData,
+  PostReportsMarkAllAccountedError,
+  PostReportsMarkAllAccountedResponse,
+  GetReportsUserPointsData,
   GetRolesData,
   GetUsersData,
   PostUsersData,
@@ -1341,19 +1349,20 @@ export const getFilesByIdOptions = (options: Options<GetFilesByIdData>) => {
   });
 };
 
-export const getPermissionsQueryKey = (options?: Options<GetPermissionsData>) =>
-  createQueryKey("getPermissions", options);
+export const postReportsMarkAccountedQueryKey = (
+  options: Options<PostReportsMarkAccountedData>,
+) => createQueryKey("postReportsMarkAccounted", options);
 
 /**
- * List all permissions
- * Retrieves all available system permissions
+ * Mark achievements as accounted
+ * Marks achievements with "done" status as "accounted" in the system
  */
-export const getPermissionsOptions = (
-  options?: Options<GetPermissionsData>,
+export const postReportsMarkAccountedOptions = (
+  options: Options<PostReportsMarkAccountedData>,
 ) => {
   return queryOptions({
     queryFn: async ({ queryKey, signal }) => {
-      const { data } = await getPermissions({
+      const { data } = await postReportsMarkAccounted({
         ...options,
         ...queryKey[0],
         signal,
@@ -1361,7 +1370,113 @@ export const getPermissionsOptions = (
       });
       return data;
     },
-    queryKey: getPermissionsQueryKey(options),
+    queryKey: postReportsMarkAccountedQueryKey(options),
+  });
+};
+
+/**
+ * Mark achievements as accounted
+ * Marks achievements with "done" status as "accounted" in the system
+ */
+export const postReportsMarkAccountedMutation = (
+  options?: Partial<Options<PostReportsMarkAccountedData>>,
+): UseMutationOptions<
+  PostReportsMarkAccountedResponse,
+  AxiosError<PostReportsMarkAccountedError>,
+  Options<PostReportsMarkAccountedData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    PostReportsMarkAccountedResponse,
+    AxiosError<PostReportsMarkAccountedError>,
+    Options<PostReportsMarkAccountedData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await postReportsMarkAccounted({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
+export const postReportsMarkAllAccountedQueryKey = (
+  options?: Options<PostReportsMarkAllAccountedData>,
+) => createQueryKey("postReportsMarkAllAccounted", options);
+
+/**
+ * Mark all done achievements as accounted
+ * Marks all achievements with "done" status as "accounted" in the system
+ */
+export const postReportsMarkAllAccountedOptions = (
+  options?: Options<PostReportsMarkAllAccountedData>,
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await postReportsMarkAllAccounted({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: postReportsMarkAllAccountedQueryKey(options),
+  });
+};
+
+/**
+ * Mark all done achievements as accounted
+ * Marks all achievements with "done" status as "accounted" in the system
+ */
+export const postReportsMarkAllAccountedMutation = (
+  options?: Partial<Options<PostReportsMarkAllAccountedData>>,
+): UseMutationOptions<
+  PostReportsMarkAllAccountedResponse,
+  AxiosError<PostReportsMarkAllAccountedError>,
+  Options<PostReportsMarkAllAccountedData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    PostReportsMarkAllAccountedResponse,
+    AxiosError<PostReportsMarkAllAccountedError>,
+    Options<PostReportsMarkAllAccountedData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await postReportsMarkAllAccounted({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
+export const getReportsUserPointsQueryKey = (
+  options?: Options<GetReportsUserPointsData>,
+) => createQueryKey("getReportsUserPoints", options);
+
+/**
+ * Generate user points report
+ * Generates an Excel report containing all users with their achievement points summary
+ */
+export const getReportsUserPointsOptions = (
+  options?: Options<GetReportsUserPointsData>,
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getReportsUserPoints({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: getReportsUserPointsQueryKey(options),
   });
 };
 

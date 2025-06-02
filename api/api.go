@@ -205,6 +205,16 @@ func (a *API) RegisterRoutes(r chi.Router) {
 		r.Get("/auth/credentials/{id}", a.GetCredentials)
 	})
 
+	// Reports routes (economist-only)
+	r.Group(func(r chi.Router) {
+		r.Use(a.RequireAuthMiddleware)
+		r.Use(a.RequireReportManagementPermissionMiddleware)
+
+		r.Get("/reports/user-points", a.GenerateUserPointsReport)
+		r.Post("/reports/mark-accounted", a.MarkAchievementsAsAccounted)
+		r.Post("/reports/mark-all-accounted", a.MarkAllDoneAchievementsAsAccounted)
+	})
+
 	// Swagger UI
 	r.Get("/swagger/*", httpSwagger.WrapHandler)
 

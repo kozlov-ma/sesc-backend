@@ -14,7 +14,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	uuid "github.com/gofrs/uuid/v5"
-	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievement"
+	entachievement "github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievement"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievementreview"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/authuser"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/department"
@@ -151,7 +151,7 @@ func (uq *UserQuery) QueryAchievements() *AchievementQuery {
 		}
 		step := sqlgraph.NewStep(
 			sqlgraph.From(user.Table, user.FieldID, selector),
-			sqlgraph.To(achievement.Table, achievement.FieldID),
+			sqlgraph.To(entachievement.Table, entachievement.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, user.AchievementsTable, user.AchievementsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(uq.driver.Dialect(), step)
@@ -686,7 +686,7 @@ func (uq *UserQuery) loadAchievements(ctx context.Context, query *AchievementQue
 		}
 	}
 	if len(query.ctx.Fields) > 0 {
-		query.ctx.AppendFieldOnce(achievement.FieldOwnerID)
+		query.ctx.AppendFieldOnce(entachievement.FieldOwnerID)
 	}
 	query.Where(predicate.Achievement(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(user.AchievementsColumn), fks...))

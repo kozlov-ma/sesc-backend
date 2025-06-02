@@ -6,7 +6,7 @@ import (
 	"time"
 
 	uuid "github.com/gofrs/uuid/v5"
-	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievement"
+	entachievement "github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievement"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievementdocument"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievementgroup"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievementreview"
@@ -23,22 +23,22 @@ import (
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
-	achievementFields := schema.Achievement{}.Fields()
-	_ = achievementFields
-	// achievementDescStatus is the schema descriptor for status field.
-	achievementDescStatus := achievementFields[3].Descriptor()
-	// achievement.DefaultStatus holds the default value on creation for the status field.
-	achievement.DefaultStatus = achievementDescStatus.Default.(string)
-	// achievement.StatusValidator is a validator for the "status" field. It is called by the builders before save.
-	achievement.StatusValidator = achievementDescStatus.Validators[0].(func(string) error)
-	// achievementDescPoints is the schema descriptor for points field.
-	achievementDescPoints := achievementFields[4].Descriptor()
-	// achievement.DefaultPoints holds the default value on creation for the points field.
-	achievement.DefaultPoints = achievementDescPoints.Default.(int)
-	// achievementDescID is the schema descriptor for id field.
-	achievementDescID := achievementFields[0].Descriptor()
-	// achievement.DefaultID holds the default value on creation for the id field.
-	achievement.DefaultID = achievementDescID.Default.(func() uuid.UUID)
+	entachievementFields := schema.Achievement{}.Fields()
+	_ = entachievementFields
+	// entachievementDescStatus is the schema descriptor for status field.
+	entachievementDescStatus := entachievementFields[3].Descriptor()
+	// entachievement.DefaultStatus holds the default value on creation for the status field.
+	entachievement.DefaultStatus = entachievementDescStatus.Default.(string)
+	// entachievement.StatusValidator is a validator for the "status" field. It is called by the builders before save.
+	entachievement.StatusValidator = entachievementDescStatus.Validators[0].(func(string) error)
+	// entachievementDescPoints is the schema descriptor for points field.
+	entachievementDescPoints := entachievementFields[4].Descriptor()
+	// entachievement.DefaultPoints holds the default value on creation for the points field.
+	entachievement.DefaultPoints = entachievementDescPoints.Default.(int)
+	// entachievementDescID is the schema descriptor for id field.
+	entachievementDescID := entachievementFields[0].Descriptor()
+	// entachievement.DefaultID holds the default value on creation for the id field.
+	entachievement.DefaultID = entachievementDescID.Default.(func() uuid.UUID)
 	achievementdocumentFields := schema.AchievementDocument{}.Fields()
 	_ = achievementdocumentFields
 	// achievementdocumentDescName is the schema descriptor for name field.
@@ -145,6 +145,10 @@ func init() {
 	departmentDescName := departmentFields[1].Descriptor()
 	// department.NameValidator is a validator for the "name" field. It is called by the builders before save.
 	department.NameValidator = departmentDescName.Validators[0].(func(string) error)
+	// departmentDescID is the schema descriptor for id field.
+	departmentDescID := departmentFields[0].Descriptor()
+	// department.DefaultID holds the default value on creation for the id field.
+	department.DefaultID = departmentDescID.Default.(func() uuid.UUID)
 	fileFields := schema.File{}.Fields()
 	_ = fileFields
 	// fileDescID is the schema descriptor for id field.

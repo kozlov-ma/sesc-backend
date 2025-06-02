@@ -255,7 +255,7 @@ definitions:
       pictureUrl:
         example: /images/users/ivan.jpg
         type: string
-      roleId:
+      role:
         example: 2
         type: integer
       subdivision:
@@ -271,7 +271,7 @@ definitions:
     - jobTitle
     - lastName
     - personnelCategory
-    - roleId
+    - role
     - subdivision
     type: object
   api.CredentialsNotFoundError:
@@ -583,6 +583,15 @@ definitions:
         example: Некорректный формат UUID
         type: string
     type: object
+  api.MarkAchievementsAsAccountedRequest:
+    properties:
+      achievementIds:
+        items:
+          type: string
+        type: array
+    required:
+    - achievementIds
+    type: object
   api.PaginatedAchievementsResponse:
     properties:
       items:
@@ -696,31 +705,6 @@ definitions:
     - roleId
     - suspended
     type: object
-  api.Permission:
-    properties:
-      description:
-        example: Создание и заполнение листа достижений
-        type: string
-      id:
-        example: 1
-        type: integer
-      name:
-        example: draft_achievement_list
-        type: string
-    required:
-    - description
-    - id
-    - name
-    type: object
-  api.PermissionsResponse:
-    properties:
-      permissions:
-        items:
-          $ref: '#/definitions/api.Permission'
-        type: array
-    required:
-    - permissions
-    type: object
   api.PointsLimitExceededError:
     properties:
       code:
@@ -771,20 +755,19 @@ definitions:
     type: object
   api.Role:
     properties:
+      codeName:
+        example: teacher
+        type: string
       id:
         example: 1
         type: integer
       name:
         example: Преподаватель
         type: string
-      permissions:
-        items:
-          $ref: '#/definitions/api.Permission'
-        type: array
     required:
+    - codeName
     - id
     - name
-    - permissions
     type: object
   api.RolesResponse:
     properties:
@@ -926,7 +909,6 @@ definitions:
         example: "2023-12-31T00:00:00Z"
         type: string
     required:
-    - dateOfEmployment
     - employmentRate
     - employmentType
     - firstName
@@ -2187,19 +2169,122 @@ paths:
       summary: Get file by ID
       tags:
       - files
-  /permissions:
-    get:
-      description: Retrieves all available system permissions
+  /reports/mark-accounted:
+    post:
+      consumes:
+      - application/json
+      description: Marks achievements with "done" status as "accounted" in the system
+      parameters:
+      - description: Bearer JWT token
+        in: header
+        name: Authorization
+        type: string
+      - description: Achievement IDs to mark as accounted
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/api.MarkAchievementsAsAccountedRequest'
       produces:
       - application/json
       responses:
         "200":
-          description: OK
+          description: Success response
           schema:
-            $ref: '#/definitions/api.PermissionsResponse'
-      summary: List all permissions
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/api.Error'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/api.Error'
+        "403":
+          description: Forbidden - Admin access required
+          schema:
+            $ref: '#/definitions/api.Error'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/api.Error'
+      security:
+      - BearerAuth: []
+      summary: Mark achievements as accounted
       tags:
-      - permissions
+      - reports
+  /reports/mark-all-accounted:
+    post:
+      consumes:
+      - application/json
+      description: Marks all achievements with "done" status as "accounted" in the
+        system
+      parameters:
+      - description: Bearer JWT token
+        in: header
+        name: Authorization
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success response
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/api.Error'
+        "403":
+          description: Forbidden - Economist access required
+          schema:
+            $ref: '#/definitions/api.Error'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/api.Error'
+      security:
+      - BearerAuth: []
+      summary: Mark all done achievements as accounted
+      tags:
+      - reports
+  /reports/user-points:
+    get:
+      consumes:
+      - application/json
+      description: Generates an Excel report containing all users with their achievement
+        points summary
+      parameters:
+      - description: Bearer JWT token
+        in: header
+        name: Authorization
+        type: string
+      produces:
+      - application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
+      responses:
+        "200":
+          description: Excel file with user points report
+          schema:
+            type: file
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/api.Error'
+        "403":
+          description: Forbidden - Admin access required
+          schema:
+            $ref: '#/definitions/api.Error'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/api.Error'
+      security:
+      - BearerAuth: []
+      summary: Generate user points report
+      tags:
+      - reports
   /roles:
     get:
       description: Retrieves all system roles with their permissions
