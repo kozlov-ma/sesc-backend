@@ -3,6 +3,7 @@ package api
 import (
 	"net/http"
 
+	"github.com/kozlov-ma/sesc-backend/api/respond"
 	"github.com/kozlov-ma/sesc-backend/pkg/event"
 	"github.com/kozlov-ma/sesc-backend/pkg/event/events"
 	"github.com/kozlov-ma/sesc-backend/sesc"
@@ -26,10 +27,10 @@ type GroupedAchievementsResponse struct {
 // @Param offset query int false "Pagination offset" default(0) minimum(0)
 // @Param limit query int false "Pagination limit" default(10) minimum(1) maximum(100)
 // @Success 200 {object} GroupedAchievementsResponse
-// @Failure 400 {object} InvalidRequestError "Invalid request parameters"
-// @Failure 401 {object} UnauthorizedError "Unauthorized"
-// @Failure 403 {object} ForbiddenError "Forbidden"
-// @Failure 500 {object} ServerError "Internal server error"
+// @Failure 400 {object} respond.Error "Invalid request parameters"
+// @Failure 401 {object} respond.Error "Unauthorized"
+// @Failure 403 {object} respond.Error "Forbidden"
+// @Failure 500 {object} respond.Error "Internal server error"
 // @Router /achievements/grouped [get]
 func (a *API) GetGroupedAchievements(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
@@ -38,7 +39,7 @@ func (a *API) GetGroupedAchievements(w http.ResponseWriter, r *http.Request) {
 	// Get user from context
 	user, ok := GetUserFromContext(ctx)
 	if !ok {
-		writeError(ctx, w, ErrUnauthorized.WithStatus(http.StatusUnauthorized))
+		a.writeJSON(ctx, w, respond.WithError(ctx, sesc.ErrUserNotFound))
 		return
 	}
 
@@ -53,7 +54,7 @@ func (a *API) GetGroupedAchievements(w http.ResponseWriter, r *http.Request) {
 		sesc.AcademicDirector,
 		sesc.ChiefEconomist:
 	default:
-		writeError(ctx, w, ErrForbidden.WithStatus(http.StatusForbidden))
+		a.writeJSON(ctx, w, respond.WithError(ctx, sesc.ErrInvalidRole))
 		return
 	}
 
@@ -61,11 +62,7 @@ func (a *API) GetGroupedAchievements(w http.ResponseWriter, r *http.Request) {
 	offset, limit, err := parsePaginationParams(r)
 	if err != nil {
 		rec.Add(events.Error, err)
-		writeError(ctx, w, InvalidRequestError{
-			Code:      "INVALID_REQUEST",
-			Message:   "Invalid pagination parameters",
-			RuMessage: "Некорректные параметры пагинации",
-		}.WithDetails(err.Error()).WithStatus(http.StatusBadRequest))
+		a.writeJSON(ctx, w, respond.WithError(ctx, err))
 		return
 	}
 
@@ -73,7 +70,7 @@ func (a *API) GetGroupedAchievements(w http.ResponseWriter, r *http.Request) {
 	groupedAchievements, totalCount, err := a.sesc.GetGroupedAchievements(ctx, offset, limit)
 	if err != nil {
 		rec.Add(events.Error, err)
-		writeError(ctx, w, ErrServerError.WithStatus(http.StatusInternalServerError))
+		a.writeJSON(ctx, w, respond.WithError(ctx, err))
 		return
 	}
 
@@ -94,5 +91,5 @@ func (a *API) GetGroupedAchievements(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Write response
-	a.writeJSON(ctx, w, response, http.StatusOK)
+	a.writeJSON(ctx, w, response)
 }

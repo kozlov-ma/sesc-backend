@@ -1,25 +1,22 @@
 package iam
 
 import (
-	"errors"
-
 	"github.com/gofrs/uuid/v5"
+	"github.com/kozlov-ma/sesc-backend/pkg/apperr"
 )
 
 var (
-	ErrInvalidCredentials      = errors.New("invalid credentials")
-	ErrCredentialsAlreadyExist = errors.New("user with similar credentials already exists")
-	ErrInvalidToken            = errors.New("invalid token")
-	ErrUserNotFound            = errors.New("user not found")
-	ErrEmptyUsername           = errors.New("empty username")
-	ErrEmptyPassword           = errors.New("empty password")
-	ErrInvalidUserID           = errors.New("invalid user ID")
-	ErrCredentialsNotFound     = errors.New("credentials not found")
-	ErrInvalidRole             = errors.New("invalid role")
-	ErrUnauthorized            = errors.New("unauthorized access")
-	ErrTokenExpired            = errors.New("token expired")
-	ErrInvalidTokenFormat      = errors.New("invalid token format")
-	ErrTokenSignature          = errors.New("invalid token signature")
+	ErrCredentialsAlreadyExist = apperr.New(
+		"пользователь с такими учетными данными уже существует",
+		apperr.KindConflict,
+	)
+	ErrInvalidToken        = apperr.New("некорректный токен", apperr.KindUnauthorized)
+	ErrUserNotFound        = apperr.New("пользователь не существует", apperr.KindNotFound)
+	ErrEmptyUsername       = apperr.New("имя пользователя не должно быть пустым", apperr.KindValidation)
+	ErrEmptyPassword       = apperr.New("пароль не должен быть пустым", apperr.KindValidation)
+	ErrCredentialsNotFound = apperr.New("неверное имя пользователя или пароль", apperr.KindNotFound)
+	ErrUnauthorized        = apperr.New("требуется войти в систему", apperr.KindUnauthorized)
+	ErrForbidden           = apperr.New("недостаточно прав", apperr.KindForbidden)
 )
 
 type Credentials struct {

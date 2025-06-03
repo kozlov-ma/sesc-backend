@@ -126,7 +126,7 @@ GetAchievementTemplatesUnauthorized describes a response with status code 401, w
 Unauthorized
 */
 type GetAchievementTemplatesUnauthorized struct {
-	Payload *models.APIUnauthorizedError
+	Payload *models.RespondError
 }
 
 // IsSuccess returns true when this get achievement templates unauthorized response has a 2xx status code
@@ -169,13 +169,13 @@ func (o *GetAchievementTemplatesUnauthorized) String() string {
 	return fmt.Sprintf("[GET /achievement-templates][%d] getAchievementTemplatesUnauthorized %s", 401, payload)
 }
 
-func (o *GetAchievementTemplatesUnauthorized) GetPayload() *models.APIUnauthorizedError {
+func (o *GetAchievementTemplatesUnauthorized) GetPayload() *models.RespondError {
 	return o.Payload
 }
 
 func (o *GetAchievementTemplatesUnauthorized) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIUnauthorizedError)
+	o.Payload = new(models.RespondError)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
@@ -196,7 +196,7 @@ GetAchievementTemplatesInternalServerError describes a response with status code
 Internal server error
 */
 type GetAchievementTemplatesInternalServerError struct {
-	Payload *models.APIServerError
+	Payload *models.RespondError
 }
 
 // IsSuccess returns true when this get achievement templates internal server error response has a 2xx status code
@@ -239,13 +239,13 @@ func (o *GetAchievementTemplatesInternalServerError) String() string {
 	return fmt.Sprintf("[GET /achievement-templates][%d] getAchievementTemplatesInternalServerError %s", 500, payload)
 }
 
-func (o *GetAchievementTemplatesInternalServerError) GetPayload() *models.APIServerError {
+func (o *GetAchievementTemplatesInternalServerError) GetPayload() *models.RespondError {
 	return o.Payload
 }
 
 func (o *GetAchievementTemplatesInternalServerError) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIServerError)
+	o.Payload = new(models.RespondError)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {

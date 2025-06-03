@@ -9,6 +9,9 @@ import (
 	"time"
 
 	"github.com/felixge/httpsnoop"
+	"github.com/gofrs/uuid/v5"
+	"github.com/kozlov-ma/sesc-backend/api/param"
+	"github.com/kozlov-ma/sesc-backend/api/respond"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent"
 	"github.com/kozlov-ma/sesc-backend/iam"
 	"github.com/kozlov-ma/sesc-backend/pkg/event"
@@ -40,7 +43,7 @@ func (a *API) UnauthorizeSuspendedUsersMiddleware(next http.Handler) http.Handle
 		ctx := r.Context()
 		u, ok := GetUserFromContext(ctx)
 		if ok && u.Suspended {
-			writeError(ctx, w, ErrUnauthorized.WithDetails("you are suspended").WithStatus(http.StatusUnauthorized))
+			a.writeJSON(ctx, w, respond.WithError(ctx, sesc.ErrSuspended))
 			return
 		}
 		next.ServeHTTP(w, r.WithContext(ctx))
@@ -98,30 +101,15 @@ func (a *API) RequireAuthMiddleware(next http.Handler) http.Handler {
 
 		rec.Sub("http").Set("route_requires_auth", true)
 
-		authHeader := r.Header.Get("Authorization")
-
-		if authHeader == "" {
-			writeError(ctx, w, UnauthorizedError{
-				Code:      "UNAUTHORIZED",
-				Message:   "Unauthorized access",
-				RuMessage: "Требуется аутентификация",
-				Details:   "Authentication required",
-			}.WithStatus(http.StatusUnauthorized))
-			return
+		token, err := param.BearerAuth(r)
+		if err != nil {
+			a.writeJSON(ctx, w, respond.WithStatus(respond.WithError(ctx, err), http.StatusUnauthorized))
 		}
 
-		// Validate Bearer token format
-		if !strings.HasPrefix(authHeader, "Bearer ") {
-			writeError(ctx, w, ErrInvalidAuthHeader.WithStatus(http.StatusUnauthorized))
-			return
-		}
-
-		// Extract token and validate
-		token := authHeader[7:]
 		identity, err := a.iam.ImWatermelon(ctx, token)
 		if err != nil {
 			rec.Add(events.Error, err)
-			writeError(ctx, w, iamError(err))
+			a.writeJSON(ctx, w, respond.WithError(ctx, err))
 			return
 		}
 
@@ -150,18 +138,13 @@ func (a *API) RequireAdminRoleMiddleware(next http.Handler) http.Handler {
 
 		// Check if we have identity in the context
 		if !ok {
-			writeError(ctx, w, UnauthorizedError{
-				Code:      "UNAUTHORIZED",
-				Message:   "Authentication required",
-				RuMessage: "Требуется аутентификация",
-				Details:   "Authentication required",
-			}.WithStatus(http.StatusUnauthorized))
+			a.writeJSON(ctx, w, respond.WithError(ctx, iam.ErrForbidden))
 			return
 		}
 
 		// Check if user has admin role
 		if string(identity.Role) != "admin" {
-			writeError(ctx, w, ErrForbidden.WithStatus(http.StatusForbidden))
+			a.writeJSON(ctx, w, respond.WithError(ctx, iam.ErrForbidden))
 			return
 		}
 
@@ -184,18 +167,13 @@ func (a *API) RoleMiddleware(role iam.Role) func(http.Handler) http.Handler {
 			// Get identity from context
 			identity, ok := GetIdentityFromContext(ctx)
 			if !ok {
-				writeError(ctx, w, UnauthorizedError{
-					Code:      "UNAUTHORIZED",
-					Message:   "Authentication required",
-					RuMessage: "Требуется аутентификация",
-					Details:   "Authentication required",
-				}.WithStatus(http.StatusUnauthorized))
+				a.writeJSON(ctx, w, respond.WithError(ctx, iam.ErrUnauthorized))
 				return
 			}
 
 			// Check if user has required role
 			if identity.Role != role {
-				writeError(ctx, w, ErrForbidden.WithStatus(http.StatusForbidden))
+				a.writeJSON(ctx, w, respond.WithError(ctx, iam.ErrForbidden))
 				return
 			}
 
@@ -213,7 +191,7 @@ func (a *API) CurrentUserMiddleware(next http.Handler) http.Handler {
 
 		identity, ok := GetIdentityFromContext(ctx)
 		if !ok {
-			writeError(ctx, w, ErrUnauthorized.WithStatus(http.StatusUnauthorized))
+			a.writeJSON(ctx, w, respond.WithError(ctx, iam.ErrUnauthorized))
 			return
 		}
 
@@ -221,12 +199,12 @@ func (a *API) CurrentUserMiddleware(next http.Handler) http.Handler {
 			user, err := a.sesc.User(ctx, identity.ID)
 			if err != nil {
 				rec.Add(events.Error, fmt.Errorf("couldn't get user data: %w", err))
-				writeError(ctx, w, sescError(err))
+				a.writeJSON(ctx, w, respond.WithError(ctx, err))
 				return
 			}
 
 			if user.Suspended {
-				writeError(ctx, w, ErrUnauthorized.WithDetails("you are suspended").WithStatus(http.StatusUnauthorized))
+				a.writeJSON(ctx, w, respond.WithError(ctx, err))
 				return
 			}
 
@@ -252,6 +230,8 @@ func (a *API) EventMiddleware(next http.Handler) http.Handler {
 				panic(r)
 			}
 		}()
+
+		rec.Set(events.TraceID, uuid.Must(uuid.NewV7()))
 
 		httprec := rec.Sub("http")
 
@@ -309,12 +289,7 @@ func (a *API) RequireReportManagementPermissionMiddleware(next http.Handler) htt
 		// Get identity from context
 		identity, ok := GetIdentityFromContext(ctx)
 		if !ok {
-			writeError(ctx, w, UnauthorizedError{
-				Code:      "UNAUTHORIZED",
-				Message:   "Authentication required",
-				RuMessage: "Требуется аутентификация",
-				Details:   "Authentication required",
-			}.WithStatus(http.StatusUnauthorized))
+			a.writeJSON(ctx, w, respond.WithError(ctx, iam.ErrUnauthorized))
 			return
 		}
 
@@ -322,18 +297,13 @@ func (a *API) RequireReportManagementPermissionMiddleware(next http.Handler) htt
 		user, err := a.sesc.User(ctx, identity.ID)
 		if err != nil {
 			rec.Add(events.Error, fmt.Errorf("couldn't get user data: %w", err))
-			writeError(ctx, w, sescError(err))
+			a.writeJSON(ctx, w, respond.WithError(ctx, err))
 			return
 		}
 
 		// Check if user has report management permission
 		if user.Role != sesc.ChiefEconomist {
-			writeError(ctx, w, ForbiddenError{
-				Code:      "INSUFFICIENT_PERMISSIONS",
-				Message:   "Insufficient permissions for report management",
-				RuMessage: "Недостаточно прав для управления отчетами",
-				Details:   "Report management permission required",
-			}.WithStatus(http.StatusForbidden))
+			a.writeJSON(ctx, w, respond.WithError(ctx, err))
 			return
 		}
 

@@ -89,9 +89,6 @@ import type {
   GetFilesByIdData,
   GetFilesByIdResponse,
   GetFilesByIdError,
-  PostReportsMarkAccountedData,
-  PostReportsMarkAccountedResponse,
-  PostReportsMarkAccountedError,
   PostReportsMarkAllAccountedData,
   PostReportsMarkAllAccountedResponse,
   PostReportsMarkAllAccountedError,
@@ -848,33 +845,6 @@ export const getFilesById = <ThrowOnError extends boolean = false>(
     ],
     url: "/files/{id}",
     ...options,
-  });
-};
-
-/**
- * Mark achievements as accounted
- * Marks achievements with "done" status as "accounted" in the system
- */
-export const postReportsMarkAccounted = <ThrowOnError extends boolean = false>(
-  options: Options<PostReportsMarkAccountedData, ThrowOnError>,
-) => {
-  return (options.client ?? _heyApiClient).post<
-    PostReportsMarkAccountedResponse,
-    PostReportsMarkAccountedError,
-    ThrowOnError
-  >({
-    security: [
-      {
-        name: "Authorization",
-        type: "apiKey",
-      },
-    ],
-    url: "/reports/mark-accounted",
-    ...options,
-    headers: {
-      "Content-Type": "application/json",
-      ...options?.headers,
-    },
   });
 };
 

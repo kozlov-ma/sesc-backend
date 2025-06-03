@@ -1,15 +1,30 @@
 package achievement
 
-import "errors"
+import (
+	"github.com/kozlov-ma/sesc-backend/pkg/domerr"
+)
 
 var (
-	ErrAchievementGroupNotFound    = errors.New("achievement group not found")
-	ErrAchievementTemplateNotFound = errors.New("achievement template not found")
-	ErrInvalidAchievementKind      = errors.New("invalid achievement kind")
+	ErrInvalidName = domerr.New("некорректное имя", domerr.KindValidation)
 
-	ErrAchievementNotFound = errors.New("achievement not found")
-	ErrDocumentNotFound    = errors.New("document not found")
+	ErrAchievementGroupNotFound    = domerr.New("группа достижений не существует", domerr.KindNotFound)
+	ErrAchievementTemplateNotFound = domerr.New("шаблон достижения не существует", domerr.KindNotFound)
+	ErrInvalidAchievementKind      = domerr.New("некорректный тип достижения", domerr.KindValidation)
 
-	ErrWrongAchievementStatus = errors.New("achievement status does not allow this kind of change")
-	ErrPointsLimitExceeded    = errors.New("points assigned exceed the template's points limit")
+	ErrAchievementNotFound = domerr.New("достижение не существует", domerr.KindNotFound)
+	ErrDocumentNotFound    = domerr.New("документ не существует", domerr.KindNotFound)
+
+	ErrInvalidPointsLimit = domerr.New(
+		"максимальное количество баллов должно быть положительным",
+		domerr.KindValidation,
+	)
+
+	ErrWrongAchievementStatus = domerr.New(
+		"текущий статус достижения не позволяет работать с ним таким образом",
+		domerr.KindConflict,
+	)
+	ErrPointsLimitExceeded = domerr.New(
+		"нельзя оценить достижение выше, чем оно оценено сейчас",
+		domerr.KindConflict,
+	)
 )

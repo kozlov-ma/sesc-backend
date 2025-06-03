@@ -140,7 +140,7 @@ PostUsersBadRequest describes a response with status code 400, with default head
 Invalid name specified
 */
 type PostUsersBadRequest struct {
-	Payload *models.APIInvalidNameError
+	Payload *models.RespondError
 }
 
 // IsSuccess returns true when this post users bad request response has a 2xx status code
@@ -183,13 +183,13 @@ func (o *PostUsersBadRequest) String() string {
 	return fmt.Sprintf("[POST /users][%d] postUsersBadRequest %s", 400, payload)
 }
 
-func (o *PostUsersBadRequest) GetPayload() *models.APIInvalidNameError {
+func (o *PostUsersBadRequest) GetPayload() *models.RespondError {
 	return o.Payload
 }
 
 func (o *PostUsersBadRequest) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIInvalidNameError)
+	o.Payload = new(models.RespondError)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
@@ -210,7 +210,7 @@ PostUsersUnauthorized describes a response with status code 401, with default he
 Unauthorized
 */
 type PostUsersUnauthorized struct {
-	Payload *models.APIUnauthorizedError
+	Payload *models.RespondError
 }
 
 // IsSuccess returns true when this post users unauthorized response has a 2xx status code
@@ -253,13 +253,13 @@ func (o *PostUsersUnauthorized) String() string {
 	return fmt.Sprintf("[POST /users][%d] postUsersUnauthorized %s", 401, payload)
 }
 
-func (o *PostUsersUnauthorized) GetPayload() *models.APIUnauthorizedError {
+func (o *PostUsersUnauthorized) GetPayload() *models.RespondError {
 	return o.Payload
 }
 
 func (o *PostUsersUnauthorized) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIUnauthorizedError)
+	o.Payload = new(models.RespondError)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
@@ -280,7 +280,7 @@ PostUsersForbidden describes a response with status code 403, with default heade
 Forbidden - admin role required
 */
 type PostUsersForbidden struct {
-	Payload *models.APIForbiddenError
+	Payload *models.RespondError
 }
 
 // IsSuccess returns true when this post users forbidden response has a 2xx status code
@@ -323,13 +323,13 @@ func (o *PostUsersForbidden) String() string {
 	return fmt.Sprintf("[POST /users][%d] postUsersForbidden %s", 403, payload)
 }
 
-func (o *PostUsersForbidden) GetPayload() *models.APIForbiddenError {
+func (o *PostUsersForbidden) GetPayload() *models.RespondError {
 	return o.Payload
 }
 
 func (o *PostUsersForbidden) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIForbiddenError)
+	o.Payload = new(models.RespondError)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
@@ -350,7 +350,7 @@ PostUsersInternalServerError describes a response with status code 500, with def
 Internal server error
 */
 type PostUsersInternalServerError struct {
-	Payload *models.APIServerError
+	Payload *models.RespondError
 }
 
 // IsSuccess returns true when this post users internal server error response has a 2xx status code
@@ -393,13 +393,13 @@ func (o *PostUsersInternalServerError) String() string {
 	return fmt.Sprintf("[POST /users][%d] postUsersInternalServerError %s", 500, payload)
 }
 
-func (o *PostUsersInternalServerError) GetPayload() *models.APIServerError {
+func (o *PostUsersInternalServerError) GetPayload() *models.RespondError {
 	return o.Payload
 }
 
 func (o *PostUsersInternalServerError) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIServerError)
+	o.Payload = new(models.RespondError)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {

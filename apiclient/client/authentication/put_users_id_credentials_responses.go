@@ -150,7 +150,7 @@ PutUsersIDCredentialsBadRequest describes a response with status code 400, with 
 Invalid credentials format
 */
 type PutUsersIDCredentialsBadRequest struct {
-	Payload *models.APIInvalidCredentialsError
+	Payload *models.RespondError
 }
 
 // IsSuccess returns true when this put users Id credentials bad request response has a 2xx status code
@@ -193,13 +193,13 @@ func (o *PutUsersIDCredentialsBadRequest) String() string {
 	return fmt.Sprintf("[PUT /users/{id}/credentials][%d] putUsersIdCredentialsBadRequest %s", 400, payload)
 }
 
-func (o *PutUsersIDCredentialsBadRequest) GetPayload() *models.APIInvalidCredentialsError {
+func (o *PutUsersIDCredentialsBadRequest) GetPayload() *models.RespondError {
 	return o.Payload
 }
 
 func (o *PutUsersIDCredentialsBadRequest) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIInvalidCredentialsError)
+	o.Payload = new(models.RespondError)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
@@ -220,7 +220,7 @@ PutUsersIDCredentialsUnauthorized describes a response with status code 401, wit
 Unauthorized
 */
 type PutUsersIDCredentialsUnauthorized struct {
-	Payload *models.APIUnauthorizedError
+	Payload *models.RespondError
 }
 
 // IsSuccess returns true when this put users Id credentials unauthorized response has a 2xx status code
@@ -263,13 +263,13 @@ func (o *PutUsersIDCredentialsUnauthorized) String() string {
 	return fmt.Sprintf("[PUT /users/{id}/credentials][%d] putUsersIdCredentialsUnauthorized %s", 401, payload)
 }
 
-func (o *PutUsersIDCredentialsUnauthorized) GetPayload() *models.APIUnauthorizedError {
+func (o *PutUsersIDCredentialsUnauthorized) GetPayload() *models.RespondError {
 	return o.Payload
 }
 
 func (o *PutUsersIDCredentialsUnauthorized) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIUnauthorizedError)
+	o.Payload = new(models.RespondError)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
@@ -290,7 +290,7 @@ PutUsersIDCredentialsForbidden describes a response with status code 403, with d
 Forbidden - admin role required
 */
 type PutUsersIDCredentialsForbidden struct {
-	Payload *models.APIForbiddenError
+	Payload *models.RespondError
 }
 
 // IsSuccess returns true when this put users Id credentials forbidden response has a 2xx status code
@@ -333,13 +333,13 @@ func (o *PutUsersIDCredentialsForbidden) String() string {
 	return fmt.Sprintf("[PUT /users/{id}/credentials][%d] putUsersIdCredentialsForbidden %s", 403, payload)
 }
 
-func (o *PutUsersIDCredentialsForbidden) GetPayload() *models.APIForbiddenError {
+func (o *PutUsersIDCredentialsForbidden) GetPayload() *models.RespondError {
 	return o.Payload
 }
 
 func (o *PutUsersIDCredentialsForbidden) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIForbiddenError)
+	o.Payload = new(models.RespondError)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
@@ -360,7 +360,7 @@ PutUsersIDCredentialsNotFound describes a response with status code 404, with de
 User does not exist
 */
 type PutUsersIDCredentialsNotFound struct {
-	Payload *models.APIUserNotFoundError
+	Payload *models.RespondError
 }
 
 // IsSuccess returns true when this put users Id credentials not found response has a 2xx status code
@@ -403,13 +403,13 @@ func (o *PutUsersIDCredentialsNotFound) String() string {
 	return fmt.Sprintf("[PUT /users/{id}/credentials][%d] putUsersIdCredentialsNotFound %s", 404, payload)
 }
 
-func (o *PutUsersIDCredentialsNotFound) GetPayload() *models.APIUserNotFoundError {
+func (o *PutUsersIDCredentialsNotFound) GetPayload() *models.RespondError {
 	return o.Payload
 }
 
 func (o *PutUsersIDCredentialsNotFound) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIUserNotFoundError)
+	o.Payload = new(models.RespondError)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
@@ -430,7 +430,7 @@ PutUsersIDCredentialsConflict describes a response with status code 409, with de
 User already exists
 */
 type PutUsersIDCredentialsConflict struct {
-	Payload *models.APIUserExistsError
+	Payload *models.RespondError
 }
 
 // IsSuccess returns true when this put users Id credentials conflict response has a 2xx status code
@@ -473,13 +473,13 @@ func (o *PutUsersIDCredentialsConflict) String() string {
 	return fmt.Sprintf("[PUT /users/{id}/credentials][%d] putUsersIdCredentialsConflict %s", 409, payload)
 }
 
-func (o *PutUsersIDCredentialsConflict) GetPayload() *models.APIUserExistsError {
+func (o *PutUsersIDCredentialsConflict) GetPayload() *models.RespondError {
 	return o.Payload
 }
 
 func (o *PutUsersIDCredentialsConflict) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIUserExistsError)
+	o.Payload = new(models.RespondError)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
@@ -500,7 +500,7 @@ PutUsersIDCredentialsInternalServerError describes a response with status code 5
 Internal server error
 */
 type PutUsersIDCredentialsInternalServerError struct {
-	Payload *models.APIServerError
+	Payload *models.RespondError
 }
 
 // IsSuccess returns true when this put users Id credentials internal server error response has a 2xx status code
@@ -543,13 +543,13 @@ func (o *PutUsersIDCredentialsInternalServerError) String() string {
 	return fmt.Sprintf("[PUT /users/{id}/credentials][%d] putUsersIdCredentialsInternalServerError %s", 500, payload)
 }
 
-func (o *PutUsersIDCredentialsInternalServerError) GetPayload() *models.APIServerError {
+func (o *PutUsersIDCredentialsInternalServerError) GetPayload() *models.RespondError {
 	return o.Payload
 }
 
 func (o *PutUsersIDCredentialsInternalServerError) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIServerError)
+	o.Payload = new(models.RespondError)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {

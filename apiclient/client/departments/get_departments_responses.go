@@ -122,7 +122,7 @@ GetDepartmentsInternalServerError describes a response with status code 500, wit
 Internal server error
 */
 type GetDepartmentsInternalServerError struct {
-	Payload *models.APIServerError
+	Payload *models.RespondError
 }
 
 // IsSuccess returns true when this get departments internal server error response has a 2xx status code
@@ -165,13 +165,13 @@ func (o *GetDepartmentsInternalServerError) String() string {
 	return fmt.Sprintf("[GET /departments][%d] getDepartmentsInternalServerError %s", 500, payload)
 }
 
-func (o *GetDepartmentsInternalServerError) GetPayload() *models.APIServerError {
+func (o *GetDepartmentsInternalServerError) GetPayload() *models.RespondError {
 	return o.Payload
 }
 
 func (o *GetDepartmentsInternalServerError) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIServerError)
+	o.Payload = new(models.RespondError)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {

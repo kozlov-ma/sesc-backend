@@ -2,7 +2,8 @@
 
 # Generate Go code and frontend API client
 generate:
-	go generate ./... && cd web && pnpm openapi-ts
+	go generate ./... && cd web && rm -r lib/api && pnpm openapi-ts
+	rm -r apiclient/*
 	go tool swagger generate client -f api/docs/swagger.yaml -A apiclient --target apiclient/
 
 # Spin up the development database
@@ -43,4 +44,6 @@ can-i-push-web:
 
 # Run integration tests in docker
 integration-tests:
-	docker compose up --build --abort-on-container-exit --exit-code-from integration-tests integration-tests
+	docker compose -f docker-compose-test.yml down -v
+	docker compose -f docker-compose-test.yml up --build --abort-on-container-exit --exit-code-from integration-tests integration-tests
+	docker compose -f docker-compose-test.yml down -v

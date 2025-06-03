@@ -134,7 +134,7 @@ GetReportsUserPointsUnauthorized describes a response with status code 401, with
 Unauthorized
 */
 type GetReportsUserPointsUnauthorized struct {
-	Payload *models.APIError
+	Payload *models.RespondError
 }
 
 // IsSuccess returns true when this get reports user points unauthorized response has a 2xx status code
@@ -177,13 +177,13 @@ func (o *GetReportsUserPointsUnauthorized) String() string {
 	return fmt.Sprintf("[GET /reports/user-points][%d] getReportsUserPointsUnauthorized %s", 401, payload)
 }
 
-func (o *GetReportsUserPointsUnauthorized) GetPayload() *models.APIError {
+func (o *GetReportsUserPointsUnauthorized) GetPayload() *models.RespondError {
 	return o.Payload
 }
 
 func (o *GetReportsUserPointsUnauthorized) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIError)
+	o.Payload = new(models.RespondError)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
@@ -204,7 +204,7 @@ GetReportsUserPointsForbidden describes a response with status code 403, with de
 Forbidden - Admin access required
 */
 type GetReportsUserPointsForbidden struct {
-	Payload *models.APIError
+	Payload *models.RespondError
 }
 
 // IsSuccess returns true when this get reports user points forbidden response has a 2xx status code
@@ -247,13 +247,13 @@ func (o *GetReportsUserPointsForbidden) String() string {
 	return fmt.Sprintf("[GET /reports/user-points][%d] getReportsUserPointsForbidden %s", 403, payload)
 }
 
-func (o *GetReportsUserPointsForbidden) GetPayload() *models.APIError {
+func (o *GetReportsUserPointsForbidden) GetPayload() *models.RespondError {
 	return o.Payload
 }
 
 func (o *GetReportsUserPointsForbidden) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIError)
+	o.Payload = new(models.RespondError)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
@@ -274,7 +274,7 @@ GetReportsUserPointsInternalServerError describes a response with status code 50
 Internal server error
 */
 type GetReportsUserPointsInternalServerError struct {
-	Payload *models.APIError
+	Payload *models.RespondError
 }
 
 // IsSuccess returns true when this get reports user points internal server error response has a 2xx status code
@@ -317,13 +317,13 @@ func (o *GetReportsUserPointsInternalServerError) String() string {
 	return fmt.Sprintf("[GET /reports/user-points][%d] getReportsUserPointsInternalServerError %s", 500, payload)
 }
 
-func (o *GetReportsUserPointsInternalServerError) GetPayload() *models.APIError {
+func (o *GetReportsUserPointsInternalServerError) GetPayload() *models.RespondError {
 	return o.Payload
 }
 
 func (o *GetReportsUserPointsInternalServerError) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIError)
+	o.Payload = new(models.RespondError)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {

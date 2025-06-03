@@ -134,7 +134,7 @@ GetAchievementsBadRequest describes a response with status code 400, with defaul
 Invalid request parameters
 */
 type GetAchievementsBadRequest struct {
-	Payload *models.APIInvalidRequestError
+	Payload *models.RespondError
 }
 
 // IsSuccess returns true when this get achievements bad request response has a 2xx status code
@@ -177,13 +177,13 @@ func (o *GetAchievementsBadRequest) String() string {
 	return fmt.Sprintf("[GET /achievements][%d] getAchievementsBadRequest %s", 400, payload)
 }
 
-func (o *GetAchievementsBadRequest) GetPayload() *models.APIInvalidRequestError {
+func (o *GetAchievementsBadRequest) GetPayload() *models.RespondError {
 	return o.Payload
 }
 
 func (o *GetAchievementsBadRequest) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIInvalidRequestError)
+	o.Payload = new(models.RespondError)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
@@ -204,7 +204,7 @@ GetAchievementsUnauthorized describes a response with status code 401, with defa
 Unauthorized
 */
 type GetAchievementsUnauthorized struct {
-	Payload *models.APIUnauthorizedError
+	Payload *models.RespondError
 }
 
 // IsSuccess returns true when this get achievements unauthorized response has a 2xx status code
@@ -247,13 +247,13 @@ func (o *GetAchievementsUnauthorized) String() string {
 	return fmt.Sprintf("[GET /achievements][%d] getAchievementsUnauthorized %s", 401, payload)
 }
 
-func (o *GetAchievementsUnauthorized) GetPayload() *models.APIUnauthorizedError {
+func (o *GetAchievementsUnauthorized) GetPayload() *models.RespondError {
 	return o.Payload
 }
 
 func (o *GetAchievementsUnauthorized) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIUnauthorizedError)
+	o.Payload = new(models.RespondError)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
@@ -274,7 +274,7 @@ GetAchievementsInternalServerError describes a response with status code 500, wi
 Internal server error
 */
 type GetAchievementsInternalServerError struct {
-	Payload *models.APIServerError
+	Payload *models.RespondError
 }
 
 // IsSuccess returns true when this get achievements internal server error response has a 2xx status code
@@ -317,13 +317,13 @@ func (o *GetAchievementsInternalServerError) String() string {
 	return fmt.Sprintf("[GET /achievements][%d] getAchievementsInternalServerError %s", 500, payload)
 }
 
-func (o *GetAchievementsInternalServerError) GetPayload() *models.APIServerError {
+func (o *GetAchievementsInternalServerError) GetPayload() *models.RespondError {
 	return o.Payload
 }
 
 func (o *GetAchievementsInternalServerError) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIServerError)
+	o.Payload = new(models.RespondError)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {

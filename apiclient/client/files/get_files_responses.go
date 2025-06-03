@@ -128,7 +128,7 @@ GetFilesBadRequest describes a response with status code 400, with default heade
 Bad Request
 */
 type GetFilesBadRequest struct {
-	Payload *models.APIError
+	Payload *models.RespondError
 }
 
 // IsSuccess returns true when this get files bad request response has a 2xx status code
@@ -171,13 +171,13 @@ func (o *GetFilesBadRequest) String() string {
 	return fmt.Sprintf("[GET /files][%d] getFilesBadRequest %s", 400, payload)
 }
 
-func (o *GetFilesBadRequest) GetPayload() *models.APIError {
+func (o *GetFilesBadRequest) GetPayload() *models.RespondError {
 	return o.Payload
 }
 
 func (o *GetFilesBadRequest) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIError)
+	o.Payload = new(models.RespondError)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
@@ -198,7 +198,7 @@ GetFilesInternalServerError describes a response with status code 500, with defa
 Internal Server Error
 */
 type GetFilesInternalServerError struct {
-	Payload *models.APIError
+	Payload *models.RespondError
 }
 
 // IsSuccess returns true when this get files internal server error response has a 2xx status code
@@ -241,13 +241,13 @@ func (o *GetFilesInternalServerError) String() string {
 	return fmt.Sprintf("[GET /files][%d] getFilesInternalServerError %s", 500, payload)
 }
 
-func (o *GetFilesInternalServerError) GetPayload() *models.APIError {
+func (o *GetFilesInternalServerError) GetPayload() *models.RespondError {
 	return o.Payload
 }
 
 func (o *GetFilesInternalServerError) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIError)
+	o.Payload = new(models.RespondError)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {

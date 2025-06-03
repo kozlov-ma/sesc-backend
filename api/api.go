@@ -26,35 +26,25 @@ func New(sesc SESC, iam IAMService, file FileService, eventSink EventSink) *API 
 	return &API{sesc: sesc, iam: iam, file: file, eventSink: eventSink}
 }
 
+type statusCoder interface {
+	AsHTTPStatusCode() int
+}
+
 // Helper functions
-func (a *API) writeJSON(ctx context.Context, w http.ResponseWriter, data any, statusCode int) {
+func (a *API) writeJSON(ctx context.Context, w http.ResponseWriter, data any) {
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(statusCode)
+
+	if sc, ok := data.(statusCoder); ok {
+		w.WriteHeader(sc.AsHTTPStatusCode())
+	}
+
 	if err := json.NewEncoder(w).Encode(data); err != nil {
 		rec := event.Get(ctx)
 		rec.Add(events.Error, fmt.Errorf("couldn't write json: %w", err))
 	}
-}
 
-func writeError[T SpecificError](ctx context.Context, w http.ResponseWriter, apiError T) {
-	rec := event.Get(ctx)
-
-	genericError := Error(apiError)
-
-	// Set default status code if not provided
-	statusCode := http.StatusInternalServerError
-	if genericError.StatusCode != 0 {
-		statusCode = genericError.StatusCode
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(statusCode)
-
-	rec.Sub("http").Add("error_response", apiError)
-
-	err := json.NewEncoder(w).Encode(apiError)
-	if err != nil {
-		rec.Add(events.Error, fmt.Errorf("couldn't write json: %w", err))
+	if e, ok := data.(error); ok {
+		event.Get(ctx).Sub("http").Add("error_response", e)
 	}
 }
 
@@ -203,7 +193,6 @@ func (a *API) RegisterRoutes(r chi.Router) {
 		r.Use(a.RequireReportManagementPermissionMiddleware)
 
 		r.Get("/reports/user-points", a.GenerateUserPointsReport)
-		r.Post("/reports/mark-accounted", a.MarkAchievementsAsAccounted)
 		r.Post("/reports/mark-all-accounted", a.MarkAllDoneAchievementsAsAccounted)
 	})
 

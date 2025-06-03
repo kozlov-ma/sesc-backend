@@ -134,7 +134,7 @@ GetDepartmentsIDBadRequest describes a response with status code 400, with defau
 Invalid UUID format
 */
 type GetDepartmentsIDBadRequest struct {
-	Payload *models.APIInvalidUUIDError
+	Payload *models.RespondError
 }
 
 // IsSuccess returns true when this get departments Id bad request response has a 2xx status code
@@ -177,13 +177,13 @@ func (o *GetDepartmentsIDBadRequest) String() string {
 	return fmt.Sprintf("[GET /departments/{id}][%d] getDepartmentsIdBadRequest %s", 400, payload)
 }
 
-func (o *GetDepartmentsIDBadRequest) GetPayload() *models.APIInvalidUUIDError {
+func (o *GetDepartmentsIDBadRequest) GetPayload() *models.RespondError {
 	return o.Payload
 }
 
 func (o *GetDepartmentsIDBadRequest) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIInvalidUUIDError)
+	o.Payload = new(models.RespondError)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
@@ -204,7 +204,7 @@ GetDepartmentsIDNotFound describes a response with status code 404, with default
 Department not found
 */
 type GetDepartmentsIDNotFound struct {
-	Payload *models.APIDepartmentNotFoundError
+	Payload *models.RespondError
 }
 
 // IsSuccess returns true when this get departments Id not found response has a 2xx status code
@@ -247,13 +247,13 @@ func (o *GetDepartmentsIDNotFound) String() string {
 	return fmt.Sprintf("[GET /departments/{id}][%d] getDepartmentsIdNotFound %s", 404, payload)
 }
 
-func (o *GetDepartmentsIDNotFound) GetPayload() *models.APIDepartmentNotFoundError {
+func (o *GetDepartmentsIDNotFound) GetPayload() *models.RespondError {
 	return o.Payload
 }
 
 func (o *GetDepartmentsIDNotFound) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIDepartmentNotFoundError)
+	o.Payload = new(models.RespondError)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
@@ -274,7 +274,7 @@ GetDepartmentsIDInternalServerError describes a response with status code 500, w
 Internal server error
 */
 type GetDepartmentsIDInternalServerError struct {
-	Payload *models.APIServerError
+	Payload *models.RespondError
 }
 
 // IsSuccess returns true when this get departments Id internal server error response has a 2xx status code
@@ -317,13 +317,13 @@ func (o *GetDepartmentsIDInternalServerError) String() string {
 	return fmt.Sprintf("[GET /departments/{id}][%d] getDepartmentsIdInternalServerError %s", 500, payload)
 }
 
-func (o *GetDepartmentsIDInternalServerError) GetPayload() *models.APIServerError {
+func (o *GetDepartmentsIDInternalServerError) GetPayload() *models.RespondError {
 	return o.Payload
 }
 
 func (o *GetDepartmentsIDInternalServerError) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIServerError)
+	o.Payload = new(models.RespondError)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {

@@ -132,7 +132,7 @@ DeleteAchievementsIDDocumentsDocumentIDBadRequest describes a response with stat
 Invalid UUID format
 */
 type DeleteAchievementsIDDocumentsDocumentIDBadRequest struct {
-	Payload *models.APIInvalidUUIDError
+	Payload *models.RespondError
 }
 
 // IsSuccess returns true when this delete achievements Id documents document Id bad request response has a 2xx status code
@@ -175,13 +175,13 @@ func (o *DeleteAchievementsIDDocumentsDocumentIDBadRequest) String() string {
 	return fmt.Sprintf("[DELETE /achievements/{id}/documents/{documentId}][%d] deleteAchievementsIdDocumentsDocumentIdBadRequest %s", 400, payload)
 }
 
-func (o *DeleteAchievementsIDDocumentsDocumentIDBadRequest) GetPayload() *models.APIInvalidUUIDError {
+func (o *DeleteAchievementsIDDocumentsDocumentIDBadRequest) GetPayload() *models.RespondError {
 	return o.Payload
 }
 
 func (o *DeleteAchievementsIDDocumentsDocumentIDBadRequest) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIInvalidUUIDError)
+	o.Payload = new(models.RespondError)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
@@ -202,7 +202,7 @@ DeleteAchievementsIDDocumentsDocumentIDUnauthorized describes a response with st
 Unauthorized
 */
 type DeleteAchievementsIDDocumentsDocumentIDUnauthorized struct {
-	Payload *models.APIUnauthorizedError
+	Payload *models.RespondError
 }
 
 // IsSuccess returns true when this delete achievements Id documents document Id unauthorized response has a 2xx status code
@@ -245,13 +245,13 @@ func (o *DeleteAchievementsIDDocumentsDocumentIDUnauthorized) String() string {
 	return fmt.Sprintf("[DELETE /achievements/{id}/documents/{documentId}][%d] deleteAchievementsIdDocumentsDocumentIdUnauthorized %s", 401, payload)
 }
 
-func (o *DeleteAchievementsIDDocumentsDocumentIDUnauthorized) GetPayload() *models.APIUnauthorizedError {
+func (o *DeleteAchievementsIDDocumentsDocumentIDUnauthorized) GetPayload() *models.RespondError {
 	return o.Payload
 }
 
 func (o *DeleteAchievementsIDDocumentsDocumentIDUnauthorized) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIUnauthorizedError)
+	o.Payload = new(models.RespondError)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
@@ -272,7 +272,7 @@ DeleteAchievementsIDDocumentsDocumentIDNotFound describes a response with status
 Document not found
 */
 type DeleteAchievementsIDDocumentsDocumentIDNotFound struct {
-	Payload *models.APIDocumentNotFoundError
+	Payload *models.RespondError
 }
 
 // IsSuccess returns true when this delete achievements Id documents document Id not found response has a 2xx status code
@@ -315,13 +315,13 @@ func (o *DeleteAchievementsIDDocumentsDocumentIDNotFound) String() string {
 	return fmt.Sprintf("[DELETE /achievements/{id}/documents/{documentId}][%d] deleteAchievementsIdDocumentsDocumentIdNotFound %s", 404, payload)
 }
 
-func (o *DeleteAchievementsIDDocumentsDocumentIDNotFound) GetPayload() *models.APIDocumentNotFoundError {
+func (o *DeleteAchievementsIDDocumentsDocumentIDNotFound) GetPayload() *models.RespondError {
 	return o.Payload
 }
 
 func (o *DeleteAchievementsIDDocumentsDocumentIDNotFound) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIDocumentNotFoundError)
+	o.Payload = new(models.RespondError)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
@@ -342,7 +342,7 @@ DeleteAchievementsIDDocumentsDocumentIDConflict describes a response with status
 Wrong achievement status
 */
 type DeleteAchievementsIDDocumentsDocumentIDConflict struct {
-	Payload *models.APIWrongAchievementStatusError
+	Payload *models.RespondError
 }
 
 // IsSuccess returns true when this delete achievements Id documents document Id conflict response has a 2xx status code
@@ -385,13 +385,13 @@ func (o *DeleteAchievementsIDDocumentsDocumentIDConflict) String() string {
 	return fmt.Sprintf("[DELETE /achievements/{id}/documents/{documentId}][%d] deleteAchievementsIdDocumentsDocumentIdConflict %s", 409, payload)
 }
 
-func (o *DeleteAchievementsIDDocumentsDocumentIDConflict) GetPayload() *models.APIWrongAchievementStatusError {
+func (o *DeleteAchievementsIDDocumentsDocumentIDConflict) GetPayload() *models.RespondError {
 	return o.Payload
 }
 
 func (o *DeleteAchievementsIDDocumentsDocumentIDConflict) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIWrongAchievementStatusError)
+	o.Payload = new(models.RespondError)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
@@ -412,7 +412,7 @@ DeleteAchievementsIDDocumentsDocumentIDInternalServerError describes a response 
 Internal server error
 */
 type DeleteAchievementsIDDocumentsDocumentIDInternalServerError struct {
-	Payload *models.APIServerError
+	Payload *models.RespondError
 }
 
 // IsSuccess returns true when this delete achievements Id documents document Id internal server error response has a 2xx status code
@@ -455,13 +455,13 @@ func (o *DeleteAchievementsIDDocumentsDocumentIDInternalServerError) String() st
 	return fmt.Sprintf("[DELETE /achievements/{id}/documents/{documentId}][%d] deleteAchievementsIdDocumentsDocumentIdInternalServerError %s", 500, payload)
 }
 
-func (o *DeleteAchievementsIDDocumentsDocumentIDInternalServerError) GetPayload() *models.APIServerError {
+func (o *DeleteAchievementsIDDocumentsDocumentIDInternalServerError) GetPayload() *models.RespondError {
 	return o.Payload
 }
 
 func (o *DeleteAchievementsIDDocumentsDocumentIDInternalServerError) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIServerError)
+	o.Payload = new(models.RespondError)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {

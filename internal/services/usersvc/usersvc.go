@@ -193,8 +193,8 @@ func (s *USS) checkAndGetDepartment(
 	switch {
 	case ent.IsNotFound(err):
 		rec.Set("exists", false)
-		rec.Add(events.Error, sesc.ErrInvalidDepartment)
-		return nil, sesc.ErrInvalidDepartment
+		rec.Add(events.Error, sesc.ErrDepartmentNotFound)
+		return nil, sesc.ErrDepartmentNotFound
 	case err != nil:
 		rec.Set("exists", false)
 		err := fmt.Errorf("couldn't query department: %w", err)

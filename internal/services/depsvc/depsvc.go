@@ -88,8 +88,8 @@ func (s *DES) createDepartmentRecord(
 	switch {
 	case ent.IsConstraintError(err):
 		rec.Set("success", false)
-		rec.Add(events.Error, sesc.ErrInvalidDepartment)
-		return Department{}, sesc.ErrInvalidDepartment
+		rec.Add(events.Error, sesc.ErrInvalidDepartmentName)
+		return Department{}, sesc.ErrInvalidDepartmentName
 	case err != nil:
 		err := fmt.Errorf("couldn't save department: %w", err)
 		rec.Add(events.Error, err)
@@ -128,7 +128,7 @@ func (s *DES) DepartmentByID(ctx context.Context, id UUID) (Department, error) {
 
 	switch {
 	case ent.IsNotFound(err):
-		return Department{}, sesc.ErrInvalidDepartment
+		return Department{}, sesc.ErrDepartmentNotFound
 	case err != nil:
 		err := fmt.Errorf("couldn't get department: %w", err)
 		rec.Add(events.Error, err)
@@ -225,7 +225,7 @@ func (s *DES) updateDepartmentRecord(
 
 	switch {
 	case ent.IsNotFound(err):
-		joinedErr := fmt.Errorf("%w: %w", err, sesc.ErrInvalidDepartment)
+		joinedErr := fmt.Errorf("%w: %w", err, sesc.ErrDepartmentNotFound)
 		rec.Add(events.Error, joinedErr)
 		rec.Set("success", false)
 		return joinedErr
@@ -278,9 +278,9 @@ func (s *DES) deleteDepartmentRecord(ctx context.Context, id UUID) error {
 		rec.Set("success", false)
 		return sesc.ErrCannotRemoveDepartment
 	case ent.IsNotFound(err):
-		rec.Add(events.Error, sesc.ErrInvalidDepartment)
+		rec.Add(events.Error, sesc.ErrDepartmentNotFound)
 		rec.Set("success", false)
-		return sesc.ErrInvalidDepartment
+		return sesc.ErrDepartmentNotFound
 	case err != nil:
 		err := fmt.Errorf("couldn't delete department: %w", err)
 		rec.Add(events.Error, err)

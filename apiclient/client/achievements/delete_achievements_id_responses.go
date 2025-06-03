@@ -132,7 +132,7 @@ DeleteAchievementsIDBadRequest describes a response with status code 400, with d
 Invalid UUID format
 */
 type DeleteAchievementsIDBadRequest struct {
-	Payload *models.APIInvalidUUIDError
+	Payload *models.RespondError
 }
 
 // IsSuccess returns true when this delete achievements Id bad request response has a 2xx status code
@@ -175,13 +175,13 @@ func (o *DeleteAchievementsIDBadRequest) String() string {
 	return fmt.Sprintf("[DELETE /achievements/{id}][%d] deleteAchievementsIdBadRequest %s", 400, payload)
 }
 
-func (o *DeleteAchievementsIDBadRequest) GetPayload() *models.APIInvalidUUIDError {
+func (o *DeleteAchievementsIDBadRequest) GetPayload() *models.RespondError {
 	return o.Payload
 }
 
 func (o *DeleteAchievementsIDBadRequest) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIInvalidUUIDError)
+	o.Payload = new(models.RespondError)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
@@ -202,7 +202,7 @@ DeleteAchievementsIDUnauthorized describes a response with status code 401, with
 Unauthorized
 */
 type DeleteAchievementsIDUnauthorized struct {
-	Payload *models.APIUnauthorizedError
+	Payload *models.RespondError
 }
 
 // IsSuccess returns true when this delete achievements Id unauthorized response has a 2xx status code
@@ -245,13 +245,13 @@ func (o *DeleteAchievementsIDUnauthorized) String() string {
 	return fmt.Sprintf("[DELETE /achievements/{id}][%d] deleteAchievementsIdUnauthorized %s", 401, payload)
 }
 
-func (o *DeleteAchievementsIDUnauthorized) GetPayload() *models.APIUnauthorizedError {
+func (o *DeleteAchievementsIDUnauthorized) GetPayload() *models.RespondError {
 	return o.Payload
 }
 
 func (o *DeleteAchievementsIDUnauthorized) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIUnauthorizedError)
+	o.Payload = new(models.RespondError)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
@@ -272,7 +272,7 @@ DeleteAchievementsIDNotFound describes a response with status code 404, with def
 Achievement not found
 */
 type DeleteAchievementsIDNotFound struct {
-	Payload *models.APIAchievementNotFoundError
+	Payload *models.RespondError
 }
 
 // IsSuccess returns true when this delete achievements Id not found response has a 2xx status code
@@ -315,13 +315,13 @@ func (o *DeleteAchievementsIDNotFound) String() string {
 	return fmt.Sprintf("[DELETE /achievements/{id}][%d] deleteAchievementsIdNotFound %s", 404, payload)
 }
 
-func (o *DeleteAchievementsIDNotFound) GetPayload() *models.APIAchievementNotFoundError {
+func (o *DeleteAchievementsIDNotFound) GetPayload() *models.RespondError {
 	return o.Payload
 }
 
 func (o *DeleteAchievementsIDNotFound) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIAchievementNotFoundError)
+	o.Payload = new(models.RespondError)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
@@ -342,7 +342,7 @@ DeleteAchievementsIDConflict describes a response with status code 409, with def
 Wrong achievement status
 */
 type DeleteAchievementsIDConflict struct {
-	Payload *models.APIWrongAchievementStatusError
+	Payload *models.RespondError
 }
 
 // IsSuccess returns true when this delete achievements Id conflict response has a 2xx status code
@@ -385,13 +385,13 @@ func (o *DeleteAchievementsIDConflict) String() string {
 	return fmt.Sprintf("[DELETE /achievements/{id}][%d] deleteAchievementsIdConflict %s", 409, payload)
 }
 
-func (o *DeleteAchievementsIDConflict) GetPayload() *models.APIWrongAchievementStatusError {
+func (o *DeleteAchievementsIDConflict) GetPayload() *models.RespondError {
 	return o.Payload
 }
 
 func (o *DeleteAchievementsIDConflict) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIWrongAchievementStatusError)
+	o.Payload = new(models.RespondError)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
@@ -412,7 +412,7 @@ DeleteAchievementsIDInternalServerError describes a response with status code 50
 Internal server error
 */
 type DeleteAchievementsIDInternalServerError struct {
-	Payload *models.APIServerError
+	Payload *models.RespondError
 }
 
 // IsSuccess returns true when this delete achievements Id internal server error response has a 2xx status code
@@ -455,13 +455,13 @@ func (o *DeleteAchievementsIDInternalServerError) String() string {
 	return fmt.Sprintf("[DELETE /achievements/{id}][%d] deleteAchievementsIdInternalServerError %s", 500, payload)
 }
 
-func (o *DeleteAchievementsIDInternalServerError) GetPayload() *models.APIServerError {
+func (o *DeleteAchievementsIDInternalServerError) GetPayload() *models.RespondError {
 	return o.Payload
 }
 
 func (o *DeleteAchievementsIDInternalServerError) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIServerError)
+	o.Payload = new(models.RespondError)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {

@@ -146,7 +146,7 @@ PostAchievementTemplatesBadRequest describes a response with status code 400, wi
 Invalid request format
 */
 type PostAchievementTemplatesBadRequest struct {
-	Payload *models.APIInvalidRequestError
+	Payload *models.RespondError
 }
 
 // IsSuccess returns true when this post achievement templates bad request response has a 2xx status code
@@ -189,13 +189,13 @@ func (o *PostAchievementTemplatesBadRequest) String() string {
 	return fmt.Sprintf("[POST /achievement-templates][%d] postAchievementTemplatesBadRequest %s", 400, payload)
 }
 
-func (o *PostAchievementTemplatesBadRequest) GetPayload() *models.APIInvalidRequestError {
+func (o *PostAchievementTemplatesBadRequest) GetPayload() *models.RespondError {
 	return o.Payload
 }
 
 func (o *PostAchievementTemplatesBadRequest) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIInvalidRequestError)
+	o.Payload = new(models.RespondError)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
@@ -216,7 +216,7 @@ PostAchievementTemplatesUnauthorized describes a response with status code 401, 
 Unauthorized
 */
 type PostAchievementTemplatesUnauthorized struct {
-	Payload *models.APIUnauthorizedError
+	Payload *models.RespondError
 }
 
 // IsSuccess returns true when this post achievement templates unauthorized response has a 2xx status code
@@ -259,13 +259,13 @@ func (o *PostAchievementTemplatesUnauthorized) String() string {
 	return fmt.Sprintf("[POST /achievement-templates][%d] postAchievementTemplatesUnauthorized %s", 401, payload)
 }
 
-func (o *PostAchievementTemplatesUnauthorized) GetPayload() *models.APIUnauthorizedError {
+func (o *PostAchievementTemplatesUnauthorized) GetPayload() *models.RespondError {
 	return o.Payload
 }
 
 func (o *PostAchievementTemplatesUnauthorized) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIUnauthorizedError)
+	o.Payload = new(models.RespondError)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
@@ -286,7 +286,7 @@ PostAchievementTemplatesForbidden describes a response with status code 403, wit
 Forbidden - admin role required
 */
 type PostAchievementTemplatesForbidden struct {
-	Payload *models.APIForbiddenError
+	Payload *models.RespondError
 }
 
 // IsSuccess returns true when this post achievement templates forbidden response has a 2xx status code
@@ -329,13 +329,13 @@ func (o *PostAchievementTemplatesForbidden) String() string {
 	return fmt.Sprintf("[POST /achievement-templates][%d] postAchievementTemplatesForbidden %s", 403, payload)
 }
 
-func (o *PostAchievementTemplatesForbidden) GetPayload() *models.APIForbiddenError {
+func (o *PostAchievementTemplatesForbidden) GetPayload() *models.RespondError {
 	return o.Payload
 }
 
 func (o *PostAchievementTemplatesForbidden) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIForbiddenError)
+	o.Payload = new(models.RespondError)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
@@ -356,7 +356,7 @@ PostAchievementTemplatesNotFound describes a response with status code 404, with
 Group not found
 */
 type PostAchievementTemplatesNotFound struct {
-	Payload *models.APIGroupNotFoundError
+	Payload *models.RespondError
 }
 
 // IsSuccess returns true when this post achievement templates not found response has a 2xx status code
@@ -399,13 +399,13 @@ func (o *PostAchievementTemplatesNotFound) String() string {
 	return fmt.Sprintf("[POST /achievement-templates][%d] postAchievementTemplatesNotFound %s", 404, payload)
 }
 
-func (o *PostAchievementTemplatesNotFound) GetPayload() *models.APIGroupNotFoundError {
+func (o *PostAchievementTemplatesNotFound) GetPayload() *models.RespondError {
 	return o.Payload
 }
 
 func (o *PostAchievementTemplatesNotFound) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIGroupNotFoundError)
+	o.Payload = new(models.RespondError)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
@@ -426,7 +426,7 @@ PostAchievementTemplatesInternalServerError describes a response with status cod
 Internal server error
 */
 type PostAchievementTemplatesInternalServerError struct {
-	Payload *models.APIServerError
+	Payload *models.RespondError
 }
 
 // IsSuccess returns true when this post achievement templates internal server error response has a 2xx status code
@@ -469,13 +469,13 @@ func (o *PostAchievementTemplatesInternalServerError) String() string {
 	return fmt.Sprintf("[POST /achievement-templates][%d] postAchievementTemplatesInternalServerError %s", 500, payload)
 }
 
-func (o *PostAchievementTemplatesInternalServerError) GetPayload() *models.APIServerError {
+func (o *PostAchievementTemplatesInternalServerError) GetPayload() *models.RespondError {
 	return o.Payload
 }
 
 func (o *PostAchievementTemplatesInternalServerError) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIServerError)
+	o.Payload = new(models.RespondError)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {

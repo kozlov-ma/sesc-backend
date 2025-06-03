@@ -72,7 +72,7 @@ func TestCreateDepartment(t *testing.T) {
 		_, _ = svc.CreateDepartment(ctx, "IT", "IT Dept")
 		// Trying to create another department with the same name
 		_, err := svc.CreateDepartment(ctx, "IT", "Duplicate Dept")
-		require.ErrorIs(t, err, sesc.ErrInvalidDepartment)
+		require.ErrorIs(t, err, sesc.ErrInvalidDepartmentName)
 	})
 }
 
@@ -92,14 +92,14 @@ func TestDeleteDepartment(t *testing.T) {
 		require.NoError(t, err, "DeleteDepartment failed")
 
 		_, err = svc.DepartmentByID(ctx, id)
-		require.ErrorIs(t, err, sesc.ErrInvalidDepartment)
+		require.ErrorIs(t, err, sesc.ErrDepartmentNotFound)
 	})
 
 	t.Run("non-existent department", func(t *testing.T) {
 		ctx, svc, _ := setup(t)
 
 		err := svc.DeleteDepartment(ctx, uuid.Must(uuid.NewV7()))
-		require.ErrorIs(t, err, sesc.ErrInvalidDepartment)
+		require.ErrorIs(t, err, sesc.ErrDepartmentNotFound)
 	})
 
 	t.Run("with dependent users", func(t *testing.T) {
@@ -141,7 +141,7 @@ func TestDepartmentByID(t *testing.T) {
 		ctx, svc, _ := setup(t)
 
 		_, err := svc.DepartmentByID(ctx, uuid.Must(uuid.NewV7()))
-		require.ErrorIs(t, err, sesc.ErrInvalidDepartment)
+		require.ErrorIs(t, err, sesc.ErrDepartmentNotFound)
 	})
 }
 
@@ -221,7 +221,7 @@ func TestUpdateDepartment(t *testing.T) {
 		ctx, svc, _ := setup(t)
 
 		err := svc.UpdateDepartment(ctx, uuid.Must(uuid.NewV7()), "Name", "Desc")
-		require.ErrorIs(t, err, sesc.ErrInvalidDepartment)
+		require.ErrorIs(t, err, sesc.ErrDepartmentNotFound)
 	})
 }
 

@@ -8,6 +8,7 @@ import (
 
 	"github.com/gofrs/uuid/v5"
 	"github.com/kozlov-ma/sesc-backend/achievement"
+	"github.com/kozlov-ma/sesc-backend/api/respond"
 	"github.com/kozlov-ma/sesc-backend/pkg/event"
 	"github.com/kozlov-ma/sesc-backend/pkg/event/events"
 )
@@ -66,8 +67,8 @@ type PatchAchievementTemplateRequest struct {
 // @Param show_inactive query bool false "Show inactive groups" default(false)
 // @Param search query string false "Search by name"
 // @Success 200 {array} AchievementGroupResponse
-// @Failure 401 {object} UnauthorizedError "Unauthorized"
-// @Failure 500 {object} ServerError "Internal server error"
+// @Failure 401 {object} respond.Error "Unauthorized"
+// @Failure 500 {object} respond.Error "Internal server error"
 // @Router /achievement-groups [get]
 func (a *API) GetAchievementGroups(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
@@ -81,7 +82,7 @@ func (a *API) GetAchievementGroups(w http.ResponseWriter, r *http.Request) {
 		showInactive, err = strconv.ParseBool(showInactiveStr)
 		if err != nil {
 			rec.Add(events.Error, "invalid show_inactive parameter")
-			writeError(ctx, w, ErrInvalidRequest.WithStatus(http.StatusBadRequest))
+			a.writeJSON(ctx, w, respond.WithError(ctx, err))
 			return
 		}
 	}
@@ -98,7 +99,7 @@ func (a *API) GetAchievementGroups(w http.ResponseWriter, r *http.Request) {
 	groups, err := a.sesc.AchievementGroups(ctx, options)
 	if err != nil {
 		rec.Add(events.Error, err)
-		writeError(ctx, w, ErrServerError.WithStatus(http.StatusInternalServerError))
+		a.writeJSON(ctx, w, respond.WithError(ctx, err))
 		return
 	}
 
@@ -113,7 +114,7 @@ func (a *API) GetAchievementGroups(w http.ResponseWriter, r *http.Request) {
 		})
 	}
 
-	a.writeJSON(ctx, w, response, http.StatusOK)
+	a.writeJSON(ctx, w, response)
 }
 
 // CreateAchievementGroup godoc
@@ -126,10 +127,10 @@ func (a *API) GetAchievementGroups(w http.ResponseWriter, r *http.Request) {
 // @Param Authorization header string false "Bearer JWT token"
 // @Param request body CreateAchievementGroupRequest true "Group details"
 // @Success 201 {object} AchievementGroupResponse
-// @Failure 400 {object} InvalidRequestError "Invalid request format"
-// @Failure 401 {object} UnauthorizedError "Unauthorized"
-// @Failure 403 {object} ForbiddenError "Forbidden - admin role required"
-// @Failure 500 {object} ServerError "Internal server error"
+// @Failure 400 {object} respond.Error "Invalid request format"
+// @Failure 401 {object} respond.Error "Unauthorized"
+// @Failure 403 {object} respond.Error "Forbidden - admin role required"
+// @Failure 500 {object} respond.Error "Internal server error"
 // @Router /achievement-groups [post]
 func (a *API) CreateAchievementGroup(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
@@ -138,14 +139,14 @@ func (a *API) CreateAchievementGroup(w http.ResponseWriter, r *http.Request) {
 	var req CreateAchievementGroupRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		rec.Add(events.Error, "invalid request body")
-		writeError(ctx, w, ErrInvalidRequest.WithStatus(http.StatusBadRequest))
+		a.writeJSON(ctx, w, respond.WithError(ctx, err))
 		return
 	}
 
 	// Validate required fields
 	if req.Name == "" {
-		rec.Add(events.Error, "name is required")
-		writeError(ctx, w, ErrInvalidRequest.WithStatus(http.StatusBadRequest))
+		rec.Add(events.Error, achievement.ErrInvalidName)
+		a.writeJSON(ctx, w, respond.WithError(ctx, achievement.ErrInvalidName))
 		return
 	}
 
@@ -159,7 +160,7 @@ func (a *API) CreateAchievementGroup(w http.ResponseWriter, r *http.Request) {
 	group, err := a.sesc.CreateAchievementGroup(ctx, options)
 	if err != nil {
 		rec.Add(events.Error, err)
-		writeError(ctx, w, ErrServerError.WithStatus(http.StatusInternalServerError))
+		a.writeJSON(ctx, w, respond.WithError(ctx, err))
 		return
 	}
 
@@ -171,7 +172,7 @@ func (a *API) CreateAchievementGroup(w http.ResponseWriter, r *http.Request) {
 		Active:      group.Active,
 	}
 
-	a.writeJSON(ctx, w, response, http.StatusCreated)
+	a.writeJSON(ctx, w, respond.WithStatus(response, http.StatusCreated))
 }
 
 // GetAchievementTemplates godoc
@@ -184,8 +185,8 @@ func (a *API) CreateAchievementGroup(w http.ResponseWriter, r *http.Request) {
 // @Param show_inactive query bool false "Show inactive templates" default(false)
 // @Param search query string false "Search by name"
 // @Success 200 {array} AchievementTemplateResponse
-// @Failure 401 {object} UnauthorizedError "Unauthorized"
-// @Failure 500 {object} ServerError "Internal server error"
+// @Failure 401 {object} respond.Error "Unauthorized"
+// @Failure 500 {object} respond.Error "Internal server error"
 // @Router /achievement-templates [get]
 func (a *API) GetAchievementTemplates(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
@@ -199,7 +200,7 @@ func (a *API) GetAchievementTemplates(w http.ResponseWriter, r *http.Request) {
 		showInactive, err = strconv.ParseBool(showInactiveStr)
 		if err != nil {
 			rec.Add(events.Error, "invalid show_inactive parameter")
-			writeError(ctx, w, ErrInvalidRequest.WithStatus(http.StatusBadRequest))
+			a.writeJSON(ctx, w, respond.WithError(ctx, err))
 			return
 		}
 	}
@@ -216,7 +217,7 @@ func (a *API) GetAchievementTemplates(w http.ResponseWriter, r *http.Request) {
 	templates, err := a.sesc.AchievementTemplates(ctx, options)
 	if err != nil {
 		rec.Add(events.Error, err)
-		writeError(ctx, w, ErrServerError.WithStatus(http.StatusInternalServerError))
+		a.writeJSON(ctx, w, respond.WithError(ctx, err))
 		return
 	}
 
@@ -234,7 +235,7 @@ func (a *API) GetAchievementTemplates(w http.ResponseWriter, r *http.Request) {
 		})
 	}
 
-	a.writeJSON(ctx, w, response, http.StatusOK)
+	a.writeJSON(ctx, w, response)
 }
 
 // CreateAchievementTemplate godoc
@@ -247,11 +248,11 @@ func (a *API) GetAchievementTemplates(w http.ResponseWriter, r *http.Request) {
 // @Param Authorization header string false "Bearer JWT token"
 // @Param request body CreateAchievementTemplateRequest true "Template details"
 // @Success 201 {object} AchievementTemplateResponse
-// @Failure 400 {object} InvalidRequestError "Invalid request format"
-// @Failure 401 {object} UnauthorizedError "Unauthorized"
-// @Failure 403 {object} ForbiddenError "Forbidden - admin role required"
-// @Failure 404 {object} GroupNotFoundError "Group not found"
-// @Failure 500 {object} ServerError "Internal server error"
+// @Failure 400 {object} respond.Error "Invalid request format"
+// @Failure 401 {object} respond.Error "Unauthorized"
+// @Failure 403 {object} respond.Error "Forbidden - admin role required"
+// @Failure 404 {object} respond.Error "Group not found"
+// @Failure 500 {object} respond.Error "Internal server error"
 // @Router /achievement-templates [post]
 func (a *API) CreateAchievementTemplate(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
@@ -260,24 +261,24 @@ func (a *API) CreateAchievementTemplate(w http.ResponseWriter, r *http.Request) 
 	var req CreateAchievementTemplateRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		rec.Add(events.Error, "invalid request body")
-		writeError(ctx, w, ErrInvalidRequest.WithStatus(http.StatusBadRequest))
+		a.writeJSON(ctx, w, respond.WithError(ctx, err))
 		return
 	}
 
 	// Validate required fields
 	if req.Name == "" {
 		rec.Add(events.Error, "name is required")
-		writeError(ctx, w, ErrInvalidRequest.WithStatus(http.StatusBadRequest))
+		a.writeJSON(ctx, w, respond.WithError(ctx, achievement.ErrInvalidName))
 		return
 	}
 	if req.PointsLimit <= 0 {
 		rec.Add(events.Error, "pointsLimit must be positive")
-		writeError(ctx, w, ErrInvalidRequest.WithStatus(http.StatusBadRequest))
+		a.writeJSON(ctx, w, respond.WithError(ctx, achievement.ErrInvalidPointsLimit))
 		return
 	}
 	if err := achievement.Kind(req.Kind).Validate(); err != nil {
 		rec.Add(events.Error, "invalid kind value")
-		writeError(ctx, w, ErrInvalidRequest.WithStatus(http.StatusBadRequest))
+		a.writeJSON(ctx, w, respond.WithError(ctx, err))
 		return
 	}
 
@@ -296,14 +297,10 @@ func (a *API) CreateAchievementTemplate(w http.ResponseWriter, r *http.Request) 
 		rec.Add(events.Error, err)
 		// Check if it's a group not found error
 		if errors.Is(err, achievement.ErrAchievementGroupNotFound) {
-			writeError(ctx, w, GroupNotFoundError{
-				Code:      "GROUP_NOT_FOUND",
-				Message:   "Achievement group not found",
-				RuMessage: "Группа достижений не найдена",
-			}.WithStatus(http.StatusNotFound))
+			a.writeJSON(ctx, w, respond.WithError(ctx, err))
 			return
 		}
-		writeError(ctx, w, ErrServerError.WithStatus(http.StatusInternalServerError))
+		a.writeJSON(ctx, w, respond.WithError(ctx, err))
 		return
 	}
 
@@ -318,7 +315,7 @@ func (a *API) CreateAchievementTemplate(w http.ResponseWriter, r *http.Request) 
 		Kind:        template.Kind.String(),
 	}
 
-	a.writeJSON(ctx, w, response, http.StatusCreated)
+	a.writeJSON(ctx, w, respond.WithStatus(response, http.StatusCreated))
 }
 
 // PatchAchievementGroup godoc
@@ -332,11 +329,11 @@ func (a *API) CreateAchievementTemplate(w http.ResponseWriter, r *http.Request) 
 // @Param id path string true "Group UUID"
 // @Param request body PatchAchievementGroupRequest true "Group fields to update"
 // @Success 200 {object} AchievementGroupResponse
-// @Failure 400 {object} InvalidRequestError "Invalid request format"
-// @Failure 401 {object} UnauthorizedError "Unauthorized"
-// @Failure 403 {object} ForbiddenError "Forbidden - admin role required"
-// @Failure 404 {object} GroupNotFoundError "Group not found"
-// @Failure 500 {object} ServerError "Internal server error"
+// @Failure 400 {object} respond.Error "Invalid request format"
+// @Failure 401 {object} respond.Error "Unauthorized"
+// @Failure 403 {object} respond.Error "Forbidden - admin role required"
+// @Failure 404 {object} respond.Error "Group not found"
+// @Failure 500 {object} respond.Error "Internal server error"
 // @Router /achievement-groups/{id} [patch]
 func (a *API) PatchAchievementGroup(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
@@ -346,18 +343,14 @@ func (a *API) PatchAchievementGroup(w http.ResponseWriter, r *http.Request) {
 	groupID, err := uuid.FromString(idStr)
 	if err != nil {
 		rec.Add(events.Error, "invalid group ID format")
-		writeError(ctx, w, InvalidUUIDError{
-			Code:      "INVALID_UUID",
-			Message:   "Invalid group ID format",
-			RuMessage: "Некорректный формат ID группы",
-		}.WithStatus(http.StatusBadRequest))
+		a.writeJSON(ctx, w, respond.WithError(ctx, err))
 		return
 	}
 
 	var req PatchAchievementGroupRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		rec.Add(events.Error, "invalid request body")
-		writeError(ctx, w, ErrInvalidRequest.WithStatus(http.StatusBadRequest))
+		a.writeJSON(ctx, w, respond.WithError(ctx, err))
 		return
 	}
 
@@ -373,14 +366,10 @@ func (a *API) PatchAchievementGroup(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		rec.Add(events.Error, err)
 		if errors.Is(err, achievement.ErrAchievementGroupNotFound) {
-			writeError(ctx, w, GroupNotFoundError{
-				Code:      "GROUP_NOT_FOUND",
-				Message:   "Achievement group not found",
-				RuMessage: "Группа достижений не найдена",
-			}.WithStatus(http.StatusNotFound))
+			a.writeJSON(ctx, w, respond.WithError(ctx, err))
 			return
 		}
-		writeError(ctx, w, ErrServerError.WithStatus(http.StatusInternalServerError))
+		a.writeJSON(ctx, w, respond.WithError(ctx, err))
 		return
 	}
 
@@ -392,7 +381,7 @@ func (a *API) PatchAchievementGroup(w http.ResponseWriter, r *http.Request) {
 		Active:      group.Active,
 	}
 
-	a.writeJSON(ctx, w, response, http.StatusOK)
+	a.writeJSON(ctx, w, response)
 }
 
 // PatchAchievementTemplate godoc
@@ -406,11 +395,11 @@ func (a *API) PatchAchievementGroup(w http.ResponseWriter, r *http.Request) {
 // @Param id path string true "Template UUID"
 // @Param request body PatchAchievementTemplateRequest true "Template fields to update"
 // @Success 200 {object} AchievementTemplateResponse
-// @Failure 400 {object} InvalidRequestError "Invalid request format"
-// @Failure 401 {object} UnauthorizedError "Unauthorized"
-// @Failure 403 {object} ForbiddenError "Forbidden - admin role required"
-// @Failure 404 {object} AchievementTemplateNotFoundError "Template not found"
-// @Failure 500 {object} ServerError "Internal server error"
+// @Failure 400 {object} respond.Error "Invalid request format"
+// @Failure 401 {object} respond.Error "Unauthorized"
+// @Failure 403 {object} respond.Error "Forbidden - admin role required"
+// @Failure 404 {object} respond.Error "Template not found"
+// @Failure 500 {object} respond.Error "Internal server error"
 // @Router /achievement-templates/{id} [patch]
 func (a *API) PatchAchievementTemplate(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
@@ -420,18 +409,14 @@ func (a *API) PatchAchievementTemplate(w http.ResponseWriter, r *http.Request) {
 	templateID, err := uuid.FromString(idStr)
 	if err != nil {
 		rec.Add(events.Error, "invalid template ID format")
-		writeError(ctx, w, InvalidUUIDError{
-			Code:      "INVALID_UUID",
-			Message:   "Invalid template ID format",
-			RuMessage: "Некорректный формат ID шаблона",
-		}.WithStatus(http.StatusBadRequest))
+		a.writeJSON(ctx, w, respond.WithError(ctx, err))
 		return
 	}
 
 	var req PatchAchievementTemplateRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		rec.Add(events.Error, "invalid request body")
-		writeError(ctx, w, ErrInvalidRequest.WithStatus(http.StatusBadRequest))
+		a.writeJSON(ctx, w, respond.WithError(ctx, err))
 		return
 	}
 
@@ -439,7 +424,7 @@ func (a *API) PatchAchievementTemplate(w http.ResponseWriter, r *http.Request) {
 	if req.Kind != nil {
 		if err := achievement.Kind(*req.Kind).Validate(); err != nil {
 			rec.Add(events.Error, "invalid kind value")
-			writeError(ctx, w, ErrInvalidRequest.WithStatus(http.StatusBadRequest))
+			a.writeJSON(ctx, w, respond.WithError(ctx, err))
 			return
 		}
 	}
@@ -447,7 +432,7 @@ func (a *API) PatchAchievementTemplate(w http.ResponseWriter, r *http.Request) {
 	// Validate points limit if provided
 	if req.PointsLimit != nil && *req.PointsLimit <= 0 {
 		rec.Add(events.Error, "pointsLimit must be positive")
-		writeError(ctx, w, ErrInvalidRequest.WithStatus(http.StatusBadRequest))
+		a.writeJSON(ctx, w, respond.WithError(ctx, achievement.ErrInvalidPointsLimit))
 		return
 	}
 
@@ -465,22 +450,14 @@ func (a *API) PatchAchievementTemplate(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		rec.Add(events.Error, err)
 		if errors.Is(err, achievement.ErrAchievementTemplateNotFound) {
-			writeError(ctx, w, AchievementTemplateNotFoundError{
-				Code:      "ACHIEVEMENT_TEMPLATE_NOT_FOUND",
-				Message:   "Achievement template not found",
-				RuMessage: "Шаблон достижения не найден",
-			}.WithStatus(http.StatusNotFound))
+			a.writeJSON(ctx, w, respond.WithError(ctx, err))
 			return
 		}
 		if errors.Is(err, achievement.ErrAchievementGroupNotFound) {
-			writeError(ctx, w, GroupNotFoundError{
-				Code:      "GROUP_NOT_FOUND",
-				Message:   "Achievement group not found",
-				RuMessage: "Группа достижений не найдена",
-			}.WithStatus(http.StatusNotFound))
+			a.writeJSON(ctx, w, respond.WithError(ctx, err))
 			return
 		}
-		writeError(ctx, w, ErrServerError.WithStatus(http.StatusInternalServerError))
+		a.writeJSON(ctx, w, respond.WithError(ctx, err))
 		return
 	}
 
@@ -495,5 +472,5 @@ func (a *API) PatchAchievementTemplate(w http.ResponseWriter, r *http.Request) {
 		Kind:        template.Kind.String(),
 	}
 
-	a.writeJSON(ctx, w, response, http.StatusOK)
+	a.writeJSON(ctx, w, response)
 }

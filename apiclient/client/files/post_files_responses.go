@@ -134,7 +134,7 @@ PostFilesBadRequest describes a response with status code 400, with default head
 Bad Request
 */
 type PostFilesBadRequest struct {
-	Payload *models.APIError
+	Payload *models.RespondError
 }
 
 // IsSuccess returns true when this post files bad request response has a 2xx status code
@@ -177,13 +177,13 @@ func (o *PostFilesBadRequest) String() string {
 	return fmt.Sprintf("[POST /files][%d] postFilesBadRequest %s", 400, payload)
 }
 
-func (o *PostFilesBadRequest) GetPayload() *models.APIError {
+func (o *PostFilesBadRequest) GetPayload() *models.RespondError {
 	return o.Payload
 }
 
 func (o *PostFilesBadRequest) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIError)
+	o.Payload = new(models.RespondError)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
@@ -204,7 +204,7 @@ PostFilesUnauthorized describes a response with status code 401, with default he
 Unauthorized
 */
 type PostFilesUnauthorized struct {
-	Payload *models.APIError
+	Payload *models.RespondError
 }
 
 // IsSuccess returns true when this post files unauthorized response has a 2xx status code
@@ -247,13 +247,13 @@ func (o *PostFilesUnauthorized) String() string {
 	return fmt.Sprintf("[POST /files][%d] postFilesUnauthorized %s", 401, payload)
 }
 
-func (o *PostFilesUnauthorized) GetPayload() *models.APIError {
+func (o *PostFilesUnauthorized) GetPayload() *models.RespondError {
 	return o.Payload
 }
 
 func (o *PostFilesUnauthorized) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIError)
+	o.Payload = new(models.RespondError)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
@@ -274,7 +274,7 @@ PostFilesInternalServerError describes a response with status code 500, with def
 Internal Server Error
 */
 type PostFilesInternalServerError struct {
-	Payload *models.APIError
+	Payload *models.RespondError
 }
 
 // IsSuccess returns true when this post files internal server error response has a 2xx status code
@@ -317,13 +317,13 @@ func (o *PostFilesInternalServerError) String() string {
 	return fmt.Sprintf("[POST /files][%d] postFilesInternalServerError %s", 500, payload)
 }
 
-func (o *PostFilesInternalServerError) GetPayload() *models.APIError {
+func (o *PostFilesInternalServerError) GetPayload() *models.RespondError {
 	return o.Payload
 }
 
 func (o *PostFilesInternalServerError) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIError)
+	o.Payload = new(models.RespondError)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {

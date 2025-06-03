@@ -132,7 +132,7 @@ PostReportsMarkAllAccountedUnauthorized describes a response with status code 40
 Unauthorized
 */
 type PostReportsMarkAllAccountedUnauthorized struct {
-	Payload *models.APIError
+	Payload *models.RespondError
 }
 
 // IsSuccess returns true when this post reports mark all accounted unauthorized response has a 2xx status code
@@ -175,13 +175,13 @@ func (o *PostReportsMarkAllAccountedUnauthorized) String() string {
 	return fmt.Sprintf("[POST /reports/mark-all-accounted][%d] postReportsMarkAllAccountedUnauthorized %s", 401, payload)
 }
 
-func (o *PostReportsMarkAllAccountedUnauthorized) GetPayload() *models.APIError {
+func (o *PostReportsMarkAllAccountedUnauthorized) GetPayload() *models.RespondError {
 	return o.Payload
 }
 
 func (o *PostReportsMarkAllAccountedUnauthorized) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIError)
+	o.Payload = new(models.RespondError)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
@@ -202,7 +202,7 @@ PostReportsMarkAllAccountedForbidden describes a response with status code 403, 
 Forbidden - Economist access required
 */
 type PostReportsMarkAllAccountedForbidden struct {
-	Payload *models.APIError
+	Payload *models.RespondError
 }
 
 // IsSuccess returns true when this post reports mark all accounted forbidden response has a 2xx status code
@@ -245,13 +245,13 @@ func (o *PostReportsMarkAllAccountedForbidden) String() string {
 	return fmt.Sprintf("[POST /reports/mark-all-accounted][%d] postReportsMarkAllAccountedForbidden %s", 403, payload)
 }
 
-func (o *PostReportsMarkAllAccountedForbidden) GetPayload() *models.APIError {
+func (o *PostReportsMarkAllAccountedForbidden) GetPayload() *models.RespondError {
 	return o.Payload
 }
 
 func (o *PostReportsMarkAllAccountedForbidden) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIError)
+	o.Payload = new(models.RespondError)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
@@ -272,7 +272,7 @@ PostReportsMarkAllAccountedInternalServerError describes a response with status 
 Internal server error
 */
 type PostReportsMarkAllAccountedInternalServerError struct {
-	Payload *models.APIError
+	Payload *models.RespondError
 }
 
 // IsSuccess returns true when this post reports mark all accounted internal server error response has a 2xx status code
@@ -315,13 +315,13 @@ func (o *PostReportsMarkAllAccountedInternalServerError) String() string {
 	return fmt.Sprintf("[POST /reports/mark-all-accounted][%d] postReportsMarkAllAccountedInternalServerError %s", 500, payload)
 }
 
-func (o *PostReportsMarkAllAccountedInternalServerError) GetPayload() *models.APIError {
+func (o *PostReportsMarkAllAccountedInternalServerError) GetPayload() *models.RespondError {
 	return o.Payload
 }
 
 func (o *PostReportsMarkAllAccountedInternalServerError) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIError)
+	o.Payload = new(models.RespondError)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {

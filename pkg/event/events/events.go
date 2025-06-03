@@ -13,4 +13,6 @@ const (
 
 	// Critical key should be set to true to signal to the sinks that this event should be stored and marked as an error.
 	Critical = "critical"
+
+	TraceID = "trace_id"
 )

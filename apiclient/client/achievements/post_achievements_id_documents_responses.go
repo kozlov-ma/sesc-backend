@@ -146,7 +146,7 @@ PostAchievementsIDDocumentsBadRequest describes a response with status code 400,
 Invalid request format
 */
 type PostAchievementsIDDocumentsBadRequest struct {
-	Payload *models.APIInvalidRequestError
+	Payload *models.RespondError
 }
 
 // IsSuccess returns true when this post achievements Id documents bad request response has a 2xx status code
@@ -189,13 +189,13 @@ func (o *PostAchievementsIDDocumentsBadRequest) String() string {
 	return fmt.Sprintf("[POST /achievements/{id}/documents][%d] postAchievementsIdDocumentsBadRequest %s", 400, payload)
 }
 
-func (o *PostAchievementsIDDocumentsBadRequest) GetPayload() *models.APIInvalidRequestError {
+func (o *PostAchievementsIDDocumentsBadRequest) GetPayload() *models.RespondError {
 	return o.Payload
 }
 
 func (o *PostAchievementsIDDocumentsBadRequest) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIInvalidRequestError)
+	o.Payload = new(models.RespondError)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
@@ -216,7 +216,7 @@ PostAchievementsIDDocumentsUnauthorized describes a response with status code 40
 Unauthorized
 */
 type PostAchievementsIDDocumentsUnauthorized struct {
-	Payload *models.APIUnauthorizedError
+	Payload *models.RespondError
 }
 
 // IsSuccess returns true when this post achievements Id documents unauthorized response has a 2xx status code
@@ -259,13 +259,13 @@ func (o *PostAchievementsIDDocumentsUnauthorized) String() string {
 	return fmt.Sprintf("[POST /achievements/{id}/documents][%d] postAchievementsIdDocumentsUnauthorized %s", 401, payload)
 }
 
-func (o *PostAchievementsIDDocumentsUnauthorized) GetPayload() *models.APIUnauthorizedError {
+func (o *PostAchievementsIDDocumentsUnauthorized) GetPayload() *models.RespondError {
 	return o.Payload
 }
 
 func (o *PostAchievementsIDDocumentsUnauthorized) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIUnauthorizedError)
+	o.Payload = new(models.RespondError)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
@@ -286,7 +286,7 @@ PostAchievementsIDDocumentsNotFound describes a response with status code 404, w
 Achievement not found
 */
 type PostAchievementsIDDocumentsNotFound struct {
-	Payload *models.APIAchievementNotFoundError
+	Payload *models.RespondError
 }
 
 // IsSuccess returns true when this post achievements Id documents not found response has a 2xx status code
@@ -329,13 +329,13 @@ func (o *PostAchievementsIDDocumentsNotFound) String() string {
 	return fmt.Sprintf("[POST /achievements/{id}/documents][%d] postAchievementsIdDocumentsNotFound %s", 404, payload)
 }
 
-func (o *PostAchievementsIDDocumentsNotFound) GetPayload() *models.APIAchievementNotFoundError {
+func (o *PostAchievementsIDDocumentsNotFound) GetPayload() *models.RespondError {
 	return o.Payload
 }
 
 func (o *PostAchievementsIDDocumentsNotFound) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIAchievementNotFoundError)
+	o.Payload = new(models.RespondError)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
@@ -356,7 +356,7 @@ PostAchievementsIDDocumentsConflict describes a response with status code 409, w
 Wrong achievement status
 */
 type PostAchievementsIDDocumentsConflict struct {
-	Payload *models.APIWrongAchievementStatusError
+	Payload *models.RespondError
 }
 
 // IsSuccess returns true when this post achievements Id documents conflict response has a 2xx status code
@@ -399,13 +399,13 @@ func (o *PostAchievementsIDDocumentsConflict) String() string {
 	return fmt.Sprintf("[POST /achievements/{id}/documents][%d] postAchievementsIdDocumentsConflict %s", 409, payload)
 }
 
-func (o *PostAchievementsIDDocumentsConflict) GetPayload() *models.APIWrongAchievementStatusError {
+func (o *PostAchievementsIDDocumentsConflict) GetPayload() *models.RespondError {
 	return o.Payload
 }
 
 func (o *PostAchievementsIDDocumentsConflict) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIWrongAchievementStatusError)
+	o.Payload = new(models.RespondError)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
@@ -426,7 +426,7 @@ PostAchievementsIDDocumentsInternalServerError describes a response with status 
 Internal server error
 */
 type PostAchievementsIDDocumentsInternalServerError struct {
-	Payload *models.APIServerError
+	Payload *models.RespondError
 }
 
 // IsSuccess returns true when this post achievements Id documents internal server error response has a 2xx status code
@@ -469,13 +469,13 @@ func (o *PostAchievementsIDDocumentsInternalServerError) String() string {
 	return fmt.Sprintf("[POST /achievements/{id}/documents][%d] postAchievementsIdDocumentsInternalServerError %s", 500, payload)
 }
 
-func (o *PostAchievementsIDDocumentsInternalServerError) GetPayload() *models.APIServerError {
+func (o *PostAchievementsIDDocumentsInternalServerError) GetPayload() *models.RespondError {
 	return o.Payload
 }
 
 func (o *PostAchievementsIDDocumentsInternalServerError) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIServerError)
+	o.Payload = new(models.RespondError)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {

@@ -146,7 +146,7 @@ GetAuthCredentialsIDBadRequest describes a response with status code 400, with d
 Invalid UUID format
 */
 type GetAuthCredentialsIDBadRequest struct {
-	Payload *models.APIInvalidUUIDError
+	Payload *models.RespondError
 }
 
 // IsSuccess returns true when this get auth credentials Id bad request response has a 2xx status code
@@ -189,13 +189,13 @@ func (o *GetAuthCredentialsIDBadRequest) String() string {
 	return fmt.Sprintf("[GET /auth/credentials/{id}][%d] getAuthCredentialsIdBadRequest %s", 400, payload)
 }
 
-func (o *GetAuthCredentialsIDBadRequest) GetPayload() *models.APIInvalidUUIDError {
+func (o *GetAuthCredentialsIDBadRequest) GetPayload() *models.RespondError {
 	return o.Payload
 }
 
 func (o *GetAuthCredentialsIDBadRequest) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIInvalidUUIDError)
+	o.Payload = new(models.RespondError)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
@@ -216,7 +216,7 @@ GetAuthCredentialsIDUnauthorized describes a response with status code 401, with
 Unauthorized
 */
 type GetAuthCredentialsIDUnauthorized struct {
-	Payload *models.APIUnauthorizedError
+	Payload *models.RespondError
 }
 
 // IsSuccess returns true when this get auth credentials Id unauthorized response has a 2xx status code
@@ -259,13 +259,13 @@ func (o *GetAuthCredentialsIDUnauthorized) String() string {
 	return fmt.Sprintf("[GET /auth/credentials/{id}][%d] getAuthCredentialsIdUnauthorized %s", 401, payload)
 }
 
-func (o *GetAuthCredentialsIDUnauthorized) GetPayload() *models.APIUnauthorizedError {
+func (o *GetAuthCredentialsIDUnauthorized) GetPayload() *models.RespondError {
 	return o.Payload
 }
 
 func (o *GetAuthCredentialsIDUnauthorized) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIUnauthorizedError)
+	o.Payload = new(models.RespondError)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
@@ -286,7 +286,7 @@ GetAuthCredentialsIDForbidden describes a response with status code 403, with de
 Forbidden - admin role required
 */
 type GetAuthCredentialsIDForbidden struct {
-	Payload *models.APIForbiddenError
+	Payload *models.RespondError
 }
 
 // IsSuccess returns true when this get auth credentials Id forbidden response has a 2xx status code
@@ -329,13 +329,13 @@ func (o *GetAuthCredentialsIDForbidden) String() string {
 	return fmt.Sprintf("[GET /auth/credentials/{id}][%d] getAuthCredentialsIdForbidden %s", 403, payload)
 }
 
-func (o *GetAuthCredentialsIDForbidden) GetPayload() *models.APIForbiddenError {
+func (o *GetAuthCredentialsIDForbidden) GetPayload() *models.RespondError {
 	return o.Payload
 }
 
 func (o *GetAuthCredentialsIDForbidden) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIForbiddenError)
+	o.Payload = new(models.RespondError)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
@@ -356,7 +356,7 @@ GetAuthCredentialsIDNotFound describes a response with status code 404, with def
 User not found or does not exist
 */
 type GetAuthCredentialsIDNotFound struct {
-	Payload *models.APICredentialsNotFoundError
+	Payload *models.RespondError
 }
 
 // IsSuccess returns true when this get auth credentials Id not found response has a 2xx status code
@@ -399,13 +399,13 @@ func (o *GetAuthCredentialsIDNotFound) String() string {
 	return fmt.Sprintf("[GET /auth/credentials/{id}][%d] getAuthCredentialsIdNotFound %s", 404, payload)
 }
 
-func (o *GetAuthCredentialsIDNotFound) GetPayload() *models.APICredentialsNotFoundError {
+func (o *GetAuthCredentialsIDNotFound) GetPayload() *models.RespondError {
 	return o.Payload
 }
 
 func (o *GetAuthCredentialsIDNotFound) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APICredentialsNotFoundError)
+	o.Payload = new(models.RespondError)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
@@ -426,7 +426,7 @@ GetAuthCredentialsIDInternalServerError describes a response with status code 50
 Internal server error
 */
 type GetAuthCredentialsIDInternalServerError struct {
-	Payload *models.APIServerError
+	Payload *models.RespondError
 }
 
 // IsSuccess returns true when this get auth credentials Id internal server error response has a 2xx status code
@@ -469,13 +469,13 @@ func (o *GetAuthCredentialsIDInternalServerError) String() string {
 	return fmt.Sprintf("[GET /auth/credentials/{id}][%d] getAuthCredentialsIdInternalServerError %s", 500, payload)
 }
 
-func (o *GetAuthCredentialsIDInternalServerError) GetPayload() *models.APIServerError {
+func (o *GetAuthCredentialsIDInternalServerError) GetPayload() *models.RespondError {
 	return o.Payload
 }
 
 func (o *GetAuthCredentialsIDInternalServerError) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIServerError)
+	o.Payload = new(models.RespondError)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {

@@ -122,7 +122,7 @@ GetRolesInternalServerError describes a response with status code 500, with defa
 Internal server error
 */
 type GetRolesInternalServerError struct {
-	Payload *models.APIError
+	Payload *models.RespondError
 }
 
 // IsSuccess returns true when this get roles internal server error response has a 2xx status code
@@ -165,13 +165,13 @@ func (o *GetRolesInternalServerError) String() string {
 	return fmt.Sprintf("[GET /roles][%d] getRolesInternalServerError %s", 500, payload)
 }
 
-func (o *GetRolesInternalServerError) GetPayload() *models.APIError {
+func (o *GetRolesInternalServerError) GetPayload() *models.RespondError {
 	return o.Payload
 }
 
 func (o *GetRolesInternalServerError) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIError)
+	o.Payload = new(models.RespondError)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {

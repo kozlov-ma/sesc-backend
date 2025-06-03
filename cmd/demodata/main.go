@@ -118,7 +118,7 @@ type AchievementTemplateData struct {
 	Name        string
 	Description string
 	PointsLimit int64
-	Kind        models.AchievementKind
+	Kind        string
 }
 
 // Achievement groups data

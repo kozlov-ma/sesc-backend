@@ -31,7 +31,6 @@ import {
   postFiles,
   deleteFilesById,
   getFilesById,
-  postReportsMarkAccounted,
   postReportsMarkAllAccounted,
   getReportsUserPoints,
   getRoles,
@@ -115,9 +114,6 @@ import type {
   DeleteFilesByIdData,
   DeleteFilesByIdError,
   GetFilesByIdData,
-  PostReportsMarkAccountedData,
-  PostReportsMarkAccountedError,
-  PostReportsMarkAccountedResponse,
   PostReportsMarkAllAccountedData,
   PostReportsMarkAllAccountedError,
   PostReportsMarkAllAccountedResponse,
@@ -1376,59 +1372,6 @@ export const getFilesByIdOptions = (options: Options<GetFilesByIdData>) => {
     },
     queryKey: getFilesByIdQueryKey(options),
   });
-};
-
-export const postReportsMarkAccountedQueryKey = (
-  options: Options<PostReportsMarkAccountedData>,
-) => createQueryKey("postReportsMarkAccounted", options);
-
-/**
- * Mark achievements as accounted
- * Marks achievements with "done" status as "accounted" in the system
- */
-export const postReportsMarkAccountedOptions = (
-  options: Options<PostReportsMarkAccountedData>,
-) => {
-  return queryOptions({
-    queryFn: async ({ queryKey, signal }) => {
-      const { data } = await postReportsMarkAccounted({
-        ...options,
-        ...queryKey[0],
-        signal,
-        throwOnError: true,
-      });
-      return data;
-    },
-    queryKey: postReportsMarkAccountedQueryKey(options),
-  });
-};
-
-/**
- * Mark achievements as accounted
- * Marks achievements with "done" status as "accounted" in the system
- */
-export const postReportsMarkAccountedMutation = (
-  options?: Partial<Options<PostReportsMarkAccountedData>>,
-): UseMutationOptions<
-  PostReportsMarkAccountedResponse,
-  AxiosError<PostReportsMarkAccountedError>,
-  Options<PostReportsMarkAccountedData>
-> => {
-  const mutationOptions: UseMutationOptions<
-    PostReportsMarkAccountedResponse,
-    AxiosError<PostReportsMarkAccountedError>,
-    Options<PostReportsMarkAccountedData>
-  > = {
-    mutationFn: async (localOptions) => {
-      const { data } = await postReportsMarkAccounted({
-        ...options,
-        ...localOptions,
-        throwOnError: true,
-      });
-      return data;
-    },
-  };
-  return mutationOptions;
 };
 
 export const postReportsMarkAllAccountedQueryKey = (

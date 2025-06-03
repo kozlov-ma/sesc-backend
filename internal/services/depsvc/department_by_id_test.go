@@ -53,7 +53,7 @@ func TestDepartmentByID(t *testing.T) {
 		department, err := svc.DepartmentByID(ctx, nonExistentID)
 
 		// Verify the results
-		require.Equal(t, sesc.ErrInvalidDepartment, err)
+		require.Equal(t, sesc.ErrDepartmentNotFound, err)
 		require.Empty(t, department.ID)
 	})
 

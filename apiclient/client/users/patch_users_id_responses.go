@@ -146,7 +146,7 @@ PatchUsersIDBadRequest describes a response with status code 400, with default h
 Invalid name
 */
 type PatchUsersIDBadRequest struct {
-	Payload *models.APIInvalidNameError
+	Payload *models.RespondError
 }
 
 // IsSuccess returns true when this patch users Id bad request response has a 2xx status code
@@ -189,13 +189,13 @@ func (o *PatchUsersIDBadRequest) String() string {
 	return fmt.Sprintf("[PATCH /users/{id}][%d] patchUsersIdBadRequest %s", 400, payload)
 }
 
-func (o *PatchUsersIDBadRequest) GetPayload() *models.APIInvalidNameError {
+func (o *PatchUsersIDBadRequest) GetPayload() *models.RespondError {
 	return o.Payload
 }
 
 func (o *PatchUsersIDBadRequest) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIInvalidNameError)
+	o.Payload = new(models.RespondError)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
@@ -216,7 +216,7 @@ PatchUsersIDUnauthorized describes a response with status code 401, with default
 Unauthorized
 */
 type PatchUsersIDUnauthorized struct {
-	Payload *models.APIUnauthorizedError
+	Payload *models.RespondError
 }
 
 // IsSuccess returns true when this patch users Id unauthorized response has a 2xx status code
@@ -259,13 +259,13 @@ func (o *PatchUsersIDUnauthorized) String() string {
 	return fmt.Sprintf("[PATCH /users/{id}][%d] patchUsersIdUnauthorized %s", 401, payload)
 }
 
-func (o *PatchUsersIDUnauthorized) GetPayload() *models.APIUnauthorizedError {
+func (o *PatchUsersIDUnauthorized) GetPayload() *models.RespondError {
 	return o.Payload
 }
 
 func (o *PatchUsersIDUnauthorized) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIUnauthorizedError)
+	o.Payload = new(models.RespondError)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
@@ -286,7 +286,7 @@ PatchUsersIDForbidden describes a response with status code 403, with default he
 Forbidden - admin role required
 */
 type PatchUsersIDForbidden struct {
-	Payload *models.APIForbiddenError
+	Payload *models.RespondError
 }
 
 // IsSuccess returns true when this patch users Id forbidden response has a 2xx status code
@@ -329,13 +329,13 @@ func (o *PatchUsersIDForbidden) String() string {
 	return fmt.Sprintf("[PATCH /users/{id}][%d] patchUsersIdForbidden %s", 403, payload)
 }
 
-func (o *PatchUsersIDForbidden) GetPayload() *models.APIForbiddenError {
+func (o *PatchUsersIDForbidden) GetPayload() *models.RespondError {
 	return o.Payload
 }
 
 func (o *PatchUsersIDForbidden) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIForbiddenError)
+	o.Payload = new(models.RespondError)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
@@ -356,7 +356,7 @@ PatchUsersIDNotFound describes a response with status code 404, with default hea
 User not found
 */
 type PatchUsersIDNotFound struct {
-	Payload *models.APIUserNotFoundError
+	Payload *models.RespondError
 }
 
 // IsSuccess returns true when this patch users Id not found response has a 2xx status code
@@ -399,13 +399,13 @@ func (o *PatchUsersIDNotFound) String() string {
 	return fmt.Sprintf("[PATCH /users/{id}][%d] patchUsersIdNotFound %s", 404, payload)
 }
 
-func (o *PatchUsersIDNotFound) GetPayload() *models.APIUserNotFoundError {
+func (o *PatchUsersIDNotFound) GetPayload() *models.RespondError {
 	return o.Payload
 }
 
 func (o *PatchUsersIDNotFound) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIUserNotFoundError)
+	o.Payload = new(models.RespondError)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
@@ -426,7 +426,7 @@ PatchUsersIDInternalServerError describes a response with status code 500, with 
 Internal server error
 */
 type PatchUsersIDInternalServerError struct {
-	Payload *models.APIServerError
+	Payload *models.RespondError
 }
 
 // IsSuccess returns true when this patch users Id internal server error response has a 2xx status code
@@ -469,13 +469,13 @@ func (o *PatchUsersIDInternalServerError) String() string {
 	return fmt.Sprintf("[PATCH /users/{id}][%d] patchUsersIdInternalServerError %s", 500, payload)
 }
 
-func (o *PatchUsersIDInternalServerError) GetPayload() *models.APIServerError {
+func (o *PatchUsersIDInternalServerError) GetPayload() *models.RespondError {
 	return o.Payload
 }
 
 func (o *PatchUsersIDInternalServerError) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIServerError)
+	o.Payload = new(models.RespondError)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {

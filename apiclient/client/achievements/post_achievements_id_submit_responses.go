@@ -146,7 +146,7 @@ PostAchievementsIDSubmitBadRequest describes a response with status code 400, wi
 Invalid UUID format
 */
 type PostAchievementsIDSubmitBadRequest struct {
-	Payload *models.APIInvalidUUIDError
+	Payload *models.RespondError
 }
 
 // IsSuccess returns true when this post achievements Id submit bad request response has a 2xx status code
@@ -189,13 +189,13 @@ func (o *PostAchievementsIDSubmitBadRequest) String() string {
 	return fmt.Sprintf("[POST /achievements/{id}/submit][%d] postAchievementsIdSubmitBadRequest %s", 400, payload)
 }
 
-func (o *PostAchievementsIDSubmitBadRequest) GetPayload() *models.APIInvalidUUIDError {
+func (o *PostAchievementsIDSubmitBadRequest) GetPayload() *models.RespondError {
 	return o.Payload
 }
 
 func (o *PostAchievementsIDSubmitBadRequest) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIInvalidUUIDError)
+	o.Payload = new(models.RespondError)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
@@ -216,7 +216,7 @@ PostAchievementsIDSubmitUnauthorized describes a response with status code 401, 
 Unauthorized
 */
 type PostAchievementsIDSubmitUnauthorized struct {
-	Payload *models.APIUnauthorizedError
+	Payload *models.RespondError
 }
 
 // IsSuccess returns true when this post achievements Id submit unauthorized response has a 2xx status code
@@ -259,13 +259,13 @@ func (o *PostAchievementsIDSubmitUnauthorized) String() string {
 	return fmt.Sprintf("[POST /achievements/{id}/submit][%d] postAchievementsIdSubmitUnauthorized %s", 401, payload)
 }
 
-func (o *PostAchievementsIDSubmitUnauthorized) GetPayload() *models.APIUnauthorizedError {
+func (o *PostAchievementsIDSubmitUnauthorized) GetPayload() *models.RespondError {
 	return o.Payload
 }
 
 func (o *PostAchievementsIDSubmitUnauthorized) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIUnauthorizedError)
+	o.Payload = new(models.RespondError)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
@@ -286,7 +286,7 @@ PostAchievementsIDSubmitNotFound describes a response with status code 404, with
 Achievement not found
 */
 type PostAchievementsIDSubmitNotFound struct {
-	Payload *models.APIAchievementNotFoundError
+	Payload *models.RespondError
 }
 
 // IsSuccess returns true when this post achievements Id submit not found response has a 2xx status code
@@ -329,13 +329,13 @@ func (o *PostAchievementsIDSubmitNotFound) String() string {
 	return fmt.Sprintf("[POST /achievements/{id}/submit][%d] postAchievementsIdSubmitNotFound %s", 404, payload)
 }
 
-func (o *PostAchievementsIDSubmitNotFound) GetPayload() *models.APIAchievementNotFoundError {
+func (o *PostAchievementsIDSubmitNotFound) GetPayload() *models.RespondError {
 	return o.Payload
 }
 
 func (o *PostAchievementsIDSubmitNotFound) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIAchievementNotFoundError)
+	o.Payload = new(models.RespondError)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
@@ -356,7 +356,7 @@ PostAchievementsIDSubmitConflict describes a response with status code 409, with
 Wrong achievement status
 */
 type PostAchievementsIDSubmitConflict struct {
-	Payload *models.APIWrongAchievementStatusError
+	Payload *models.RespondError
 }
 
 // IsSuccess returns true when this post achievements Id submit conflict response has a 2xx status code
@@ -399,13 +399,13 @@ func (o *PostAchievementsIDSubmitConflict) String() string {
 	return fmt.Sprintf("[POST /achievements/{id}/submit][%d] postAchievementsIdSubmitConflict %s", 409, payload)
 }
 
-func (o *PostAchievementsIDSubmitConflict) GetPayload() *models.APIWrongAchievementStatusError {
+func (o *PostAchievementsIDSubmitConflict) GetPayload() *models.RespondError {
 	return o.Payload
 }
 
 func (o *PostAchievementsIDSubmitConflict) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIWrongAchievementStatusError)
+	o.Payload = new(models.RespondError)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
@@ -426,7 +426,7 @@ PostAchievementsIDSubmitInternalServerError describes a response with status cod
 Internal server error
 */
 type PostAchievementsIDSubmitInternalServerError struct {
-	Payload *models.APIServerError
+	Payload *models.RespondError
 }
 
 // IsSuccess returns true when this post achievements Id submit internal server error response has a 2xx status code
@@ -469,13 +469,13 @@ func (o *PostAchievementsIDSubmitInternalServerError) String() string {
 	return fmt.Sprintf("[POST /achievements/{id}/submit][%d] postAchievementsIdSubmitInternalServerError %s", 500, payload)
 }
 
-func (o *PostAchievementsIDSubmitInternalServerError) GetPayload() *models.APIServerError {
+func (o *PostAchievementsIDSubmitInternalServerError) GetPayload() *models.RespondError {
 	return o.Payload
 }
 
 func (o *PostAchievementsIDSubmitInternalServerError) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIServerError)
+	o.Payload = new(models.RespondError)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {

@@ -134,7 +134,7 @@ PostAuthAdminLoginBadRequest describes a response with status code 400, with def
 Invalid request format
 */
 type PostAuthAdminLoginBadRequest struct {
-	Payload *models.APIInvalidRequestError
+	Payload *models.RespondError
 }
 
 // IsSuccess returns true when this post auth admin login bad request response has a 2xx status code
@@ -177,13 +177,13 @@ func (o *PostAuthAdminLoginBadRequest) String() string {
 	return fmt.Sprintf("[POST /auth/admin/login][%d] postAuthAdminLoginBadRequest %s", 400, payload)
 }
 
-func (o *PostAuthAdminLoginBadRequest) GetPayload() *models.APIInvalidRequestError {
+func (o *PostAuthAdminLoginBadRequest) GetPayload() *models.RespondError {
 	return o.Payload
 }
 
 func (o *PostAuthAdminLoginBadRequest) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIInvalidRequestError)
+	o.Payload = new(models.RespondError)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
@@ -204,7 +204,7 @@ PostAuthAdminLoginUnauthorized describes a response with status code 401, with d
 Invalid admin token or not recognized
 */
 type PostAuthAdminLoginUnauthorized struct {
-	Payload *models.APICredentialsNotFoundError
+	Payload *models.RespondError
 }
 
 // IsSuccess returns true when this post auth admin login unauthorized response has a 2xx status code
@@ -247,13 +247,13 @@ func (o *PostAuthAdminLoginUnauthorized) String() string {
 	return fmt.Sprintf("[POST /auth/admin/login][%d] postAuthAdminLoginUnauthorized %s", 401, payload)
 }
 
-func (o *PostAuthAdminLoginUnauthorized) GetPayload() *models.APICredentialsNotFoundError {
+func (o *PostAuthAdminLoginUnauthorized) GetPayload() *models.RespondError {
 	return o.Payload
 }
 
 func (o *PostAuthAdminLoginUnauthorized) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APICredentialsNotFoundError)
+	o.Payload = new(models.RespondError)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
@@ -274,7 +274,7 @@ PostAuthAdminLoginInternalServerError describes a response with status code 500,
 Internal server error
 */
 type PostAuthAdminLoginInternalServerError struct {
-	Payload *models.APIServerError
+	Payload *models.RespondError
 }
 
 // IsSuccess returns true when this post auth admin login internal server error response has a 2xx status code
@@ -317,13 +317,13 @@ func (o *PostAuthAdminLoginInternalServerError) String() string {
 	return fmt.Sprintf("[POST /auth/admin/login][%d] postAuthAdminLoginInternalServerError %s", 500, payload)
 }
 
-func (o *PostAuthAdminLoginInternalServerError) GetPayload() *models.APIServerError {
+func (o *PostAuthAdminLoginInternalServerError) GetPayload() *models.RespondError {
 	return o.Payload
 }
 
 func (o *PostAuthAdminLoginInternalServerError) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIServerError)
+	o.Payload = new(models.RespondError)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {

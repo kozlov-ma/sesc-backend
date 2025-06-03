@@ -134,7 +134,7 @@ PostAuthLoginBadRequest describes a response with status code 400, with default 
 Invalid request format
 */
 type PostAuthLoginBadRequest struct {
-	Payload *models.APIInvalidRequestError
+	Payload *models.RespondError
 }
 
 // IsSuccess returns true when this post auth login bad request response has a 2xx status code
@@ -177,13 +177,13 @@ func (o *PostAuthLoginBadRequest) String() string {
 	return fmt.Sprintf("[POST /auth/login][%d] postAuthLoginBadRequest %s", 400, payload)
 }
 
-func (o *PostAuthLoginBadRequest) GetPayload() *models.APIInvalidRequestError {
+func (o *PostAuthLoginBadRequest) GetPayload() *models.RespondError {
 	return o.Payload
 }
 
 func (o *PostAuthLoginBadRequest) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIInvalidRequestError)
+	o.Payload = new(models.RespondError)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
@@ -204,7 +204,7 @@ PostAuthLoginUnauthorized describes a response with status code 401, with defaul
 Invalid credentials or user does not exist
 */
 type PostAuthLoginUnauthorized struct {
-	Payload *models.APICredentialsNotFoundError
+	Payload *models.RespondError
 }
 
 // IsSuccess returns true when this post auth login unauthorized response has a 2xx status code
@@ -247,13 +247,13 @@ func (o *PostAuthLoginUnauthorized) String() string {
 	return fmt.Sprintf("[POST /auth/login][%d] postAuthLoginUnauthorized %s", 401, payload)
 }
 
-func (o *PostAuthLoginUnauthorized) GetPayload() *models.APICredentialsNotFoundError {
+func (o *PostAuthLoginUnauthorized) GetPayload() *models.RespondError {
 	return o.Payload
 }
 
 func (o *PostAuthLoginUnauthorized) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APICredentialsNotFoundError)
+	o.Payload = new(models.RespondError)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
@@ -274,7 +274,7 @@ PostAuthLoginInternalServerError describes a response with status code 500, with
 Internal server error
 */
 type PostAuthLoginInternalServerError struct {
-	Payload *models.APIServerError
+	Payload *models.RespondError
 }
 
 // IsSuccess returns true when this post auth login internal server error response has a 2xx status code
@@ -317,13 +317,13 @@ func (o *PostAuthLoginInternalServerError) String() string {
 	return fmt.Sprintf("[POST /auth/login][%d] postAuthLoginInternalServerError %s", 500, payload)
 }
 
-func (o *PostAuthLoginInternalServerError) GetPayload() *models.APIServerError {
+func (o *PostAuthLoginInternalServerError) GetPayload() *models.RespondError {
 	return o.Payload
 }
 
 func (o *PostAuthLoginInternalServerError) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIServerError)
+	o.Payload = new(models.RespondError)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {

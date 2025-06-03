@@ -134,7 +134,7 @@ GetUsersMeUnauthorized describes a response with status code 401, with default h
 Unauthorized or invalid token
 */
 type GetUsersMeUnauthorized struct {
-	Payload *models.APIUnauthorizedError
+	Payload *models.RespondError
 }
 
 // IsSuccess returns true when this get users me unauthorized response has a 2xx status code
@@ -177,13 +177,13 @@ func (o *GetUsersMeUnauthorized) String() string {
 	return fmt.Sprintf("[GET /users/me][%d] getUsersMeUnauthorized %s", 401, payload)
 }
 
-func (o *GetUsersMeUnauthorized) GetPayload() *models.APIUnauthorizedError {
+func (o *GetUsersMeUnauthorized) GetPayload() *models.RespondError {
 	return o.Payload
 }
 
 func (o *GetUsersMeUnauthorized) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIUnauthorizedError)
+	o.Payload = new(models.RespondError)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
@@ -204,7 +204,7 @@ GetUsersMeNotFound describes a response with status code 404, with default heade
 User not found
 */
 type GetUsersMeNotFound struct {
-	Payload *models.APIUserNotFoundError
+	Payload *models.RespondError
 }
 
 // IsSuccess returns true when this get users me not found response has a 2xx status code
@@ -247,13 +247,13 @@ func (o *GetUsersMeNotFound) String() string {
 	return fmt.Sprintf("[GET /users/me][%d] getUsersMeNotFound %s", 404, payload)
 }
 
-func (o *GetUsersMeNotFound) GetPayload() *models.APIUserNotFoundError {
+func (o *GetUsersMeNotFound) GetPayload() *models.RespondError {
 	return o.Payload
 }
 
 func (o *GetUsersMeNotFound) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIUserNotFoundError)
+	o.Payload = new(models.RespondError)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
@@ -274,7 +274,7 @@ GetUsersMeInternalServerError describes a response with status code 500, with de
 Internal server error
 */
 type GetUsersMeInternalServerError struct {
-	Payload *models.APIServerError
+	Payload *models.RespondError
 }
 
 // IsSuccess returns true when this get users me internal server error response has a 2xx status code
@@ -317,13 +317,13 @@ func (o *GetUsersMeInternalServerError) String() string {
 	return fmt.Sprintf("[GET /users/me][%d] getUsersMeInternalServerError %s", 500, payload)
 }
 
-func (o *GetUsersMeInternalServerError) GetPayload() *models.APIServerError {
+func (o *GetUsersMeInternalServerError) GetPayload() *models.RespondError {
 	return o.Payload
 }
 
 func (o *GetUsersMeInternalServerError) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIServerError)
+	o.Payload = new(models.RespondError)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {

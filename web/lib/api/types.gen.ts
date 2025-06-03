@@ -7,13 +7,6 @@ export type ApiAchievementGroupResponse = {
   name: string;
 };
 
-export type ApiAchievementNotFoundError = {
-  code?: string;
-  details?: string;
-  message?: string;
-  ruMessage?: string;
-};
-
 export type ApiAchievementResponse = {
   documents: Array<ApiDocumentResponse>;
   id: string;
@@ -24,13 +17,6 @@ export type ApiAchievementResponse = {
   status: string;
   templateId: string;
   templateName: string;
-};
-
-export type ApiAchievementTemplateNotFoundError = {
-  code?: string;
-  details?: string;
-  message?: string;
-  ruMessage?: string;
 };
 
 export type ApiAchievementTemplateResponse = {
@@ -46,13 +32,6 @@ export type ApiAchievementTemplateResponse = {
 export type ApiAddDocumentRequest = {
   fileId: string;
   name: string;
-};
-
-export type ApiCannotRemoveDepartmentError = {
-  code?: string;
-  details?: string;
-  message?: string;
-  ruMessage?: string;
 };
 
 export type ApiCreateAchievementGroupRequest = {
@@ -97,13 +76,6 @@ export type ApiCreateUserRequest = {
   unemploymentDate?: string;
 };
 
-export type ApiCredentialsNotFoundError = {
-  code?: string;
-  details?: string;
-  message?: string;
-  ruMessage?: string;
-};
-
 export type ApiCredentialsRequest = {
   password: string;
   username: string;
@@ -115,42 +87,14 @@ export type ApiDepartment = {
   name: string;
 };
 
-export type ApiDepartmentExistsError = {
-  code?: string;
-  details?: string;
-  message?: string;
-  ruMessage?: string;
-};
-
-export type ApiDepartmentNotFoundError = {
-  code?: string;
-  details?: string;
-  message?: string;
-  ruMessage?: string;
-};
-
 export type ApiDepartmentsResponse = {
   departments: Array<ApiDepartment>;
-};
-
-export type ApiDocumentNotFoundError = {
-  code?: string;
-  details?: string;
-  message?: string;
-  ruMessage?: string;
 };
 
 export type ApiDocumentResponse = {
   fileId: string;
   id: string;
   name: string;
-};
-
-export type ApiError = {
-  code: string;
-  details?: string;
-  message: string;
-  ruMessage: string;
 };
 
 export type ApiFileListResponse = {
@@ -166,20 +110,6 @@ export type ApiFileResponse = {
   ownerId?: string;
 };
 
-export type ApiForbiddenError = {
-  code?: string;
-  details?: string;
-  message?: string;
-  ruMessage?: string;
-};
-
-export type ApiGroupNotFoundError = {
-  code?: string;
-  details?: string;
-  message?: string;
-  ruMessage?: string;
-};
-
 export type ApiGroupedAchievementsResponse = {
   items: {
     [key: string]: Array<ApiAchievementResponse>;
@@ -192,59 +122,6 @@ export type ApiGroupedAchievementsResponse = {
 export type ApiIdentityResponse = {
   id: string;
   role: string;
-};
-
-export type ApiInvalidCredentialsError = {
-  code?: string;
-  details?: string;
-  message?: string;
-  ruMessage?: string;
-};
-
-export type ApiInvalidDepartmentIdError = {
-  code?: string;
-  details?: string;
-  message?: string;
-  ruMessage?: string;
-};
-
-export type ApiInvalidNameError = {
-  code?: string;
-  details?: string;
-  message?: string;
-  ruMessage?: string;
-};
-
-export type ApiInvalidRequestError = {
-  code?: string;
-  details?: string;
-  message?: string;
-  ruMessage?: string;
-};
-
-export type ApiInvalidRoleError = {
-  code?: string;
-  details?: string;
-  message?: string;
-  ruMessage?: string;
-};
-
-export type ApiInvalidTokenError = {
-  code?: string;
-  details?: string;
-  message?: string;
-  ruMessage?: string;
-};
-
-export type ApiInvalidUuidError = {
-  code?: string;
-  details?: string;
-  message?: string;
-  ruMessage?: string;
-};
-
-export type ApiMarkAchievementsAsAccountedRequest = {
-  achievementIds: Array<string>;
 };
 
 export type ApiPaginatedAchievementsResponse = {
@@ -289,13 +166,6 @@ export type ApiPatchUserRequest = {
   unemploymentDate?: string;
 };
 
-export type ApiPointsLimitExceededError = {
-  code?: string;
-  details?: string;
-  message?: string;
-  ruMessage?: string;
-};
-
 export type ApiReviewAchievementRequest = {
   comment?: string;
   pointsAssigned: number;
@@ -319,22 +189,8 @@ export type ApiRolesResponse = {
   roles?: Array<ApiRole>;
 };
 
-export type ApiServerError = {
-  code?: string;
-  details?: string;
-  message?: string;
-  ruMessage?: string;
-};
-
 export type ApiTokenResponse = {
   token: string;
-};
-
-export type ApiUnauthorizedError = {
-  code?: string;
-  details?: string;
-  message?: string;
-  ruMessage?: string;
 };
 
 export type ApiUpdateDepartmentRequest = {
@@ -342,31 +198,17 @@ export type ApiUpdateDepartmentRequest = {
   name: string;
 };
 
-export type ApiUserExistsError = {
-  code?: string;
-  details?: string;
-  message?: string;
-  ruMessage?: string;
-};
-
-export type ApiUserNotFoundError = {
-  code?: string;
-  details?: string;
-  message?: string;
-  ruMessage?: string;
-};
-
-export type ApiWrongAchievementStatusError = {
-  code?: string;
-  details?: string;
-  message?: string;
-  ruMessage?: string;
-};
-
 export type RespondDepartment = {
   description: string;
   id: string;
   name: string;
+};
+
+export type RespondError = {
+  code?: string;
+  message?: string;
+  statusCode?: number;
+  traceId?: string;
 };
 
 export type RespondRole = {
@@ -428,11 +270,11 @@ export type GetAchievementGroupsErrors = {
   /**
    * Unauthorized
    */
-  401: ApiUnauthorizedError;
+  401: RespondError;
   /**
    * Internal server error
    */
-  500: ApiServerError;
+  500: RespondError;
 };
 
 export type GetAchievementGroupsError =
@@ -468,19 +310,19 @@ export type PostAchievementGroupsErrors = {
   /**
    * Invalid request format
    */
-  400: ApiInvalidRequestError;
+  400: RespondError;
   /**
    * Unauthorized
    */
-  401: ApiUnauthorizedError;
+  401: RespondError;
   /**
    * Forbidden - admin role required
    */
-  403: ApiForbiddenError;
+  403: RespondError;
   /**
    * Internal server error
    */
-  500: ApiServerError;
+  500: RespondError;
 };
 
 export type PostAchievementGroupsError =
@@ -521,23 +363,23 @@ export type PatchAchievementGroupsByIdErrors = {
   /**
    * Invalid request format
    */
-  400: ApiInvalidRequestError;
+  400: RespondError;
   /**
    * Unauthorized
    */
-  401: ApiUnauthorizedError;
+  401: RespondError;
   /**
    * Forbidden - admin role required
    */
-  403: ApiForbiddenError;
+  403: RespondError;
   /**
    * Group not found
    */
-  404: ApiGroupNotFoundError;
+  404: RespondError;
   /**
    * Internal server error
    */
-  500: ApiServerError;
+  500: RespondError;
 };
 
 export type PatchAchievementGroupsByIdError =
@@ -579,11 +421,11 @@ export type GetAchievementTemplatesErrors = {
   /**
    * Unauthorized
    */
-  401: ApiUnauthorizedError;
+  401: RespondError;
   /**
    * Internal server error
    */
-  500: ApiServerError;
+  500: RespondError;
 };
 
 export type GetAchievementTemplatesError =
@@ -619,23 +461,23 @@ export type PostAchievementTemplatesErrors = {
   /**
    * Invalid request format
    */
-  400: ApiInvalidRequestError;
+  400: RespondError;
   /**
    * Unauthorized
    */
-  401: ApiUnauthorizedError;
+  401: RespondError;
   /**
    * Forbidden - admin role required
    */
-  403: ApiForbiddenError;
+  403: RespondError;
   /**
    * Group not found
    */
-  404: ApiGroupNotFoundError;
+  404: RespondError;
   /**
    * Internal server error
    */
-  500: ApiServerError;
+  500: RespondError;
 };
 
 export type PostAchievementTemplatesError =
@@ -676,23 +518,23 @@ export type PatchAchievementTemplatesByIdErrors = {
   /**
    * Invalid request format
    */
-  400: ApiInvalidRequestError;
+  400: RespondError;
   /**
    * Unauthorized
    */
-  401: ApiUnauthorizedError;
+  401: RespondError;
   /**
    * Forbidden - admin role required
    */
-  403: ApiForbiddenError;
+  403: RespondError;
   /**
    * Template not found
    */
-  404: ApiAchievementTemplateNotFoundError;
+  404: RespondError;
   /**
    * Internal server error
    */
-  500: ApiServerError;
+  500: RespondError;
 };
 
 export type PatchAchievementTemplatesByIdError =
@@ -734,15 +576,15 @@ export type GetAchievementsErrors = {
   /**
    * Invalid request parameters
    */
-  400: ApiInvalidRequestError;
+  400: RespondError;
   /**
    * Unauthorized
    */
-  401: ApiUnauthorizedError;
+  401: RespondError;
   /**
    * Internal server error
    */
-  500: ApiServerError;
+  500: RespondError;
 };
 
 export type GetAchievementsError =
@@ -778,19 +620,19 @@ export type PostAchievementsErrors = {
   /**
    * Invalid request format
    */
-  400: ApiInvalidRequestError;
+  400: RespondError;
   /**
    * Unauthorized
    */
-  401: ApiUnauthorizedError;
+  401: RespondError;
   /**
    * Template not found
    */
-  404: ApiAchievementTemplateNotFoundError;
+  404: RespondError;
   /**
    * Internal server error
    */
-  500: ApiServerError;
+  500: RespondError;
 };
 
 export type PostAchievementsError =
@@ -832,19 +674,19 @@ export type GetAchievementsGroupedErrors = {
   /**
    * Invalid request parameters
    */
-  400: ApiInvalidRequestError;
+  400: RespondError;
   /**
    * Unauthorized
    */
-  401: ApiUnauthorizedError;
+  401: RespondError;
   /**
    * Forbidden
    */
-  403: ApiForbiddenError;
+  403: RespondError;
   /**
    * Internal server error
    */
-  500: ApiServerError;
+  500: RespondError;
 };
 
 export type GetAchievementsGroupedError =
@@ -882,23 +724,23 @@ export type DeleteAchievementsByIdErrors = {
   /**
    * Invalid UUID format
    */
-  400: ApiInvalidUuidError;
+  400: RespondError;
   /**
    * Unauthorized
    */
-  401: ApiUnauthorizedError;
+  401: RespondError;
   /**
    * Achievement not found
    */
-  404: ApiAchievementNotFoundError;
+  404: RespondError;
   /**
    * Wrong achievement status
    */
-  409: ApiWrongAchievementStatusError;
+  409: RespondError;
   /**
    * Internal server error
    */
-  500: ApiServerError;
+  500: RespondError;
 };
 
 export type DeleteAchievementsByIdError =
@@ -933,19 +775,19 @@ export type GetAchievementsByIdErrors = {
   /**
    * Invalid UUID format
    */
-  400: ApiInvalidUuidError;
+  400: RespondError;
   /**
    * Unauthorized
    */
-  401: ApiUnauthorizedError;
+  401: RespondError;
   /**
    * Achievement not found
    */
-  404: ApiAchievementNotFoundError;
+  404: RespondError;
   /**
    * Internal server error
    */
-  500: ApiServerError;
+  500: RespondError;
 };
 
 export type GetAchievementsByIdError =
@@ -986,23 +828,23 @@ export type PostAchievementsByIdDocumentsErrors = {
   /**
    * Invalid request format
    */
-  400: ApiInvalidRequestError;
+  400: RespondError;
   /**
    * Unauthorized
    */
-  401: ApiUnauthorizedError;
+  401: RespondError;
   /**
    * Achievement not found
    */
-  404: ApiAchievementNotFoundError;
+  404: RespondError;
   /**
    * Wrong achievement status
    */
-  409: ApiWrongAchievementStatusError;
+  409: RespondError;
   /**
    * Internal server error
    */
-  500: ApiServerError;
+  500: RespondError;
 };
 
 export type PostAchievementsByIdDocumentsError =
@@ -1044,23 +886,23 @@ export type DeleteAchievementsByIdDocumentsByDocumentIdErrors = {
   /**
    * Invalid UUID format
    */
-  400: ApiInvalidUuidError;
+  400: RespondError;
   /**
    * Unauthorized
    */
-  401: ApiUnauthorizedError;
+  401: RespondError;
   /**
    * Document not found
    */
-  404: ApiDocumentNotFoundError;
+  404: RespondError;
   /**
    * Wrong achievement status
    */
-  409: ApiWrongAchievementStatusError;
+  409: RespondError;
   /**
    * Internal server error
    */
-  500: ApiServerError;
+  500: RespondError;
 };
 
 export type DeleteAchievementsByIdDocumentsByDocumentIdError =
@@ -1098,27 +940,27 @@ export type PostAchievementsByIdReviewErrors = {
   /**
    * Points assigned exceed the template's points limit
    */
-  400: ApiPointsLimitExceededError;
+  400: RespondError;
   /**
    * Unauthorized
    */
-  401: ApiUnauthorizedError;
+  401: RespondError;
   /**
    * Forbidden - reviewer role required
    */
-  403: ApiForbiddenError;
+  403: RespondError;
   /**
    * Achievement not found
    */
-  404: ApiAchievementNotFoundError;
+  404: RespondError;
   /**
    * Wrong achievement status
    */
-  409: ApiWrongAchievementStatusError;
+  409: RespondError;
   /**
    * Internal server error
    */
-  500: ApiServerError;
+  500: RespondError;
 };
 
 export type PostAchievementsByIdReviewError =
@@ -1156,23 +998,23 @@ export type PostAchievementsByIdSubmitErrors = {
   /**
    * Invalid UUID format
    */
-  400: ApiInvalidUuidError;
+  400: RespondError;
   /**
    * Unauthorized
    */
-  401: ApiUnauthorizedError;
+  401: RespondError;
   /**
    * Achievement not found
    */
-  404: ApiAchievementNotFoundError;
+  404: RespondError;
   /**
    * Wrong achievement status
    */
-  409: ApiWrongAchievementStatusError;
+  409: RespondError;
   /**
    * Internal server error
    */
-  500: ApiServerError;
+  500: RespondError;
 };
 
 export type PostAchievementsByIdSubmitError =
@@ -1202,15 +1044,15 @@ export type PostAuthAdminLoginErrors = {
   /**
    * Invalid request format
    */
-  400: ApiInvalidRequestError;
+  400: RespondError;
   /**
    * Invalid admin token or not recognized
    */
-  401: ApiCredentialsNotFoundError;
+  401: RespondError;
   /**
    * Internal server error
    */
-  500: ApiServerError;
+  500: RespondError;
 };
 
 export type PostAuthAdminLoginError =
@@ -1248,23 +1090,23 @@ export type DeleteAuthCredentialsByIdErrors = {
   /**
    * Invalid UUID format
    */
-  400: ApiInvalidUuidError;
+  400: RespondError;
   /**
    * Unauthorized
    */
-  401: ApiUnauthorizedError;
+  401: RespondError;
   /**
    * Forbidden - admin role required
    */
-  403: ApiForbiddenError;
+  403: RespondError;
   /**
    * User credentials not found
    */
-  404: ApiCredentialsNotFoundError;
+  404: RespondError;
   /**
    * Internal server error
    */
-  500: ApiServerError;
+  500: RespondError;
 };
 
 export type DeleteAuthCredentialsByIdError =
@@ -1299,23 +1141,23 @@ export type GetAuthCredentialsByIdErrors = {
   /**
    * Invalid UUID format
    */
-  400: ApiInvalidUuidError;
+  400: RespondError;
   /**
    * Unauthorized
    */
-  401: ApiUnauthorizedError;
+  401: RespondError;
   /**
    * Forbidden - admin role required
    */
-  403: ApiForbiddenError;
+  403: RespondError;
   /**
    * User not found or does not exist
    */
-  404: ApiCredentialsNotFoundError;
+  404: RespondError;
   /**
    * Internal server error
    */
-  500: ApiServerError;
+  500: RespondError;
 };
 
 export type GetAuthCredentialsByIdError =
@@ -1345,15 +1187,15 @@ export type PostAuthLoginErrors = {
   /**
    * Invalid request format
    */
-  400: ApiInvalidRequestError;
+  400: RespondError;
   /**
    * Invalid credentials or user does not exist
    */
-  401: ApiCredentialsNotFoundError;
+  401: RespondError;
   /**
    * Internal server error
    */
-  500: ApiServerError;
+  500: RespondError;
 };
 
 export type PostAuthLoginError = PostAuthLoginErrors[keyof PostAuthLoginErrors];
@@ -1385,11 +1227,11 @@ export type GetAuthValidateErrors = {
   /**
    * Invalid token
    */
-  401: ApiInvalidTokenError;
+  401: RespondError;
   /**
    * Internal server error
    */
-  500: ApiServerError;
+  500: RespondError;
 };
 
 export type GetAuthValidateError =
@@ -1416,7 +1258,7 @@ export type GetDepartmentsErrors = {
   /**
    * Internal server error
    */
-  500: ApiServerError;
+  500: RespondError;
 };
 
 export type GetDepartmentsError =
@@ -1452,23 +1294,23 @@ export type PostDepartmentsErrors = {
   /**
    * Invalid request format
    */
-  400: ApiInvalidRequestError;
+  400: RespondError;
   /**
    * Unauthorized
    */
-  401: ApiUnauthorizedError;
+  401: RespondError;
   /**
    * Forbidden - admin role required
    */
-  403: ApiForbiddenError;
+  403: RespondError;
   /**
    * Department with this name already exists
    */
-  409: ApiDepartmentExistsError;
+  409: RespondError;
   /**
    * Internal server error
    */
-  500: ApiServerError;
+  500: RespondError;
 };
 
 export type PostDepartmentsError =
@@ -1506,27 +1348,27 @@ export type DeleteDepartmentsByIdErrors = {
   /**
    * Invalid UUID format
    */
-  400: ApiInvalidDepartmentIdError;
+  400: RespondError;
   /**
    * Unauthorized
    */
-  401: ApiUnauthorizedError;
+  401: RespondError;
   /**
    * Forbidden - admin role required
    */
-  403: ApiForbiddenError;
+  403: RespondError;
   /**
    * Department not found
    */
-  404: ApiDepartmentNotFoundError;
+  404: RespondError;
   /**
    * Cannot remove department, it still has some users
    */
-  409: ApiCannotRemoveDepartmentError;
+  409: RespondError;
   /**
    * Internal server error
    */
-  500: ApiServerError;
+  500: RespondError;
 };
 
 export type DeleteDepartmentsByIdError =
@@ -1561,15 +1403,15 @@ export type GetDepartmentsByIdErrors = {
   /**
    * Invalid UUID format
    */
-  400: ApiInvalidUuidError;
+  400: RespondError;
   /**
    * Department not found
    */
-  404: ApiDepartmentNotFoundError;
+  404: RespondError;
   /**
    * Internal server error
    */
-  500: ApiServerError;
+  500: RespondError;
 };
 
 export type GetDepartmentsByIdError =
@@ -1610,27 +1452,27 @@ export type PutDepartmentsByIdErrors = {
   /**
    * Invalid request format
    */
-  400: ApiInvalidRequestError;
+  400: RespondError;
   /**
    * Unauthorized
    */
-  401: ApiUnauthorizedError;
+  401: RespondError;
   /**
    * Forbidden - admin role required
    */
-  403: ApiForbiddenError;
+  403: RespondError;
   /**
    * Department not found
    */
-  404: ApiDepartmentNotFoundError;
+  404: RespondError;
   /**
    * Department with this name already exists
    */
-  409: ApiDepartmentExistsError;
+  409: RespondError;
   /**
    * Internal server error
    */
-  500: ApiServerError;
+  500: RespondError;
 };
 
 export type PutDepartmentsByIdError =
@@ -1684,11 +1526,11 @@ export type GetFilesErrors = {
   /**
    * Bad Request
    */
-  400: ApiError;
+  400: RespondError;
   /**
    * Internal Server Error
    */
-  500: ApiError;
+  500: RespondError;
 };
 
 export type GetFilesError = GetFilesErrors[keyof GetFilesErrors];
@@ -1724,15 +1566,15 @@ export type PostFilesErrors = {
   /**
    * Bad Request
    */
-  400: ApiError;
+  400: RespondError;
   /**
    * Unauthorized
    */
-  401: ApiError;
+  401: RespondError;
   /**
    * Internal Server Error
    */
-  500: ApiError;
+  500: RespondError;
 };
 
 export type PostFilesError = PostFilesErrors[keyof PostFilesErrors];
@@ -1768,23 +1610,23 @@ export type DeleteFilesByIdErrors = {
   /**
    * Bad Request
    */
-  400: ApiError;
+  400: RespondError;
   /**
    * Unauthorized
    */
-  401: ApiError;
+  401: RespondError;
   /**
    * Forbidden
    */
-  403: ApiError;
+  403: RespondError;
   /**
    * Not Found
    */
-  404: ApiError;
+  404: RespondError;
   /**
    * Internal Server Error
    */
-  500: ApiError;
+  500: RespondError;
 };
 
 export type DeleteFilesByIdError =
@@ -1819,19 +1661,19 @@ export type GetFilesByIdErrors = {
   /**
    * Bad Request
    */
-  400: ApiError;
+  400: RespondError;
   /**
    * Unauthorized
    */
-  401: ApiError;
+  401: RespondError;
   /**
    * Not Found
    */
-  404: ApiError;
+  404: RespondError;
   /**
    * Internal Server Error
    */
-  500: ApiError;
+  500: RespondError;
 };
 
 export type GetFilesByIdError = GetFilesByIdErrors[keyof GetFilesByIdErrors];
@@ -1845,56 +1687,6 @@ export type GetFilesByIdResponses = {
 
 export type GetFilesByIdResponse =
   GetFilesByIdResponses[keyof GetFilesByIdResponses];
-
-export type PostReportsMarkAccountedData = {
-  /**
-   * Achievement IDs to mark as accounted
-   */
-  body: ApiMarkAchievementsAsAccountedRequest;
-  headers?: {
-    /**
-     * Bearer JWT token
-     */
-    Authorization?: string;
-  };
-  path?: never;
-  query?: never;
-  url: "/reports/mark-accounted";
-};
-
-export type PostReportsMarkAccountedErrors = {
-  /**
-   * Bad request
-   */
-  400: ApiError;
-  /**
-   * Unauthorized
-   */
-  401: ApiError;
-  /**
-   * Forbidden - Admin access required
-   */
-  403: ApiError;
-  /**
-   * Internal server error
-   */
-  500: ApiError;
-};
-
-export type PostReportsMarkAccountedError =
-  PostReportsMarkAccountedErrors[keyof PostReportsMarkAccountedErrors];
-
-export type PostReportsMarkAccountedResponses = {
-  /**
-   * Success response
-   */
-  200: {
-    [key: string]: unknown;
-  };
-};
-
-export type PostReportsMarkAccountedResponse =
-  PostReportsMarkAccountedResponses[keyof PostReportsMarkAccountedResponses];
 
 export type PostReportsMarkAllAccountedData = {
   body?: never;
@@ -1913,15 +1705,15 @@ export type PostReportsMarkAllAccountedErrors = {
   /**
    * Unauthorized
    */
-  401: ApiError;
+  401: RespondError;
   /**
    * Forbidden - Economist access required
    */
-  403: ApiError;
+  403: RespondError;
   /**
    * Internal server error
    */
-  500: ApiError;
+  500: RespondError;
 };
 
 export type PostReportsMarkAllAccountedError =
@@ -1956,15 +1748,15 @@ export type GetReportsUserPointsErrors = {
   /**
    * Unauthorized
    */
-  401: ApiError;
+  401: RespondError;
   /**
    * Forbidden - Admin access required
    */
-  403: ApiError;
+  403: RespondError;
   /**
    * Internal server error
    */
-  500: ApiError;
+  500: RespondError;
 };
 
 export type GetReportsUserPointsError =
@@ -1988,7 +1780,7 @@ export type GetRolesErrors = {
   /**
    * Internal server error
    */
-  500: ApiError;
+  500: RespondError;
 };
 
 export type GetRolesError = GetRolesErrors[keyof GetRolesErrors];
@@ -2032,11 +1824,11 @@ export type GetUsersErrors = {
   /**
    * Unauthorized
    */
-  401: ApiUnauthorizedError;
+  401: RespondError;
   /**
    * Internal server error
    */
-  500: ApiServerError;
+  500: RespondError;
 };
 
 export type GetUsersError = GetUsersErrors[keyof GetUsersErrors];
@@ -2070,19 +1862,19 @@ export type PostUsersErrors = {
   /**
    * Invalid name specified
    */
-  400: ApiInvalidNameError;
+  400: RespondError;
   /**
    * Unauthorized
    */
-  401: ApiUnauthorizedError;
+  401: RespondError;
   /**
    * Forbidden - admin role required
    */
-  403: ApiForbiddenError;
+  403: RespondError;
   /**
    * Internal server error
    */
-  500: ApiServerError;
+  500: RespondError;
 };
 
 export type PostUsersError = PostUsersErrors[keyof PostUsersErrors];
@@ -2113,15 +1905,15 @@ export type GetUsersMeErrors = {
   /**
    * Unauthorized or invalid token
    */
-  401: ApiUnauthorizedError;
+  401: RespondError;
   /**
    * User not found
    */
-  404: ApiUserNotFoundError;
+  404: RespondError;
   /**
    * Internal server error
    */
-  500: ApiServerError;
+  500: RespondError;
 };
 
 export type GetUsersMeError = GetUsersMeErrors[keyof GetUsersMeErrors];
@@ -2157,19 +1949,19 @@ export type GetUsersByIdErrors = {
   /**
    * Invalid UUID format
    */
-  400: ApiInvalidUuidError;
+  400: RespondError;
   /**
    * Unauthorized
    */
-  401: ApiUnauthorizedError;
+  401: RespondError;
   /**
    * User not found
    */
-  404: ApiUserNotFoundError;
+  404: RespondError;
   /**
    * Internal server error
    */
-  500: ApiServerError;
+  500: RespondError;
 };
 
 export type GetUsersByIdError = GetUsersByIdErrors[keyof GetUsersByIdErrors];
@@ -2209,23 +2001,23 @@ export type PatchUsersByIdErrors = {
   /**
    * Invalid name
    */
-  400: ApiInvalidNameError;
+  400: RespondError;
   /**
    * Unauthorized
    */
-  401: ApiUnauthorizedError;
+  401: RespondError;
   /**
    * Forbidden - admin role required
    */
-  403: ApiForbiddenError;
+  403: RespondError;
   /**
    * User not found
    */
-  404: ApiUserNotFoundError;
+  404: RespondError;
   /**
    * Internal server error
    */
-  500: ApiServerError;
+  500: RespondError;
 };
 
 export type PatchUsersByIdError =
@@ -2266,27 +2058,27 @@ export type PutUsersByIdCredentialsErrors = {
   /**
    * Invalid credentials format
    */
-  400: ApiInvalidCredentialsError;
+  400: RespondError;
   /**
    * Unauthorized
    */
-  401: ApiUnauthorizedError;
+  401: RespondError;
   /**
    * Forbidden - admin role required
    */
-  403: ApiForbiddenError;
+  403: RespondError;
   /**
    * User does not exist
    */
-  404: ApiUserNotFoundError;
+  404: RespondError;
   /**
    * User already exists
    */
-  409: ApiUserExistsError;
+  409: RespondError;
   /**
    * Internal server error
    */
-  500: ApiServerError;
+  500: RespondError;
 };
 
 export type PutUsersByIdCredentialsError =

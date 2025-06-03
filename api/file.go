@@ -7,6 +7,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/gofrs/uuid/v5"
+	"github.com/kozlov-ma/sesc-backend/api/respond"
 	"github.com/kozlov-ma/sesc-backend/iam"
 	"github.com/kozlov-ma/sesc-backend/pkg/event"
 	"github.com/kozlov-ma/sesc-backend/pkg/event/events"
@@ -28,154 +29,6 @@ type FileListResponse struct {
 	TotalCount int            `json:"totalCount"`
 }
 
-// FileNotFoundError represents a file not found error
-type FileNotFoundError struct {
-	Code       string `json:"code"             example:"FILE_NOT_FOUND"`
-	Message    string `json:"message"          example:"File not found"`
-	RuMessage  string `json:"ruMessage"        example:"Файл не найден"`
-	Details    string `json:"details,omitzero"`
-	StatusCode int    `json:"-"`
-}
-
-// WithDetails adds detail information to the error
-func (e FileNotFoundError) WithDetails(details string) FileNotFoundError {
-	e.Details = details
-	return e
-}
-
-// WithStatus adds HTTP status code to the error
-func (e FileNotFoundError) WithStatus(statusCode int) Error {
-	e.StatusCode = statusCode
-	return Error(e)
-}
-
-// FileForbiddenError represents an access denied error for file operations
-type FileForbiddenError struct {
-	Code       string `json:"code"             example:"FILE_ACCESS_DENIED"`
-	Message    string `json:"message"          example:"Access to file denied"`
-	RuMessage  string `json:"ruMessage"        example:"Доступ к файлу запрещен"`
-	Details    string `json:"details,omitzero"`
-	StatusCode int    `json:"-"`
-}
-
-// WithDetails adds detail information to the error
-func (e FileForbiddenError) WithDetails(details string) FileForbiddenError {
-	e.Details = details
-	return e
-}
-
-// WithStatus adds HTTP status code to the error
-func (e FileForbiddenError) WithStatus(statusCode int) Error {
-	e.StatusCode = statusCode
-	return Error(e)
-}
-
-// FileOperationError represents a general error during file operations
-type FileOperationError struct {
-	Code       string `json:"code"             example:"FILE_OPERATION_ERROR"`
-	Message    string `json:"message"          example:"File operation failed"`
-	RuMessage  string `json:"ruMessage"        example:"Операция с файлом не удалась"`
-	Details    string `json:"details,omitzero"`
-	StatusCode int    `json:"-"`
-}
-
-// WithDetails adds detail information to the error
-func (e FileOperationError) WithDetails(details string) FileOperationError {
-	e.Details = details
-	return e
-}
-
-// WithStatus adds HTTP status code to the error
-func (e FileOperationError) WithStatus(statusCode int) Error {
-	e.StatusCode = statusCode
-	return Error(e)
-}
-
-// BadRequestError represents a bad request error
-type BadRequestError struct {
-	Code       string `json:"code"             example:"BAD_REQUEST"`
-	Message    string `json:"message"          example:"Bad request"`
-	RuMessage  string `json:"ruMessage"        example:"Неверный запрос"`
-	Details    string `json:"details,omitzero"`
-	StatusCode int    `json:"-"`
-}
-
-// WithDetails adds detail information to the error
-func (e BadRequestError) WithDetails(details string) BadRequestError {
-	e.Details = details
-	return e
-}
-
-// WithStatus adds HTTP status code to the error
-func (e BadRequestError) WithStatus(statusCode int) Error {
-	e.StatusCode = statusCode
-	return Error(e)
-}
-
-var (
-	ErrBadRequest = BadRequestError{
-		Code:      "BAD_REQUEST",
-		Message:   "Bad request",
-		RuMessage: "Неверный запрос",
-	}
-
-	ErrNotFound = FileNotFoundError{
-		Code:      "FILE_NOT_FOUND",
-		Message:   "File not found",
-		RuMessage: "Файл не найден",
-	}
-
-	ErrFileForbidden = FileForbiddenError{
-		Code:      "FILE_ACCESS_DENIED",
-		Message:   "Access to file denied",
-		RuMessage: "Доступ к файлу запрещен",
-	}
-
-	ErrFileOperation = FileOperationError{
-		Code:      "FILE_OPERATION_ERROR",
-		Message:   "File operation failed",
-		RuMessage: "Операция с файлом не удалась",
-	}
-
-	ErrInvalidFileUpload = FileOperationError{
-		Code:      "INVALID_FILE_UPLOAD",
-		Message:   "Invalid file upload",
-		RuMessage: "Некорректная загрузка файла",
-	}
-
-	ErrUnauthorizedFileDelete = FileForbiddenError{
-		Code:      "UNAUTHORIZED_FILE_DELETE",
-		Message:   "You are not authorized to delete this file",
-		RuMessage: "Вы не можете удалить этот файл",
-	}
-)
-
-// internalError converts any error to a ServerError
-func internalError(err error) Error {
-	return ServerError{
-		Code:      "SERVER_ERROR",
-		Message:   "Internal server error",
-		RuMessage: "Внутренняя ошибка сервера",
-		Details:   err.Error(),
-	}.WithStatus(http.StatusInternalServerError)
-}
-
-// fileError converts file-specific domain errors to API errors
-func fileError(err error) Error {
-	switch {
-	case errors.Is(err, sesc.ErrFileNotFound):
-		return ErrNotFound.WithStatus(http.StatusNotFound)
-	case errors.Is(err, sesc.ErrInvalidFileName):
-		return ErrBadRequest.WithDetails("Invalid file name").WithStatus(http.StatusBadRequest)
-	case errors.Is(err, sesc.ErrInvalidFileSize):
-		return ErrBadRequest.WithDetails("Invalid file size").WithStatus(http.StatusBadRequest)
-	case errors.Is(err, sesc.ErrInvalidFile):
-		return ErrBadRequest.WithDetails("Invalid file").WithStatus(http.StatusBadRequest)
-	default:
-		return internalError(err)
-	}
-}
-
 // FileAccessMiddleware checks if the user has access to the requested file
 func (a *API) FileAccessMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -185,14 +38,14 @@ func (a *API) FileAccessMiddleware(next http.Handler) http.Handler {
 		// Extract file ID from URL
 		fileID, err := uuid.FromString(chi.URLParam(r, "id"))
 		if err != nil {
-			writeError(ctx, w, ErrBadRequest.WithDetails("invalid file ID").WithStatus(http.StatusBadRequest))
+			a.writeJSON(ctx, w, respond.WithError(ctx, err))
 			return
 		}
 
 		// Get identity from context
 		identity, identityOk := GetIdentityFromContext(ctx)
 		if !identityOk {
-			writeError(ctx, w, ErrUnauthorized.WithStatus(http.StatusUnauthorized))
+			a.writeJSON(ctx, w, respond.WithError(ctx, err))
 			return
 		}
 
@@ -200,11 +53,11 @@ func (a *API) FileAccessMiddleware(next http.Handler) http.Handler {
 		file, err := a.file.ByID(ctx, fileID)
 		if err != nil {
 			if errors.Is(err, sesc.ErrFileNotFound) {
-				writeError(ctx, w, ErrNotFound.WithDetails("file not found").WithStatus(http.StatusNotFound))
+				a.writeJSON(ctx, w, respond.WithError(ctx, err))
 				return
 			}
 			rec.Add(events.Error, err)
-			writeError(ctx, w, fileError(err))
+			a.writeJSON(ctx, w, respond.WithError(ctx, err))
 			return
 		}
 
@@ -225,7 +78,7 @@ func (a *API) FileAccessMiddleware(next http.Handler) http.Handler {
 		// Access denied
 		rec.Add("access_denied", true)
 		rec.Add("reason", "user is not owner, not admin, and file is not common")
-		writeError(ctx, w, ErrFileForbidden.WithStatus(http.StatusForbidden))
+		a.writeJSON(ctx, w, respond.WithError(ctx, err))
 	})
 }
 
@@ -237,14 +90,14 @@ func (a *API) FileEditAccessMiddleware(next http.Handler) http.Handler {
 		// Extract file ID from URL
 		fileID, err := uuid.FromString(chi.URLParam(r, "id"))
 		if err != nil {
-			writeError(ctx, w, ErrBadRequest.WithDetails("invalid file ID").WithStatus(http.StatusBadRequest))
+			a.writeJSON(ctx, w, respond.WithError(ctx, err))
 			return
 		}
 
 		// Get identity from context
 		identity, identityOk := GetIdentityFromContext(ctx)
 		if !identityOk {
-			writeError(ctx, w, ErrUnauthorized.WithStatus(http.StatusUnauthorized))
+			a.writeJSON(ctx, w, respond.WithError(ctx, err))
 			return
 		}
 
@@ -252,11 +105,11 @@ func (a *API) FileEditAccessMiddleware(next http.Handler) http.Handler {
 		file, err := a.file.ByID(ctx, fileID)
 		if err != nil {
 			if errors.Is(err, sesc.ErrFileNotFound) {
-				writeError(ctx, w, ErrNotFound.WithDetails("file not found").WithStatus(http.StatusNotFound))
+				a.writeJSON(ctx, w, respond.WithError(ctx, err))
 				return
 			}
 			rec.Add(events.Error, err)
-			writeError(ctx, w, fileError(err))
+			a.writeJSON(ctx, w, respond.WithError(ctx, err))
 			return
 		}
 
@@ -272,7 +125,7 @@ func (a *API) FileEditAccessMiddleware(next http.Handler) http.Handler {
 		// Access denied
 		rec.Add("access_denied", true)
 		rec.Add("reason", "user is not owner, not admin, and file is not common")
-		writeError(ctx, w, ErrFileForbidden.WithStatus(http.StatusForbidden))
+		a.writeJSON(ctx, w, respond.WithError(ctx, err))
 	})
 }
 
@@ -306,8 +159,8 @@ func convertFile(f sesc.File) FileResponse {
 // @Param offset query int false "Pagination offset" default(0)
 // @Param limit query int false "Pagination limit" default(50)
 // @Success 200 {object} FileListResponse
-// @Failure 400 {object} Error
-// @Failure 500 {object} Error
+// @Failure 400 {object} respond.Error
+// @Failure 500 {object} respond.Error
 // @Router /files [get]
 // @Security BearerAuth
 func (a *API) SearchFiles(w http.ResponseWriter, r *http.Request) {
@@ -326,7 +179,7 @@ func (a *API) SearchFiles(w http.ResponseWriter, r *http.Request) {
 		} else {
 			ownerID, err := uuid.FromString(ownerIDStr)
 			if err != nil {
-				writeError(ctx, w, ErrBadRequest.WithDetails("invalid owner_id").WithStatus(http.StatusBadRequest))
+				a.writeJSON(ctx, w, respond.WithError(ctx, err))
 				return
 			}
 			opts.OwnerID = &ownerID
@@ -336,7 +189,7 @@ func (a *API) SearchFiles(w http.ResponseWriter, r *http.Request) {
 	if commonStr := query.Get("common"); commonStr != "" {
 		common, err := strconv.ParseBool(commonStr)
 		if err != nil {
-			writeError(ctx, w, ErrBadRequest.WithDetails("invalid common parameter").WithStatus(http.StatusBadRequest))
+			a.writeJSON(ctx, w, respond.WithError(ctx, err))
 			return
 		}
 		opts.Common = common
@@ -345,7 +198,7 @@ func (a *API) SearchFiles(w http.ResponseWriter, r *http.Request) {
 	if offsetStr := query.Get("offset"); offsetStr != "" {
 		offset, err := strconv.Atoi(offsetStr)
 		if err != nil {
-			writeError(ctx, w, ErrBadRequest.WithDetails("invalid offset").WithStatus(http.StatusBadRequest))
+			a.writeJSON(ctx, w, respond.WithError(ctx, err))
 			return
 		}
 		opts.Offset = offset
@@ -354,7 +207,7 @@ func (a *API) SearchFiles(w http.ResponseWriter, r *http.Request) {
 	if limitStr := query.Get("limit"); limitStr != "" {
 		limit, err := strconv.Atoi(limitStr)
 		if err != nil {
-			writeError(ctx, w, ErrBadRequest.WithDetails("invalid limit").WithStatus(http.StatusBadRequest))
+			a.writeJSON(ctx, w, respond.WithError(ctx, err))
 			return
 		}
 		opts.Limit = limit
@@ -363,7 +216,7 @@ func (a *API) SearchFiles(w http.ResponseWriter, r *http.Request) {
 	files, totalCount, err := a.file.Search(ctx, opts)
 	if err != nil {
 		rec.Add(events.Error, err)
-		writeError(ctx, w, fileError(err))
+		a.writeJSON(ctx, w, respond.WithError(ctx, err))
 		return
 	}
 
@@ -376,7 +229,7 @@ func (a *API) SearchFiles(w http.ResponseWriter, r *http.Request) {
 		response.Items[i] = convertFile(file)
 	}
 
-	a.writeJSON(ctx, w, response, http.StatusOK)
+	a.writeJSON(ctx, w, response)
 }
 
 const maxFormSizeBytes = 32 << 20 // 32 megabytes
@@ -390,9 +243,9 @@ const maxFormSizeBytes = 32 << 20 // 32 megabytes
 // @Param Authorization header string false "Bearer JWT token"
 // @Param file formData file true "File to upload"
 // @Success 201 {object} FileResponse
-// @Failure 400 {object} Error
-// @Failure 401 {object} Error "Unauthorized"
-// @Failure 500 {object} Error
+// @Failure 400 {object} respond.Error
+// @Failure 401 {object} respond.Error "Unauthorized"
+// @Failure 500 {object} respond.Error
 // @Router /files [post]
 // @Security BearerAuth
 func (a *API) UploadFile(w http.ResponseWriter, r *http.Request) {
@@ -402,21 +255,21 @@ func (a *API) UploadFile(w http.ResponseWriter, r *http.Request) {
 	// Get identity from context
 	identity, ok := GetIdentityFromContext(ctx)
 	if !ok {
-		writeError(ctx, w, ErrUnauthorized.WithStatus(http.StatusUnauthorized))
+		a.writeJSON(ctx, w, respond.WithError(ctx, iam.ErrUnauthorized))
 		return
 	}
 
 	// Parse multipart form
 	err := r.ParseMultipartForm(maxFormSizeBytes)
 	if err != nil {
-		writeError(ctx, w, ErrInvalidFileUpload.WithDetails("unable to parse form").WithStatus(http.StatusBadRequest))
+		a.writeJSON(ctx, w, respond.WithError(ctx, err))
 		return
 	}
 
 	// Get the file from the request
 	file, header, err := r.FormFile("file")
 	if err != nil {
-		writeError(ctx, w, ErrInvalidFileUpload.WithDetails("file field is required").WithStatus(http.StatusBadRequest))
+		a.writeJSON(ctx, w, respond.WithError(ctx, err))
 		return
 	}
 	defer file.Close()
@@ -439,13 +292,13 @@ func (a *API) UploadFile(w http.ResponseWriter, r *http.Request) {
 	newFile, err := a.file.Create(ctx, file, opts)
 	if err != nil {
 		rec.Add(events.Error, err)
-		writeError(ctx, w, fileError(err))
+		a.writeJSON(ctx, w, respond.WithError(ctx, err))
 		return
 	}
 
 	response := convertFile(newFile)
 
-	a.writeJSON(ctx, w, response, http.StatusCreated)
+	a.writeJSON(ctx, w, respond.WithStatus(response, http.StatusCreated))
 }
 
 // GetFileByID returns a file by ID
@@ -457,10 +310,10 @@ func (a *API) UploadFile(w http.ResponseWriter, r *http.Request) {
 // @Param Authorization header string false "Bearer JWT token"
 // @Param id path string true "File ID"
 // @Success 200 {object} FileResponse
-// @Failure 400 {object} Error
-// @Failure 401 {object} Error "Unauthorized"
-// @Failure 404 {object} Error
-// @Failure 500 {object} Error
+// @Failure 400 {object} respond.Error
+// @Failure 401 {object} respond.Error "Unauthorized"
+// @Failure 404 {object} respond.Error
+// @Failure 500 {object} respond.Error
 // @Router /files/{id} [get]
 // @Security BearerAuth
 func (a *API) GetFileByID(w http.ResponseWriter, r *http.Request) {
@@ -469,20 +322,20 @@ func (a *API) GetFileByID(w http.ResponseWriter, r *http.Request) {
 
 	fileID, err := uuid.FromString(chi.URLParam(r, "id"))
 	if err != nil {
-		writeError(ctx, w, ErrBadRequest.WithDetails("invalid file ID").WithStatus(http.StatusBadRequest))
+		a.writeJSON(ctx, w, respond.WithError(ctx, err))
 		return
 	}
 
 	file, err := a.file.ByID(ctx, fileID)
 	if err != nil {
 		rec.Add(events.Error, err)
-		writeError(ctx, w, fileError(err))
+		a.writeJSON(ctx, w, respond.WithError(ctx, err))
 		return
 	}
 
 	response := convertFile(file)
 
-	a.writeJSON(ctx, w, response, http.StatusOK)
+	a.writeJSON(ctx, w, response)
 }
 
 // DeleteFile deletes a file
@@ -494,11 +347,11 @@ func (a *API) GetFileByID(w http.ResponseWriter, r *http.Request) {
 // @Param Authorization header string false "Bearer JWT token"
 // @Param id path string true "File ID"
 // @Success 204 "No Content"
-// @Failure 400 {object} Error
-// @Failure 401 {object} Error "Unauthorized"
-// @Failure 403 {object} Error "Forbidden"
-// @Failure 404 {object} Error
-// @Failure 500 {object} Error
+// @Failure 400 {object} respond.Error
+// @Failure 401 {object} respond.Error "Unauthorized"
+// @Failure 403 {object} respond.Error "Forbidden"
+// @Failure 404 {object} respond.Error
+// @Failure 500 {object} respond.Error
 // @Router /files/{id} [delete]
 // @Security BearerAuth
 func (a *API) DeleteFile(w http.ResponseWriter, r *http.Request) {
@@ -507,7 +360,7 @@ func (a *API) DeleteFile(w http.ResponseWriter, r *http.Request) {
 
 	fileID, err := uuid.FromString(chi.URLParam(r, "id"))
 	if err != nil {
-		writeError(ctx, w, ErrBadRequest.WithDetails("invalid file ID").WithStatus(http.StatusBadRequest))
+		a.writeJSON(ctx, w, respond.WithError(ctx, err))
 		return
 	}
 
@@ -515,7 +368,7 @@ func (a *API) DeleteFile(w http.ResponseWriter, r *http.Request) {
 	err = a.file.Delete(ctx, fileID)
 	if err != nil {
 		rec.Add(events.Error, err)
-		writeError(ctx, w, fileError(err))
+		a.writeJSON(ctx, w, respond.WithError(ctx, err))
 		return
 	}
 

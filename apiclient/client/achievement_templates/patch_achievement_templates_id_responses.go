@@ -146,7 +146,7 @@ PatchAchievementTemplatesIDBadRequest describes a response with status code 400,
 Invalid request format
 */
 type PatchAchievementTemplatesIDBadRequest struct {
-	Payload *models.APIInvalidRequestError
+	Payload *models.RespondError
 }
 
 // IsSuccess returns true when this patch achievement templates Id bad request response has a 2xx status code
@@ -189,13 +189,13 @@ func (o *PatchAchievementTemplatesIDBadRequest) String() string {
 	return fmt.Sprintf("[PATCH /achievement-templates/{id}][%d] patchAchievementTemplatesIdBadRequest %s", 400, payload)
 }
 
-func (o *PatchAchievementTemplatesIDBadRequest) GetPayload() *models.APIInvalidRequestError {
+func (o *PatchAchievementTemplatesIDBadRequest) GetPayload() *models.RespondError {
 	return o.Payload
 }
 
 func (o *PatchAchievementTemplatesIDBadRequest) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIInvalidRequestError)
+	o.Payload = new(models.RespondError)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
@@ -216,7 +216,7 @@ PatchAchievementTemplatesIDUnauthorized describes a response with status code 40
 Unauthorized
 */
 type PatchAchievementTemplatesIDUnauthorized struct {
-	Payload *models.APIUnauthorizedError
+	Payload *models.RespondError
 }
 
 // IsSuccess returns true when this patch achievement templates Id unauthorized response has a 2xx status code
@@ -259,13 +259,13 @@ func (o *PatchAchievementTemplatesIDUnauthorized) String() string {
 	return fmt.Sprintf("[PATCH /achievement-templates/{id}][%d] patchAchievementTemplatesIdUnauthorized %s", 401, payload)
 }
 
-func (o *PatchAchievementTemplatesIDUnauthorized) GetPayload() *models.APIUnauthorizedError {
+func (o *PatchAchievementTemplatesIDUnauthorized) GetPayload() *models.RespondError {
 	return o.Payload
 }
 
 func (o *PatchAchievementTemplatesIDUnauthorized) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIUnauthorizedError)
+	o.Payload = new(models.RespondError)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
@@ -286,7 +286,7 @@ PatchAchievementTemplatesIDForbidden describes a response with status code 403, 
 Forbidden - admin role required
 */
 type PatchAchievementTemplatesIDForbidden struct {
-	Payload *models.APIForbiddenError
+	Payload *models.RespondError
 }
 
 // IsSuccess returns true when this patch achievement templates Id forbidden response has a 2xx status code
@@ -329,13 +329,13 @@ func (o *PatchAchievementTemplatesIDForbidden) String() string {
 	return fmt.Sprintf("[PATCH /achievement-templates/{id}][%d] patchAchievementTemplatesIdForbidden %s", 403, payload)
 }
 
-func (o *PatchAchievementTemplatesIDForbidden) GetPayload() *models.APIForbiddenError {
+func (o *PatchAchievementTemplatesIDForbidden) GetPayload() *models.RespondError {
 	return o.Payload
 }
 
 func (o *PatchAchievementTemplatesIDForbidden) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIForbiddenError)
+	o.Payload = new(models.RespondError)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
@@ -356,7 +356,7 @@ PatchAchievementTemplatesIDNotFound describes a response with status code 404, w
 Template not found
 */
 type PatchAchievementTemplatesIDNotFound struct {
-	Payload *models.APIAchievementTemplateNotFoundError
+	Payload *models.RespondError
 }
 
 // IsSuccess returns true when this patch achievement templates Id not found response has a 2xx status code
@@ -399,13 +399,13 @@ func (o *PatchAchievementTemplatesIDNotFound) String() string {
 	return fmt.Sprintf("[PATCH /achievement-templates/{id}][%d] patchAchievementTemplatesIdNotFound %s", 404, payload)
 }
 
-func (o *PatchAchievementTemplatesIDNotFound) GetPayload() *models.APIAchievementTemplateNotFoundError {
+func (o *PatchAchievementTemplatesIDNotFound) GetPayload() *models.RespondError {
 	return o.Payload
 }
 
 func (o *PatchAchievementTemplatesIDNotFound) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIAchievementTemplateNotFoundError)
+	o.Payload = new(models.RespondError)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
@@ -426,7 +426,7 @@ PatchAchievementTemplatesIDInternalServerError describes a response with status 
 Internal server error
 */
 type PatchAchievementTemplatesIDInternalServerError struct {
-	Payload *models.APIServerError
+	Payload *models.RespondError
 }
 
 // IsSuccess returns true when this patch achievement templates Id internal server error response has a 2xx status code
@@ -469,13 +469,13 @@ func (o *PatchAchievementTemplatesIDInternalServerError) String() string {
 	return fmt.Sprintf("[PATCH /achievement-templates/{id}][%d] patchAchievementTemplatesIdInternalServerError %s", 500, payload)
 }
 
-func (o *PatchAchievementTemplatesIDInternalServerError) GetPayload() *models.APIServerError {
+func (o *PatchAchievementTemplatesIDInternalServerError) GetPayload() *models.RespondError {
 	return o.Payload
 }
 
 func (o *PatchAchievementTemplatesIDInternalServerError) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIServerError)
+	o.Payload = new(models.RespondError)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {

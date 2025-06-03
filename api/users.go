@@ -44,10 +44,10 @@ type CreateUserRequest struct {
 // @Param Authorization header string false "Bearer JWT token"
 // @Param id path string true "User UUID"
 // @Success 200 {object} respond.User
-// @Failure 400 {object} InvalidUUIDError "Invalid UUID format"
-// @Failure 401 {object} UnauthorizedError "Unauthorized"
-// @Failure 404 {object} UserNotFoundError "User not found"
-// @Failure 500 {object} ServerError "Internal server error"
+// @Failure 400 {object} respond.Error "Invalid UUID format"
+// @Failure 401 {object} respond.Error "Unauthorized"
+// @Failure 404 {object} respond.Error "User not found"
+// @Failure 500 {object} respond.Error "Internal server error"
 // @Router /users/{id} [get]
 func (a *API) GetUser(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
@@ -57,22 +57,18 @@ func (a *API) GetUser(w http.ResponseWriter, r *http.Request) {
 
 	userID, err := uuid.FromString(idStr)
 	if err != nil {
-		writeError(ctx, w, InvalidUUIDError{
-			Code:      "INVALID_UUID",
-			Message:   "Invalid user ID format",
-			RuMessage: "Некорректный формат ID пользователя",
-		}.WithStatus(http.StatusBadRequest))
+		a.writeJSON(ctx, w, respond.WithError(ctx, err))
 		return
 	}
 
 	user, err := a.sesc.User(ctx, userID)
 	if err != nil {
 		rec.Add(events.Error, err)
-		writeError(ctx, w, sescError(err))
+		a.writeJSON(ctx, w, respond.WithError(ctx, err))
 		return
 	}
 
-	a.writeJSON(ctx, w, respond.WithUser(user), http.StatusOK)
+	a.writeJSON(ctx, w, respond.WithUser(user))
 }
 
 // GetUsers godoc
@@ -86,8 +82,8 @@ func (a *API) GetUser(w http.ResponseWriter, r *http.Request) {
 // @Param search query string false "Search by name"
 // @Param Authorization header string false "Bearer JWT token"
 // @Success 200 {object} respond.Users
-// @Failure 401 {object} UnauthorizedError "Unauthorized"
-// @Failure 500 {object} ServerError "Internal server error"
+// @Failure 401 {object} respond.Error "Unauthorized"
+// @Failure 500 {object} respond.Error "Internal server error"
 // @Router /users [get]
 func (a *API) GetUsers(w http.ResponseWriter, r *http.Request) {
 	var (
@@ -106,15 +102,11 @@ func (a *API) GetUsers(w http.ResponseWriter, r *http.Request) {
 	users, total, err := a.sesc.Users(ctx, offset, limit, search)
 	if err != nil {
 		rec.Add(events.Error, err)
-		writeError(ctx, w, ServerError{
-			Code:      "SERVER_ERROR",
-			Message:   "Failed to fetch users",
-			RuMessage: "Ошибка получения данных пользователей",
-		}.WithStatus(http.StatusInternalServerError))
+		a.writeJSON(ctx, w, respond.WithError(ctx, err))
 		return
 	}
 
-	a.writeJSON(ctx, w, respond.WithUsers(users, total), http.StatusOK)
+	a.writeJSON(ctx, w, respond.WithUsers(users, total))
 }
 
 // CreateUser godoc
@@ -127,12 +119,12 @@ func (a *API) GetUsers(w http.ResponseWriter, r *http.Request) {
 // @Param Authorization header string false "Bearer JWT token"
 // @Param request body CreateUserRequest true "User details"
 // @Success 201 {object} respond.User
-// @Failure 400 {object} InvalidRequestError "Invalid request format"
-// @Failure 400 {object} InvalidRoleError "Invalid role ID specified"
-// @Failure 400 {object} InvalidNameError "Invalid name specified"
-// @Failure 401 {object} UnauthorizedError "Unauthorized"
-// @Failure 403 {object} ForbiddenError "Forbidden - admin role required"
-// @Failure 500 {object} ServerError "Internal server error"
+// @Failure 400 {object} respond.Error "Invalid request format"
+// @Failure 400 {object} respond.Error "Invalid role ID specified"
+// @Failure 400 {object} respond.Error "Invalid name specified"
+// @Failure 401 {object} respond.Error "Unauthorized"
+// @Failure 403 {object} respond.Error "Forbidden - admin role required"
+// @Failure 500 {object} respond.Error "Internal server error"
 // @Router /users [post]
 func (a *API) CreateUser(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
@@ -141,7 +133,7 @@ func (a *API) CreateUser(w http.ResponseWriter, r *http.Request) {
 	var req CreateUserRequest
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		writeError(ctx, w, ErrInvalidRequest.WithStatus(http.StatusBadRequest).WithDetails(err.Error()))
+		a.writeJSON(ctx, w, respond.WithError(ctx, err))
 		return
 	}
 
@@ -167,11 +159,11 @@ func (a *API) CreateUser(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		rec.Add(events.Error, err)
-		writeError(ctx, w, sescError(err))
+		a.writeJSON(ctx, w, respond.WithError(ctx, err))
 		return
 	}
 
-	a.writeJSON(ctx, w, respond.WithUser(user), http.StatusCreated)
+	a.writeJSON(ctx, w, respond.WithStatus(respond.WithUser(user), http.StatusCreated))
 }
 
 // PatchUserRequest defines the fields that can be updated on a User.
@@ -212,14 +204,14 @@ type PatchUserRequest struct {
 // @Param id path string true "User UUID"
 // @Param request body PatchUserRequest true "User fields to update"
 // @Success 200 {object} respond.User
-// @Failure 400 {object} InvalidUUIDError "Invalid UUID format"
-// @Failure 400 {object} InvalidRequestError "Invalid request format"
-// @Failure 400 {object} InvalidRoleError "Invalid role"
-// @Failure 400 {object} InvalidNameError "Invalid name"
-// @Failure 401 {object} UnauthorizedError "Unauthorized"
-// @Failure 403 {object} ForbiddenError "Forbidden - admin role required"
-// @Failure 404 {object} UserNotFoundError "User not found"
-// @Failure 500 {object} ServerError "Internal server error"
+// @Failure 400 {object} respond.Error "Invalid UUID format"
+// @Failure 400 {object} respond.Error "Invalid request format"
+// @Failure 400 {object} respond.Error "Invalid role"
+// @Failure 400 {object} respond.Error "Invalid name"
+// @Failure 401 {object} respond.Error "Unauthorized"
+// @Failure 403 {object} respond.Error "Forbidden - admin role required"
+// @Failure 404 {object} respond.Error "User not found"
+// @Failure 500 {object} respond.Error "Internal server error"
 // @Router /users/{id} [patch]
 func (a *API) PatchUser(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
@@ -228,17 +220,13 @@ func (a *API) PatchUser(w http.ResponseWriter, r *http.Request) {
 	idStr := r.PathValue("id")
 	userID, err := uuid.FromString(idStr)
 	if err != nil {
-		writeError(ctx, w, InvalidUUIDError{
-			Code:      "INVALID_UUID",
-			Message:   "Invalid user ID format",
-			RuMessage: "Некорректный формат ID пользователя",
-		}.WithStatus(http.StatusBadRequest))
+		a.writeJSON(ctx, w, respond.WithError(ctx, err))
 		return
 	}
 
 	var req PatchUserRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		writeError(ctx, w, ErrInvalidRequest.WithStatus(http.StatusBadRequest))
+		a.writeJSON(ctx, w, respond.WithError(ctx, err))
 		return
 	}
 
@@ -266,11 +254,11 @@ func (a *API) PatchUser(w http.ResponseWriter, r *http.Request) {
 	updated, err := a.sesc.UpdateUser(ctx, userID, opt)
 	if err != nil {
 		rec.Add(events.Error, err)
-		writeError(ctx, w, sescError(err))
+		a.writeJSON(ctx, w, respond.WithError(ctx, err))
 		return
 	}
 
-	a.writeJSON(ctx, w, respond.WithUser(updated), http.StatusOK)
+	a.writeJSON(ctx, w, respond.WithUser(updated))
 }
 
 // GetCurrentUser godoc
@@ -281,9 +269,9 @@ func (a *API) PatchUser(w http.ResponseWriter, r *http.Request) {
 // @Security BearerAuth
 // @Param Authorization header string false "Bearer JWT token"
 // @Success 200 {object} respond.User
-// @Failure 401 {object} UnauthorizedError "Unauthorized or invalid token"
-// @Failure 404 {object} UserNotFoundError "User not found"
-// @Failure 500 {object} ServerError "Internal server error"
+// @Failure 401 {object} respond.Error "Unauthorized or invalid token"
+// @Failure 404 {object} respond.Error "User not found"
+// @Failure 500 {object} respond.Error "Internal server error"
 // @Router /users/me [get]
 func (a *API) GetCurrentUser(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
@@ -291,5 +279,5 @@ func (a *API) GetCurrentUser(w http.ResponseWriter, r *http.Request) {
 	user, _ := GetUserFromContext(ctx)
 
 	// Return user data
-	a.writeJSON(ctx, w, respond.WithUser(user), http.StatusOK)
+	a.writeJSON(ctx, w, respond.WithUser(user))
 }

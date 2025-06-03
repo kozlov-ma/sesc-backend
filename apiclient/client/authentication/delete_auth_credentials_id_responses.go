@@ -132,7 +132,7 @@ DeleteAuthCredentialsIDBadRequest describes a response with status code 400, wit
 Invalid UUID format
 */
 type DeleteAuthCredentialsIDBadRequest struct {
-	Payload *models.APIInvalidUUIDError
+	Payload *models.RespondError
 }
 
 // IsSuccess returns true when this delete auth credentials Id bad request response has a 2xx status code
@@ -175,13 +175,13 @@ func (o *DeleteAuthCredentialsIDBadRequest) String() string {
 	return fmt.Sprintf("[DELETE /auth/credentials/{id}][%d] deleteAuthCredentialsIdBadRequest %s", 400, payload)
 }
 
-func (o *DeleteAuthCredentialsIDBadRequest) GetPayload() *models.APIInvalidUUIDError {
+func (o *DeleteAuthCredentialsIDBadRequest) GetPayload() *models.RespondError {
 	return o.Payload
 }
 
 func (o *DeleteAuthCredentialsIDBadRequest) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIInvalidUUIDError)
+	o.Payload = new(models.RespondError)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
@@ -202,7 +202,7 @@ DeleteAuthCredentialsIDUnauthorized describes a response with status code 401, w
 Unauthorized
 */
 type DeleteAuthCredentialsIDUnauthorized struct {
-	Payload *models.APIUnauthorizedError
+	Payload *models.RespondError
 }
 
 // IsSuccess returns true when this delete auth credentials Id unauthorized response has a 2xx status code
@@ -245,13 +245,13 @@ func (o *DeleteAuthCredentialsIDUnauthorized) String() string {
 	return fmt.Sprintf("[DELETE /auth/credentials/{id}][%d] deleteAuthCredentialsIdUnauthorized %s", 401, payload)
 }
 
-func (o *DeleteAuthCredentialsIDUnauthorized) GetPayload() *models.APIUnauthorizedError {
+func (o *DeleteAuthCredentialsIDUnauthorized) GetPayload() *models.RespondError {
 	return o.Payload
 }
 
 func (o *DeleteAuthCredentialsIDUnauthorized) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIUnauthorizedError)
+	o.Payload = new(models.RespondError)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
@@ -272,7 +272,7 @@ DeleteAuthCredentialsIDForbidden describes a response with status code 403, with
 Forbidden - admin role required
 */
 type DeleteAuthCredentialsIDForbidden struct {
-	Payload *models.APIForbiddenError
+	Payload *models.RespondError
 }
 
 // IsSuccess returns true when this delete auth credentials Id forbidden response has a 2xx status code
@@ -315,13 +315,13 @@ func (o *DeleteAuthCredentialsIDForbidden) String() string {
 	return fmt.Sprintf("[DELETE /auth/credentials/{id}][%d] deleteAuthCredentialsIdForbidden %s", 403, payload)
 }
 
-func (o *DeleteAuthCredentialsIDForbidden) GetPayload() *models.APIForbiddenError {
+func (o *DeleteAuthCredentialsIDForbidden) GetPayload() *models.RespondError {
 	return o.Payload
 }
 
 func (o *DeleteAuthCredentialsIDForbidden) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIForbiddenError)
+	o.Payload = new(models.RespondError)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
@@ -342,7 +342,7 @@ DeleteAuthCredentialsIDNotFound describes a response with status code 404, with 
 User credentials not found
 */
 type DeleteAuthCredentialsIDNotFound struct {
-	Payload *models.APICredentialsNotFoundError
+	Payload *models.RespondError
 }
 
 // IsSuccess returns true when this delete auth credentials Id not found response has a 2xx status code
@@ -385,13 +385,13 @@ func (o *DeleteAuthCredentialsIDNotFound) String() string {
 	return fmt.Sprintf("[DELETE /auth/credentials/{id}][%d] deleteAuthCredentialsIdNotFound %s", 404, payload)
 }
 
-func (o *DeleteAuthCredentialsIDNotFound) GetPayload() *models.APICredentialsNotFoundError {
+func (o *DeleteAuthCredentialsIDNotFound) GetPayload() *models.RespondError {
 	return o.Payload
 }
 
 func (o *DeleteAuthCredentialsIDNotFound) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APICredentialsNotFoundError)
+	o.Payload = new(models.RespondError)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
@@ -412,7 +412,7 @@ DeleteAuthCredentialsIDInternalServerError describes a response with status code
 Internal server error
 */
 type DeleteAuthCredentialsIDInternalServerError struct {
-	Payload *models.APIServerError
+	Payload *models.RespondError
 }
 
 // IsSuccess returns true when this delete auth credentials Id internal server error response has a 2xx status code
@@ -455,13 +455,13 @@ func (o *DeleteAuthCredentialsIDInternalServerError) String() string {
 	return fmt.Sprintf("[DELETE /auth/credentials/{id}][%d] deleteAuthCredentialsIdInternalServerError %s", 500, payload)
 }
 
-func (o *DeleteAuthCredentialsIDInternalServerError) GetPayload() *models.APIServerError {
+func (o *DeleteAuthCredentialsIDInternalServerError) GetPayload() *models.RespondError {
 	return o.Payload
 }
 
 func (o *DeleteAuthCredentialsIDInternalServerError) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIServerError)
+	o.Payload = new(models.RespondError)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {

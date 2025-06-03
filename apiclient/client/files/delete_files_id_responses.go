@@ -132,7 +132,7 @@ DeleteFilesIDBadRequest describes a response with status code 400, with default 
 Bad Request
 */
 type DeleteFilesIDBadRequest struct {
-	Payload *models.APIError
+	Payload *models.RespondError
 }
 
 // IsSuccess returns true when this delete files Id bad request response has a 2xx status code
@@ -175,13 +175,13 @@ func (o *DeleteFilesIDBadRequest) String() string {
 	return fmt.Sprintf("[DELETE /files/{id}][%d] deleteFilesIdBadRequest %s", 400, payload)
 }
 
-func (o *DeleteFilesIDBadRequest) GetPayload() *models.APIError {
+func (o *DeleteFilesIDBadRequest) GetPayload() *models.RespondError {
 	return o.Payload
 }
 
 func (o *DeleteFilesIDBadRequest) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIError)
+	o.Payload = new(models.RespondError)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
@@ -202,7 +202,7 @@ DeleteFilesIDUnauthorized describes a response with status code 401, with defaul
 Unauthorized
 */
 type DeleteFilesIDUnauthorized struct {
-	Payload *models.APIError
+	Payload *models.RespondError
 }
 
 // IsSuccess returns true when this delete files Id unauthorized response has a 2xx status code
@@ -245,13 +245,13 @@ func (o *DeleteFilesIDUnauthorized) String() string {
 	return fmt.Sprintf("[DELETE /files/{id}][%d] deleteFilesIdUnauthorized %s", 401, payload)
 }
 
-func (o *DeleteFilesIDUnauthorized) GetPayload() *models.APIError {
+func (o *DeleteFilesIDUnauthorized) GetPayload() *models.RespondError {
 	return o.Payload
 }
 
 func (o *DeleteFilesIDUnauthorized) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIError)
+	o.Payload = new(models.RespondError)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
@@ -272,7 +272,7 @@ DeleteFilesIDForbidden describes a response with status code 403, with default h
 Forbidden
 */
 type DeleteFilesIDForbidden struct {
-	Payload *models.APIError
+	Payload *models.RespondError
 }
 
 // IsSuccess returns true when this delete files Id forbidden response has a 2xx status code
@@ -315,13 +315,13 @@ func (o *DeleteFilesIDForbidden) String() string {
 	return fmt.Sprintf("[DELETE /files/{id}][%d] deleteFilesIdForbidden %s", 403, payload)
 }
 
-func (o *DeleteFilesIDForbidden) GetPayload() *models.APIError {
+func (o *DeleteFilesIDForbidden) GetPayload() *models.RespondError {
 	return o.Payload
 }
 
 func (o *DeleteFilesIDForbidden) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIError)
+	o.Payload = new(models.RespondError)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
@@ -342,7 +342,7 @@ DeleteFilesIDNotFound describes a response with status code 404, with default he
 Not Found
 */
 type DeleteFilesIDNotFound struct {
-	Payload *models.APIError
+	Payload *models.RespondError
 }
 
 // IsSuccess returns true when this delete files Id not found response has a 2xx status code
@@ -385,13 +385,13 @@ func (o *DeleteFilesIDNotFound) String() string {
 	return fmt.Sprintf("[DELETE /files/{id}][%d] deleteFilesIdNotFound %s", 404, payload)
 }
 
-func (o *DeleteFilesIDNotFound) GetPayload() *models.APIError {
+func (o *DeleteFilesIDNotFound) GetPayload() *models.RespondError {
 	return o.Payload
 }
 
 func (o *DeleteFilesIDNotFound) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIError)
+	o.Payload = new(models.RespondError)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
@@ -412,7 +412,7 @@ DeleteFilesIDInternalServerError describes a response with status code 500, with
 Internal Server Error
 */
 type DeleteFilesIDInternalServerError struct {
-	Payload *models.APIError
+	Payload *models.RespondError
 }
 
 // IsSuccess returns true when this delete files Id internal server error response has a 2xx status code
@@ -455,13 +455,13 @@ func (o *DeleteFilesIDInternalServerError) String() string {
 	return fmt.Sprintf("[DELETE /files/{id}][%d] deleteFilesIdInternalServerError %s", 500, payload)
 }
 
-func (o *DeleteFilesIDInternalServerError) GetPayload() *models.APIError {
+func (o *DeleteFilesIDInternalServerError) GetPayload() *models.RespondError {
 	return o.Payload
 }
 
 func (o *DeleteFilesIDInternalServerError) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIError)
+	o.Payload = new(models.RespondError)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {

@@ -115,7 +115,7 @@ func processAchievementTemplates(
 			})
 
 			// Set the kind
-			createParams.Request.Kind = (*string)(templateData.Kind.Pointer())
+			createParams.Request.Kind = &templateData.Kind
 
 			_, err := apiClient.AchievementTemplates.PostAchievementTemplates(createParams, authInfo)
 			if err != nil {

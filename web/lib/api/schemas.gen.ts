@@ -23,27 +23,6 @@ export const api_AchievementGroupResponseSchema = {
   },
 } as const;
 
-export const api_AchievementNotFoundErrorSchema = {
-  type: "object",
-  properties: {
-    code: {
-      type: "string",
-      example: "ACHIEVEMENT_NOT_FOUND",
-    },
-    details: {
-      type: "string",
-    },
-    message: {
-      type: "string",
-      example: "Achievement not found",
-    },
-    ruMessage: {
-      type: "string",
-      example: "Достижение не найдено",
-    },
-  },
-} as const;
-
 export const api_AchievementResponseSchema = {
   type: "object",
   required: [
@@ -97,27 +76,6 @@ export const api_AchievementResponseSchema = {
     templateName: {
       type: "string",
       example: "регионального уровня",
-    },
-  },
-} as const;
-
-export const api_AchievementTemplateNotFoundErrorSchema = {
-  type: "object",
-  properties: {
-    code: {
-      type: "string",
-      example: "ACHIEVEMENT_TEMPLATE_NOT_FOUND",
-    },
-    details: {
-      type: "string",
-    },
-    message: {
-      type: "string",
-      example: "Achievement template not found",
-    },
-    ruMessage: {
-      type: "string",
-      example: "Шаблон достижения не найден",
     },
   },
 } as const;
@@ -177,27 +135,6 @@ export const api_AddDocumentRequestSchema = {
     name: {
       type: "string",
       example: "Publication proof",
-    },
-  },
-} as const;
-
-export const api_CannotRemoveDepartmentErrorSchema = {
-  type: "object",
-  properties: {
-    code: {
-      type: "string",
-      example: "CANNOT_REMOVE_DEPARTMENT",
-    },
-    details: {
-      type: "string",
-    },
-    message: {
-      type: "string",
-      example: "Cannot remove department, it still has some users",
-    },
-    ruMessage: {
-      type: "string",
-      example: "Невозможно удалить кафедру, так как она содержит пользователей",
     },
   },
 } as const;
@@ -355,27 +292,6 @@ export const api_CreateUserRequestSchema = {
   },
 } as const;
 
-export const api_CredentialsNotFoundErrorSchema = {
-  type: "object",
-  properties: {
-    code: {
-      type: "string",
-      example: "CREDENTIALS_NOT_FOUND",
-    },
-    details: {
-      type: "string",
-    },
-    message: {
-      type: "string",
-      example: "User credentials not found",
-    },
-    ruMessage: {
-      type: "string",
-      example: "Учетные данные пользователя не найдены",
-    },
-  },
-} as const;
-
 export const api_CredentialsRequestSchema = {
   type: "object",
   required: ["password", "username"],
@@ -410,48 +326,6 @@ export const api_DepartmentSchema = {
   },
 } as const;
 
-export const api_DepartmentExistsErrorSchema = {
-  type: "object",
-  properties: {
-    code: {
-      type: "string",
-      example: "DEPARTMENT_EXISTS",
-    },
-    details: {
-      type: "string",
-    },
-    message: {
-      type: "string",
-      example: "Department with this name already exists",
-    },
-    ruMessage: {
-      type: "string",
-      example: "Кафедра с таким названием уже существует",
-    },
-  },
-} as const;
-
-export const api_DepartmentNotFoundErrorSchema = {
-  type: "object",
-  properties: {
-    code: {
-      type: "string",
-      example: "DEPARTMENT_NOT_FOUND",
-    },
-    details: {
-      type: "string",
-    },
-    message: {
-      type: "string",
-      example: "Department not found",
-    },
-    ruMessage: {
-      type: "string",
-      example: "Кафедра не найдена",
-    },
-  },
-} as const;
-
 export const api_DepartmentsResponseSchema = {
   type: "object",
   required: ["departments"],
@@ -461,27 +335,6 @@ export const api_DepartmentsResponseSchema = {
       items: {
         $ref: "#/definitions/api.Department",
       },
-    },
-  },
-} as const;
-
-export const api_DocumentNotFoundErrorSchema = {
-  type: "object",
-  properties: {
-    code: {
-      type: "string",
-      example: "DOCUMENT_NOT_FOUND",
-    },
-    details: {
-      type: "string",
-    },
-    message: {
-      type: "string",
-      example: "Document not found",
-    },
-    ruMessage: {
-      type: "string",
-      example: "Документ не найден",
     },
   },
 } as const;
@@ -501,29 +354,6 @@ export const api_DocumentResponseSchema = {
     name: {
       type: "string",
       example: "Publication proof",
-    },
-  },
-} as const;
-
-export const api_ErrorSchema = {
-  type: "object",
-  required: ["code", "message", "ruMessage"],
-  properties: {
-    code: {
-      type: "string",
-      example: "INVALID_REQUEST",
-    },
-    details: {
-      type: "string",
-      example: "field X is required",
-    },
-    message: {
-      type: "string",
-      example: "Invalid request body",
-    },
-    ruMessage: {
-      type: "string",
-      example: "Некорректный формат запроса",
     },
   },
 } as const;
@@ -564,48 +394,6 @@ export const api_FileResponseSchema = {
   },
 } as const;
 
-export const api_ForbiddenErrorSchema = {
-  type: "object",
-  properties: {
-    code: {
-      type: "string",
-      example: "FORBIDDEN",
-    },
-    details: {
-      type: "string",
-    },
-    message: {
-      type: "string",
-      example: "Forbidden - insufficient permissions",
-    },
-    ruMessage: {
-      type: "string",
-      example: "Доступ запрещен - недостаточно прав",
-    },
-  },
-} as const;
-
-export const api_GroupNotFoundErrorSchema = {
-  type: "object",
-  properties: {
-    code: {
-      type: "string",
-      example: "GROUP_NOT_FOUND",
-    },
-    details: {
-      type: "string",
-    },
-    message: {
-      type: "string",
-      example: "Achievement group not found",
-    },
-    ruMessage: {
-      type: "string",
-      example: "Группа достижений не найдена",
-    },
-  },
-} as const;
-
 export const api_GroupedAchievementsResponseSchema = {
   type: "object",
   required: ["items", "limit", "offset", "totalCount"],
@@ -642,167 +430,6 @@ export const api_IdentityResponseSchema = {
     role: {
       type: "string",
       example: "user",
-    },
-  },
-} as const;
-
-export const api_InvalidCredentialsErrorSchema = {
-  type: "object",
-  properties: {
-    code: {
-      type: "string",
-      example: "INVALID_CREDENTIALS",
-    },
-    details: {
-      type: "string",
-    },
-    message: {
-      type: "string",
-      example: "Invalid credentials format",
-    },
-    ruMessage: {
-      type: "string",
-      example: "Неверный формат учетных данных",
-    },
-  },
-} as const;
-
-export const api_InvalidDepartmentIDErrorSchema = {
-  type: "object",
-  properties: {
-    code: {
-      type: "string",
-      example: "INVALID_DEPARTMENT_ID",
-    },
-    details: {
-      type: "string",
-    },
-    message: {
-      type: "string",
-      example: "Invalid department ID",
-    },
-    ruMessage: {
-      type: "string",
-      example: "Некорректный идентификатор кафедры",
-    },
-  },
-} as const;
-
-export const api_InvalidNameErrorSchema = {
-  type: "object",
-  properties: {
-    code: {
-      type: "string",
-      example: "INVALID_NAME",
-    },
-    details: {
-      type: "string",
-    },
-    message: {
-      type: "string",
-      example: "Invalid name specified",
-    },
-    ruMessage: {
-      type: "string",
-      example: "Указано некорректное имя",
-    },
-  },
-} as const;
-
-export const api_InvalidRequestErrorSchema = {
-  type: "object",
-  properties: {
-    code: {
-      type: "string",
-      example: "INVALID_REQUEST",
-    },
-    details: {
-      type: "string",
-      example: "field X is required",
-    },
-    message: {
-      type: "string",
-      example: "Invalid request body",
-    },
-    ruMessage: {
-      type: "string",
-      example: "Некорректный формат запроса",
-    },
-  },
-} as const;
-
-export const api_InvalidRoleErrorSchema = {
-  type: "object",
-  properties: {
-    code: {
-      type: "string",
-      example: "INVALID_ROLE",
-    },
-    details: {
-      type: "string",
-    },
-    message: {
-      type: "string",
-      example: "Invalid role ID specified",
-    },
-    ruMessage: {
-      type: "string",
-      example: "Указана некорректная роль",
-    },
-  },
-} as const;
-
-export const api_InvalidTokenErrorSchema = {
-  type: "object",
-  properties: {
-    code: {
-      type: "string",
-      example: "INVALID_TOKEN",
-    },
-    details: {
-      type: "string",
-    },
-    message: {
-      type: "string",
-      example: "Invalid or expired token",
-    },
-    ruMessage: {
-      type: "string",
-      example: "Недействительный или просроченный токен",
-    },
-  },
-} as const;
-
-export const api_InvalidUUIDErrorSchema = {
-  type: "object",
-  properties: {
-    code: {
-      type: "string",
-      example: "INVALID_UUID",
-    },
-    details: {
-      type: "string",
-    },
-    message: {
-      type: "string",
-      example: "Invalid UUID format",
-    },
-    ruMessage: {
-      type: "string",
-      example: "Некорректный формат UUID",
-    },
-  },
-} as const;
-
-export const api_MarkAchievementsAsAccountedRequestSchema = {
-  type: "object",
-  required: ["achievementIds"],
-  properties: {
-    achievementIds: {
-      type: "array",
-      items: {
-        type: "string",
-      },
     },
   },
 } as const;
@@ -952,27 +579,6 @@ export const api_PatchUserRequestSchema = {
   },
 } as const;
 
-export const api_PointsLimitExceededErrorSchema = {
-  type: "object",
-  properties: {
-    code: {
-      type: "string",
-      example: "POINTS_LIMIT_EXCEEDED",
-    },
-    details: {
-      type: "string",
-    },
-    message: {
-      type: "string",
-      example: "Points assigned exceed the template's points limit",
-    },
-    ruMessage: {
-      type: "string",
-      example: "Назначенные баллы превышают лимит шаблона",
-    },
-  },
-} as const;
-
 export const api_ReviewAchievementRequestSchema = {
   type: "object",
   required: ["pointsAssigned"],
@@ -1046,27 +652,6 @@ export const api_RolesResponseSchema = {
   },
 } as const;
 
-export const api_ServerErrorSchema = {
-  type: "object",
-  properties: {
-    code: {
-      type: "string",
-      example: "SERVER_ERROR",
-    },
-    details: {
-      type: "string",
-    },
-    message: {
-      type: "string",
-      example: "Internal server error",
-    },
-    ruMessage: {
-      type: "string",
-      example: "Внутренняя ошибка сервера",
-    },
-  },
-} as const;
-
 export const api_TokenResponseSchema = {
   type: "object",
   required: ["token"],
@@ -1074,27 +659,6 @@ export const api_TokenResponseSchema = {
     token: {
       type: "string",
       example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-    },
-  },
-} as const;
-
-export const api_UnauthorizedErrorSchema = {
-  type: "object",
-  properties: {
-    code: {
-      type: "string",
-      example: "UNAUTHORIZED",
-    },
-    details: {
-      type: "string",
-    },
-    message: {
-      type: "string",
-      example: "Unauthorized access",
-    },
-    ruMessage: {
-      type: "string",
-      example: "Неавторизованный доступ",
     },
   },
 } as const;
@@ -1114,69 +678,6 @@ export const api_UpdateDepartmentRequestSchema = {
   },
 } as const;
 
-export const api_UserExistsErrorSchema = {
-  type: "object",
-  properties: {
-    code: {
-      type: "string",
-      example: "USER_EXISTS",
-    },
-    details: {
-      type: "string",
-    },
-    message: {
-      type: "string",
-      example: "User with this username already exists",
-    },
-    ruMessage: {
-      type: "string",
-      example: "Пользователь с таким именем уже существует",
-    },
-  },
-} as const;
-
-export const api_UserNotFoundErrorSchema = {
-  type: "object",
-  properties: {
-    code: {
-      type: "string",
-      example: "USER_NOT_FOUND",
-    },
-    details: {
-      type: "string",
-    },
-    message: {
-      type: "string",
-      example: "User does not exist",
-    },
-    ruMessage: {
-      type: "string",
-      example: "Пользователь не существует",
-    },
-  },
-} as const;
-
-export const api_WrongAchievementStatusErrorSchema = {
-  type: "object",
-  properties: {
-    code: {
-      type: "string",
-      example: "WRONG_ACHIEVEMENT_STATUS",
-    },
-    details: {
-      type: "string",
-    },
-    message: {
-      type: "string",
-      example: "Achievement is in wrong status for this operation",
-    },
-    ruMessage: {
-      type: "string",
-      example: "Достижение находится в неподходящем статусе для этой операции",
-    },
-  },
-} as const;
-
 export const respond_DepartmentSchema = {
   type: "object",
   required: ["description", "id", "name"],
@@ -1192,6 +693,24 @@ export const respond_DepartmentSchema = {
     name: {
       type: "string",
       example: "Mathematics",
+    },
+  },
+} as const;
+
+export const respond_ErrorSchema = {
+  type: "object",
+  properties: {
+    code: {
+      type: "string",
+    },
+    message: {
+      type: "string",
+    },
+    statusCode: {
+      type: "integer",
+    },
+    traceId: {
+      type: "string",
     },
   },
 } as const;

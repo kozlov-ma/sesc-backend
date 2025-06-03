@@ -140,7 +140,7 @@ GetAchievementsGroupedBadRequest describes a response with status code 400, with
 Invalid request parameters
 */
 type GetAchievementsGroupedBadRequest struct {
-	Payload *models.APIInvalidRequestError
+	Payload *models.RespondError
 }
 
 // IsSuccess returns true when this get achievements grouped bad request response has a 2xx status code
@@ -183,13 +183,13 @@ func (o *GetAchievementsGroupedBadRequest) String() string {
 	return fmt.Sprintf("[GET /achievements/grouped][%d] getAchievementsGroupedBadRequest %s", 400, payload)
 }
 
-func (o *GetAchievementsGroupedBadRequest) GetPayload() *models.APIInvalidRequestError {
+func (o *GetAchievementsGroupedBadRequest) GetPayload() *models.RespondError {
 	return o.Payload
 }
 
 func (o *GetAchievementsGroupedBadRequest) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIInvalidRequestError)
+	o.Payload = new(models.RespondError)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
@@ -210,7 +210,7 @@ GetAchievementsGroupedUnauthorized describes a response with status code 401, wi
 Unauthorized
 */
 type GetAchievementsGroupedUnauthorized struct {
-	Payload *models.APIUnauthorizedError
+	Payload *models.RespondError
 }
 
 // IsSuccess returns true when this get achievements grouped unauthorized response has a 2xx status code
@@ -253,13 +253,13 @@ func (o *GetAchievementsGroupedUnauthorized) String() string {
 	return fmt.Sprintf("[GET /achievements/grouped][%d] getAchievementsGroupedUnauthorized %s", 401, payload)
 }
 
-func (o *GetAchievementsGroupedUnauthorized) GetPayload() *models.APIUnauthorizedError {
+func (o *GetAchievementsGroupedUnauthorized) GetPayload() *models.RespondError {
 	return o.Payload
 }
 
 func (o *GetAchievementsGroupedUnauthorized) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIUnauthorizedError)
+	o.Payload = new(models.RespondError)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
@@ -280,7 +280,7 @@ GetAchievementsGroupedForbidden describes a response with status code 403, with 
 Forbidden
 */
 type GetAchievementsGroupedForbidden struct {
-	Payload *models.APIForbiddenError
+	Payload *models.RespondError
 }
 
 // IsSuccess returns true when this get achievements grouped forbidden response has a 2xx status code
@@ -323,13 +323,13 @@ func (o *GetAchievementsGroupedForbidden) String() string {
 	return fmt.Sprintf("[GET /achievements/grouped][%d] getAchievementsGroupedForbidden %s", 403, payload)
 }
 
-func (o *GetAchievementsGroupedForbidden) GetPayload() *models.APIForbiddenError {
+func (o *GetAchievementsGroupedForbidden) GetPayload() *models.RespondError {
 	return o.Payload
 }
 
 func (o *GetAchievementsGroupedForbidden) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIForbiddenError)
+	o.Payload = new(models.RespondError)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
@@ -350,7 +350,7 @@ GetAchievementsGroupedInternalServerError describes a response with status code 
 Internal server error
 */
 type GetAchievementsGroupedInternalServerError struct {
-	Payload *models.APIServerError
+	Payload *models.RespondError
 }
 
 // IsSuccess returns true when this get achievements grouped internal server error response has a 2xx status code
@@ -393,13 +393,13 @@ func (o *GetAchievementsGroupedInternalServerError) String() string {
 	return fmt.Sprintf("[GET /achievements/grouped][%d] getAchievementsGroupedInternalServerError %s", 500, payload)
 }
 
-func (o *GetAchievementsGroupedInternalServerError) GetPayload() *models.APIServerError {
+func (o *GetAchievementsGroupedInternalServerError) GetPayload() *models.RespondError {
 	return o.Payload
 }
 
 func (o *GetAchievementsGroupedInternalServerError) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIServerError)
+	o.Payload = new(models.RespondError)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {

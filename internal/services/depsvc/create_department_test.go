@@ -63,7 +63,7 @@ func TestCreateDepartment(t *testing.T) {
 
 		// Verify the results
 		require.Error(t, err)
-		require.Equal(t, sesc.ErrInvalidDepartment, err)
+		require.Equal(t, sesc.ErrInvalidDepartmentName, err)
 		require.Empty(t, duplicateDepartment.ID)
 	})
 

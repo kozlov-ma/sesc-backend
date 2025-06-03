@@ -146,7 +146,7 @@ PatchAchievementGroupsIDBadRequest describes a response with status code 400, wi
 Invalid request format
 */
 type PatchAchievementGroupsIDBadRequest struct {
-	Payload *models.APIInvalidRequestError
+	Payload *models.RespondError
 }
 
 // IsSuccess returns true when this patch achievement groups Id bad request response has a 2xx status code
@@ -189,13 +189,13 @@ func (o *PatchAchievementGroupsIDBadRequest) String() string {
 	return fmt.Sprintf("[PATCH /achievement-groups/{id}][%d] patchAchievementGroupsIdBadRequest %s", 400, payload)
 }
 
-func (o *PatchAchievementGroupsIDBadRequest) GetPayload() *models.APIInvalidRequestError {
+func (o *PatchAchievementGroupsIDBadRequest) GetPayload() *models.RespondError {
 	return o.Payload
 }
 
 func (o *PatchAchievementGroupsIDBadRequest) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIInvalidRequestError)
+	o.Payload = new(models.RespondError)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
@@ -216,7 +216,7 @@ PatchAchievementGroupsIDUnauthorized describes a response with status code 401, 
 Unauthorized
 */
 type PatchAchievementGroupsIDUnauthorized struct {
-	Payload *models.APIUnauthorizedError
+	Payload *models.RespondError
 }
 
 // IsSuccess returns true when this patch achievement groups Id unauthorized response has a 2xx status code
@@ -259,13 +259,13 @@ func (o *PatchAchievementGroupsIDUnauthorized) String() string {
 	return fmt.Sprintf("[PATCH /achievement-groups/{id}][%d] patchAchievementGroupsIdUnauthorized %s", 401, payload)
 }
 
-func (o *PatchAchievementGroupsIDUnauthorized) GetPayload() *models.APIUnauthorizedError {
+func (o *PatchAchievementGroupsIDUnauthorized) GetPayload() *models.RespondError {
 	return o.Payload
 }
 
 func (o *PatchAchievementGroupsIDUnauthorized) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIUnauthorizedError)
+	o.Payload = new(models.RespondError)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
@@ -286,7 +286,7 @@ PatchAchievementGroupsIDForbidden describes a response with status code 403, wit
 Forbidden - admin role required
 */
 type PatchAchievementGroupsIDForbidden struct {
-	Payload *models.APIForbiddenError
+	Payload *models.RespondError
 }
 
 // IsSuccess returns true when this patch achievement groups Id forbidden response has a 2xx status code
@@ -329,13 +329,13 @@ func (o *PatchAchievementGroupsIDForbidden) String() string {
 	return fmt.Sprintf("[PATCH /achievement-groups/{id}][%d] patchAchievementGroupsIdForbidden %s", 403, payload)
 }
 
-func (o *PatchAchievementGroupsIDForbidden) GetPayload() *models.APIForbiddenError {
+func (o *PatchAchievementGroupsIDForbidden) GetPayload() *models.RespondError {
 	return o.Payload
 }
 
 func (o *PatchAchievementGroupsIDForbidden) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIForbiddenError)
+	o.Payload = new(models.RespondError)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
@@ -356,7 +356,7 @@ PatchAchievementGroupsIDNotFound describes a response with status code 404, with
 Group not found
 */
 type PatchAchievementGroupsIDNotFound struct {
-	Payload *models.APIGroupNotFoundError
+	Payload *models.RespondError
 }
 
 // IsSuccess returns true when this patch achievement groups Id not found response has a 2xx status code
@@ -399,13 +399,13 @@ func (o *PatchAchievementGroupsIDNotFound) String() string {
 	return fmt.Sprintf("[PATCH /achievement-groups/{id}][%d] patchAchievementGroupsIdNotFound %s", 404, payload)
 }
 
-func (o *PatchAchievementGroupsIDNotFound) GetPayload() *models.APIGroupNotFoundError {
+func (o *PatchAchievementGroupsIDNotFound) GetPayload() *models.RespondError {
 	return o.Payload
 }
 
 func (o *PatchAchievementGroupsIDNotFound) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIGroupNotFoundError)
+	o.Payload = new(models.RespondError)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
@@ -426,7 +426,7 @@ PatchAchievementGroupsIDInternalServerError describes a response with status cod
 Internal server error
 */
 type PatchAchievementGroupsIDInternalServerError struct {
-	Payload *models.APIServerError
+	Payload *models.RespondError
 }
 
 // IsSuccess returns true when this patch achievement groups Id internal server error response has a 2xx status code
@@ -469,13 +469,13 @@ func (o *PatchAchievementGroupsIDInternalServerError) String() string {
 	return fmt.Sprintf("[PATCH /achievement-groups/{id}][%d] patchAchievementGroupsIdInternalServerError %s", 500, payload)
 }
 
-func (o *PatchAchievementGroupsIDInternalServerError) GetPayload() *models.APIServerError {
+func (o *PatchAchievementGroupsIDInternalServerError) GetPayload() *models.RespondError {
 	return o.Payload
 }
 
 func (o *PatchAchievementGroupsIDInternalServerError) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIServerError)
+	o.Payload = new(models.RespondError)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {

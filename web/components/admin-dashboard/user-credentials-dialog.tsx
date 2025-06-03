@@ -45,7 +45,7 @@ import type {
 } from "@/lib/api/types.gen";
 import { ErrorMessage } from "@/components/ui/error-message";
 import { useFormError } from "@/hooks/use-error-handler";
-import { hasErrorCode, getErrorMessage } from "@/lib/error-handler";
+import { getErrorMessage } from "@/lib/error-handler";
 import React from "react";
 import { useRouter } from "next/navigation";
 
@@ -114,7 +114,7 @@ export function UserCredentialsDialog({
   // Handle query error
   useEffect(() => {
     if (formError) {
-      if (hasErrorCode(formError, "USER_NOT_FOUND")) {
+      if (formError.statusCode === 404) {
         form.reset({
           username: "",
           password: "",

@@ -146,7 +146,7 @@ PostDepartmentsBadRequest describes a response with status code 400, with defaul
 Invalid request format
 */
 type PostDepartmentsBadRequest struct {
-	Payload *models.APIInvalidRequestError
+	Payload *models.RespondError
 }
 
 // IsSuccess returns true when this post departments bad request response has a 2xx status code
@@ -189,13 +189,13 @@ func (o *PostDepartmentsBadRequest) String() string {
 	return fmt.Sprintf("[POST /departments][%d] postDepartmentsBadRequest %s", 400, payload)
 }
 
-func (o *PostDepartmentsBadRequest) GetPayload() *models.APIInvalidRequestError {
+func (o *PostDepartmentsBadRequest) GetPayload() *models.RespondError {
 	return o.Payload
 }
 
 func (o *PostDepartmentsBadRequest) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIInvalidRequestError)
+	o.Payload = new(models.RespondError)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
@@ -216,7 +216,7 @@ PostDepartmentsUnauthorized describes a response with status code 401, with defa
 Unauthorized
 */
 type PostDepartmentsUnauthorized struct {
-	Payload *models.APIUnauthorizedError
+	Payload *models.RespondError
 }
 
 // IsSuccess returns true when this post departments unauthorized response has a 2xx status code
@@ -259,13 +259,13 @@ func (o *PostDepartmentsUnauthorized) String() string {
 	return fmt.Sprintf("[POST /departments][%d] postDepartmentsUnauthorized %s", 401, payload)
 }
 
-func (o *PostDepartmentsUnauthorized) GetPayload() *models.APIUnauthorizedError {
+func (o *PostDepartmentsUnauthorized) GetPayload() *models.RespondError {
 	return o.Payload
 }
 
 func (o *PostDepartmentsUnauthorized) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIUnauthorizedError)
+	o.Payload = new(models.RespondError)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
@@ -286,7 +286,7 @@ PostDepartmentsForbidden describes a response with status code 403, with default
 Forbidden - admin role required
 */
 type PostDepartmentsForbidden struct {
-	Payload *models.APIForbiddenError
+	Payload *models.RespondError
 }
 
 // IsSuccess returns true when this post departments forbidden response has a 2xx status code
@@ -329,13 +329,13 @@ func (o *PostDepartmentsForbidden) String() string {
 	return fmt.Sprintf("[POST /departments][%d] postDepartmentsForbidden %s", 403, payload)
 }
 
-func (o *PostDepartmentsForbidden) GetPayload() *models.APIForbiddenError {
+func (o *PostDepartmentsForbidden) GetPayload() *models.RespondError {
 	return o.Payload
 }
 
 func (o *PostDepartmentsForbidden) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIForbiddenError)
+	o.Payload = new(models.RespondError)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
@@ -356,7 +356,7 @@ PostDepartmentsConflict describes a response with status code 409, with default 
 Department with this name already exists
 */
 type PostDepartmentsConflict struct {
-	Payload *models.APIDepartmentExistsError
+	Payload *models.RespondError
 }
 
 // IsSuccess returns true when this post departments conflict response has a 2xx status code
@@ -399,13 +399,13 @@ func (o *PostDepartmentsConflict) String() string {
 	return fmt.Sprintf("[POST /departments][%d] postDepartmentsConflict %s", 409, payload)
 }
 
-func (o *PostDepartmentsConflict) GetPayload() *models.APIDepartmentExistsError {
+func (o *PostDepartmentsConflict) GetPayload() *models.RespondError {
 	return o.Payload
 }
 
 func (o *PostDepartmentsConflict) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIDepartmentExistsError)
+	o.Payload = new(models.RespondError)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
@@ -426,7 +426,7 @@ PostDepartmentsInternalServerError describes a response with status code 500, wi
 Internal server error
 */
 type PostDepartmentsInternalServerError struct {
-	Payload *models.APIServerError
+	Payload *models.RespondError
 }
 
 // IsSuccess returns true when this post departments internal server error response has a 2xx status code
@@ -469,13 +469,13 @@ func (o *PostDepartmentsInternalServerError) String() string {
 	return fmt.Sprintf("[POST /departments][%d] postDepartmentsInternalServerError %s", 500, payload)
 }
 
-func (o *PostDepartmentsInternalServerError) GetPayload() *models.APIServerError {
+func (o *PostDepartmentsInternalServerError) GetPayload() *models.RespondError {
 	return o.Payload
 }
 
 func (o *PostDepartmentsInternalServerError) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIServerError)
+	o.Payload = new(models.RespondError)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {

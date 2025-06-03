@@ -33,7 +33,7 @@ func TestDeleteDepartment(t *testing.T) {
 		// Verify the department was actually deleted
 		_, err = svc.DepartmentByID(ctx, dept.ID)
 		require.Error(t, err)
-		require.Equal(t, sesc.ErrInvalidDepartment, err)
+		require.Equal(t, sesc.ErrDepartmentNotFound, err)
 	})
 
 	t.Run("non_existent_department", func(t *testing.T) {
@@ -53,7 +53,7 @@ func TestDeleteDepartment(t *testing.T) {
 
 		// Verify the results
 		require.Error(t, err)
-		require.Equal(t, sesc.ErrInvalidDepartment, err)
+		require.Equal(t, sesc.ErrDepartmentNotFound, err)
 	})
 
 	t.Run("database_error", func(t *testing.T) {

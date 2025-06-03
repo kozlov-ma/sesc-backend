@@ -1,26 +1,26 @@
 package sesc
 
-import "errors"
+import (
+	"github.com/kozlov-ma/sesc-backend/pkg/apperr"
+	"github.com/kozlov-ma/sesc-backend/pkg/domerr"
+)
 
 var (
-	ErrInvalidRole            = errors.New("invalid role")
-	ErrUserNotFound           = errors.New("user not found")
-	ErrCannotRemoveDepartment = errors.New("cannot remove department")
-	ErrInvalidDepartment      = errors.New("invalid department")
-	ErrInvalidPermission      = errors.New("invalid permission")
-	ErrInvalidRoleChange      = errors.New("invalid role change")
-	ErrInvalidUserName        = errors.New("invalid or missing user name")
-	ErrInvalidDepartmentName  = errors.New("invalid or missing department name")
-	ErrEmptyDepartment        = errors.New("department is empty")
-	ErrDepartmentNotFound     = errors.New("department not found")
-	ErrInvalidUserID          = errors.New("invalid user ID")
-	ErrInvalidDepartmentID    = errors.New("invalid department ID")
+	ErrInvalidRole            = domerr.New("некорректная роль", domerr.KindNotFound)
+	ErrUserNotFound           = domerr.New("пользователь не существует", domerr.KindNotFound)
+	ErrCannotRemoveDepartment = domerr.New(
+		"невозможно удалить кафедру, к которой привязаны пользователи",
+		domerr.KindConflict,
+	)
+	ErrDepartmentNotFound    = domerr.New("кафедра не существует", domerr.KindNotFound)
+	ErrInvalidUserName       = domerr.New("имя пользователя заполнено некорректно", domerr.KindValidation)
+	ErrInvalidDepartmentName = domerr.New("название кафедры некорректно", domerr.KindValidation)
 
-	ErrInvalidFile          = errors.New("invalid file")
-	ErrInvalidFileName      = errors.New("invalid file name")
-	ErrInvalidFileSize      = errors.New("invalid file size")
-	ErrInvalidFileObjectKey = errors.New("invalid file object key")
-	ErrFileNotFound         = errors.New("file not found")
+	ErrInvalidFileName = domerr.New("некорректное имя файла", domerr.KindValidation)
+	ErrInvalidFileSize = domerr.New("некорректный размер файла", domerr.KindValidation)
+	ErrFileNotFound    = domerr.New("файл не существует", domerr.KindNotFound)
 
-	ErrInvalidEmploymentRate = errors.New("invalid employment rate")
+	ErrInvalidEmploymentRate = domerr.New("некорректная доля ставки", domerr.KindValidation)
+
+	ErrSuspended = apperr.New("действие вашего аккаунта приостановлено", apperr.KindForbidden)
 )

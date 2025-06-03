@@ -140,7 +140,7 @@ GetUsersIDBadRequest describes a response with status code 400, with default hea
 Invalid UUID format
 */
 type GetUsersIDBadRequest struct {
-	Payload *models.APIInvalidUUIDError
+	Payload *models.RespondError
 }
 
 // IsSuccess returns true when this get users Id bad request response has a 2xx status code
@@ -183,13 +183,13 @@ func (o *GetUsersIDBadRequest) String() string {
 	return fmt.Sprintf("[GET /users/{id}][%d] getUsersIdBadRequest %s", 400, payload)
 }
 
-func (o *GetUsersIDBadRequest) GetPayload() *models.APIInvalidUUIDError {
+func (o *GetUsersIDBadRequest) GetPayload() *models.RespondError {
 	return o.Payload
 }
 
 func (o *GetUsersIDBadRequest) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIInvalidUUIDError)
+	o.Payload = new(models.RespondError)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
@@ -210,7 +210,7 @@ GetUsersIDUnauthorized describes a response with status code 401, with default h
 Unauthorized
 */
 type GetUsersIDUnauthorized struct {
-	Payload *models.APIUnauthorizedError
+	Payload *models.RespondError
 }
 
 // IsSuccess returns true when this get users Id unauthorized response has a 2xx status code
@@ -253,13 +253,13 @@ func (o *GetUsersIDUnauthorized) String() string {
 	return fmt.Sprintf("[GET /users/{id}][%d] getUsersIdUnauthorized %s", 401, payload)
 }
 
-func (o *GetUsersIDUnauthorized) GetPayload() *models.APIUnauthorizedError {
+func (o *GetUsersIDUnauthorized) GetPayload() *models.RespondError {
 	return o.Payload
 }
 
 func (o *GetUsersIDUnauthorized) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIUnauthorizedError)
+	o.Payload = new(models.RespondError)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
@@ -280,7 +280,7 @@ GetUsersIDNotFound describes a response with status code 404, with default heade
 User not found
 */
 type GetUsersIDNotFound struct {
-	Payload *models.APIUserNotFoundError
+	Payload *models.RespondError
 }
 
 // IsSuccess returns true when this get users Id not found response has a 2xx status code
@@ -323,13 +323,13 @@ func (o *GetUsersIDNotFound) String() string {
 	return fmt.Sprintf("[GET /users/{id}][%d] getUsersIdNotFound %s", 404, payload)
 }
 
-func (o *GetUsersIDNotFound) GetPayload() *models.APIUserNotFoundError {
+func (o *GetUsersIDNotFound) GetPayload() *models.RespondError {
 	return o.Payload
 }
 
 func (o *GetUsersIDNotFound) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIUserNotFoundError)
+	o.Payload = new(models.RespondError)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
@@ -350,7 +350,7 @@ GetUsersIDInternalServerError describes a response with status code 500, with de
 Internal server error
 */
 type GetUsersIDInternalServerError struct {
-	Payload *models.APIServerError
+	Payload *models.RespondError
 }
 
 // IsSuccess returns true when this get users Id internal server error response has a 2xx status code
@@ -393,13 +393,13 @@ func (o *GetUsersIDInternalServerError) String() string {
 	return fmt.Sprintf("[GET /users/{id}][%d] getUsersIdInternalServerError %s", 500, payload)
 }
 
-func (o *GetUsersIDInternalServerError) GetPayload() *models.APIServerError {
+func (o *GetUsersIDInternalServerError) GetPayload() *models.RespondError {
 	return o.Payload
 }
 
 func (o *GetUsersIDInternalServerError) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIServerError)
+	o.Payload = new(models.RespondError)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {

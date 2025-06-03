@@ -19,20 +19,6 @@ definitions:
     - id
     - name
     type: object
-  api.AchievementNotFoundError:
-    properties:
-      code:
-        example: ACHIEVEMENT_NOT_FOUND
-        type: string
-      details:
-        type: string
-      message:
-        example: Achievement not found
-        type: string
-      ruMessage:
-        example: Достижение не найдено
-        type: string
-    type: object
   api.AchievementResponse:
     properties:
       documents:
@@ -74,20 +60,6 @@ definitions:
     - status
     - templateId
     - templateName
-    type: object
-  api.AchievementTemplateNotFoundError:
-    properties:
-      code:
-        example: ACHIEVEMENT_TEMPLATE_NOT_FOUND
-        type: string
-      details:
-        type: string
-      message:
-        example: Achievement template not found
-        type: string
-      ruMessage:
-        example: Шаблон достижения не найден
-        type: string
     type: object
   api.AchievementTemplateResponse:
     properties:
@@ -136,20 +108,6 @@ definitions:
     required:
     - fileId
     - name
-    type: object
-  api.CannotRemoveDepartmentError:
-    properties:
-      code:
-        example: CANNOT_REMOVE_DEPARTMENT
-        type: string
-      details:
-        type: string
-      message:
-        example: Cannot remove department, it still has some users
-        type: string
-      ruMessage:
-        example: Невозможно удалить кафедру, так как она содержит пользователей
-        type: string
     type: object
   api.CreateAchievementGroupRequest:
     properties:
@@ -274,20 +232,6 @@ definitions:
     - role
     - subdivision
     type: object
-  api.CredentialsNotFoundError:
-    properties:
-      code:
-        example: CREDENTIALS_NOT_FOUND
-        type: string
-      details:
-        type: string
-      message:
-        example: User credentials not found
-        type: string
-      ruMessage:
-        example: Учетные данные пользователя не найдены
-        type: string
-    type: object
   api.CredentialsRequest:
     properties:
       password:
@@ -316,34 +260,6 @@ definitions:
     - id
     - name
     type: object
-  api.DepartmentExistsError:
-    properties:
-      code:
-        example: DEPARTMENT_EXISTS
-        type: string
-      details:
-        type: string
-      message:
-        example: Department with this name already exists
-        type: string
-      ruMessage:
-        example: Кафедра с таким названием уже существует
-        type: string
-    type: object
-  api.DepartmentNotFoundError:
-    properties:
-      code:
-        example: DEPARTMENT_NOT_FOUND
-        type: string
-      details:
-        type: string
-      message:
-        example: Department not found
-        type: string
-      ruMessage:
-        example: Кафедра не найдена
-        type: string
-    type: object
   api.DepartmentsResponse:
     properties:
       departments:
@@ -352,20 +268,6 @@ definitions:
         type: array
     required:
     - departments
-    type: object
-  api.DocumentNotFoundError:
-    properties:
-      code:
-        example: DOCUMENT_NOT_FOUND
-        type: string
-      details:
-        type: string
-      message:
-        example: Document not found
-        type: string
-      ruMessage:
-        example: Документ не найден
-        type: string
     type: object
   api.DocumentResponse:
     properties:
@@ -382,25 +284,6 @@ definitions:
     - fileId
     - id
     - name
-    type: object
-  api.Error:
-    properties:
-      code:
-        example: INVALID_REQUEST
-        type: string
-      details:
-        example: field X is required
-        type: string
-      message:
-        example: Invalid request body
-        type: string
-      ruMessage:
-        example: Некорректный формат запроса
-        type: string
-    required:
-    - code
-    - message
-    - ruMessage
     type: object
   api.FileListResponse:
     properties:
@@ -422,34 +305,6 @@ definitions:
       id:
         type: string
       ownerId:
-        type: string
-    type: object
-  api.ForbiddenError:
-    properties:
-      code:
-        example: FORBIDDEN
-        type: string
-      details:
-        type: string
-      message:
-        example: Forbidden - insufficient permissions
-        type: string
-      ruMessage:
-        example: Доступ запрещен - недостаточно прав
-        type: string
-    type: object
-  api.GroupNotFoundError:
-    properties:
-      code:
-        example: GROUP_NOT_FOUND
-        type: string
-      details:
-        type: string
-      message:
-        example: Achievement group not found
-        type: string
-      ruMessage:
-        example: Группа достижений не найдена
         type: string
     type: object
   api.GroupedAchievementsResponse:
@@ -483,114 +338,6 @@ definitions:
     required:
     - id
     - role
-    type: object
-  api.InvalidCredentialsError:
-    properties:
-      code:
-        example: INVALID_CREDENTIALS
-        type: string
-      details:
-        type: string
-      message:
-        example: Invalid credentials format
-        type: string
-      ruMessage:
-        example: Неверный формат учетных данных
-        type: string
-    type: object
-  api.InvalidDepartmentIDError:
-    properties:
-      code:
-        example: INVALID_DEPARTMENT_ID
-        type: string
-      details:
-        type: string
-      message:
-        example: Invalid department ID
-        type: string
-      ruMessage:
-        example: Некорректный идентификатор кафедры
-        type: string
-    type: object
-  api.InvalidNameError:
-    properties:
-      code:
-        example: INVALID_NAME
-        type: string
-      details:
-        type: string
-      message:
-        example: Invalid name specified
-        type: string
-      ruMessage:
-        example: Указано некорректное имя
-        type: string
-    type: object
-  api.InvalidRequestError:
-    properties:
-      code:
-        example: INVALID_REQUEST
-        type: string
-      details:
-        example: field X is required
-        type: string
-      message:
-        example: Invalid request body
-        type: string
-      ruMessage:
-        example: Некорректный формат запроса
-        type: string
-    type: object
-  api.InvalidRoleError:
-    properties:
-      code:
-        example: INVALID_ROLE
-        type: string
-      details:
-        type: string
-      message:
-        example: Invalid role ID specified
-        type: string
-      ruMessage:
-        example: Указана некорректная роль
-        type: string
-    type: object
-  api.InvalidTokenError:
-    properties:
-      code:
-        example: INVALID_TOKEN
-        type: string
-      details:
-        type: string
-      message:
-        example: Invalid or expired token
-        type: string
-      ruMessage:
-        example: Недействительный или просроченный токен
-        type: string
-    type: object
-  api.InvalidUUIDError:
-    properties:
-      code:
-        example: INVALID_UUID
-        type: string
-      details:
-        type: string
-      message:
-        example: Invalid UUID format
-        type: string
-      ruMessage:
-        example: Некорректный формат UUID
-        type: string
-    type: object
-  api.MarkAchievementsAsAccountedRequest:
-    properties:
-      achievementIds:
-        items:
-          type: string
-        type: array
-    required:
-    - achievementIds
     type: object
   api.PaginatedAchievementsResponse:
     properties:
@@ -705,20 +452,6 @@ definitions:
     - roleId
     - suspended
     type: object
-  api.PointsLimitExceededError:
-    properties:
-      code:
-        example: POINTS_LIMIT_EXCEEDED
-        type: string
-      details:
-        type: string
-      message:
-        example: Points assigned exceed the template's points limit
-        type: string
-      ruMessage:
-        example: Назначенные баллы превышают лимит шаблона
-        type: string
-    type: object
   api.ReviewAchievementRequest:
     properties:
       comment:
@@ -776,20 +509,6 @@ definitions:
           $ref: '#/definitions/api.Role'
         type: array
     type: object
-  api.ServerError:
-    properties:
-      code:
-        example: SERVER_ERROR
-        type: string
-      details:
-        type: string
-      message:
-        example: Internal server error
-        type: string
-      ruMessage:
-        example: Внутренняя ошибка сервера
-        type: string
-    type: object
   api.TokenResponse:
     properties:
       token:
@@ -797,20 +516,6 @@ definitions:
         type: string
     required:
     - token
-    type: object
-  api.UnauthorizedError:
-    properties:
-      code:
-        example: UNAUTHORIZED
-        type: string
-      details:
-        type: string
-      message:
-        example: Unauthorized access
-        type: string
-      ruMessage:
-        example: Неавторизованный доступ
-        type: string
     type: object
   api.UpdateDepartmentRequest:
     properties:
@@ -823,48 +528,6 @@ definitions:
     required:
     - description
     - name
-    type: object
-  api.UserExistsError:
-    properties:
-      code:
-        example: USER_EXISTS
-        type: string
-      details:
-        type: string
-      message:
-        example: User with this username already exists
-        type: string
-      ruMessage:
-        example: Пользователь с таким именем уже существует
-        type: string
-    type: object
-  api.UserNotFoundError:
-    properties:
-      code:
-        example: USER_NOT_FOUND
-        type: string
-      details:
-        type: string
-      message:
-        example: User does not exist
-        type: string
-      ruMessage:
-        example: Пользователь не существует
-        type: string
-    type: object
-  api.WrongAchievementStatusError:
-    properties:
-      code:
-        example: WRONG_ACHIEVEMENT_STATUS
-        type: string
-      details:
-        type: string
-      message:
-        example: Achievement is in wrong status for this operation
-        type: string
-      ruMessage:
-        example: Достижение находится в неподходящем статусе для этой операции
-        type: string
     type: object
   respond.Department:
     properties:
@@ -881,6 +544,17 @@ definitions:
     - description
     - id
     - name
+    type: object
+  respond.Error:
+    properties:
+      code:
+        type: string
+      message:
+        type: string
+      statusCode:
+        type: integer
+      traceId:
+        type: string
     type: object
   respond.Role:
     properties:
@@ -1014,11 +688,11 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/api.UnauthorizedError'
+            $ref: '#/definitions/respond.Error'
         "500":
           description: Internal server error
           schema:
-            $ref: '#/definitions/api.ServerError'
+            $ref: '#/definitions/respond.Error'
       security:
       - BearerAuth: []
       summary: Get all achievement groups
@@ -1049,19 +723,19 @@ paths:
         "400":
           description: Invalid request format
           schema:
-            $ref: '#/definitions/api.InvalidRequestError'
+            $ref: '#/definitions/respond.Error'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/api.UnauthorizedError'
+            $ref: '#/definitions/respond.Error'
         "403":
           description: Forbidden - admin role required
           schema:
-            $ref: '#/definitions/api.ForbiddenError'
+            $ref: '#/definitions/respond.Error'
         "500":
           description: Internal server error
           schema:
-            $ref: '#/definitions/api.ServerError'
+            $ref: '#/definitions/respond.Error'
       security:
       - BearerAuth: []
       summary: Create new achievement group
@@ -1098,23 +772,23 @@ paths:
         "400":
           description: Invalid request format
           schema:
-            $ref: '#/definitions/api.InvalidRequestError'
+            $ref: '#/definitions/respond.Error'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/api.UnauthorizedError'
+            $ref: '#/definitions/respond.Error'
         "403":
           description: Forbidden - admin role required
           schema:
-            $ref: '#/definitions/api.ForbiddenError'
+            $ref: '#/definitions/respond.Error'
         "404":
           description: Group not found
           schema:
-            $ref: '#/definitions/api.GroupNotFoundError'
+            $ref: '#/definitions/respond.Error'
         "500":
           description: Internal server error
           schema:
-            $ref: '#/definitions/api.ServerError'
+            $ref: '#/definitions/respond.Error'
       security:
       - BearerAuth: []
       summary: Update achievement group
@@ -1149,11 +823,11 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/api.UnauthorizedError'
+            $ref: '#/definitions/respond.Error'
         "500":
           description: Internal server error
           schema:
-            $ref: '#/definitions/api.ServerError'
+            $ref: '#/definitions/respond.Error'
       security:
       - BearerAuth: []
       summary: Get all achievement templates
@@ -1184,23 +858,23 @@ paths:
         "400":
           description: Invalid request format
           schema:
-            $ref: '#/definitions/api.InvalidRequestError'
+            $ref: '#/definitions/respond.Error'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/api.UnauthorizedError'
+            $ref: '#/definitions/respond.Error'
         "403":
           description: Forbidden - admin role required
           schema:
-            $ref: '#/definitions/api.ForbiddenError'
+            $ref: '#/definitions/respond.Error'
         "404":
           description: Group not found
           schema:
-            $ref: '#/definitions/api.GroupNotFoundError'
+            $ref: '#/definitions/respond.Error'
         "500":
           description: Internal server error
           schema:
-            $ref: '#/definitions/api.ServerError'
+            $ref: '#/definitions/respond.Error'
       security:
       - BearerAuth: []
       summary: Create new achievement template
@@ -1237,23 +911,23 @@ paths:
         "400":
           description: Invalid request format
           schema:
-            $ref: '#/definitions/api.InvalidRequestError'
+            $ref: '#/definitions/respond.Error'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/api.UnauthorizedError'
+            $ref: '#/definitions/respond.Error'
         "403":
           description: Forbidden - admin role required
           schema:
-            $ref: '#/definitions/api.ForbiddenError'
+            $ref: '#/definitions/respond.Error'
         "404":
           description: Template not found
           schema:
-            $ref: '#/definitions/api.AchievementTemplateNotFoundError'
+            $ref: '#/definitions/respond.Error'
         "500":
           description: Internal server error
           schema:
-            $ref: '#/definitions/api.ServerError'
+            $ref: '#/definitions/respond.Error'
       security:
       - BearerAuth: []
       summary: Update achievement template
@@ -1290,15 +964,15 @@ paths:
         "400":
           description: Invalid request parameters
           schema:
-            $ref: '#/definitions/api.InvalidRequestError'
+            $ref: '#/definitions/respond.Error'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/api.UnauthorizedError'
+            $ref: '#/definitions/respond.Error'
         "500":
           description: Internal server error
           schema:
-            $ref: '#/definitions/api.ServerError'
+            $ref: '#/definitions/respond.Error'
       security:
       - BearerAuth: []
       summary: Get all achievements for the current user
@@ -1329,19 +1003,19 @@ paths:
         "400":
           description: Invalid request format
           schema:
-            $ref: '#/definitions/api.InvalidRequestError'
+            $ref: '#/definitions/respond.Error'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/api.UnauthorizedError'
+            $ref: '#/definitions/respond.Error'
         "404":
           description: Template not found
           schema:
-            $ref: '#/definitions/api.AchievementTemplateNotFoundError'
+            $ref: '#/definitions/respond.Error'
         "500":
           description: Internal server error
           schema:
-            $ref: '#/definitions/api.ServerError'
+            $ref: '#/definitions/respond.Error'
       security:
       - BearerAuth: []
       summary: Create a new achievement
@@ -1368,23 +1042,23 @@ paths:
         "400":
           description: Invalid UUID format
           schema:
-            $ref: '#/definitions/api.InvalidUUIDError'
+            $ref: '#/definitions/respond.Error'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/api.UnauthorizedError'
+            $ref: '#/definitions/respond.Error'
         "404":
           description: Achievement not found
           schema:
-            $ref: '#/definitions/api.AchievementNotFoundError'
+            $ref: '#/definitions/respond.Error'
         "409":
           description: Wrong achievement status
           schema:
-            $ref: '#/definitions/api.WrongAchievementStatusError'
+            $ref: '#/definitions/respond.Error'
         "500":
           description: Internal server error
           schema:
-            $ref: '#/definitions/api.ServerError'
+            $ref: '#/definitions/respond.Error'
       security:
       - BearerAuth: []
       summary: Delete an achievement
@@ -1412,19 +1086,19 @@ paths:
         "400":
           description: Invalid UUID format
           schema:
-            $ref: '#/definitions/api.InvalidUUIDError'
+            $ref: '#/definitions/respond.Error'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/api.UnauthorizedError'
+            $ref: '#/definitions/respond.Error'
         "404":
           description: Achievement not found
           schema:
-            $ref: '#/definitions/api.AchievementNotFoundError'
+            $ref: '#/definitions/respond.Error'
         "500":
           description: Internal server error
           schema:
-            $ref: '#/definitions/api.ServerError'
+            $ref: '#/definitions/respond.Error'
       security:
       - BearerAuth: []
       summary: Get a specific achievement
@@ -1461,23 +1135,23 @@ paths:
         "400":
           description: Invalid request format
           schema:
-            $ref: '#/definitions/api.InvalidRequestError'
+            $ref: '#/definitions/respond.Error'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/api.UnauthorizedError'
+            $ref: '#/definitions/respond.Error'
         "404":
           description: Achievement not found
           schema:
-            $ref: '#/definitions/api.AchievementNotFoundError'
+            $ref: '#/definitions/respond.Error'
         "409":
           description: Wrong achievement status
           schema:
-            $ref: '#/definitions/api.WrongAchievementStatusError'
+            $ref: '#/definitions/respond.Error'
         "500":
           description: Internal server error
           schema:
-            $ref: '#/definitions/api.ServerError'
+            $ref: '#/definitions/respond.Error'
       security:
       - BearerAuth: []
       summary: Add a document to an achievement
@@ -1509,23 +1183,23 @@ paths:
         "400":
           description: Invalid UUID format
           schema:
-            $ref: '#/definitions/api.InvalidUUIDError'
+            $ref: '#/definitions/respond.Error'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/api.UnauthorizedError'
+            $ref: '#/definitions/respond.Error'
         "404":
           description: Document not found
           schema:
-            $ref: '#/definitions/api.DocumentNotFoundError'
+            $ref: '#/definitions/respond.Error'
         "409":
           description: Wrong achievement status
           schema:
-            $ref: '#/definitions/api.WrongAchievementStatusError'
+            $ref: '#/definitions/respond.Error'
         "500":
           description: Internal server error
           schema:
-            $ref: '#/definitions/api.ServerError'
+            $ref: '#/definitions/respond.Error'
       security:
       - BearerAuth: []
       summary: Remove a document from an achievement
@@ -1562,27 +1236,27 @@ paths:
         "400":
           description: Points assigned exceed the template's points limit
           schema:
-            $ref: '#/definitions/api.PointsLimitExceededError'
+            $ref: '#/definitions/respond.Error'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/api.UnauthorizedError'
+            $ref: '#/definitions/respond.Error'
         "403":
           description: Forbidden - reviewer role required
           schema:
-            $ref: '#/definitions/api.ForbiddenError'
+            $ref: '#/definitions/respond.Error'
         "404":
           description: Achievement not found
           schema:
-            $ref: '#/definitions/api.AchievementNotFoundError'
+            $ref: '#/definitions/respond.Error'
         "409":
           description: Wrong achievement status
           schema:
-            $ref: '#/definitions/api.WrongAchievementStatusError'
+            $ref: '#/definitions/respond.Error'
         "500":
           description: Internal server error
           schema:
-            $ref: '#/definitions/api.ServerError'
+            $ref: '#/definitions/respond.Error'
       security:
       - BearerAuth: []
       summary: Review an achievement
@@ -1611,23 +1285,23 @@ paths:
         "400":
           description: Invalid UUID format
           schema:
-            $ref: '#/definitions/api.InvalidUUIDError'
+            $ref: '#/definitions/respond.Error'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/api.UnauthorizedError'
+            $ref: '#/definitions/respond.Error'
         "404":
           description: Achievement not found
           schema:
-            $ref: '#/definitions/api.AchievementNotFoundError'
+            $ref: '#/definitions/respond.Error'
         "409":
           description: Wrong achievement status
           schema:
-            $ref: '#/definitions/api.WrongAchievementStatusError'
+            $ref: '#/definitions/respond.Error'
         "500":
           description: Internal server error
           schema:
-            $ref: '#/definitions/api.ServerError'
+            $ref: '#/definitions/respond.Error'
       security:
       - BearerAuth: []
       summary: Submit an achievement for review
@@ -1664,19 +1338,19 @@ paths:
         "400":
           description: Invalid request parameters
           schema:
-            $ref: '#/definitions/api.InvalidRequestError'
+            $ref: '#/definitions/respond.Error'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/api.UnauthorizedError'
+            $ref: '#/definitions/respond.Error'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/api.ForbiddenError'
+            $ref: '#/definitions/respond.Error'
         "500":
           description: Internal server error
           schema:
-            $ref: '#/definitions/api.ServerError'
+            $ref: '#/definitions/respond.Error'
       security:
       - BearerAuth: []
       summary: Get achievements grouped by user
@@ -1704,15 +1378,15 @@ paths:
         "400":
           description: Invalid request format
           schema:
-            $ref: '#/definitions/api.InvalidRequestError'
+            $ref: '#/definitions/respond.Error'
         "401":
           description: Invalid admin token or not recognized
           schema:
-            $ref: '#/definitions/api.CredentialsNotFoundError'
+            $ref: '#/definitions/respond.Error'
         "500":
           description: Internal server error
           schema:
-            $ref: '#/definitions/api.ServerError'
+            $ref: '#/definitions/respond.Error'
       summary: Admin login
       tags:
       - authentication
@@ -1735,23 +1409,23 @@ paths:
         "400":
           description: Invalid UUID format
           schema:
-            $ref: '#/definitions/api.InvalidUUIDError'
+            $ref: '#/definitions/respond.Error'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/api.UnauthorizedError'
+            $ref: '#/definitions/respond.Error'
         "403":
           description: Forbidden - admin role required
           schema:
-            $ref: '#/definitions/api.ForbiddenError'
+            $ref: '#/definitions/respond.Error'
         "404":
           description: User credentials not found
           schema:
-            $ref: '#/definitions/api.CredentialsNotFoundError'
+            $ref: '#/definitions/respond.Error'
         "500":
           description: Internal server error
           schema:
-            $ref: '#/definitions/api.ServerError'
+            $ref: '#/definitions/respond.Error'
       security:
       - BearerAuth: []
       summary: Delete user credentials
@@ -1777,23 +1451,23 @@ paths:
         "400":
           description: Invalid UUID format
           schema:
-            $ref: '#/definitions/api.InvalidUUIDError'
+            $ref: '#/definitions/respond.Error'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/api.UnauthorizedError'
+            $ref: '#/definitions/respond.Error'
         "403":
           description: Forbidden - admin role required
           schema:
-            $ref: '#/definitions/api.ForbiddenError'
+            $ref: '#/definitions/respond.Error'
         "404":
           description: User not found or does not exist
           schema:
-            $ref: '#/definitions/api.CredentialsNotFoundError'
+            $ref: '#/definitions/respond.Error'
         "500":
           description: Internal server error
           schema:
-            $ref: '#/definitions/api.ServerError'
+            $ref: '#/definitions/respond.Error'
       security:
       - BearerAuth: []
       summary: Get user credentials
@@ -1821,15 +1495,15 @@ paths:
         "400":
           description: Invalid request format
           schema:
-            $ref: '#/definitions/api.InvalidRequestError'
+            $ref: '#/definitions/respond.Error'
         "401":
           description: Invalid credentials or user does not exist
           schema:
-            $ref: '#/definitions/api.CredentialsNotFoundError'
+            $ref: '#/definitions/respond.Error'
         "500":
           description: Internal server error
           schema:
-            $ref: '#/definitions/api.ServerError'
+            $ref: '#/definitions/respond.Error'
       summary: User login
       tags:
       - authentication
@@ -1851,11 +1525,11 @@ paths:
         "401":
           description: Invalid token
           schema:
-            $ref: '#/definitions/api.InvalidTokenError'
+            $ref: '#/definitions/respond.Error'
         "500":
           description: Internal server error
           schema:
-            $ref: '#/definitions/api.ServerError'
+            $ref: '#/definitions/respond.Error'
       security:
       - BearerAuth: []
       summary: Validate JWT token
@@ -1874,7 +1548,7 @@ paths:
         "500":
           description: Internal server error
           schema:
-            $ref: '#/definitions/api.ServerError'
+            $ref: '#/definitions/respond.Error'
       summary: List all departments
       tags:
       - departments
@@ -1903,23 +1577,23 @@ paths:
         "400":
           description: Invalid request format
           schema:
-            $ref: '#/definitions/api.InvalidRequestError'
+            $ref: '#/definitions/respond.Error'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/api.UnauthorizedError'
+            $ref: '#/definitions/respond.Error'
         "403":
           description: Forbidden - admin role required
           schema:
-            $ref: '#/definitions/api.ForbiddenError'
+            $ref: '#/definitions/respond.Error'
         "409":
           description: Department with this name already exists
           schema:
-            $ref: '#/definitions/api.DepartmentExistsError'
+            $ref: '#/definitions/respond.Error'
         "500":
           description: Internal server error
           schema:
-            $ref: '#/definitions/api.ServerError'
+            $ref: '#/definitions/respond.Error'
       security:
       - BearerAuth: []
       summary: Create a new department
@@ -1944,27 +1618,27 @@ paths:
         "400":
           description: Invalid UUID format
           schema:
-            $ref: '#/definitions/api.InvalidDepartmentIDError'
+            $ref: '#/definitions/respond.Error'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/api.UnauthorizedError'
+            $ref: '#/definitions/respond.Error'
         "403":
           description: Forbidden - admin role required
           schema:
-            $ref: '#/definitions/api.ForbiddenError'
+            $ref: '#/definitions/respond.Error'
         "404":
           description: Department not found
           schema:
-            $ref: '#/definitions/api.DepartmentNotFoundError'
+            $ref: '#/definitions/respond.Error'
         "409":
           description: Cannot remove department, it still has some users
           schema:
-            $ref: '#/definitions/api.CannotRemoveDepartmentError'
+            $ref: '#/definitions/respond.Error'
         "500":
           description: Internal server error
           schema:
-            $ref: '#/definitions/api.ServerError'
+            $ref: '#/definitions/respond.Error'
       security:
       - BearerAuth: []
       summary: Delete a department
@@ -1992,15 +1666,15 @@ paths:
         "400":
           description: Invalid UUID format
           schema:
-            $ref: '#/definitions/api.InvalidUUIDError'
+            $ref: '#/definitions/respond.Error'
         "404":
           description: Department not found
           schema:
-            $ref: '#/definitions/api.DepartmentNotFoundError'
+            $ref: '#/definitions/respond.Error'
         "500":
           description: Internal server error
           schema:
-            $ref: '#/definitions/api.ServerError'
+            $ref: '#/definitions/respond.Error'
       security:
       - BearerAuth: []
       summary: Get department details
@@ -2036,27 +1710,27 @@ paths:
         "400":
           description: Invalid request format
           schema:
-            $ref: '#/definitions/api.InvalidRequestError'
+            $ref: '#/definitions/respond.Error'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/api.UnauthorizedError'
+            $ref: '#/definitions/respond.Error'
         "403":
           description: Forbidden - admin role required
           schema:
-            $ref: '#/definitions/api.ForbiddenError'
+            $ref: '#/definitions/respond.Error'
         "404":
           description: Department not found
           schema:
-            $ref: '#/definitions/api.DepartmentNotFoundError'
+            $ref: '#/definitions/respond.Error'
         "409":
           description: Department with this name already exists
           schema:
-            $ref: '#/definitions/api.DepartmentExistsError'
+            $ref: '#/definitions/respond.Error'
         "500":
           description: Internal server error
           schema:
-            $ref: '#/definitions/api.ServerError'
+            $ref: '#/definitions/respond.Error'
       security:
       - BearerAuth: []
       summary: Update department details
@@ -2104,11 +1778,11 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/api.Error'
+            $ref: '#/definitions/respond.Error'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/api.Error'
+            $ref: '#/definitions/respond.Error'
       security:
       - BearerAuth: []
       summary: Search files
@@ -2139,15 +1813,15 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/api.Error'
+            $ref: '#/definitions/respond.Error'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/api.Error'
+            $ref: '#/definitions/respond.Error'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/api.Error'
+            $ref: '#/definitions/respond.Error'
       security:
       - BearerAuth: []
       summary: Upload a file
@@ -2176,23 +1850,23 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/api.Error'
+            $ref: '#/definitions/respond.Error'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/api.Error'
+            $ref: '#/definitions/respond.Error'
         "403":
           description: Forbidden
           schema:
-            $ref: '#/definitions/api.Error'
+            $ref: '#/definitions/respond.Error'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/api.Error'
+            $ref: '#/definitions/respond.Error'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/api.Error'
+            $ref: '#/definitions/respond.Error'
       security:
       - BearerAuth: []
       summary: Delete file
@@ -2222,69 +1896,24 @@ paths:
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/api.Error'
+            $ref: '#/definitions/respond.Error'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/api.Error'
+            $ref: '#/definitions/respond.Error'
         "404":
           description: Not Found
           schema:
-            $ref: '#/definitions/api.Error'
+            $ref: '#/definitions/respond.Error'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/api.Error'
+            $ref: '#/definitions/respond.Error'
       security:
       - BearerAuth: []
       summary: Get file by ID
       tags:
       - files
-  /reports/mark-accounted:
-    post:
-      consumes:
-      - application/json
-      description: Marks achievements with "done" status as "accounted" in the system
-      parameters:
-      - description: Bearer JWT token
-        in: header
-        name: Authorization
-        type: string
-      - description: Achievement IDs to mark as accounted
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/api.MarkAchievementsAsAccountedRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Success response
-          schema:
-            additionalProperties: true
-            type: object
-        "400":
-          description: Bad request
-          schema:
-            $ref: '#/definitions/api.Error'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/api.Error'
-        "403":
-          description: Forbidden - Admin access required
-          schema:
-            $ref: '#/definitions/api.Error'
-        "500":
-          description: Internal server error
-          schema:
-            $ref: '#/definitions/api.Error'
-      security:
-      - BearerAuth: []
-      summary: Mark achievements as accounted
-      tags:
-      - reports
   /reports/mark-all-accounted:
     post:
       consumes:
@@ -2307,15 +1936,15 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/api.Error'
+            $ref: '#/definitions/respond.Error'
         "403":
           description: Forbidden - Economist access required
           schema:
-            $ref: '#/definitions/api.Error'
+            $ref: '#/definitions/respond.Error'
         "500":
           description: Internal server error
           schema:
-            $ref: '#/definitions/api.Error'
+            $ref: '#/definitions/respond.Error'
       security:
       - BearerAuth: []
       summary: Mark all done achievements as accounted
@@ -2342,15 +1971,15 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/api.Error'
+            $ref: '#/definitions/respond.Error'
         "403":
           description: Forbidden - Admin access required
           schema:
-            $ref: '#/definitions/api.Error'
+            $ref: '#/definitions/respond.Error'
         "500":
           description: Internal server error
           schema:
-            $ref: '#/definitions/api.Error'
+            $ref: '#/definitions/respond.Error'
       security:
       - BearerAuth: []
       summary: Generate user points report
@@ -2369,7 +1998,7 @@ paths:
         "500":
           description: Internal server error
           schema:
-            $ref: '#/definitions/api.Error'
+            $ref: '#/definitions/respond.Error'
       summary: List all roles
       tags:
       - roles
@@ -2408,11 +2037,11 @@ paths:
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/api.UnauthorizedError'
+            $ref: '#/definitions/respond.Error'
         "500":
           description: Internal server error
           schema:
-            $ref: '#/definitions/api.ServerError'
+            $ref: '#/definitions/respond.Error'
       security:
       - BearerAuth: []
       summary: Get all users registered in the system
@@ -2443,19 +2072,19 @@ paths:
         "400":
           description: Invalid name specified
           schema:
-            $ref: '#/definitions/api.InvalidNameError'
+            $ref: '#/definitions/respond.Error'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/api.UnauthorizedError'
+            $ref: '#/definitions/respond.Error'
         "403":
           description: Forbidden - admin role required
           schema:
-            $ref: '#/definitions/api.ForbiddenError'
+            $ref: '#/definitions/respond.Error'
         "500":
           description: Internal server error
           schema:
-            $ref: '#/definitions/api.ServerError'
+            $ref: '#/definitions/respond.Error'
       security:
       - BearerAuth: []
       summary: Create new user
@@ -2484,19 +2113,19 @@ paths:
         "400":
           description: Invalid UUID format
           schema:
-            $ref: '#/definitions/api.InvalidUUIDError'
+            $ref: '#/definitions/respond.Error'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/api.UnauthorizedError'
+            $ref: '#/definitions/respond.Error'
         "404":
           description: User not found
           schema:
-            $ref: '#/definitions/api.UserNotFoundError'
+            $ref: '#/definitions/respond.Error'
         "500":
           description: Internal server error
           schema:
-            $ref: '#/definitions/api.ServerError'
+            $ref: '#/definitions/respond.Error'
       security:
       - BearerAuth: []
       summary: Get user details
@@ -2533,23 +2162,23 @@ paths:
         "400":
           description: Invalid name
           schema:
-            $ref: '#/definitions/api.InvalidNameError'
+            $ref: '#/definitions/respond.Error'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/api.UnauthorizedError'
+            $ref: '#/definitions/respond.Error'
         "403":
           description: Forbidden - admin role required
           schema:
-            $ref: '#/definitions/api.ForbiddenError'
+            $ref: '#/definitions/respond.Error'
         "404":
           description: User not found
           schema:
-            $ref: '#/definitions/api.UserNotFoundError'
+            $ref: '#/definitions/respond.Error'
         "500":
           description: Internal server error
           schema:
-            $ref: '#/definitions/api.ServerError'
+            $ref: '#/definitions/respond.Error'
       security:
       - BearerAuth: []
       summary: Partially update user
@@ -2588,27 +2217,27 @@ paths:
         "400":
           description: Invalid credentials format
           schema:
-            $ref: '#/definitions/api.InvalidCredentialsError'
+            $ref: '#/definitions/respond.Error'
         "401":
           description: Unauthorized
           schema:
-            $ref: '#/definitions/api.UnauthorizedError'
+            $ref: '#/definitions/respond.Error'
         "403":
           description: Forbidden - admin role required
           schema:
-            $ref: '#/definitions/api.ForbiddenError'
+            $ref: '#/definitions/respond.Error'
         "404":
           description: User does not exist
           schema:
-            $ref: '#/definitions/api.UserNotFoundError'
+            $ref: '#/definitions/respond.Error'
         "409":
           description: User already exists
           schema:
-            $ref: '#/definitions/api.UserExistsError'
+            $ref: '#/definitions/respond.Error'
         "500":
           description: Internal server error
           schema:
-            $ref: '#/definitions/api.ServerError'
+            $ref: '#/definitions/respond.Error'
       security:
       - BearerAuth: []
       summary: Register user credentials
@@ -2632,15 +2261,15 @@ paths:
         "401":
           description: Unauthorized or invalid token
           schema:
-            $ref: '#/definitions/api.UnauthorizedError'
+            $ref: '#/definitions/respond.Error'
         "404":
           description: User not found
           schema:
-            $ref: '#/definitions/api.UserNotFoundError'
+            $ref: '#/definitions/respond.Error'
         "500":
           description: Internal server error
           schema:
-            $ref: '#/definitions/api.ServerError'
+            $ref: '#/definitions/respond.Error'
       security:
       - BearerAuth: []
       summary: Get current user information

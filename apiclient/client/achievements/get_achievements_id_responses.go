@@ -140,7 +140,7 @@ GetAchievementsIDBadRequest describes a response with status code 400, with defa
 Invalid UUID format
 */
 type GetAchievementsIDBadRequest struct {
-	Payload *models.APIInvalidUUIDError
+	Payload *models.RespondError
 }
 
 // IsSuccess returns true when this get achievements Id bad request response has a 2xx status code
@@ -183,13 +183,13 @@ func (o *GetAchievementsIDBadRequest) String() string {
 	return fmt.Sprintf("[GET /achievements/{id}][%d] getAchievementsIdBadRequest %s", 400, payload)
 }
 
-func (o *GetAchievementsIDBadRequest) GetPayload() *models.APIInvalidUUIDError {
+func (o *GetAchievementsIDBadRequest) GetPayload() *models.RespondError {
 	return o.Payload
 }
 
 func (o *GetAchievementsIDBadRequest) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIInvalidUUIDError)
+	o.Payload = new(models.RespondError)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
@@ -210,7 +210,7 @@ GetAchievementsIDUnauthorized describes a response with status code 401, with de
 Unauthorized
 */
 type GetAchievementsIDUnauthorized struct {
-	Payload *models.APIUnauthorizedError
+	Payload *models.RespondError
 }
 
 // IsSuccess returns true when this get achievements Id unauthorized response has a 2xx status code
@@ -253,13 +253,13 @@ func (o *GetAchievementsIDUnauthorized) String() string {
 	return fmt.Sprintf("[GET /achievements/{id}][%d] getAchievementsIdUnauthorized %s", 401, payload)
 }
 
-func (o *GetAchievementsIDUnauthorized) GetPayload() *models.APIUnauthorizedError {
+func (o *GetAchievementsIDUnauthorized) GetPayload() *models.RespondError {
 	return o.Payload
 }
 
 func (o *GetAchievementsIDUnauthorized) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIUnauthorizedError)
+	o.Payload = new(models.RespondError)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
@@ -280,7 +280,7 @@ GetAchievementsIDNotFound describes a response with status code 404, with defaul
 Achievement not found
 */
 type GetAchievementsIDNotFound struct {
-	Payload *models.APIAchievementNotFoundError
+	Payload *models.RespondError
 }
 
 // IsSuccess returns true when this get achievements Id not found response has a 2xx status code
@@ -323,13 +323,13 @@ func (o *GetAchievementsIDNotFound) String() string {
 	return fmt.Sprintf("[GET /achievements/{id}][%d] getAchievementsIdNotFound %s", 404, payload)
 }
 
-func (o *GetAchievementsIDNotFound) GetPayload() *models.APIAchievementNotFoundError {
+func (o *GetAchievementsIDNotFound) GetPayload() *models.RespondError {
 	return o.Payload
 }
 
 func (o *GetAchievementsIDNotFound) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIAchievementNotFoundError)
+	o.Payload = new(models.RespondError)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
@@ -350,7 +350,7 @@ GetAchievementsIDInternalServerError describes a response with status code 500, 
 Internal server error
 */
 type GetAchievementsIDInternalServerError struct {
-	Payload *models.APIServerError
+	Payload *models.RespondError
 }
 
 // IsSuccess returns true when this get achievements Id internal server error response has a 2xx status code
@@ -393,13 +393,13 @@ func (o *GetAchievementsIDInternalServerError) String() string {
 	return fmt.Sprintf("[GET /achievements/{id}][%d] getAchievementsIdInternalServerError %s", 500, payload)
 }
 
-func (o *GetAchievementsIDInternalServerError) GetPayload() *models.APIServerError {
+func (o *GetAchievementsIDInternalServerError) GetPayload() *models.RespondError {
 	return o.Payload
 }
 
 func (o *GetAchievementsIDInternalServerError) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIServerError)
+	o.Payload = new(models.RespondError)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {

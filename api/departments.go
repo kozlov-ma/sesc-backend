@@ -36,134 +36,6 @@ type UpdateDepartmentRequest struct {
 
 type UpdateDepartmentResponse = Department
 
-type DepartmentNotFoundError struct {
-	Code       string `json:"code"             example:"DEPARTMENT_NOT_FOUND"`
-	Message    string `json:"message"          example:"Department not found"`
-	RuMessage  string `json:"ruMessage"        example:"Кафедра не найдена"`
-	Details    string `json:"details,omitzero"`
-	StatusCode int    `json:"-"`
-}
-
-// WithDetails adds detail information to the error
-func (e DepartmentNotFoundError) WithDetails(details string) DepartmentNotFoundError {
-	e.Details = details
-	return e
-}
-
-// WithStatus adds HTTP status code to the error
-func (e DepartmentNotFoundError) WithStatus(statusCode int) Error {
-	e.StatusCode = statusCode
-	return Error(e)
-}
-
-type InvalidDepartmentIDError struct {
-	Code       string `json:"code"             example:"INVALID_DEPARTMENT_ID"`
-	Message    string `json:"message"          example:"Invalid department ID"`
-	RuMessage  string `json:"ruMessage"        example:"Некорректный идентификатор кафедры"`
-	Details    string `json:"details,omitzero"`
-	StatusCode int    `json:"-"`
-}
-
-// WithDetails adds detail information to the error
-func (e InvalidDepartmentIDError) WithDetails(details string) InvalidDepartmentIDError {
-	e.Details = details
-	return e
-}
-
-// WithStatus adds HTTP status code to the error
-func (e InvalidDepartmentIDError) WithStatus(statusCode int) Error {
-	e.StatusCode = statusCode
-	return Error(e)
-}
-
-type InvalidDepartmentError struct {
-	Code       string `json:"code"             example:"INVALID_DEPARTMENT"`
-	Message    string `json:"message"          example:"Invalid department data"`
-	RuMessage  string `json:"ruMessage"        example:"Некорректные данные кафедры"`
-	Details    string `json:"details,omitzero"`
-	StatusCode int    `json:"-"`
-}
-
-// WithDetails adds detail information to the error
-func (e InvalidDepartmentError) WithDetails(details string) InvalidDepartmentError {
-	e.Details = details
-	return e
-}
-
-// WithStatus adds HTTP status code to the error
-func (e InvalidDepartmentError) WithStatus(statusCode int) Error {
-	e.StatusCode = statusCode
-	return Error(e)
-}
-
-type DepartmentExistsError struct {
-	Code       string `json:"code"             example:"DEPARTMENT_EXISTS"`
-	Message    string `json:"message"          example:"Department with this name already exists"`
-	RuMessage  string `json:"ruMessage"        example:"Кафедра с таким названием уже существует"`
-	Details    string `json:"details,omitzero"`
-	StatusCode int    `json:"-"`
-}
-
-// WithDetails adds detail information to the error
-func (e DepartmentExistsError) WithDetails(details string) DepartmentExistsError {
-	e.Details = details
-	return e
-}
-
-// WithStatus adds HTTP status code to the error
-func (e DepartmentExistsError) WithStatus(statusCode int) Error {
-	e.StatusCode = statusCode
-	return Error(e)
-}
-
-type CannotRemoveDepartmentError struct {
-	Code       string `json:"code"             example:"CANNOT_REMOVE_DEPARTMENT"`
-	Message    string `json:"message"          example:"Cannot remove department, it still has some users"`
-	RuMessage  string `json:"ruMessage"        example:"Невозможно удалить кафедру, так как она содержит пользователей"`
-	Details    string `json:"details,omitzero"`
-	StatusCode int    `json:"-"`
-}
-
-// WithDetails adds detail information to the error
-func (e CannotRemoveDepartmentError) WithDetails(details string) CannotRemoveDepartmentError {
-	e.Details = details
-	return e
-}
-
-// WithStatus adds HTTP status code to the error
-func (e CannotRemoveDepartmentError) WithStatus(statusCode int) Error {
-	e.StatusCode = statusCode
-	return Error(e)
-}
-
-var (
-	ErrDepartmentNotFound = DepartmentNotFoundError{
-		Code:      "DEPARTMENT_NOT_FOUND",
-		Message:   "Department not found",
-		RuMessage: "Кафедра не найдена",
-	}
-	ErrInvalidDepartmentID = InvalidDepartmentIDError{
-		Code:      "INVALID_DEPARTMENT_ID",
-		Message:   "Invalid department ID",
-		RuMessage: "Некорректный идентификатор кафедры",
-	}
-	ErrInvalidDepartment = InvalidDepartmentError{
-		Code:      "INVALID_DEPARTMENT",
-		Message:   "Invalid department data",
-		RuMessage: "Некорректные данные кафедры",
-	}
-	ErrDepartmentExists = DepartmentExistsError{
-		Code:      "DEPARTMENT_EXISTS",
-		Message:   "Department with this name already exists",
-		RuMessage: "Кафедра с таким названием уже существует",
-	}
-	ErrCannotRemoveDepartment = CannotRemoveDepartmentError{
-		Code:      "CANNOT_REMOVE_DEPARTMENT",
-		Message:   "Cannot remove department, it still has some users",
-		RuMessage: "Невозможно удалить кафедру, так как она содержит пользователей",
-	}
-)
-
 // CreateDepartment godoc
 // @Summary Create a new department
 // @Description Creates a new department with the given details
@@ -174,11 +46,11 @@ var (
 // @Param Authorization header string false "Bearer JWT token"
 // @Param request body CreateDepartmentRequest true "Department details"
 // @Success 201 {object} Department
-// @Failure 400 {object} InvalidRequestError "Invalid request format"
-// @Failure 401 {object} UnauthorizedError "Unauthorized"
-// @Failure 403 {object} ForbiddenError "Forbidden - admin role required"
-// @Failure 409 {object} DepartmentExistsError "Department with this name already exists"
-// @Failure 500 {object} ServerError "Internal server error"
+// @Failure 400 {object} respond.Error "Invalid request format"
+// @Failure 401 {object} respond.Error "Unauthorized"
+// @Failure 403 {object} respond.Error "Forbidden - admin role required"
+// @Failure 409 {object} respond.Error "Department with this name already exists"
+// @Failure 500 {object} respond.Error "Internal server error"
 // @Router /departments [post]
 func (a *API) CreateDepartment(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
@@ -187,22 +59,22 @@ func (a *API) CreateDepartment(w http.ResponseWriter, r *http.Request) {
 	var req CreateDepartmentRequest
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		writeError(ctx, w, ErrInvalidRequest.WithStatus(http.StatusBadRequest))
+		a.writeJSON(ctx, w, respond.WithError(ctx, err))
 		return
 	}
 
 	dep, err := a.sesc.CreateDepartment(ctx, req.Name, req.Description)
 	if err != nil {
 		rec.Add(events.Error, fmt.Errorf("couldn't create department: %w", err))
-		writeError(ctx, w, sescError(err))
+		a.writeJSON(ctx, w, respond.WithError(ctx, err))
 		return
 	}
 
-	a.writeJSON(ctx, w, CreateDepartmentResponse{
+	a.writeJSON(ctx, w, respond.WithStatus(CreateDepartmentResponse{
 		ID:          dep.ID,
 		Name:        dep.Name,
 		Description: dep.Description,
-	}, http.StatusCreated)
+	}, http.StatusCreated))
 }
 
 // Departments godoc
@@ -211,7 +83,7 @@ func (a *API) CreateDepartment(w http.ResponseWriter, r *http.Request) {
 // @Tags departments
 // @Produce json
 // @Success 200 {object} DepartmentsResponse
-// @Failure 500 {object} ServerError "Internal server error"
+// @Failure 500 {object} respond.Error "Internal server error"
 // @Router /departments [get]
 func (a *API) Departments(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
@@ -220,7 +92,7 @@ func (a *API) Departments(w http.ResponseWriter, r *http.Request) {
 	deps, err := a.sesc.Departments(ctx)
 	if err != nil {
 		rec.Add(events.Error, fmt.Errorf("couldn't get departments: %w", err))
-		writeError(ctx, w, ErrServerError.WithStatus(http.StatusInternalServerError))
+		a.writeJSON(ctx, w, respond.WithError(ctx, err))
 		return
 	}
 
@@ -235,7 +107,7 @@ func (a *API) Departments(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	a.writeJSON(ctx, w, response, http.StatusOK)
+	a.writeJSON(ctx, w, response)
 }
 
 // UpdateDepartment godoc
@@ -249,13 +121,13 @@ func (a *API) Departments(w http.ResponseWriter, r *http.Request) {
 // @Param id path string true "Department UUID"
 // @Param request body UpdateDepartmentRequest true "Updated department details"
 // @Success 200 {object} Department
-// @Failure 400 {object} InvalidDepartmentIDError "Invalid UUID format"
-// @Failure 400 {object} InvalidRequestError "Invalid request format"
-// @Failure 401 {object} UnauthorizedError "Unauthorized"
-// @Failure 403 {object} ForbiddenError "Forbidden - admin role required"
-// @Failure 404 {object} DepartmentNotFoundError "Department not found"
-// @Failure 409 {object} DepartmentExistsError "Department with this name already exists"
-// @Failure 500 {object} ServerError "Internal server error"
+// @Failure 400 {object} respond.Error "Invalid UUID format"
+// @Failure 400 {object} respond.Error "Invalid request format"
+// @Failure 401 {object} respond.Error "Unauthorized"
+// @Failure 403 {object} respond.Error "Forbidden - admin role required"
+// @Failure 404 {object} respond.Error "Department not found"
+// @Failure 409 {object} respond.Error "Department with this name already exists"
+// @Failure 500 {object} respond.Error "Internal server error"
 // @Router /departments/{id} [put]
 func (a *API) UpdateDepartment(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
@@ -264,20 +136,20 @@ func (a *API) UpdateDepartment(w http.ResponseWriter, r *http.Request) {
 
 	var id uuid.UUID
 	if err := (&id).Parse(idStr); err != nil {
-		writeError(ctx, w, ErrInvalidDepartmentID.WithStatus(http.StatusBadRequest))
+		a.writeJSON(ctx, w, respond.WithError(ctx, err))
 		return
 	}
 
 	var req UpdateDepartmentRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		writeError(ctx, w, ErrInvalidRequest.WithStatus(http.StatusBadRequest))
+		a.writeJSON(ctx, w, respond.WithError(ctx, err))
 		return
 	}
 
 	err := a.sesc.UpdateDepartment(ctx, id, req.Name, req.Description)
 	if err != nil {
 		rec.Add(events.Error, err)
-		writeError(ctx, w, sescError(err))
+		a.writeJSON(ctx, w, respond.WithError(ctx, err))
 		return
 	}
 
@@ -285,7 +157,7 @@ func (a *API) UpdateDepartment(w http.ResponseWriter, r *http.Request) {
 		ID:          id,
 		Name:        req.Name,
 		Description: req.Description,
-	}, http.StatusOK)
+	})
 }
 
 // DeleteDepartment godoc
@@ -296,12 +168,12 @@ func (a *API) UpdateDepartment(w http.ResponseWriter, r *http.Request) {
 // @Param Authorization header string false "Bearer JWT token"
 // @Param id path string true "Department UUID"
 // @Success 204 "No content"
-// @Failure 400 {object} InvalidDepartmentIDError "Invalid UUID format"
-// @Failure 401 {object} UnauthorizedError "Unauthorized"
-// @Failure 403 {object} ForbiddenError "Forbidden - admin role required"
-// @Failure 404 {object} DepartmentNotFoundError "Department not found"
-// @Failure 409 {object} CannotRemoveDepartmentError "Cannot remove department, it still has some users"
-// @Failure 500 {object} ServerError "Internal server error"
+// @Failure 400 {object} respond.Error "Invalid UUID format"
+// @Failure 401 {object} respond.Error "Unauthorized"
+// @Failure 403 {object} respond.Error "Forbidden - admin role required"
+// @Failure 404 {object} respond.Error "Department not found"
+// @Failure 409 {object} respond.Error "Cannot remove department, it still has some users"
+// @Failure 500 {object} respond.Error "Internal server error"
 // @Router /departments/{id} [delete]
 func (a *API) DeleteDepartment(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
@@ -310,14 +182,14 @@ func (a *API) DeleteDepartment(w http.ResponseWriter, r *http.Request) {
 
 	var id uuid.UUID
 	if err := (&id).Parse(idStr); err != nil {
-		writeError(ctx, w, ErrInvalidDepartmentID.WithStatus(http.StatusBadRequest))
+		a.writeJSON(ctx, w, respond.WithError(ctx, err))
 		return
 	}
 
 	err := a.sesc.DeleteDepartment(ctx, id)
 	if err != nil {
 		rec.Add(events.Error, err)
-		writeError(ctx, w, sescError(err))
+		a.writeJSON(ctx, w, respond.WithError(ctx, err))
 		return
 	}
 
@@ -333,9 +205,9 @@ func (a *API) DeleteDepartment(w http.ResponseWriter, r *http.Request) {
 // @Param Authorization header string false "Bearer JWT token"
 // @Param id path string true "User UUID"
 // @Success 200 {object} respond.Department
-// @Failure 400 {object} InvalidUUIDError "Invalid UUID format"
-// @Failure 404 {object} DepartmentNotFoundError "Department not found"
-// @Failure 500 {object} ServerError "Internal server error"
+// @Failure 400 {object} respond.Error "Invalid UUID format"
+// @Failure 404 {object} respond.Error "Department not found"
+// @Failure 500 {object} respond.Error "Internal server error"
 // @Router /departments/{id} [get]
 func (a *API) GetDepartment(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
@@ -345,18 +217,14 @@ func (a *API) GetDepartment(w http.ResponseWriter, r *http.Request) {
 
 	depID, err := uuid.FromString(idStr)
 	if err != nil {
-		writeError(ctx, w, InvalidUUIDError{
-			Code:      "INVALID_UUID",
-			Message:   "Invalid user ID format",
-			RuMessage: "Некорректный формат ID пользователя",
-		}.WithStatus(http.StatusBadRequest))
+		a.writeJSON(ctx, w, respond.WithError(ctx, err))
 		return
 	}
 
 	dep, err := a.sesc.DepartmentByID(ctx, depID)
 	if err != nil {
 		rec.Add(events.Error, err)
-		writeError(ctx, w, sescError(err))
+		a.writeJSON(ctx, w, respond.WithError(ctx, err))
 		return
 	}
 
@@ -364,5 +232,5 @@ func (a *API) GetDepartment(w http.ResponseWriter, r *http.Request) {
 		ID:          depID,
 		Name:        dep.Name,
 		Description: dep.Description,
-	}), http.StatusOK)
+	}))
 }

@@ -140,7 +140,7 @@ GetFilesIDBadRequest describes a response with status code 400, with default hea
 Bad Request
 */
 type GetFilesIDBadRequest struct {
-	Payload *models.APIError
+	Payload *models.RespondError
 }
 
 // IsSuccess returns true when this get files Id bad request response has a 2xx status code
@@ -183,13 +183,13 @@ func (o *GetFilesIDBadRequest) String() string {
 	return fmt.Sprintf("[GET /files/{id}][%d] getFilesIdBadRequest %s", 400, payload)
 }
 
-func (o *GetFilesIDBadRequest) GetPayload() *models.APIError {
+func (o *GetFilesIDBadRequest) GetPayload() *models.RespondError {
 	return o.Payload
 }
 
 func (o *GetFilesIDBadRequest) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIError)
+	o.Payload = new(models.RespondError)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
@@ -210,7 +210,7 @@ GetFilesIDUnauthorized describes a response with status code 401, with default h
 Unauthorized
 */
 type GetFilesIDUnauthorized struct {
-	Payload *models.APIError
+	Payload *models.RespondError
 }
 
 // IsSuccess returns true when this get files Id unauthorized response has a 2xx status code
@@ -253,13 +253,13 @@ func (o *GetFilesIDUnauthorized) String() string {
 	return fmt.Sprintf("[GET /files/{id}][%d] getFilesIdUnauthorized %s", 401, payload)
 }
 
-func (o *GetFilesIDUnauthorized) GetPayload() *models.APIError {
+func (o *GetFilesIDUnauthorized) GetPayload() *models.RespondError {
 	return o.Payload
 }
 
 func (o *GetFilesIDUnauthorized) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIError)
+	o.Payload = new(models.RespondError)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
@@ -280,7 +280,7 @@ GetFilesIDNotFound describes a response with status code 404, with default heade
 Not Found
 */
 type GetFilesIDNotFound struct {
-	Payload *models.APIError
+	Payload *models.RespondError
 }
 
 // IsSuccess returns true when this get files Id not found response has a 2xx status code
@@ -323,13 +323,13 @@ func (o *GetFilesIDNotFound) String() string {
 	return fmt.Sprintf("[GET /files/{id}][%d] getFilesIdNotFound %s", 404, payload)
 }
 
-func (o *GetFilesIDNotFound) GetPayload() *models.APIError {
+func (o *GetFilesIDNotFound) GetPayload() *models.RespondError {
 	return o.Payload
 }
 
 func (o *GetFilesIDNotFound) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIError)
+	o.Payload = new(models.RespondError)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
@@ -350,7 +350,7 @@ GetFilesIDInternalServerError describes a response with status code 500, with de
 Internal Server Error
 */
 type GetFilesIDInternalServerError struct {
-	Payload *models.APIError
+	Payload *models.RespondError
 }
 
 // IsSuccess returns true when this get files Id internal server error response has a 2xx status code
@@ -393,13 +393,13 @@ func (o *GetFilesIDInternalServerError) String() string {
 	return fmt.Sprintf("[GET /files/{id}][%d] getFilesIdInternalServerError %s", 500, payload)
 }
 
-func (o *GetFilesIDInternalServerError) GetPayload() *models.APIError {
+func (o *GetFilesIDInternalServerError) GetPayload() *models.RespondError {
 	return o.Payload
 }
 
 func (o *GetFilesIDInternalServerError) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIError)
+	o.Payload = new(models.RespondError)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {

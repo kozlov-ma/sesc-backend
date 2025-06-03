@@ -22,7 +22,7 @@ type Role struct {
 // @Tags roles
 // @Produce json
 // @Success 200 {object} RolesResponse
-// @Failure 500 {object} Error "Internal server error"
+// @Failure 500 {object} respond.Error "Internal server error"
 // @Router /roles [get]
 func (a *API) Roles(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
@@ -33,7 +33,7 @@ func (a *API) Roles(w http.ResponseWriter, r *http.Request) {
 		response.Roles[i] = convertRole(role)
 	}
 
-	a.writeJSON(ctx, w, response, http.StatusOK)
+	a.writeJSON(ctx, w, response)
 }
 
 func convertRole(r sesc.Role) Role {

@@ -64,13 +64,13 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/api.UnauthorizedError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/api.ServerError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     }
                 }
@@ -119,25 +119,25 @@ const docTemplate = `{
                     "400": {
                         "description": "Invalid request format",
                         "schema": {
-                            "$ref": "#/definitions/api.InvalidRequestError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/api.UnauthorizedError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     },
                     "403": {
                         "description": "Forbidden - admin role required",
                         "schema": {
-                            "$ref": "#/definitions/api.ForbiddenError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/api.ServerError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     }
                 }
@@ -195,31 +195,31 @@ const docTemplate = `{
                     "400": {
                         "description": "Invalid request format",
                         "schema": {
-                            "$ref": "#/definitions/api.InvalidRequestError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/api.UnauthorizedError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     },
                     "403": {
                         "description": "Forbidden - admin role required",
                         "schema": {
-                            "$ref": "#/definitions/api.ForbiddenError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     },
                     "404": {
                         "description": "Group not found",
                         "schema": {
-                            "$ref": "#/definitions/api.GroupNotFoundError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/api.ServerError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     }
                 }
@@ -274,13 +274,13 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/api.UnauthorizedError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/api.ServerError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     }
                 }
@@ -329,31 +329,31 @@ const docTemplate = `{
                     "400": {
                         "description": "Invalid request format",
                         "schema": {
-                            "$ref": "#/definitions/api.InvalidRequestError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/api.UnauthorizedError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     },
                     "403": {
                         "description": "Forbidden - admin role required",
                         "schema": {
-                            "$ref": "#/definitions/api.ForbiddenError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     },
                     "404": {
                         "description": "Group not found",
                         "schema": {
-                            "$ref": "#/definitions/api.GroupNotFoundError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/api.ServerError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     }
                 }
@@ -411,31 +411,31 @@ const docTemplate = `{
                     "400": {
                         "description": "Invalid request format",
                         "schema": {
-                            "$ref": "#/definitions/api.InvalidRequestError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/api.UnauthorizedError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     },
                     "403": {
                         "description": "Forbidden - admin role required",
                         "schema": {
-                            "$ref": "#/definitions/api.ForbiddenError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     },
                     "404": {
                         "description": "Template not found",
                         "schema": {
-                            "$ref": "#/definitions/api.AchievementTemplateNotFoundError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/api.ServerError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     }
                 }
@@ -491,19 +491,19 @@ const docTemplate = `{
                     "400": {
                         "description": "Invalid request parameters",
                         "schema": {
-                            "$ref": "#/definitions/api.InvalidRequestError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/api.UnauthorizedError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/api.ServerError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     }
                 }
@@ -552,25 +552,25 @@ const docTemplate = `{
                     "400": {
                         "description": "Invalid request format",
                         "schema": {
-                            "$ref": "#/definitions/api.InvalidRequestError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/api.UnauthorizedError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     },
                     "404": {
                         "description": "Template not found",
                         "schema": {
-                            "$ref": "#/definitions/api.AchievementTemplateNotFoundError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/api.ServerError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     }
                 }
@@ -626,25 +626,25 @@ const docTemplate = `{
                     "400": {
                         "description": "Invalid request parameters",
                         "schema": {
-                            "$ref": "#/definitions/api.InvalidRequestError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/api.UnauthorizedError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/api.ForbiddenError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/api.ServerError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     }
                 }
@@ -690,25 +690,25 @@ const docTemplate = `{
                     "400": {
                         "description": "Invalid UUID format",
                         "schema": {
-                            "$ref": "#/definitions/api.InvalidUUIDError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/api.UnauthorizedError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     },
                     "404": {
                         "description": "Achievement not found",
                         "schema": {
-                            "$ref": "#/definitions/api.AchievementNotFoundError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/api.ServerError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     }
                 }
@@ -749,31 +749,31 @@ const docTemplate = `{
                     "400": {
                         "description": "Invalid UUID format",
                         "schema": {
-                            "$ref": "#/definitions/api.InvalidUUIDError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/api.UnauthorizedError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     },
                     "404": {
                         "description": "Achievement not found",
                         "schema": {
-                            "$ref": "#/definitions/api.AchievementNotFoundError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     },
                     "409": {
                         "description": "Wrong achievement status",
                         "schema": {
-                            "$ref": "#/definitions/api.WrongAchievementStatusError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/api.ServerError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     }
                 }
@@ -831,31 +831,31 @@ const docTemplate = `{
                     "400": {
                         "description": "Invalid request format",
                         "schema": {
-                            "$ref": "#/definitions/api.InvalidRequestError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/api.UnauthorizedError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     },
                     "404": {
                         "description": "Achievement not found",
                         "schema": {
-                            "$ref": "#/definitions/api.AchievementNotFoundError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     },
                     "409": {
                         "description": "Wrong achievement status",
                         "schema": {
-                            "$ref": "#/definitions/api.WrongAchievementStatusError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/api.ServerError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     }
                 }
@@ -905,31 +905,31 @@ const docTemplate = `{
                     "400": {
                         "description": "Invalid UUID format",
                         "schema": {
-                            "$ref": "#/definitions/api.InvalidUUIDError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/api.UnauthorizedError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     },
                     "404": {
                         "description": "Document not found",
                         "schema": {
-                            "$ref": "#/definitions/api.DocumentNotFoundError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     },
                     "409": {
                         "description": "Wrong achievement status",
                         "schema": {
-                            "$ref": "#/definitions/api.WrongAchievementStatusError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/api.ServerError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     }
                 }
@@ -987,37 +987,37 @@ const docTemplate = `{
                     "400": {
                         "description": "Points assigned exceed the template's points limit",
                         "schema": {
-                            "$ref": "#/definitions/api.PointsLimitExceededError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/api.UnauthorizedError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     },
                     "403": {
                         "description": "Forbidden - reviewer role required",
                         "schema": {
-                            "$ref": "#/definitions/api.ForbiddenError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     },
                     "404": {
                         "description": "Achievement not found",
                         "schema": {
-                            "$ref": "#/definitions/api.AchievementNotFoundError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     },
                     "409": {
                         "description": "Wrong achievement status",
                         "schema": {
-                            "$ref": "#/definitions/api.WrongAchievementStatusError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/api.ServerError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     }
                 }
@@ -1063,31 +1063,31 @@ const docTemplate = `{
                     "400": {
                         "description": "Invalid UUID format",
                         "schema": {
-                            "$ref": "#/definitions/api.InvalidUUIDError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/api.UnauthorizedError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     },
                     "404": {
                         "description": "Achievement not found",
                         "schema": {
-                            "$ref": "#/definitions/api.AchievementNotFoundError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     },
                     "409": {
                         "description": "Wrong achievement status",
                         "schema": {
-                            "$ref": "#/definitions/api.WrongAchievementStatusError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/api.ServerError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     }
                 }
@@ -1127,19 +1127,19 @@ const docTemplate = `{
                     "400": {
                         "description": "Invalid request format",
                         "schema": {
-                            "$ref": "#/definitions/api.InvalidRequestError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     },
                     "401": {
                         "description": "Invalid admin token or not recognized",
                         "schema": {
-                            "$ref": "#/definitions/api.CredentialsNotFoundError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/api.ServerError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     }
                 }
@@ -1182,31 +1182,31 @@ const docTemplate = `{
                     "400": {
                         "description": "Invalid UUID format",
                         "schema": {
-                            "$ref": "#/definitions/api.InvalidUUIDError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/api.UnauthorizedError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     },
                     "403": {
                         "description": "Forbidden - admin role required",
                         "schema": {
-                            "$ref": "#/definitions/api.ForbiddenError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     },
                     "404": {
                         "description": "User not found or does not exist",
                         "schema": {
-                            "$ref": "#/definitions/api.CredentialsNotFoundError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/api.ServerError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     }
                 }
@@ -1244,31 +1244,31 @@ const docTemplate = `{
                     "400": {
                         "description": "Invalid UUID format",
                         "schema": {
-                            "$ref": "#/definitions/api.InvalidUUIDError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/api.UnauthorizedError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     },
                     "403": {
                         "description": "Forbidden - admin role required",
                         "schema": {
-                            "$ref": "#/definitions/api.ForbiddenError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     },
                     "404": {
                         "description": "User credentials not found",
                         "schema": {
-                            "$ref": "#/definitions/api.CredentialsNotFoundError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/api.ServerError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     }
                 }
@@ -1308,19 +1308,19 @@ const docTemplate = `{
                     "400": {
                         "description": "Invalid request format",
                         "schema": {
-                            "$ref": "#/definitions/api.InvalidRequestError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     },
                     "401": {
                         "description": "Invalid credentials or user does not exist",
                         "schema": {
-                            "$ref": "#/definitions/api.CredentialsNotFoundError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/api.ServerError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     }
                 }
@@ -1359,13 +1359,13 @@ const docTemplate = `{
                     "401": {
                         "description": "Invalid token",
                         "schema": {
-                            "$ref": "#/definitions/api.InvalidTokenError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/api.ServerError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     }
                 }
@@ -1391,7 +1391,7 @@ const docTemplate = `{
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/api.ServerError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     }
                 }
@@ -1440,31 +1440,31 @@ const docTemplate = `{
                     "400": {
                         "description": "Invalid request format",
                         "schema": {
-                            "$ref": "#/definitions/api.InvalidRequestError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/api.UnauthorizedError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     },
                     "403": {
                         "description": "Forbidden - admin role required",
                         "schema": {
-                            "$ref": "#/definitions/api.ForbiddenError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     },
                     "409": {
                         "description": "Department with this name already exists",
                         "schema": {
-                            "$ref": "#/definitions/api.DepartmentExistsError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/api.ServerError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     }
                 }
@@ -1510,19 +1510,19 @@ const docTemplate = `{
                     "400": {
                         "description": "Invalid UUID format",
                         "schema": {
-                            "$ref": "#/definitions/api.InvalidUUIDError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     },
                     "404": {
                         "description": "Department not found",
                         "schema": {
-                            "$ref": "#/definitions/api.DepartmentNotFoundError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/api.ServerError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     }
                 }
@@ -1578,37 +1578,37 @@ const docTemplate = `{
                     "400": {
                         "description": "Invalid request format",
                         "schema": {
-                            "$ref": "#/definitions/api.InvalidRequestError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/api.UnauthorizedError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     },
                     "403": {
                         "description": "Forbidden - admin role required",
                         "schema": {
-                            "$ref": "#/definitions/api.ForbiddenError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     },
                     "404": {
                         "description": "Department not found",
                         "schema": {
-                            "$ref": "#/definitions/api.DepartmentNotFoundError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     },
                     "409": {
                         "description": "Department with this name already exists",
                         "schema": {
-                            "$ref": "#/definitions/api.DepartmentExistsError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/api.ServerError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     }
                 }
@@ -1646,37 +1646,37 @@ const docTemplate = `{
                     "400": {
                         "description": "Invalid UUID format",
                         "schema": {
-                            "$ref": "#/definitions/api.InvalidDepartmentIDError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/api.UnauthorizedError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     },
                     "403": {
                         "description": "Forbidden - admin role required",
                         "schema": {
-                            "$ref": "#/definitions/api.ForbiddenError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     },
                     "404": {
                         "description": "Department not found",
                         "schema": {
-                            "$ref": "#/definitions/api.DepartmentNotFoundError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     },
                     "409": {
                         "description": "Cannot remove department, it still has some users",
                         "schema": {
-                            "$ref": "#/definitions/api.CannotRemoveDepartmentError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/api.ServerError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     }
                 }
@@ -1750,13 +1750,13 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/api.Error"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/api.Error"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     }
                 }
@@ -1803,19 +1803,19 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/api.Error"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/api.Error"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/api.Error"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     }
                 }
@@ -1864,25 +1864,25 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/api.Error"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/api.Error"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/api.Error"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/api.Error"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     }
                 }
@@ -1926,101 +1926,31 @@ const docTemplate = `{
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/api.Error"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/api.Error"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     },
                     "403": {
                         "description": "Forbidden",
                         "schema": {
-                            "$ref": "#/definitions/api.Error"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     },
                     "404": {
                         "description": "Not Found",
                         "schema": {
-                            "$ref": "#/definitions/api.Error"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/api.Error"
-                        }
-                    }
-                }
-            }
-        },
-        "/reports/mark-accounted": {
-            "post": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Marks achievements with \"done\" status as \"accounted\" in the system",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "reports"
-                ],
-                "summary": "Mark achievements as accounted",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer JWT token",
-                        "name": "Authorization",
-                        "in": "header"
-                    },
-                    {
-                        "description": "Achievement IDs to mark as accounted",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/api.MarkAchievementsAsAccountedRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Success response",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": true
-                        }
-                    },
-                    "400": {
-                        "description": "Bad request",
-                        "schema": {
-                            "$ref": "#/definitions/api.Error"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/api.Error"
-                        }
-                    },
-                    "403": {
-                        "description": "Forbidden - Admin access required",
-                        "schema": {
-                            "$ref": "#/definitions/api.Error"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "$ref": "#/definitions/api.Error"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     }
                 }
@@ -2063,19 +1993,19 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/api.Error"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     },
                     "403": {
                         "description": "Forbidden - Economist access required",
                         "schema": {
-                            "$ref": "#/definitions/api.Error"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/api.Error"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     }
                 }
@@ -2117,19 +2047,19 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/api.Error"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     },
                     "403": {
                         "description": "Forbidden - Admin access required",
                         "schema": {
-                            "$ref": "#/definitions/api.Error"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/api.Error"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     }
                 }
@@ -2155,7 +2085,7 @@ const docTemplate = `{
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/api.Error"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     }
                 }
@@ -2217,13 +2147,13 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/api.UnauthorizedError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/api.ServerError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     }
                 }
@@ -2272,25 +2202,25 @@ const docTemplate = `{
                     "400": {
                         "description": "Invalid name specified",
                         "schema": {
-                            "$ref": "#/definitions/api.InvalidNameError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/api.UnauthorizedError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     },
                     "403": {
                         "description": "Forbidden - admin role required",
                         "schema": {
-                            "$ref": "#/definitions/api.ForbiddenError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/api.ServerError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     }
                 }
@@ -2329,19 +2259,19 @@ const docTemplate = `{
                     "401": {
                         "description": "Unauthorized or invalid token",
                         "schema": {
-                            "$ref": "#/definitions/api.UnauthorizedError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     },
                     "404": {
                         "description": "User not found",
                         "schema": {
-                            "$ref": "#/definitions/api.UserNotFoundError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/api.ServerError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     }
                 }
@@ -2387,25 +2317,25 @@ const docTemplate = `{
                     "400": {
                         "description": "Invalid UUID format",
                         "schema": {
-                            "$ref": "#/definitions/api.InvalidUUIDError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/api.UnauthorizedError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     },
                     "404": {
                         "description": "User not found",
                         "schema": {
-                            "$ref": "#/definitions/api.UserNotFoundError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/api.ServerError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     }
                 }
@@ -2461,31 +2391,31 @@ const docTemplate = `{
                     "400": {
                         "description": "Invalid name",
                         "schema": {
-                            "$ref": "#/definitions/api.InvalidNameError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/api.UnauthorizedError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     },
                     "403": {
                         "description": "Forbidden - admin role required",
                         "schema": {
-                            "$ref": "#/definitions/api.ForbiddenError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     },
                     "404": {
                         "description": "User not found",
                         "schema": {
-                            "$ref": "#/definitions/api.UserNotFoundError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/api.ServerError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     }
                 }
@@ -2546,37 +2476,37 @@ const docTemplate = `{
                     "400": {
                         "description": "Invalid credentials format",
                         "schema": {
-                            "$ref": "#/definitions/api.InvalidCredentialsError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
-                            "$ref": "#/definitions/api.UnauthorizedError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     },
                     "403": {
                         "description": "Forbidden - admin role required",
                         "schema": {
-                            "$ref": "#/definitions/api.ForbiddenError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     },
                     "404": {
                         "description": "User does not exist",
                         "schema": {
-                            "$ref": "#/definitions/api.UserNotFoundError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     },
                     "409": {
                         "description": "User already exists",
                         "schema": {
-                            "$ref": "#/definitions/api.UserExistsError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/api.ServerError"
+                            "$ref": "#/definitions/respond.Error"
                         }
                     }
                 }
@@ -2608,26 +2538,6 @@ const docTemplate = `{
                 "name": {
                     "type": "string",
                     "example": "Научная деятельность"
-                }
-            }
-        },
-        "api.AchievementNotFoundError": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "type": "string",
-                    "example": "ACHIEVEMENT_NOT_FOUND"
-                },
-                "details": {
-                    "type": "string"
-                },
-                "message": {
-                    "type": "string",
-                    "example": "Achievement not found"
-                },
-                "ruMessage": {
-                    "type": "string",
-                    "example": "Достижение не найдено"
                 }
             }
         },
@@ -2684,26 +2594,6 @@ const docTemplate = `{
                 "templateName": {
                     "type": "string",
                     "example": "регионального уровня"
-                }
-            }
-        },
-        "api.AchievementTemplateNotFoundError": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "type": "string",
-                    "example": "ACHIEVEMENT_TEMPLATE_NOT_FOUND"
-                },
-                "details": {
-                    "type": "string"
-                },
-                "message": {
-                    "type": "string",
-                    "example": "Achievement template not found"
-                },
-                "ruMessage": {
-                    "type": "string",
-                    "example": "Шаблон достижения не найден"
                 }
             }
         },
@@ -2768,26 +2658,6 @@ const docTemplate = `{
                 "name": {
                     "type": "string",
                     "example": "Publication proof"
-                }
-            }
-        },
-        "api.CannotRemoveDepartmentError": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "type": "string",
-                    "example": "CANNOT_REMOVE_DEPARTMENT"
-                },
-                "details": {
-                    "type": "string"
-                },
-                "message": {
-                    "type": "string",
-                    "example": "Cannot remove department, it still has some users"
-                },
-                "ruMessage": {
-                    "type": "string",
-                    "example": "Невозможно удалить кафедру, так как она содержит пользователей"
                 }
             }
         },
@@ -2957,26 +2827,6 @@ const docTemplate = `{
                 }
             }
         },
-        "api.CredentialsNotFoundError": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "type": "string",
-                    "example": "CREDENTIALS_NOT_FOUND"
-                },
-                "details": {
-                    "type": "string"
-                },
-                "message": {
-                    "type": "string",
-                    "example": "User credentials not found"
-                },
-                "ruMessage": {
-                    "type": "string",
-                    "example": "Учетные данные пользователя не найдены"
-                }
-            }
-        },
         "api.CredentialsRequest": {
             "type": "object",
             "required": [
@@ -3016,46 +2866,6 @@ const docTemplate = `{
                 }
             }
         },
-        "api.DepartmentExistsError": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "type": "string",
-                    "example": "DEPARTMENT_EXISTS"
-                },
-                "details": {
-                    "type": "string"
-                },
-                "message": {
-                    "type": "string",
-                    "example": "Department with this name already exists"
-                },
-                "ruMessage": {
-                    "type": "string",
-                    "example": "Кафедра с таким названием уже существует"
-                }
-            }
-        },
-        "api.DepartmentNotFoundError": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "type": "string",
-                    "example": "DEPARTMENT_NOT_FOUND"
-                },
-                "details": {
-                    "type": "string"
-                },
-                "message": {
-                    "type": "string",
-                    "example": "Department not found"
-                },
-                "ruMessage": {
-                    "type": "string",
-                    "example": "Кафедра не найдена"
-                }
-            }
-        },
         "api.DepartmentsResponse": {
             "type": "object",
             "required": [
@@ -3067,26 +2877,6 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/api.Department"
                     }
-                }
-            }
-        },
-        "api.DocumentNotFoundError": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "type": "string",
-                    "example": "DOCUMENT_NOT_FOUND"
-                },
-                "details": {
-                    "type": "string"
-                },
-                "message": {
-                    "type": "string",
-                    "example": "Document not found"
-                },
-                "ruMessage": {
-                    "type": "string",
-                    "example": "Документ не найден"
                 }
             }
         },
@@ -3109,32 +2899,6 @@ const docTemplate = `{
                 "name": {
                     "type": "string",
                     "example": "Publication proof"
-                }
-            }
-        },
-        "api.Error": {
-            "type": "object",
-            "required": [
-                "code",
-                "message",
-                "ruMessage"
-            ],
-            "properties": {
-                "code": {
-                    "type": "string",
-                    "example": "INVALID_REQUEST"
-                },
-                "details": {
-                    "type": "string",
-                    "example": "field X is required"
-                },
-                "message": {
-                    "type": "string",
-                    "example": "Invalid request body"
-                },
-                "ruMessage": {
-                    "type": "string",
-                    "example": "Некорректный формат запроса"
                 }
             }
         },
@@ -3169,46 +2933,6 @@ const docTemplate = `{
                 },
                 "ownerId": {
                     "type": "string"
-                }
-            }
-        },
-        "api.ForbiddenError": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "type": "string",
-                    "example": "FORBIDDEN"
-                },
-                "details": {
-                    "type": "string"
-                },
-                "message": {
-                    "type": "string",
-                    "example": "Forbidden - insufficient permissions"
-                },
-                "ruMessage": {
-                    "type": "string",
-                    "example": "Доступ запрещен - недостаточно прав"
-                }
-            }
-        },
-        "api.GroupNotFoundError": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "type": "string",
-                    "example": "GROUP_NOT_FOUND"
-                },
-                "details": {
-                    "type": "string"
-                },
-                "message": {
-                    "type": "string",
-                    "example": "Achievement group not found"
-                },
-                "ruMessage": {
-                    "type": "string",
-                    "example": "Группа достижений не найдена"
                 }
             }
         },
@@ -3255,161 +2979,6 @@ const docTemplate = `{
                 "role": {
                     "type": "string",
                     "example": "user"
-                }
-            }
-        },
-        "api.InvalidCredentialsError": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "type": "string",
-                    "example": "INVALID_CREDENTIALS"
-                },
-                "details": {
-                    "type": "string"
-                },
-                "message": {
-                    "type": "string",
-                    "example": "Invalid credentials format"
-                },
-                "ruMessage": {
-                    "type": "string",
-                    "example": "Неверный формат учетных данных"
-                }
-            }
-        },
-        "api.InvalidDepartmentIDError": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "type": "string",
-                    "example": "INVALID_DEPARTMENT_ID"
-                },
-                "details": {
-                    "type": "string"
-                },
-                "message": {
-                    "type": "string",
-                    "example": "Invalid department ID"
-                },
-                "ruMessage": {
-                    "type": "string",
-                    "example": "Некорректный идентификатор кафедры"
-                }
-            }
-        },
-        "api.InvalidNameError": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "type": "string",
-                    "example": "INVALID_NAME"
-                },
-                "details": {
-                    "type": "string"
-                },
-                "message": {
-                    "type": "string",
-                    "example": "Invalid name specified"
-                },
-                "ruMessage": {
-                    "type": "string",
-                    "example": "Указано некорректное имя"
-                }
-            }
-        },
-        "api.InvalidRequestError": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "type": "string",
-                    "example": "INVALID_REQUEST"
-                },
-                "details": {
-                    "type": "string",
-                    "example": "field X is required"
-                },
-                "message": {
-                    "type": "string",
-                    "example": "Invalid request body"
-                },
-                "ruMessage": {
-                    "type": "string",
-                    "example": "Некорректный формат запроса"
-                }
-            }
-        },
-        "api.InvalidRoleError": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "type": "string",
-                    "example": "INVALID_ROLE"
-                },
-                "details": {
-                    "type": "string"
-                },
-                "message": {
-                    "type": "string",
-                    "example": "Invalid role ID specified"
-                },
-                "ruMessage": {
-                    "type": "string",
-                    "example": "Указана некорректная роль"
-                }
-            }
-        },
-        "api.InvalidTokenError": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "type": "string",
-                    "example": "INVALID_TOKEN"
-                },
-                "details": {
-                    "type": "string"
-                },
-                "message": {
-                    "type": "string",
-                    "example": "Invalid or expired token"
-                },
-                "ruMessage": {
-                    "type": "string",
-                    "example": "Недействительный или просроченный токен"
-                }
-            }
-        },
-        "api.InvalidUUIDError": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "type": "string",
-                    "example": "INVALID_UUID"
-                },
-                "details": {
-                    "type": "string"
-                },
-                "message": {
-                    "type": "string",
-                    "example": "Invalid UUID format"
-                },
-                "ruMessage": {
-                    "type": "string",
-                    "example": "Некорректный формат UUID"
-                }
-            }
-        },
-        "api.MarkAchievementsAsAccountedRequest": {
-            "type": "object",
-            "required": [
-                "achievementIds"
-            ],
-            "properties": {
-                "achievementIds": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
                 }
             }
         },
@@ -3568,26 +3137,6 @@ const docTemplate = `{
                 }
             }
         },
-        "api.PointsLimitExceededError": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "type": "string",
-                    "example": "POINTS_LIMIT_EXCEEDED"
-                },
-                "details": {
-                    "type": "string"
-                },
-                "message": {
-                    "type": "string",
-                    "example": "Points assigned exceed the template's points limit"
-                },
-                "ruMessage": {
-                    "type": "string",
-                    "example": "Назначенные баллы превышают лимит шаблона"
-                }
-            }
-        },
         "api.ReviewAchievementRequest": {
             "type": "object",
             "required": [
@@ -3668,26 +3217,6 @@ const docTemplate = `{
                 }
             }
         },
-        "api.ServerError": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "type": "string",
-                    "example": "SERVER_ERROR"
-                },
-                "details": {
-                    "type": "string"
-                },
-                "message": {
-                    "type": "string",
-                    "example": "Internal server error"
-                },
-                "ruMessage": {
-                    "type": "string",
-                    "example": "Внутренняя ошибка сервера"
-                }
-            }
-        },
         "api.TokenResponse": {
             "type": "object",
             "required": [
@@ -3697,26 +3226,6 @@ const docTemplate = `{
                 "token": {
                     "type": "string",
                     "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-                }
-            }
-        },
-        "api.UnauthorizedError": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "type": "string",
-                    "example": "UNAUTHORIZED"
-                },
-                "details": {
-                    "type": "string"
-                },
-                "message": {
-                    "type": "string",
-                    "example": "Unauthorized access"
-                },
-                "ruMessage": {
-                    "type": "string",
-                    "example": "Неавторизованный доступ"
                 }
             }
         },
@@ -3734,66 +3243,6 @@ const docTemplate = `{
                 "name": {
                     "type": "string",
                     "example": "Mathematics"
-                }
-            }
-        },
-        "api.UserExistsError": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "type": "string",
-                    "example": "USER_EXISTS"
-                },
-                "details": {
-                    "type": "string"
-                },
-                "message": {
-                    "type": "string",
-                    "example": "User with this username already exists"
-                },
-                "ruMessage": {
-                    "type": "string",
-                    "example": "Пользователь с таким именем уже существует"
-                }
-            }
-        },
-        "api.UserNotFoundError": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "type": "string",
-                    "example": "USER_NOT_FOUND"
-                },
-                "details": {
-                    "type": "string"
-                },
-                "message": {
-                    "type": "string",
-                    "example": "User does not exist"
-                },
-                "ruMessage": {
-                    "type": "string",
-                    "example": "Пользователь не существует"
-                }
-            }
-        },
-        "api.WrongAchievementStatusError": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "type": "string",
-                    "example": "WRONG_ACHIEVEMENT_STATUS"
-                },
-                "details": {
-                    "type": "string"
-                },
-                "message": {
-                    "type": "string",
-                    "example": "Achievement is in wrong status for this operation"
-                },
-                "ruMessage": {
-                    "type": "string",
-                    "example": "Достижение находится в неподходящем статусе для этой операции"
                 }
             }
         },
@@ -3816,6 +3265,23 @@ const docTemplate = `{
                 "name": {
                     "type": "string",
                     "example": "Mathematics"
+                }
+            }
+        },
+        "respond.Error": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "statusCode": {
+                    "type": "integer"
+                },
+                "traceId": {
+                    "type": "string"
                 }
             }
         },

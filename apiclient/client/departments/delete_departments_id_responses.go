@@ -138,7 +138,7 @@ DeleteDepartmentsIDBadRequest describes a response with status code 400, with de
 Invalid UUID format
 */
 type DeleteDepartmentsIDBadRequest struct {
-	Payload *models.APIInvalidDepartmentIDError
+	Payload *models.RespondError
 }
 
 // IsSuccess returns true when this delete departments Id bad request response has a 2xx status code
@@ -181,13 +181,13 @@ func (o *DeleteDepartmentsIDBadRequest) String() string {
 	return fmt.Sprintf("[DELETE /departments/{id}][%d] deleteDepartmentsIdBadRequest %s", 400, payload)
 }
 
-func (o *DeleteDepartmentsIDBadRequest) GetPayload() *models.APIInvalidDepartmentIDError {
+func (o *DeleteDepartmentsIDBadRequest) GetPayload() *models.RespondError {
 	return o.Payload
 }
 
 func (o *DeleteDepartmentsIDBadRequest) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIInvalidDepartmentIDError)
+	o.Payload = new(models.RespondError)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
@@ -208,7 +208,7 @@ DeleteDepartmentsIDUnauthorized describes a response with status code 401, with 
 Unauthorized
 */
 type DeleteDepartmentsIDUnauthorized struct {
-	Payload *models.APIUnauthorizedError
+	Payload *models.RespondError
 }
 
 // IsSuccess returns true when this delete departments Id unauthorized response has a 2xx status code
@@ -251,13 +251,13 @@ func (o *DeleteDepartmentsIDUnauthorized) String() string {
 	return fmt.Sprintf("[DELETE /departments/{id}][%d] deleteDepartmentsIdUnauthorized %s", 401, payload)
 }
 
-func (o *DeleteDepartmentsIDUnauthorized) GetPayload() *models.APIUnauthorizedError {
+func (o *DeleteDepartmentsIDUnauthorized) GetPayload() *models.RespondError {
 	return o.Payload
 }
 
 func (o *DeleteDepartmentsIDUnauthorized) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIUnauthorizedError)
+	o.Payload = new(models.RespondError)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
@@ -278,7 +278,7 @@ DeleteDepartmentsIDForbidden describes a response with status code 403, with def
 Forbidden - admin role required
 */
 type DeleteDepartmentsIDForbidden struct {
-	Payload *models.APIForbiddenError
+	Payload *models.RespondError
 }
 
 // IsSuccess returns true when this delete departments Id forbidden response has a 2xx status code
@@ -321,13 +321,13 @@ func (o *DeleteDepartmentsIDForbidden) String() string {
 	return fmt.Sprintf("[DELETE /departments/{id}][%d] deleteDepartmentsIdForbidden %s", 403, payload)
 }
 
-func (o *DeleteDepartmentsIDForbidden) GetPayload() *models.APIForbiddenError {
+func (o *DeleteDepartmentsIDForbidden) GetPayload() *models.RespondError {
 	return o.Payload
 }
 
 func (o *DeleteDepartmentsIDForbidden) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIForbiddenError)
+	o.Payload = new(models.RespondError)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
@@ -348,7 +348,7 @@ DeleteDepartmentsIDNotFound describes a response with status code 404, with defa
 Department not found
 */
 type DeleteDepartmentsIDNotFound struct {
-	Payload *models.APIDepartmentNotFoundError
+	Payload *models.RespondError
 }
 
 // IsSuccess returns true when this delete departments Id not found response has a 2xx status code
@@ -391,13 +391,13 @@ func (o *DeleteDepartmentsIDNotFound) String() string {
 	return fmt.Sprintf("[DELETE /departments/{id}][%d] deleteDepartmentsIdNotFound %s", 404, payload)
 }
 
-func (o *DeleteDepartmentsIDNotFound) GetPayload() *models.APIDepartmentNotFoundError {
+func (o *DeleteDepartmentsIDNotFound) GetPayload() *models.RespondError {
 	return o.Payload
 }
 
 func (o *DeleteDepartmentsIDNotFound) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIDepartmentNotFoundError)
+	o.Payload = new(models.RespondError)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
@@ -418,7 +418,7 @@ DeleteDepartmentsIDConflict describes a response with status code 409, with defa
 Cannot remove department, it still has some users
 */
 type DeleteDepartmentsIDConflict struct {
-	Payload *models.APICannotRemoveDepartmentError
+	Payload *models.RespondError
 }
 
 // IsSuccess returns true when this delete departments Id conflict response has a 2xx status code
@@ -461,13 +461,13 @@ func (o *DeleteDepartmentsIDConflict) String() string {
 	return fmt.Sprintf("[DELETE /departments/{id}][%d] deleteDepartmentsIdConflict %s", 409, payload)
 }
 
-func (o *DeleteDepartmentsIDConflict) GetPayload() *models.APICannotRemoveDepartmentError {
+func (o *DeleteDepartmentsIDConflict) GetPayload() *models.RespondError {
 	return o.Payload
 }
 
 func (o *DeleteDepartmentsIDConflict) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APICannotRemoveDepartmentError)
+	o.Payload = new(models.RespondError)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
@@ -488,7 +488,7 @@ DeleteDepartmentsIDInternalServerError describes a response with status code 500
 Internal server error
 */
 type DeleteDepartmentsIDInternalServerError struct {
-	Payload *models.APIServerError
+	Payload *models.RespondError
 }
 
 // IsSuccess returns true when this delete departments Id internal server error response has a 2xx status code
@@ -531,13 +531,13 @@ func (o *DeleteDepartmentsIDInternalServerError) String() string {
 	return fmt.Sprintf("[DELETE /departments/{id}][%d] deleteDepartmentsIdInternalServerError %s", 500, payload)
 }
 
-func (o *DeleteDepartmentsIDInternalServerError) GetPayload() *models.APIServerError {
+func (o *DeleteDepartmentsIDInternalServerError) GetPayload() *models.RespondError {
 	return o.Payload
 }
 
 func (o *DeleteDepartmentsIDInternalServerError) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIServerError)
+	o.Payload = new(models.RespondError)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {

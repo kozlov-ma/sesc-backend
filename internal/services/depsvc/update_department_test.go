@@ -63,7 +63,7 @@ func TestUpdateDepartment(t *testing.T) {
 		// Verify the results
 		require.Error(t, err)
 		// The error should contain both the not found error and the invalid department error
-		require.Contains(t, err.Error(), sesc.ErrInvalidDepartment.Error())
+		require.Contains(t, err.Error(), sesc.ErrDepartmentNotFound.Error())
 	})
 
 	t.Run("duplicate_name", func(t *testing.T) {
