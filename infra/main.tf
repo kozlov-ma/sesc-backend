@@ -38,8 +38,8 @@ resource "yandex_vpc_subnet" "subnet" {
 
 # Security group for VMs
 resource "yandex_vpc_security_group" "sg" {
-  name        = "${var.project_name}-security-group"
-  network_id  = yandex_vpc_network.network.id
+  name       = "${var.project_name}-security-group"
+  network_id = yandex_vpc_network.network.id
 
   # Allow SSH
   ingress {
@@ -73,6 +73,10 @@ resource "yandex_vpc_security_group" "sg" {
   }
 }
 
+data "yandex_compute_image" "ubuntu_image" {
+  family = "ubuntu-2404-lts"
+}
+
 # Create VMs
 resource "yandex_compute_instance" "frontend" {
   name        = "${var.project_name}-frontend"
@@ -86,7 +90,7 @@ resource "yandex_compute_instance" "frontend" {
 
   boot_disk {
     initialize_params {
-      image_id = var.vm_image_id
+      image_id = data.yandex_compute_image.ubuntu_image.id
       size     = var.frontend_disk_size
     }
   }
@@ -114,7 +118,7 @@ resource "yandex_compute_instance" "backend" {
 
   boot_disk {
     initialize_params {
-      image_id = var.vm_image_id
+      image_id = data.yandex_compute_image.ubuntu_image.id
       size     = var.backend_disk_size
     }
   }
@@ -142,7 +146,7 @@ resource "yandex_compute_instance" "kamal_accessories" {
 
   boot_disk {
     initialize_params {
-      image_id = var.vm_image_id
+      image_id = data.yandex_compute_image.ubuntu_image.id
       size     = var.accessories_disk_size
     }
   }
@@ -160,8 +164,8 @@ resource "yandex_compute_instance" "kamal_accessories" {
 
 # Load Balancer
 resource "yandex_alb_load_balancer" "lb" {
-  name        = "${var.project_name}-load-balancer"
-  network_id  = yandex_vpc_network.network.id
+  name       = "${var.project_name}-load-balancer"
+  network_id = yandex_vpc_network.network.id
 
   allocation_policy {
     location {

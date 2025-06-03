@@ -39,20 +39,13 @@ variable "additional_domains" {
 variable "admin_ip_cidr" {
   description = "CIDR block for admin access (for SSH)"
   type        = string
-  default     = "0.0.0.0/0"  # Warning: It's better to restrict this in production
+  default     = "0.0.0.0/0" # Warning: It's better to restrict this in production
 }
 
 variable "vm_platform_id" {
   description = "Yandex Compute platform ID"
   type        = string
   default     = "standard-v1"
-}
-
-variable "vm_image_id" {
-  description = "Yandex Compute image ID"
-  type        = string
-  # Default is Ubuntu 20.04
-  default     = "fd80mrhj8fl2oe87o4e1"
 }
 
 variable "vm_user" {
