@@ -6,12 +6,10 @@ import (
 	"time"
 
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent"
-	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievement"
 	entAchievement "github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievement"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/user"
 	"github.com/kozlov-ma/sesc-backend/pkg/event"
 	"github.com/kozlov-ma/sesc-backend/pkg/event/events"
-	"github.com/kozlov-ma/sesc-backend/pkg/sesc"
 )
 
 // GetUsersWithAchievements retrieves users that have achievements with pagination.
@@ -47,14 +45,11 @@ func (s *ACS) GetUsersWithAchievements(
 			return fmt.Errorf("failed to get asking user: %w", err)
 		}
 
-		// Apply role-based filtering
 		roleFilter := s.buildRoleBasedFilters(askingUser)
 
 		start = time.Now()
 		count, err := s.client.User.Query().
-			Where(user.HasAchievementsWith(func(q *ent.AchievementQuery) {
-				q.Where(roleFilter)
-			})).
+			Where(user.HasAchievementsWith(roleFilter)).
 			Count(ctx)
 		statsRec.Add(events.PostgresQueries, 1)
 		statsRec.Add(events.PostgresTime, time.Since(start))
@@ -89,9 +84,7 @@ func (s *ACS) GetUsersWithAchievements(
 
 		start = time.Now()
 		userList, err := s.client.User.Query().
-			Where(user.HasAchievementsWith(func(q *ent.AchievementQuery) {
-				q.Where(roleFilter)
-			})).
+			Where(user.HasAchievementsWith(roleFilter)).
 			WithDepartment().
 			WithAchievements(func(q *ent.AchievementQuery) {
 				q.Where(roleFilter).
@@ -104,7 +97,7 @@ func (s *ACS) GetUsersWithAchievements(
 					WithReviews(func(rq *ent.AchievementReviewQuery) {
 						rq.WithReviewer()
 					}).
-					Order(ent.Desc(entAchievement.FieldCreatedAt))
+					Order(ent.Desc(entAchievement.FieldStatus))
 			}).
 			Order(ent.Asc(user.FieldLastName), ent.Asc(user.FieldFirstName)).
 			Offset(offset).

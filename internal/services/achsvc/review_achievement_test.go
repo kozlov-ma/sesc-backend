@@ -31,7 +31,7 @@ func TestReviewAchievement(t *testing.T) {
 			AchievementID:      ach.ID,
 			AchievementOwnerID: user.ID,
 			ReviewerID:         reviewer.ID,
-			PointsAssigned:     50,
+			PointsAssigned:     1,
 			Comment:            "Good work!",
 		})
 
@@ -39,7 +39,7 @@ func TestReviewAchievement(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, result)
 		require.Equal(t, ach.ID, result.ID)
-		require.Equal(t, 50, result.Points)
+		require.Equal(t, 1, result.Points)
 		require.Equal(t, string(achievement.StatusInspectorReview), result.Status)
 	})
 
@@ -62,7 +62,7 @@ func TestReviewAchievement(t *testing.T) {
 			AchievementID:      nonExistentID,
 			AchievementOwnerID: user.ID,
 			ReviewerID:         reviewer.ID,
-			PointsAssigned:     50,
+			PointsAssigned:     1,
 			Comment:            "Good work!",
 		})
 
@@ -90,7 +90,7 @@ func TestReviewAchievement(t *testing.T) {
 			AchievementID:      ach.ID,
 			AchievementOwnerID: user.ID,
 			ReviewerID:         reviewer.ID,
-			PointsAssigned:     50,
+			PointsAssigned:     1,
 			Comment:            "Good work!",
 		})
 
@@ -109,7 +109,14 @@ func TestReviewAchievement(t *testing.T) {
 
 		// Create test user, invalid reviewer, template, and achievement
 		user := testutil.CreateTestUser(ctx, t, client, "Test", "User", sesc.Role(1))
-		invalidReviewer := testutil.CreateTestUser(ctx, t, client, "Test", "InvalidReviewer", sesc.Role(1)) // Not a dephead
+		invalidReviewer := testutil.CreateTestUser(
+			ctx,
+			t,
+			client,
+			"Test",
+			"InvalidReviewer",
+			sesc.Role(1),
+		) // Not a dephead
 		template := testutil.CreateTestAchievementTemplate(ctx, t, client, achievement.Olympiad)
 		ach := testutil.CreateTestAchievement(ctx, t, client, user, template, achievement.StatusDepheadReview)
 
@@ -118,7 +125,7 @@ func TestReviewAchievement(t *testing.T) {
 			AchievementID:      ach.ID,
 			AchievementOwnerID: user.ID,
 			ReviewerID:         invalidReviewer.ID,
-			PointsAssigned:     50,
+			PointsAssigned:     1,
 			Comment:            "Good work!",
 		})
 

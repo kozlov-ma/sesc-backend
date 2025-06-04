@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/kozlov-ma/sesc-backend/achievement"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent"
 	entAchievement "github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievement"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/user"
@@ -56,6 +55,9 @@ func (s *ACS) GetUserAchievements(
 		count, err := s.client.Achievement.Query().
 			Where(entAchievement.OwnerID(userID)).
 			Where(roleFilter).
+			Order(ent.Desc(entAchievement.FieldStatus)).
+			Offset(offset).
+			Limit(limit).
 			Count(ctx)
 		statsRec.Add(events.PostgresQueries, 1)
 		statsRec.Add(events.PostgresTime, time.Since(start))
@@ -92,19 +94,7 @@ func (s *ACS) GetUserAchievements(
 		entities, err := s.client.Achievement.Query().
 			Where(entAchievement.OwnerID(userID)).
 			Where(roleFilter).
-			WithTemplate(func(q *ent.AchievementTemplateQuery) {
-				q.WithGroup()
-			}).
-			WithOwner(func(q *ent.UserQuery) {
-				q.WithDepartment()
-			}).
-			WithDocuments(func(q *ent.AchievementDocumentQuery) {
-				q.WithFile()
-			}).
-			WithReviews(func(q *ent.AchievementReviewQuery) {
-				q.WithReviewer()
-			}).
-			Order(ent.Desc(entAchievement.FieldCreatedAt)).
+			Order(ent.Desc(entAchievement.FieldStatus)).
 			Offset(offset).
 			Limit(limit).
 			All(ctx)

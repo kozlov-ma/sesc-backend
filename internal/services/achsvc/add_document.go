@@ -43,7 +43,15 @@ func (s *ACS) AddDocument(
 			statsRec.Add(events.PostgresQueries, 1)
 			statsRec.Add(events.PostgresTime, time.Since(start))
 
-			return fmt.Errorf("failed to query achievement: %w", err)
+			if ent.IsNotFound(err) {
+				return achievement.ErrAchievementNotFound
+			}
+
+			if err != nil {
+				return fmt.Errorf("failed to query achievement: %w", err)
+			}
+
+			return nil
 		})
 		if err != nil {
 			return err

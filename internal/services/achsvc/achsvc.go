@@ -8,6 +8,7 @@ import (
 	"github.com/kozlov-ma/sesc-backend/achievement"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent"
 	entAchievement "github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievement"
+	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievementtemplate"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/predicate"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/user"
 	"github.com/kozlov-ma/sesc-backend/sesc"
@@ -68,44 +69,60 @@ func rollback(tx *ent.Tx, err error) error {
 // buildRoleBasedFilters creates appropriate filters based on the asking user's role
 func (s *ACS) buildRoleBasedFilters(askingUser *ent.User) predicate.Achievement {
 	switch askingUser.Role {
+	case sesc.Teacher:
+		return entAchievement.OwnerID(askingUser.ID)
 	case sesc.Dephead:
-		// Department head: filter achievements from their department with DepheadReview status
-		if askingUser.Edges.Department != nil {
+		if askingUser.DepartmentID != nil {
 			return entAchievement.And(
 				entAchievement.HasOwnerWith(user.DepartmentID(askingUser.Edges.Department.ID)),
-				entAchievement.Status(string(achievement.StatusDepheadReview)),
+				entAchievement.StatusNotIn(
+					achievement.StatusDraft,
+					achievement.StatusAccounted,
+				),
 			)
 		}
-	case sesc.OlympiadDeputy:
-		// Olympiad deputy: filter achievements with InspectorReview status and Olympiad kind
+	case sesc.ScientificDeputy:
 		return entAchievement.And(
-			entAchievement.Status(string(achievement.StatusInspectorReview)),
-			entAchievement.HasTemplateWith(func(tq *ent.AchievementTemplateQuery) {
-				tq.Where(func(tq *ent.AchievementTemplateQuery) {
-					tq.HasGroupWith(func(gq *ent.AchievementGroupQuery) {
-						gq.Kind(string(achievement.KindOlympiad))
-					})
-				})
-			}),
+			entAchievement.StatusNotIn(
+				achievement.StatusDraft,
+				achievement.StatusAccounted,
+				achievement.StatusDepheadReview,
+			),
+			entAchievement.HasTemplateWith(achievementtemplate.Kind(achievement.Scientific)),
+		)
+	case sesc.OlympiadDeputy:
+		return entAchievement.And(
+			entAchievement.StatusNotIn(
+				achievement.StatusDraft,
+				achievement.StatusAccounted,
+				achievement.StatusDepheadReview,
+			),
+			entAchievement.HasTemplateWith(achievementtemplate.Kind(achievement.Olympiad)),
+		)
+	case sesc.DevelopmentDeputy:
+		return entAchievement.And(
+			entAchievement.StatusNotIn(
+				achievement.StatusDraft,
+				achievement.StatusAccounted,
+				achievement.StatusDepheadReview,
+			),
+			entAchievement.HasTemplateWith(achievementtemplate.Kind(achievement.Development)),
 		)
 	case sesc.AcademicDirector:
-		// Academic director: filter achievements with InspectorReview status and Development kind
 		return entAchievement.And(
-			entAchievement.Status(string(achievement.StatusInspectorReview)),
-			entAchievement.HasTemplateWith(func(tq *ent.AchievementTemplateQuery) {
-				tq.Where(func(tq *ent.AchievementTemplateQuery) {
-					tq.HasGroupWith(func(gq *ent.AchievementGroupQuery) {
-						gq.Kind(string(achievement.KindDevelopment))
-					})
-				})
-			}),
+			entAchievement.StatusNotIn(
+				achievement.StatusDraft,
+				achievement.StatusAccounted,
+				achievement.StatusDepheadReview,
+			),
+			entAchievement.HasTemplateWith(achievementtemplate.Kind(achievement.Development)),
 		)
-	default:
-		// For other roles, don't apply any special filters (show all achievements)
-		// Return a predicate that matches all achievements
-		return entAchievement.IDNotNil()
+	case sesc.ChiefEconomist:
+		return entAchievement.Or(
+			entAchievement.Status(achievement.StatusDone),
+			entAchievement.Status(achievement.StatusAccounted),
+		)
 	}
 
-	// Fallback for cases where conditions are not met
-	return entAchievement.IDNotNil()
+	panic("invalid role")
 }
