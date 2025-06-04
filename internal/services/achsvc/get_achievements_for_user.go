@@ -50,15 +50,13 @@ func (s *ACS) GetUserAchievements(
 		}
 
 		// Apply role-based filtering for count
-		query := s.client.Achievement.Query().
-			Where(entAchievement.OwnerID(userID))
-
-		// Apply role-based filters
 		roleFilter := s.buildRoleBasedFilters(askingUser)
-		roleFilter(query)
 
 		start = time.Now()
-		count, err := query.Count(ctx)
+		count, err := s.client.Achievement.Query().
+			Where(entAchievement.OwnerID(userID)).
+			Where(roleFilter).
+			Count(ctx)
 		statsRec.Add(events.PostgresQueries, 1)
 		statsRec.Add(events.PostgresTime, time.Since(start))
 
@@ -87,9 +85,13 @@ func (s *ACS) GetUserAchievements(
 			return fmt.Errorf("failed to get asking user: %w", err)
 		}
 
-		// Build query with role-based filtering
-		query := s.client.Achievement.Query().
+		// Apply role-based filtering
+		roleFilter := s.buildRoleBasedFilters(askingUser)
+
+		start = time.Now()
+		entities, err := s.client.Achievement.Query().
 			Where(entAchievement.OwnerID(userID)).
+			Where(roleFilter).
 			WithTemplate(func(q *ent.AchievementTemplateQuery) {
 				q.WithGroup()
 			}).
@@ -101,14 +103,7 @@ func (s *ACS) GetUserAchievements(
 			}).
 			WithReviews(func(q *ent.AchievementReviewQuery) {
 				q.WithReviewer()
-			})
-
-		// Apply role-based filters
-		roleFilter := s.buildRoleBasedFilters(askingUser)
-		roleFilter(query)
-
-		start = time.Now()
-		entities, err := query.
+			}).
 			Order(ent.Desc(entAchievement.FieldCreatedAt)).
 			Offset(offset).
 			Limit(limit).

@@ -22,7 +22,7 @@ func TestGetUsersWithAchievements(t *testing.T) {
 		svc := New(client)
 
 		// Create test users and department
-		dept := testutil.CreateTestDepartment(ctx, t, client, "Test Department")
+		dept := testutil.CreateTestDepartmentWithName(ctx, t, client, "Test Department")
 		user1 := testutil.CreateTestUserWithDepartment(ctx, t, client, "Test1", "User1", sesc.Student, dept)
 		user2 := testutil.CreateTestUserWithDepartment(ctx, t, client, "Test2", "User2", sesc.Student, dept)
 		asker := testutil.CreateTestUserWithDepartment(ctx, t, client, "Asking", "User", sesc.Student, dept)
@@ -59,8 +59,8 @@ func TestGetUsersWithAchievements(t *testing.T) {
 		svc := New(client)
 
 		// Create departments and users
-		dept1 := testutil.CreateTestDepartment(ctx, t, client, "Department 1")
-		dept2 := testutil.CreateTestDepartment(ctx, t, client, "Department 2")
+		dept1 := testutil.CreateTestDepartmentWithName(ctx, t, client, "Department 1")
+		dept2 := testutil.CreateTestDepartmentWithName(ctx, t, client, "Department 2")
 
 		user1 := testutil.CreateTestUserWithDepartment(ctx, t, client, "User1", "Dept1", sesc.Student, dept1)
 		user2 := testutil.CreateTestUserWithDepartment(ctx, t, client, "User2", "Dept2", sesc.Student, dept2)
@@ -104,7 +104,7 @@ func TestGetUsersWithAchievements(t *testing.T) {
 		svc := New(client)
 
 		// Create users and templates
-		dept := testutil.CreateTestDepartment(ctx, t, client, "Test Department")
+		dept := testutil.CreateTestDepartmentWithName(ctx, t, client, "Test Department")
 		user1 := testutil.CreateTestUserWithDepartment(ctx, t, client, "User1", "Test", sesc.Student, dept)
 		user2 := testutil.CreateTestUserWithDepartment(ctx, t, client, "User2", "Test", sesc.Student, dept)
 		user3 := testutil.CreateTestUserWithDepartment(ctx, t, client, "User3", "Test", sesc.Student, dept)
@@ -145,7 +145,7 @@ func TestGetUsersWithAchievements(t *testing.T) {
 		svc := New(client)
 
 		// Create users and templates
-		dept := testutil.CreateTestDepartment(ctx, t, client, "Test Department")
+		dept := testutil.CreateTestDepartmentWithName(ctx, t, client, "Test Department")
 		user1 := testutil.CreateTestUserWithDepartment(ctx, t, client, "User1", "Test", sesc.Student, dept)
 		user2 := testutil.CreateTestUserWithDepartment(ctx, t, client, "User2", "Test", sesc.Student, dept)
 		user3 := testutil.CreateTestUserWithDepartment(ctx, t, client, "User3", "Test", sesc.Student, dept)
@@ -186,8 +186,8 @@ func TestGetUsersWithAchievements(t *testing.T) {
 		svc := New(client)
 
 		// Create departments and users
-		dept1 := testutil.CreateTestDepartment(ctx, t, client, "Department 1")
-		dept2 := testutil.CreateTestDepartment(ctx, t, client, "Department 2")
+		dept1 := testutil.CreateTestDepartmentWithName(ctx, t, client, "Department 1")
+		dept2 := testutil.CreateTestDepartmentWithName(ctx, t, client, "Department 2")
 
 		user1 := testutil.CreateTestUserWithDepartment(ctx, t, client, "User1", "Dept1", sesc.Student, dept1)
 		user2 := testutil.CreateTestUserWithDepartment(ctx, t, client, "User2", "Dept2", sesc.Student, dept2)
@@ -221,7 +221,7 @@ func TestGetUsersWithAchievements(t *testing.T) {
 		svc := New(client)
 
 		// Create an asker but no users with achievements
-		dept := testutil.CreateTestDepartment(ctx, t, client, "Test Department")
+		dept := testutil.CreateTestDepartmentWithName(ctx, t, client, "Test Department")
 		asker := testutil.CreateTestUserWithDepartment(ctx, t, client, "Asking", "User", sesc.Dephead, dept)
 
 		// Call the method being tested
@@ -243,7 +243,7 @@ func TestGetUsersWithAchievements(t *testing.T) {
 		svc := New(client)
 
 		// Create multiple test users with achievements
-		dept := testutil.CreateTestDepartment(ctx, t, client, "Test Department")
+		dept := testutil.CreateTestDepartmentWithName(ctx, t, client, "Test Department")
 		asker := testutil.CreateTestUserWithDepartment(ctx, t, client, "Asking", "User", sesc.Student, dept)
 		template := testutil.CreateTestAchievementTemplate(ctx, t, client, achievement.KindOlympiad)
 
@@ -277,7 +277,7 @@ func TestGetUsersWithAchievements(t *testing.T) {
 		svc := New(client)
 
 		// Create an asker
-		dept := testutil.CreateTestDepartment(ctx, t, client, "Test Department")
+		dept := testutil.CreateTestDepartmentWithName(ctx, t, client, "Test Department")
 		asker := testutil.CreateTestUserWithDepartment(ctx, t, client, "Asking", "User", sesc.Dephead, dept)
 
 		// Close the database to force errors

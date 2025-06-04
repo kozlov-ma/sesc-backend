@@ -92,13 +92,50 @@ func CreateTestUser(
 	return us
 }
 
-// CreateTestDepartment creates a test department directly in the database
+// CreateTestUserWithDepartment creates a test user with a specific department
+func CreateTestUserWithDepartment(
+	ctx context.Context,
+	t *testing.T,
+	client *ent.Client,
+	firstName, lastName string,
+	role sesc.Role,
+	dept *ent.Department,
+) *ent.User {
+	t.Helper()
+
+	userID := uuid.Must(uuid.NewV7())
+	us, err := client.User.Create().
+		SetID(userID).
+		SetFirstName(firstName).
+		SetLastName(lastName).
+		SetDepartment(dept).
+		SetRole(role).
+		Save(ctx)
+	require.NoError(t, err)
+
+	return us
+}
+
+// CreateTestDepartment creates a test department directly in the database with a generated name
 func CreateTestDepartment(ctx context.Context, t *testing.T, client *ent.Client) *ent.Department {
 	t.Helper()
 
 	deptName := "Test Department " + strconv.Itoa(rand.Int())
 	dept, err := client.Department.Create().
 		SetName(deptName).
+		SetDescription("For testing").
+		Save(ctx)
+	require.NoError(t, err)
+
+	return dept
+}
+
+// CreateTestDepartmentWithName creates a test department with a specific name
+func CreateTestDepartmentWithName(ctx context.Context, t *testing.T, client *ent.Client, name string) *ent.Department {
+	t.Helper()
+
+	dept, err := client.Department.Create().
+		SetName(name).
 		SetDescription("For testing").
 		Save(ctx)
 	require.NoError(t, err)

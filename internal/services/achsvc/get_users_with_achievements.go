@@ -7,6 +7,7 @@ import (
 
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievement"
+	entAchievement "github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievement"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/user"
 	"github.com/kozlov-ma/sesc-backend/pkg/event"
 	"github.com/kozlov-ma/sesc-backend/pkg/event/events"
@@ -46,16 +47,15 @@ func (s *ACS) GetUsersWithAchievements(
 			return fmt.Errorf("failed to get asking user: %w", err)
 		}
 
-		// Build count query with role-based filtering
-		query := s.client.User.Query().
-			Where(user.HasAchievementsWith(func(q *ent.AchievementQuery) {
-				// Apply role-based filters to achievements
-				roleFilter := s.buildRoleBasedFilters(askingUser)
-				roleFilter(q)
-			}))
+		// Apply role-based filtering
+		roleFilter := s.buildRoleBasedFilters(askingUser)
 
 		start = time.Now()
-		count, err := query.Count(ctx)
+		count, err := s.client.User.Query().
+			Where(user.HasAchievementsWith(func(q *ent.AchievementQuery) {
+				q.Where(roleFilter)
+			})).
+			Count(ctx)
 		statsRec.Add(events.PostgresQueries, 1)
 		statsRec.Add(events.PostgresTime, time.Since(start))
 
@@ -84,38 +84,29 @@ func (s *ACS) GetUsersWithAchievements(
 			return fmt.Errorf("failed to get asking user: %w", err)
 		}
 
-		// Build query with role-based filtering
-		query := s.client.User.Query().
+		// Apply role-based filtering
+		roleFilter := s.buildRoleBasedFilters(askingUser)
+
+		start = time.Now()
+		userList, err := s.client.User.Query().
 			Where(user.HasAchievementsWith(func(q *ent.AchievementQuery) {
-				// Apply role-based filters to achievements
-				roleFilter := s.buildRoleBasedFilters(askingUser)
-				roleFilter(q)
+				q.Where(roleFilter)
 			})).
 			WithDepartment().
 			WithAchievements(func(q *ent.AchievementQuery) {
-				q.WithTemplate(func(tq *ent.AchievementTemplateQuery) {
-					tq.WithGroup()
-				}).
+				q.Where(roleFilter).
+					WithTemplate(func(tq *ent.AchievementTemplateQuery) {
+						tq.WithGroup()
+					}).
 					WithDocuments(func(dq *ent.AchievementDocumentQuery) {
 						dq.WithFile()
 					}).
 					WithReviews(func(rq *ent.AchievementReviewQuery) {
 						rq.WithReviewer()
-					})
-
-				// Apply role-based filters to achievements
-				roleFilter := s.buildRoleBasedFilters(askingUser)
-				roleFilter(q)
-
-				// Order achievements by creation time (newest first)
-				q.Order(ent.Desc(achievement.FieldCreatedAt))
-			})
-
-		// Order users by name for consistent pagination
-		query = query.Order(ent.Asc(user.FieldLastName), ent.Asc(user.FieldFirstName))
-
-		start = time.Now()
-		userList, err := query.
+					}).
+					Order(ent.Desc(entAchievement.FieldCreatedAt))
+			}).
+			Order(ent.Asc(user.FieldLastName), ent.Asc(user.FieldFirstName)).
 			Offset(offset).
 			Limit(limit).
 			All(ctx)

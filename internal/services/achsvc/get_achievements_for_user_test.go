@@ -21,7 +21,7 @@ func TestGetUserAchievements(t *testing.T) {
 		svc := New(client)
 
 		// Create test users and department
-		dept := testutil.CreateTestDepartment(ctx, t, client, "Test Department")
+		dept := testutil.CreateTestDepartmentWithName(ctx, t, client, "Test Department")
 		owner := testutil.CreateTestUserWithDepartment(ctx, t, client, "Test", "Owner", sesc.Student, dept)
 		asker := testutil.CreateTestUserWithDepartment(ctx, t, client, "Asking", "User", sesc.Student, dept)
 
@@ -58,8 +58,8 @@ func TestGetUserAchievements(t *testing.T) {
 		svc := New(client)
 
 		// Create departments and users
-		dept1 := testutil.CreateTestDepartment(ctx, t, client, "Department 1")
-		dept2 := testutil.CreateTestDepartment(ctx, t, client, "Department 2")
+		dept1 := testutil.CreateTestDepartmentWithName(ctx, t, client, "Department 1")
+		dept2 := testutil.CreateTestDepartmentWithName(ctx, t, client, "Department 2")
 
 		owner := testutil.CreateTestUserWithDepartment(ctx, t, client, "Test", "Owner", sesc.Student, dept1)
 		dephead := testutil.CreateTestUserWithDepartment(ctx, t, client, "Dep", "Head", sesc.Dephead, dept1)
@@ -93,7 +93,7 @@ func TestGetUserAchievements(t *testing.T) {
 		svc := New(client)
 
 		// Create users and templates
-		dept := testutil.CreateTestDepartment(ctx, t, client, "Test Department")
+		dept := testutil.CreateTestDepartmentWithName(ctx, t, client, "Test Department")
 		owner := testutil.CreateTestUserWithDepartment(ctx, t, client, "Test", "Owner", sesc.Student, dept)
 		olympiadDeputy := testutil.CreateTestUserWithDepartment(ctx, t, client, "Olympiad", "Deputy", sesc.OlympiadDeputy, dept)
 
@@ -127,7 +127,7 @@ func TestGetUserAchievements(t *testing.T) {
 		svc := New(client)
 
 		// Create users and templates
-		dept := testutil.CreateTestDepartment(ctx, t, client, "Test Department")
+		dept := testutil.CreateTestDepartmentWithName(ctx, t, client, "Test Department")
 		owner := testutil.CreateTestUserWithDepartment(ctx, t, client, "Test", "Owner", sesc.Student, dept)
 		academicDirector := testutil.CreateTestUserWithDepartment(ctx, t, client, "Academic", "Director", sesc.AcademicDirector, dept)
 
@@ -161,7 +161,7 @@ func TestGetUserAchievements(t *testing.T) {
 		svc := New(client)
 
 		// Create test users but no achievements
-		dept := testutil.CreateTestDepartment(ctx, t, client, "Test Department")
+		dept := testutil.CreateTestDepartmentWithName(ctx, t, client, "Test Department")
 		owner := testutil.CreateTestUserWithDepartment(ctx, t, client, "Test", "Owner", sesc.Student, dept)
 		asker := testutil.CreateTestUserWithDepartment(ctx, t, client, "Asking", "User", sesc.Student, dept)
 
@@ -184,7 +184,7 @@ func TestGetUserAchievements(t *testing.T) {
 		svc := New(client)
 
 		// Create test users and template
-		dept := testutil.CreateTestDepartment(ctx, t, client, "Test Department")
+		dept := testutil.CreateTestDepartmentWithName(ctx, t, client, "Test Department")
 		owner := testutil.CreateTestUserWithDepartment(ctx, t, client, "Test", "Owner", sesc.Student, dept)
 		asker := testutil.CreateTestUserWithDepartment(ctx, t, client, "Asking", "User", sesc.Student, dept)
 		template := testutil.CreateTestAchievementTemplate(ctx, t, client, achievement.KindOlympiad)
@@ -213,7 +213,7 @@ func TestGetUserAchievements(t *testing.T) {
 		svc := New(client)
 
 		// Create test users
-		dept := testutil.CreateTestDepartment(ctx, t, client, "Test Department")
+		dept := testutil.CreateTestDepartmentWithName(ctx, t, client, "Test Department")
 		owner := testutil.CreateTestUserWithDepartment(ctx, t, client, "Test", "Owner", sesc.Student, dept)
 		asker := testutil.CreateTestUserWithDepartment(ctx, t, client, "Asking", "User", sesc.Student, dept)
 
