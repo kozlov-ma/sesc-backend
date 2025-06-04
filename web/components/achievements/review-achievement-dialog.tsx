@@ -25,14 +25,17 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { FileNameByIdDisplay } from "@/components/files/file-name-display";
-import { ApiAchievementResponse } from "@/lib/api/types.gen";
+import { RespondAchievement } from "@/lib/api/types.gen";
+
+type ApiAchievement = RespondAchievement;
 import { UserAvatar } from "@/components/ui/user-avatar";
 import {
   getStatusLabel,
   getStatusBadgeVariant,
 } from "@/lib/utils/achievements";
 import {
-  getAchievementsGroupedOptions,
+  getAchievementsUsersOptions,
+  getAchievementsOptions,
   postAchievementsByIdReviewMutation,
 } from "@/lib/api/@tanstack/react-query.gen";
 import {
@@ -48,7 +51,7 @@ import {
 import Link from "next/link";
 
 interface ReviewAchievementDialogProps {
-  achievement: ApiAchievementResponse;
+  achievement: ApiAchievement;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
@@ -70,8 +73,12 @@ export function ReviewAchievementDialog({
       toast.success("Достижение проверено", {
         description: "Достижение успешно проверено",
       });
+      // Invalidate both users and achievements queries
       queryClient.invalidateQueries({
-        queryKey: getAchievementsGroupedOptions().queryKey,
+        queryKey: getAchievementsUsersOptions().queryKey,
+      });
+      queryClient.invalidateQueries({
+        queryKey: getAchievementsOptions().queryKey,
       });
       onOpenChange(false);
     },
@@ -157,7 +164,7 @@ export function ReviewAchievementDialog({
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {achievement.documents.map((document) => (
+                    {achievement.documents?.map((document) => (
                       <TableRow key={document.id}>
                         <TableCell className="max-w-[150px]">
                           <div className="truncate" title={document.name}>

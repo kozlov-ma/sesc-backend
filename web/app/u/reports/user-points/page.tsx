@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Download,
@@ -28,9 +28,11 @@ import { toast } from "sonner";
 import { useAuth } from "@/hooks/use-auth";
 import {
   getUsersMeOptions,
-  getAchievementsGroupedOptions,
+  getAchievementsUsersOptions,
+  getAchievementsOptions,
   postReportsMarkAllAccountedMutation,
 } from "@/lib/api/@tanstack/react-query.gen";
+import { RespondAchievement } from "@/lib/api/types.gen";
 
 export default function UserPointsReportPage() {
   const { isAuthenticated, token } = useAuth();
@@ -43,13 +45,13 @@ export default function UserPointsReportPage() {
     enabled: isAuthenticated,
   });
 
-  // Fetch all grouped achievements using TanStack Query
+  // Fetch users with achievements
   const {
-    data: groupedAchievementsData,
-    isLoading: isLoadingAchievements,
-    refetch: refetchAchievements,
+    data: usersData,
+    isLoading: isLoadingUsers,
+    refetch: refetchUsers,
   } = useQuery({
-    ...getAchievementsGroupedOptions({
+    ...getAchievementsUsersOptions({
       query: {
         limit: 100,
       },
@@ -59,10 +61,51 @@ export default function UserPointsReportPage() {
     gcTime: 1000 * 60 * 60, // 60 minutes
   });
 
-  // Extract all achievements from grouped data
-  const allAchievements = groupedAchievementsData?.items
-    ? Object.values(groupedAchievementsData.items).flat()
-    : [];
+  // Fetch all achievements
+  const {
+    data: achievementsData,
+    isLoading: isLoadingAchievements,
+    refetch: refetchAchievements,
+  } = useQuery({
+    ...getAchievementsOptions({
+      query: {
+        limit: 1000, // Fetch more achievements to cover all users
+        // Remove status filter since it's not part of the query params
+      },
+    }),
+    enabled: isAuthenticated && me?.role.id === 6,
+    staleTime: 1000 * 60 * 5, // 5 minutes
+  });
+
+  // Combine users with their achievements
+  const allAchievements = useMemo(() => {
+    if (!usersData?.items || !achievementsData?.items) return [];
+
+    // Create a map of user IDs to their achievements
+    const userAchievementsMap = new Map<string, RespondAchievement[]>();
+
+    // Initialize with empty arrays for all users
+    usersData.items.forEach((user) => {
+      userAchievementsMap.set(user.id, []);
+    });
+
+    // Assign achievements to users
+    achievementsData.items.forEach((achievement: RespondAchievement) => {
+      const userAchievements =
+        userAchievementsMap.get(achievement.ownerId) || [];
+      userAchievements.push(achievement);
+      userAchievementsMap.set(achievement.ownerId, userAchievements);
+    });
+
+    // Flatten the map to an array of all achievements
+    return Array.from(userAchievementsMap.values()).flat();
+  }, [usersData, achievementsData]);
+
+  const isLoading = isLoadingUsers || isLoadingAchievements;
+  const refetch = () => {
+    refetchUsers();
+    refetchAchievements();
+  };
 
   // Mutation to mark all done achievements as accounted using TanStack Query
   const markAllAccountedMutation = useMutation({
@@ -71,7 +114,8 @@ export default function UserPointsReportPage() {
       toast.success("Все достижения успешно отмечены как учтенные");
       // Invalidate any queries that might be affected by this mutation
       queryClient.invalidateQueries({
-        queryKey: getAchievementsGroupedOptions({}).queryKey,
+        // Invalidate both users and achievements queries
+        queryKey: getAchievementsUsersOptions({}).queryKey,
       });
     },
     onError: (error) => {
@@ -123,8 +167,13 @@ export default function UserPointsReportPage() {
   });
 
   // Early returns after all hooks are called
-  if (isLoadingMe) return null;
-  if (!isAuthenticated || me?.role.codeName != "chief_economist") return null;
+  if (
+    isLoading ||
+    isLoadingMe ||
+    !isAuthenticated ||
+    me?.role.codeName != "chief_economist"
+  )
+    return null;
 
   // Mark all done achievements as accounted
   const handleCompleteCalculation = () => {
@@ -223,34 +272,22 @@ export default function UserPointsReportPage() {
                 Достижения со статусом &quot;Выполнено&quot; (
                 {doneAchievements.length} шт.)
               </p>
-              {doneAchievements.length > 0 && (
-                <p className="text-sm text-muted-foreground">
-                  Общее количество баллов:{" "}
-                  <strong>
-                    {doneAchievements.reduce(
-                      (sum, a) => sum + (a.points || 0),
-                      0,
-                    )}
-                  </strong>
-                </p>
-              )}
+              <Button
+                onClick={() => refetch()}
+                variant="outline"
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <RefreshCw className="mr-2 h-4 w-4" />
+                )}
+                Обновить
+              </Button>
             </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => refetchAchievements()}
-              disabled={isLoadingAchievements}
-            >
-              {isLoadingAchievements ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              ) : (
-                <RefreshCw className="mr-2 h-4 w-4" />
-              )}
-              Обновить
-            </Button>
           </div>
 
-          {isLoadingAchievements ? (
+          {isLoading ? (
             <div className="flex items-center justify-center py-8">
               <Loader2 className="h-8 w-8 animate-spin" />
               <span className="ml-2">Загрузка достижений...</span>
