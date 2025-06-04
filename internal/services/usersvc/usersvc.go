@@ -17,8 +17,6 @@ import (
 
 type (
 	UUID                             = uuid.UUID
-	User                             = sesc.User
-	Department                       = sesc.Department
 	Role                             = sesc.Role
 	UserUpdateOptions                = sesc.UserUpdateOptions
 	AchievementGroup                 = achievement.Group

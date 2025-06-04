@@ -13,6 +13,7 @@ import (
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent"
 	"github.com/kozlov-ma/sesc-backend/pkg/event"
 	"github.com/kozlov-ma/sesc-backend/sesc"
+
 	// Import SQLite driver
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/stretchr/testify/require"
@@ -65,7 +66,7 @@ func CreateTestUser(
 	client *ent.Client,
 	firstName, lastName string,
 	role sesc.Role,
-) sesc.User {
+) *ent.User {
 	t.Helper()
 
 	// Create a department first
@@ -79,7 +80,7 @@ func CreateTestUser(
 	// Create the user
 	userID := uuid.Must(uuid.NewV7())
 
-	_, err = client.User.Create().
+	us, err := client.User.Create().
 		SetID(userID).
 		SetFirstName(firstName).
 		SetLastName(lastName).
@@ -88,20 +89,11 @@ func CreateTestUser(
 		Save(ctx)
 	require.NoError(t, err)
 
-	return sesc.User{
-		ID:        userID,
-		FirstName: firstName,
-		LastName:  lastName,
-		Department: sesc.Department{
-			ID:   dept.ID,
-			Name: deptName,
-		},
-		Role: role,
-	}
+	return us
 }
 
 // CreateTestDepartment creates a test department directly in the database
-func CreateTestDepartment(ctx context.Context, t *testing.T, client *ent.Client) sesc.Department {
+func CreateTestDepartment(ctx context.Context, t *testing.T, client *ent.Client) *ent.Department {
 	t.Helper()
 
 	deptName := "Test Department " + strconv.Itoa(rand.Int())
@@ -111,10 +103,7 @@ func CreateTestDepartment(ctx context.Context, t *testing.T, client *ent.Client)
 		Save(ctx)
 	require.NoError(t, err)
 
-	return sesc.Department{
-		ID:   dept.ID,
-		Name: deptName,
-	}
+	return dept
 }
 
 // CreateTestAchievementGroup creates a test achievement group directly in the database
@@ -172,7 +161,7 @@ func CreateTestAchievement(
 	ctx context.Context,
 	t *testing.T,
 	client *ent.Client,
-	user sesc.User,
+	user *ent.User,
 	template achievement.Template,
 	status achievement.Status,
 ) achievement.Achievement {
@@ -198,28 +187,22 @@ func CreateTestAchievement(
 }
 
 // CreateTestFile creates a test file entry directly in the database
-func CreateTestFile(ctx context.Context, t *testing.T, client *ent.Client) sesc.File {
+func CreateTestFile(ctx context.Context, t *testing.T, client *ent.Client) *ent.File {
 	t.Helper()
 
 	fileID := uuid.Must(uuid.NewV7())
 	fileName := "test-file-" + strconv.Itoa(rand.Int()) + ".pdf"
 	objectKey := "test-files/" + fileID.String()
 
-	_, err := client.File.Create().
+	fi, err := client.File.Create().
 		SetID(fileID).
 		SetName(fileName).
 		SetSize(1024).
-		SetURL("https://example.com/" + fileName).
 		SetS3ObjectKey(objectKey).
 		Save(ctx)
 	require.NoError(t, err)
 
-	return sesc.File{
-		ID:   fileID,
-		Name: fileName,
-		Size: 1024,
-		URL:  "https://example.com/" + fileName,
-	}
+	return fi
 }
 
 // CreateTestContext creates a new context with an event record for testing
@@ -231,11 +214,11 @@ func CreateTestContext(t *testing.T) (context.Context, *event.Record) {
 // TestContext contains shared testing resources
 type TestContext struct {
 	Client   *ent.Client
-	User     sesc.User
+	User     *ent.User
 	Template achievement.Template
 	Group    achievement.Group
-	File     sesc.File
-	Dept     sesc.Department
+	File     *ent.File
+	Dept     *ent.Department
 }
 
 // SetupTestContext creates a TestContext with all common test resources initialized

@@ -21,8 +21,6 @@ const (
 	FieldName = "name"
 	// FieldSize holds the string denoting the size field in the database.
 	FieldSize = "size"
-	// FieldURL holds the string denoting the url field in the database.
-	FieldURL = "url"
 	// EdgeOwner holds the string denoting the owner edge name in mutations.
 	EdgeOwner = "owner"
 	// EdgeAchievementDocuments holds the string denoting the achievement_documents edge name in mutations.
@@ -52,7 +50,6 @@ var Columns = []string{
 	FieldS3ObjectKey,
 	FieldName,
 	FieldSize,
-	FieldURL,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -96,11 +93,6 @@ func ByName(opts ...sql.OrderTermOption) OrderOption {
 // BySize orders the results by the size field.
 func BySize(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldSize, opts...).ToFunc()
-}
-
-// ByURL orders the results by the url field.
-func ByURL(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldURL, opts...).ToFunc()
 }
 
 // ByOwnerField orders the results by owner field.

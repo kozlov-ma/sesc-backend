@@ -20,7 +20,6 @@ import (
 
 type (
 	UUID     = uuid.UUID
-	File     = sesc.File
 	FileOpts = sesc.FileCreateOptions
 )
 
@@ -107,7 +106,7 @@ func (s *FileService) generateSecureObjectKey() (string, error) {
 }
 
 // Create creates a new file entry and stores the file in the storage.
-func (s *FileService) Create(ctx context.Context, reader io.Reader, opts FileOpts) (File, error) {
+func (s *FileService) Create(ctx context.Context, reader io.Reader, opts FileOpts) (*ent.File, error) {
 	rec := event.Get(ctx).Sub("file/create")
 
 	rec.Sub("params").Set(
@@ -127,7 +126,7 @@ func (s *FileService) Create(ctx context.Context, reader io.Reader, opts FileOpt
 
 	if err != nil {
 		rec.Add(events.Error, err)
-		return File{}, err
+		return nil, err
 	}
 
 	// Generate UUID
@@ -142,7 +141,7 @@ func (s *FileService) Create(ctx context.Context, reader io.Reader, opts FileOpt
 
 	if err != nil {
 		rec.Add(events.Error, err)
-		return File{}, err
+		return nil, err
 	}
 
 	// Generate object key
@@ -157,7 +156,7 @@ func (s *FileService) Create(ctx context.Context, reader io.Reader, opts FileOpt
 
 	if err != nil {
 		rec.Add(events.Error, err)
-		return File{}, err
+		return nil, err
 	}
 
 	var f *ent.File
@@ -169,7 +168,6 @@ func (s *FileService) Create(ctx context.Context, reader io.Reader, opts FileOpt
 				SetS3ObjectKey(objectKey).
 				SetName(opts.FileName).
 				SetSize(opts.FileSize).
-				SetURL("").
 				SetNillableOwnerID(opts.OwnerID).
 				Save(ctx)
 
@@ -203,16 +201,14 @@ func (s *FileService) Create(ctx context.Context, reader io.Reader, opts FileOpt
 
 	if err != nil {
 		_ = s.storage.RemoveObject(ctx, objectKey)
-		return File{}, err
+		return nil, err
 	}
 
-	resultFile := convertToModel(f)
-
 	rec.Set("success", true)
-	rec.Set("file_id", resultFile.ID.String())
+	rec.Set("file_id", f.ID.String())
 	rec.Set("total_duration_ms", time.Since(rec.Sub("params").Value("start_time").(time.Time)).Milliseconds())
 
-	return resultFile, nil
+	return f, nil
 }
 
 // Delete deletes a file by ID.
@@ -302,7 +298,7 @@ func buildFilePredicates(opts sesc.FileSearchOptions, rec *event.Record) []predi
 }
 
 // Search returns a paginated list of files filtered by the given options.
-func (s *FileService) Search(ctx context.Context, opts sesc.FileSearchOptions) ([]File, int, error) {
+func (s *FileService) Search(ctx context.Context, opts sesc.FileSearchOptions) (ent.Files, int, error) {
 	rec := event.Get(ctx).Sub("file/search")
 
 	rec.Sub("params").Set(
@@ -343,7 +339,7 @@ func (s *FileService) Search(ctx context.Context, opts sesc.FileSearchOptions) (
 	}
 
 	// Get paginated results
-	var files []*ent.File
+	var files ent.Files
 	err = recordDBOperation(ctx, rec, "query_files", func() error {
 		var err error
 		files, err = s.client.File.Query().
@@ -367,30 +363,16 @@ func (s *FileService) Search(ctx context.Context, opts sesc.FileSearchOptions) (
 		return nil, 0, err
 	}
 
-	// Convert to domain models with download URLs
-	result := make([]File, len(files))
-	err = rec.Operation("convert_results", func(rec *event.Record) error {
-		for i, f := range files {
-			result[i] = s.convertToModelWithURL(ctx, f, rec.Sub(fmt.Sprintf("file_%d", i)))
-		}
-		rec.Set("files_converted", len(result))
-		return nil
-	})
-	if err != nil {
-		rec.Add(events.Error, err)
-		return nil, 0, err
-	}
-
 	rec.Set("success", true)
-	rec.Set("result_count", len(result))
+	rec.Set("result_count", len(files))
 	rec.Set("total_count", totalCount)
 	rec.Set("total_duration_ms", time.Since(rec.Sub("params").Value("start_time").(time.Time)).Milliseconds())
 
-	return result, totalCount, nil
+	return files, totalCount, nil
 }
 
 // ByID returns a file by ID.
-func (s *FileService) ByID(ctx context.Context, id UUID) (File, error) {
+func (s *FileService) ByID(ctx context.Context, id UUID) (*ent.File, error) {
 	rec := event.Get(ctx).Sub("file/by_id")
 
 	rec.Sub("params").Set(
@@ -402,15 +384,13 @@ func (s *FileService) ByID(ctx context.Context, id UUID) (File, error) {
 	f, err := s.getFile(ctx, rec, id)
 	if err != nil {
 		rec.Add(events.Error, err)
-		return File{}, err
+		return nil, err
 	}
-
-	result := s.convertToModelWithURL(ctx, f, rec.Sub("convert_with_url"))
 
 	rec.Set("success", true)
 	rec.Set("total_duration_ms", time.Since(rec.Sub("params").Value("start_time").(time.Time)).Milliseconds())
 
-	return result, nil
+	return f, nil
 }
 
 // getFile is a helper method to retrieve a file by ID with proper event recording
@@ -437,33 +417,4 @@ func (s *FileService) getFile(ctx context.Context, rec *event.Record, id UUID) (
 	})
 
 	return file, err
-}
-
-// convertToModel converts an ent.File to a domain model File
-func convertToModel(f *ent.File) File {
-	return File{
-		ID:          f.ID,
-		OwnerID:     f.OwnerID,
-		Name:        f.Name,
-		Size:        f.Size,
-		URL:         f.URL,
-		S3ObjectKey: f.S3ObjectKey,
-	}
-}
-
-// convertToModelWithURL converts an ent.File to a domain model File and includes a download URL
-func (s *FileService) convertToModelWithURL(ctx context.Context, f *ent.File, rec *event.Record) File {
-	file := convertToModel(f)
-
-	// Generate download URL
-	url, err := s.storage.GetObjectURL(ctx, f.S3ObjectKey, f.Name, time.Hour)
-	if err != nil {
-		rec.Add(events.Error, fmt.Errorf("error generating download URL: %w", err))
-		// URL remains empty if there was an error
-	} else {
-		file.URL = url
-		rec.Set("url_generated", true)
-	}
-
-	return file
 }

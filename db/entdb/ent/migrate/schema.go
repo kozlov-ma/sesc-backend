@@ -192,7 +192,6 @@ var (
 		{Name: "s3_object_key", Type: field.TypeString, Unique: true},
 		{Name: "name", Type: field.TypeString},
 		{Name: "size", Type: field.TypeInt},
-		{Name: "url", Type: field.TypeString},
 		{Name: "owner_id", Type: field.TypeUUID, Nullable: true},
 	}
 	// FilesTable holds the schema information for the "files" table.
@@ -203,7 +202,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "files_users_files",
-				Columns:    []*schema.Column{FilesColumns[5]},
+				Columns:    []*schema.Column{FilesColumns[4]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -212,7 +211,7 @@ var (
 			{
 				Name:    "file_owner_id",
 				Unique:  false,
-				Columns: []*schema.Column{FilesColumns[5]},
+				Columns: []*schema.Column{FilesColumns[4]},
 			},
 			{
 				Name:    "file_name",
