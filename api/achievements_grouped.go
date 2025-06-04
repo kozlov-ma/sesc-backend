@@ -10,23 +10,6 @@ import (
 	"github.com/kozlov-ma/sesc-backend/sesc"
 )
 
-// UsersWithAchievementsResponse represents a list of users with their achievement counts
-type UsersWithAchievementsResponse struct {
-	Items      []UserWithAchievementsResponse `json:"items"      validate:"required"`
-	TotalCount int                            `json:"totalCount" validate:"required"`
-	Offset     int                            `json:"offset"     validate:"required"`
-	Limit      int                            `json:"limit"      validate:"required"`
-}
-
-// UserWithAchievementsResponse represents a user with achievement summary
-type UserWithAchievementsResponse struct {
-	ID         string `json:"id"         example:"550e8400-e29b-41d4-a716-446655440000" validate:"required"`
-	FirstName  string `json:"firstName"  example:"Иван"                                 validate:"required"`
-	LastName   string `json:"lastName"   example:"Иванов"                               validate:"required"`
-	MiddleName string `json:"middleName" example:"Иванович"`
-	Role       string `json:"role"       example:"teacher"                              validate:"required"`
-}
-
 // GetUsersWithAchievements godoc
 // @Summary Get users with achievements
 // @Description Retrieves users with achievements based on role permissions
@@ -36,7 +19,7 @@ type UserWithAchievementsResponse struct {
 // @Param Authorization header string false "Bearer JWT token"
 // @Param offset query int false "Pagination offset" default(0) minimum(0)
 // @Param limit query int false "Pagination limit" default(10) minimum(1) maximum(100)
-// @Success 200 {object} UsersWithAchievementsResponse
+// @Success 200 {object} respond.UsersWithAchievements
 // @Failure 400 {object} respond.Error "Invalid request parameters"
 // @Failure 401 {object} respond.Error "Unauthorized"
 // @Failure 403 {object} respond.Error "Forbidden"
@@ -85,23 +68,6 @@ func (a *API) GetUsersWithAchievements(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Convert to response format
-	response := UsersWithAchievementsResponse{
-		Items:      make([]UserWithAchievementsResponse, 0, len(users)),
-		TotalCount: totalCount,
-		Offset:     offset,
-		Limit:      limit,
-	}
-
-	for _, u := range users {
-		response.Items = append(response.Items, UserWithAchievementsResponse{
-			ID:         u.ID.String(),
-			FirstName:  u.FirstName,
-			LastName:   u.LastName,
-			MiddleName: u.MiddleName,
-			Role:       u.Role.String(),
-		})
-	}
-
-	// Write response
+	response := respond.WithUsersWithAchievements(users, totalCount, offset, limit)
 	a.writeJSON(ctx, w, response)
 }

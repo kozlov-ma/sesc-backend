@@ -59,61 +59,6 @@ func (a *API) AchievementMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-// Helper function to convert an achievement to a response
-func convertAchievementToResponse(ach *ent.Achievement) AchievementResponse {
-	// Load edges if not already loaded
-	owner := ach.Edges.Owner
-	if owner == nil {
-		// Handle case where owner edge is not loaded
-		owner = &ent.User{ID: ach.OwnerID}
-	}
-
-	template := ach.Edges.Template
-	if template == nil {
-		// Handle case where template edge is not loaded
-		template = &ent.AchievementTemplate{ID: ach.TemplateID}
-	}
-
-	response := AchievementResponse{
-		ID:           ach.ID,
-		OwnerID:      owner.ID,
-		OwnerName:    fmt.Sprintf("%s %s %s", owner.LastName, owner.FirstName, owner.MiddleName),
-		TemplateID:   template.ID,
-		TemplateName: template.Name,
-		Status:       ach.Status,
-		Points:       ach.Points,
-		Documents:    make([]DocumentResponse, 0, len(ach.Edges.Documents)),
-		Reviews:      make([]ReviewResponse, 0, len(ach.Edges.Reviews)),
-	}
-
-	// Convert documents
-	for _, doc := range ach.Edges.Documents {
-		response.Documents = append(response.Documents, DocumentResponse{
-			ID:     doc.ID,
-			Name:   doc.Name,
-			FileID: doc.FileID,
-		})
-	}
-
-	// Convert reviews
-	for _, rev := range ach.Edges.Reviews {
-		reviewer := rev.Edges.From
-		if reviewer == nil {
-			// Handle case where reviewer edge is not loaded
-			reviewer = &ent.User{ID: rev.FromID}
-		}
-		response.Reviews = append(response.Reviews, ReviewResponse{
-			ID:             rev.ID,
-			ReviewerID:     reviewer.ID,
-			ReviewerName:   fmt.Sprintf("%s %s %s", reviewer.LastName, reviewer.FirstName, reviewer.MiddleName),
-			PointsAssigned: rev.PointsAssigned,
-			Comment:        rev.Comment,
-		})
-	}
-
-	return response
-}
-
 // GetUserAchievements godoc
 // @Summary Get all achievements for the current user
 // @Description Retrieves all achievements for the current user with pagination
@@ -123,7 +68,7 @@ func convertAchievementToResponse(ach *ent.Achievement) AchievementResponse {
 // @Param Authorization header string false "Bearer JWT token"
 // @Param offset query int false "Pagination offset" default(0) minimum(0)
 // @Param limit query int false "Pagination limit" default(10) minimum(1) maximum(100)
-// @Success 200 {object} PaginatedAchievementsResponse
+// @Success 200 {object} respond.Achievements
 // @Failure 400 {object} respond.Error "Invalid request parameters"
 // @Failure 401 {object} respond.Error "Unauthorized"
 // @Failure 500 {object} respond.Error "Internal server error"
@@ -156,19 +101,7 @@ func (a *API) GetUserAchievements(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Convert to response format
-	items := make([]AchievementResponse, 0, len(achievements))
-	for _, ach := range achievements {
-		items = append(items, convertAchievementToResponse(ach))
-	}
-
-	// Create paginated response
-	response := PaginatedAchievementsResponse{
-		Items:      items,
-		TotalCount: total,
-		Offset:     offset,
-		Limit:      limit,
-	}
-
+	response := respond.WithAchievements(achievements, total, offset, limit)
 	a.writeJSON(ctx, w, response)
 }
 
@@ -180,7 +113,7 @@ func (a *API) GetUserAchievements(w http.ResponseWriter, r *http.Request) {
 // @Security BearerAuth
 // @Param Authorization header string false "Bearer JWT token"
 // @Param id path string true "Achievement UUID"
-// @Success 200 {object} AchievementResponse
+// @Success 200 {object} respond.Achievement
 // @Failure 400 {object} respond.Error "Invalid UUID format"
 // @Failure 401 {object} respond.Error "Unauthorized"
 // @Failure 404 {object} respond.Error "Achievement not found"
@@ -197,7 +130,7 @@ func (a *API) GetAchievement(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Convert to response format
-	response := convertAchievementToResponse(ach)
+	response := respond.WithAchievement(ach)
 	a.writeJSON(ctx, w, response)
 }
 
@@ -209,8 +142,8 @@ func (a *API) GetAchievement(w http.ResponseWriter, r *http.Request) {
 // @Produce json
 // @Security BearerAuth
 // @Param Authorization header string false "Bearer JWT token"
-// @Param request body CreateAchievementRequest true "Achievement creation data"
-// @Success 201 {object} AchievementResponse
+// @Param request body param.CreateAchievementRequest true "Achievement creation data"
+// @Success 201 {object} respond.Achievement
 // @Failure 400 {object} respond.Error "Invalid request format"
 // @Failure 401 {object} respond.Error "Unauthorized"
 // @Failure 404 {object} respond.Error "Template not found"
@@ -228,7 +161,7 @@ func (a *API) CreateAchievement(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Parse request
-	var req CreateAchievementRequest
+	var req param.CreateAchievementRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		rec.Add(events.Error, err)
 		a.writeJSON(ctx, w, respond.WithError(ctx, err))
@@ -248,7 +181,7 @@ func (a *API) CreateAchievement(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Convert to response format
-	response := convertAchievementToResponse(ach)
+	response := respond.WithAchievement(ach)
 	a.writeJSON(ctx, w, respond.WithStatus(response, http.StatusCreated))
 }
 
@@ -302,8 +235,8 @@ func (a *API) DeleteAchievement(w http.ResponseWriter, r *http.Request) {
 // @Security BearerAuth
 // @Param Authorization header string false "Bearer JWT token"
 // @Param id path string true "Achievement UUID"
-// @Param request body AddDocumentRequest true "Document data"
-// @Success 201 {object} DocumentResponse
+// @Param request body param.AddDocumentRequest true "Document data"
+// @Success 201 {object} respond.Document
 // @Failure 400 {object} respond.Error "Invalid request format"
 // @Failure 401 {object} respond.Error "Unauthorized"
 // @Failure 404 {object} respond.Error "Achievement not found"
@@ -322,7 +255,7 @@ func (a *API) AddDocument(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Parse request
-	var req AddDocumentRequest
+	var req param.AddDocumentRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		rec.Add(events.Error, "invalid request body")
 		a.writeJSON(ctx, w, respond.WithError(ctx, err))
@@ -344,7 +277,7 @@ func (a *API) AddDocument(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Convert to response format
-	response := DocumentResponse{
+	response := respond.Document{
 		ID:     doc.ID,
 		Name:   doc.Name,
 		FileID: doc.FileID,
@@ -413,7 +346,7 @@ func (a *API) RemoveDocument(w http.ResponseWriter, r *http.Request) {
 // @Security BearerAuth
 // @Param Authorization header string false "Bearer JWT token"
 // @Param id path string true "Achievement UUID"
-// @Success 200 {object} AchievementResponse
+// @Success 200 {object} respond.Achievement
 // @Failure 400 {object} respond.Error "Invalid UUID format"
 // @Failure 401 {object} respond.Error "Unauthorized"
 // @Failure 404 {object} respond.Error "Achievement not found"
@@ -443,7 +376,7 @@ func (a *API) SubmitAchievement(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Convert to response format
-	response := convertAchievementToResponse(updatedAch)
+	response := respond.WithAchievement(updatedAch)
 	a.writeJSON(ctx, w, response)
 }
 
@@ -456,8 +389,8 @@ func (a *API) SubmitAchievement(w http.ResponseWriter, r *http.Request) {
 // @Security BearerAuth
 // @Param Authorization header string false "Bearer JWT token"
 // @Param id path string true "Achievement UUID"
-// @Param request body ReviewAchievementRequest true "Review data"
-// @Success 200 {object} AchievementResponse
+// @Param request body param.ReviewAchievementRequest true "Review data"
+// @Success 200 {object} respond.Achievement
 // @Failure 400 {object} respond.Error "Invalid request format"
 // @Failure 400 {object} respond.Error "Points assigned exceed the template's points limit"
 // @Failure 401 {object} respond.Error "Unauthorized"
@@ -485,7 +418,7 @@ func (a *API) ReviewAchievement(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Parse request
-	var req ReviewAchievementRequest
+	var req param.ReviewAchievementRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		rec.Add(events.Error, "invalid request body")
 		a.writeJSON(ctx, w, respond.WithError(ctx, err))
@@ -508,60 +441,6 @@ func (a *API) ReviewAchievement(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Convert to response format
-	response := convertAchievementToResponse(updatedAch)
+	response := respond.WithAchievement(updatedAch)
 	a.writeJSON(ctx, w, response)
-}
-
-// PaginatedAchievementsResponse represents a paginated list of achievements
-type PaginatedAchievementsResponse struct {
-	Items      []AchievementResponse `json:"items"      validate:"required"`
-	TotalCount int                   `json:"totalCount" validate:"required"`
-	Offset     int                   `json:"offset"     validate:"required"`
-	Limit      int                   `json:"limit"      validate:"required"`
-}
-
-// AchievementResponse represents the API response for an achievement
-type AchievementResponse struct {
-	ID           uuid.UUID          `json:"id"           example:"550e8400-e29b-41d4-a716-446655440000" validate:"required"`
-	OwnerID      uuid.UUID          `json:"ownerId"      example:"550e8400-e29b-41d4-a716-446655440000" validate:"required"`
-	OwnerName    string             `json:"ownerName"    example:"Иванов Иван Иванович"                 validate:"required"`
-	TemplateID   uuid.UUID          `json:"templateId"   example:"550e8400-e29b-41d4-a716-446655440000" validate:"required"`
-	TemplateName string             `json:"templateName" example:"регионального уровня"                 validate:"required"`
-	Status       achievement.Status `json:"status"       example:"draft"                                validate:"required"`
-	Points       int                `json:"points"       example:"10"                                   validate:"required"`
-	Documents    []DocumentResponse `json:"documents"                                                   validate:"required"`
-	Reviews      []ReviewResponse   `json:"reviews"                                                     validate:"required"`
-}
-
-// DocumentResponse represents the API response for a document
-type DocumentResponse struct {
-	ID     uuid.UUID `json:"id"     example:"550e8400-e29b-41d4-a716-446655440000" validate:"required"`
-	Name   string    `json:"name"   example:"Publication proof"                    validate:"required"`
-	FileID uuid.UUID `json:"fileId" example:"550e8400-e29b-41d4-a716-446655440000" validate:"required"`
-}
-
-// ReviewResponse represents the API response for a review
-type ReviewResponse struct {
-	ID             uuid.UUID `json:"id"             example:"550e8400-e29b-41d4-a716-446655440000" validate:"required"`
-	ReviewerID     uuid.UUID `json:"reviewerId"     example:"550e8400-e29b-41d4-a716-446655440000" validate:"required"`
-	ReviewerName   string    `json:"reviewerName"   example:"Петров Петр Петрович"                 validate:"required"`
-	PointsAssigned int       `json:"pointsAssigned" example:"8"                                    validate:"required"`
-	Comment        string    `json:"comment"        example:"Good job, but could be better"        validate:"omitempty"`
-}
-
-// CreateAchievementRequest represents the request to create a new achievement
-type CreateAchievementRequest struct {
-	TemplateID uuid.UUID `json:"templateId" example:"550e8400-e29b-41d4-a716-446655440000" validate:"required"`
-}
-
-// AddDocumentRequest represents the request to add a document to an achievement
-type AddDocumentRequest struct {
-	Name   string    `json:"name"   example:"Publication proof"                    validate:"required"`
-	FileID uuid.UUID `json:"fileId" example:"550e8400-e29b-41d4-a716-446655440000" validate:"required"`
-}
-
-// ReviewAchievementRequest represents the request to review an achievement
-type ReviewAchievementRequest struct {
-	PointsAssigned int    `json:"pointsAssigned" example:"8"                             validate:"required"`
-	Comment        string `json:"comment"        example:"Good job, but could be better" validate:"omitempty"`
 }
