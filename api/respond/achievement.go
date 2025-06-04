@@ -21,7 +21,7 @@ type Achievement struct {
 	Reviews      []Review           `json:"reviews"                                                     validate:"required"`
 }
 
-// Document represents a document response
+// Document represents a document response (used in Achievement responses)
 type Document struct {
 	ID     uuid.UUID `json:"id"     example:"550e8400-e29b-41d4-a716-446655440000" validate:"required"`
 	Name   string    `json:"name"   example:"Publication proof"                    validate:"required"`
@@ -45,20 +45,10 @@ type Achievements struct {
 	Limit      int           `json:"limit"      validate:"required"`
 }
 
-// WithAchievement converts an ent.Achievement to a response
+// WithAchievement converts an ent.Achievement to a response (assumes edges are loaded)
 func WithAchievement(ach *ent.Achievement) Achievement {
-	// Load edges if not already loaded
 	owner := ach.Edges.Owner
-	if owner == nil {
-		// Handle case where owner edge is not loaded
-		owner = &ent.User{ID: ach.OwnerID}
-	}
-
 	template := ach.Edges.Template
-	if template == nil {
-		// Handle case where template edge is not loaded
-		template = &ent.AchievementTemplate{ID: ach.TemplateID}
-	}
 
 	response := Achievement{
 		ID:           ach.ID,
@@ -83,11 +73,7 @@ func WithAchievement(ach *ent.Achievement) Achievement {
 
 	// Convert reviews
 	for _, rev := range ach.Edges.Reviews {
-		reviewer := rev.Edges.From
-		if reviewer == nil {
-			// Handle case where reviewer edge is not loaded
-			reviewer = &ent.User{ID: rev.FromID}
-		}
+		reviewer := rev.Edges.Reviewer
 		response.Reviews = append(response.Reviews, Review{
 			ID:             rev.ID,
 			ReviewerID:     reviewer.ID,
