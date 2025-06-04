@@ -13,9 +13,11 @@ import (
 )
 
 // GetUserAchievements retrieves all achievements for the current user with pagination.
+// Results are ordered based on the asking user's role and review responsibilities.
 func (s *ACS) GetUserAchievements(
 	ctx context.Context,
 	userID UUID,
+	whosAsking UUID,
 	offset, limit int,
 ) (ent.Achievements, int, error) {
 	rec := event.Get(ctx).Sub("sesc/get_user_achievements")
@@ -24,6 +26,7 @@ func (s *ACS) GetUserAchievements(
 	// Group parameters together
 	rec.Sub("params").Set(
 		"user_id", userID,
+		"whos_asking", whosAsking,
 		"offset", offset,
 		"limit", limit,
 	)

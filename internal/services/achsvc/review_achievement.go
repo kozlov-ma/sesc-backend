@@ -94,18 +94,23 @@ func (s *ACS) ReviewAchievement(
 				return achievement.ErrPointsLimitExceeded
 			}
 
-			// Determine the new status based on current status, reviewer role, and points
-			newStatus, validReviewer := determineNewStatus(
-				currentStatus,
-				reviewerRole,
-				templateKind,
-				opt.PointsAssigned,
-				opRec,
-			)
-
 			// If not in a reviewable status
 			if currentStatus != achievement.StatusDepheadReview && currentStatus != achievement.StatusInspectorReview {
 				return achievement.ErrWrongAchievementStatus
+			}
+
+			// Validate reviewer role based on current status
+			var validReviewer bool
+			switch currentStatus {
+			case achievement.StatusDepheadReview:
+				// Department head review
+				validReviewer = reviewerRole == sesc.Dephead
+			case achievement.StatusInspectorReview:
+				// Inspector review - check if reviewer has the correct role based on template kind
+				expectedRole := templateKind.InspectorRole()
+				validReviewer = reviewerRole == expectedRole
+			default:
+				validReviewer = false
 			}
 
 			// Check if the reviewer has the required role
@@ -153,13 +158,28 @@ func (s *ACS) ReviewAchievement(
 			reviewerRole := reviewer.Role
 			templateKind := ach.Edges.Template.Kind
 
-			newStatus, _ := determineNewStatus(
-				currentStatus,
-				reviewerRole,
-				templateKind,
-				opt.PointsAssigned,
-				opRec,
-			)
+			// Determine new status based on current status, reviewer role, and points
+			var newStatus achievement.Status
+			switch currentStatus {
+			case achievement.StatusDepheadReview:
+				// Department head review
+				if reviewerRole == sesc.Dephead {
+					if opt.PointsAssigned > 0 {
+						// If points > 0, move to inspector review
+						newStatus = achievement.StatusInspectorReview
+					} else {
+						// If points = 0, mark as done
+						newStatus = achievement.StatusDone
+					}
+				}
+			case achievement.StatusInspectorReview:
+				// Inspector review - check if reviewer has the correct role based on template kind
+				expectedRole := templateKind.InspectorRole()
+				if reviewerRole == expectedRole {
+					// After inspector review, mark as done
+					newStatus = achievement.StatusDone
+				}
+			}
 
 			start := time.Now()
 			updated, err := tx.Achievement.UpdateOne(ach).
