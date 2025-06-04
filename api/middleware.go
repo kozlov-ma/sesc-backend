@@ -104,6 +104,7 @@ func (a *API) RequireAuthMiddleware(next http.Handler) http.Handler {
 		token, err := param.BearerAuth(r)
 		if err != nil {
 			a.writeJSON(ctx, w, respond.WithStatus(respond.WithError(ctx, err), http.StatusUnauthorized))
+			return
 		}
 
 		identity, err := a.iam.ImWatermelon(ctx, token)
@@ -204,7 +205,7 @@ func (a *API) CurrentUserMiddleware(next http.Handler) http.Handler {
 			}
 
 			if user.Suspended {
-				a.writeJSON(ctx, w, respond.WithError(ctx, err))
+				a.writeJSON(ctx, w, respond.WithError(ctx, sesc.ErrSuspended))
 				return
 			}
 
@@ -303,7 +304,7 @@ func (a *API) RequireReportManagementPermissionMiddleware(next http.Handler) htt
 
 		// Check if user has report management permission
 		if user.Role != sesc.ChiefEconomist {
-			a.writeJSON(ctx, w, respond.WithError(ctx, err))
+			a.writeJSON(ctx, w, respond.WithError(ctx, sesc.ErrInvalidRole))
 			return
 		}
 

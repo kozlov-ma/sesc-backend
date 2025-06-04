@@ -27,3 +27,38 @@ func QueryIntOrZero(r *http.Request, name string) int {
 	i, _ := strconv.Atoi(r.FormValue(name))
 	return i
 }
+
+func QueryBool(r *http.Request, name string) (bool, error) {
+	b, err := strconv.ParseBool(r.FormValue(name))
+	if err != nil {
+		return false, ErrInvalid(name)
+	}
+	return b, nil
+}
+
+func QueryBoolOrFalse(r *http.Request, name string) bool {
+	b, _ := strconv.ParseBool(r.FormValue(name))
+	return b
+}
+
+// ParsePagination parses offset and limit parameters with defaults
+func ParsePagination(r *http.Request) (offset, limit int, err error) {
+	offset = 0
+	limit = 10
+
+	if offsetStr := r.URL.Query().Get("offset"); offsetStr != "" {
+		offset, err = strconv.Atoi(offsetStr)
+		if err != nil || offset < 0 {
+			return 0, 0, ErrInvalid("offset")
+		}
+	}
+
+	if limitStr := r.URL.Query().Get("limit"); limitStr != "" {
+		limit, err = strconv.Atoi(limitStr)
+		if err != nil || limit < 1 || limit > 100 {
+			return 0, 0, ErrInvalid("limit")
+		}
+	}
+
+	return offset, limit, nil
+}

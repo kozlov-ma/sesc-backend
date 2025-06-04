@@ -3,15 +3,14 @@ package api
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net/http"
-	"strconv"
 
 	"github.com/gofrs/uuid/v5"
 	"github.com/kozlov-ma/sesc-backend/achievement"
 	"github.com/kozlov-ma/sesc-backend/api/param"
 	"github.com/kozlov-ma/sesc-backend/api/respond"
+	"github.com/kozlov-ma/sesc-backend/db/entdb/ent"
 	"github.com/kozlov-ma/sesc-backend/pkg/event"
 	"github.com/kozlov-ma/sesc-backend/pkg/event/events"
 	"github.com/kozlov-ma/sesc-backend/sesc"
@@ -24,8 +23,8 @@ const (
 	achievementContextKeyValue achievementContextKey = "achievement"
 )
 
-func GetAchievementFromContext(ctx context.Context) (achievement.Achievement, bool) {
-	ach, ok := ctx.Value(achievementContextKeyValue).(achievement.Achievement)
+func GetAchievementFromContext(ctx context.Context) (*ent.Achievement, bool) {
+	ach, ok := ctx.Value(achievementContextKeyValue).(*ent.Achievement)
 	return ach, ok
 }
 
@@ -61,21 +60,34 @@ func (a *API) AchievementMiddleware(next http.Handler) http.Handler {
 }
 
 // Helper function to convert an achievement to a response
-func convertAchievementToResponse(ach achievement.Achievement) AchievementResponse {
+func convertAchievementToResponse(ach *ent.Achievement) AchievementResponse {
+	// Load edges if not already loaded
+	owner := ach.Edges.Owner
+	if owner == nil {
+		// Handle case where owner edge is not loaded
+		owner = &ent.User{ID: ach.OwnerID}
+	}
+
+	template := ach.Edges.Template
+	if template == nil {
+		// Handle case where template edge is not loaded
+		template = &ent.AchievementTemplate{ID: ach.TemplateID}
+	}
+
 	response := AchievementResponse{
 		ID:           ach.ID,
-		OwnerID:      ach.Owner.ID,
-		OwnerName:    fmt.Sprintf("%s %s %s", ach.Owner.LastName, ach.Owner.FirstName, ach.Owner.MiddleName),
-		TemplateID:   ach.Template.ID,
-		TemplateName: ach.Template.Name,
+		OwnerID:      owner.ID,
+		OwnerName:    fmt.Sprintf("%s %s %s", owner.LastName, owner.FirstName, owner.MiddleName),
+		TemplateID:   template.ID,
+		TemplateName: template.Name,
 		Status:       ach.Status,
 		Points:       ach.Points,
-		Documents:    make([]DocumentResponse, 0, len(ach.Documents)),
-		Reviews:      make([]ReviewResponse, 0, len(ach.Reviews)),
+		Documents:    make([]DocumentResponse, 0, len(ach.Edges.Documents)),
+		Reviews:      make([]ReviewResponse, 0, len(ach.Edges.Reviews)),
 	}
 
 	// Convert documents
-	for _, doc := range ach.Documents {
+	for _, doc := range ach.Edges.Documents {
 		response.Documents = append(response.Documents, DocumentResponse{
 			ID:     doc.ID,
 			Name:   doc.Name,
@@ -84,11 +96,16 @@ func convertAchievementToResponse(ach achievement.Achievement) AchievementRespon
 	}
 
 	// Convert reviews
-	for _, rev := range ach.Reviews {
+	for _, rev := range ach.Edges.Reviews {
+		reviewer := rev.Edges.From
+		if reviewer == nil {
+			// Handle case where reviewer edge is not loaded
+			reviewer = &ent.User{ID: rev.FromID}
+		}
 		response.Reviews = append(response.Reviews, ReviewResponse{
 			ID:             rev.ID,
-			ReviewerID:     rev.From.ID,
-			ReviewerName:   fmt.Sprintf("%s %s %s", rev.From.LastName, rev.From.FirstName, rev.From.MiddleName),
+			ReviewerID:     reviewer.ID,
+			ReviewerName:   fmt.Sprintf("%s %s %s", reviewer.LastName, reviewer.FirstName, reviewer.MiddleName),
 			PointsAssigned: rev.PointsAssigned,
 			Comment:        rev.Comment,
 		})
@@ -123,7 +140,7 @@ func (a *API) GetUserAchievements(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Parse pagination parameters
-	offset, limit, err := parsePaginationParams(r)
+	offset, limit, err := param.ParsePagination(r)
 	if err != nil {
 		rec.Add(events.Error, err)
 		a.writeJSON(ctx, w, respond.WithError(ctx, err))
@@ -131,7 +148,7 @@ func (a *API) GetUserAchievements(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get achievements for user with pagination
-	achievements, total, err := a.sesc.GetUserAchievements(ctx, user.ID, offset, limit)
+	achievements, total, err := a.sesc.GetUserAchievements(ctx, user.ID, user.ID, offset, limit)
 	if err != nil {
 		rec.Add(events.Error, err)
 		a.writeJSON(ctx, w, respond.WithError(ctx, err))
@@ -210,35 +227,6 @@ func (a *API) CreateAchievement(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var depID uuid.UUID
-	if user.DepartmentID != nil {
-		depID = *user.DepartmentID
-	}
-
-	sus := sesc.User{
-		ID:         user.ID,
-		FirstName:  user.FirstName,
-		LastName:   user.LastName,
-		MiddleName: user.MiddleName,
-		PictureURL: user.PictureURL,
-		Suspended:  user.Suspended,
-		Department: sesc.Department{
-			ID: depID,
-		},
-		Role:              user.Role,
-		Subdivision:       user.Subdivision,
-		JobTitle:          user.JobTitle,
-		EmploymentRate:    user.EmploymentRate,
-		AcademicDegree:    user.AcademicDegree,
-		PersonnelCategory: user.PersonnelCategory,
-		EmploymentType:    user.EmploymentType,
-		AcademicTitle:     user.AcademicTitle,
-		Honors:            user.Honors,
-		Category:          user.Category,
-		DateOfEmployment:  user.DateOfEmployment,
-		UnemploymentDate:  user.UnemploymentDate,
-	}
-
 	// Parse request
 	var req CreateAchievementRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -249,7 +237,7 @@ func (a *API) CreateAchievement(w http.ResponseWriter, r *http.Request) {
 
 	// Create achievement
 	opt := achievement.CreateOptions{
-		ForUser:    sus,
+		ForUser:    *user,
 		TemplateID: req.TemplateID,
 	}
 	ach, err := a.sesc.CreateAchievement(ctx, opt)
@@ -522,33 +510,6 @@ func (a *API) ReviewAchievement(w http.ResponseWriter, r *http.Request) {
 	// Convert to response format
 	response := convertAchievementToResponse(updatedAch)
 	a.writeJSON(ctx, w, response)
-}
-
-// Helper function to parse pagination parameters from request
-func parsePaginationParams(r *http.Request) (offset, limit int, err error) {
-	// Default values
-	offset = 0
-	limit = 10
-
-	// Parse offset
-	offsetStr := r.URL.Query().Get("offset")
-	if offsetStr != "" {
-		offset, err = strconv.Atoi(offsetStr)
-		if err != nil || offset < 0 {
-			return 0, 0, errors.New("invalid offset parameter")
-		}
-	}
-
-	// Parse limit
-	limitStr := r.URL.Query().Get("limit")
-	if limitStr != "" {
-		limit, err = strconv.Atoi(limitStr)
-		if err != nil || limit < 1 || limit > 100 {
-			return 0, 0, errors.New("invalid limit parameter")
-		}
-	}
-
-	return offset, limit, nil
 }
 
 // PaginatedAchievementsResponse represents a paginated list of achievements

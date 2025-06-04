@@ -73,7 +73,7 @@ type (
 		AchievementTemplates(
 			ctx context.Context,
 			options achievement.TemplateSearchOptions,
-		) (*ent.AchievementTemplate, error)
+		) (ent.AchievementTemplates, error)
 		AchievementTemplateByID(ctx context.Context, id uuid.UUID) (*ent.AchievementTemplate, error)
 		CreateAchievementTemplate(
 			ctx context.Context,
@@ -89,6 +89,7 @@ type (
 		GetUserAchievements(
 			ctx context.Context,
 			userID uuid.UUID,
+			whosAsking uuid.UUID,
 			offset, limit int,
 		) (ent.Achievements, int, error)
 		GetUsersWithAchievements(

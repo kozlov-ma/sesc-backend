@@ -4,10 +4,10 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
-	"strconv"
 
 	"github.com/gofrs/uuid/v5"
 	"github.com/kozlov-ma/sesc-backend/achievement"
+	"github.com/kozlov-ma/sesc-backend/api/param"
 	"github.com/kozlov-ma/sesc-backend/api/respond"
 	"github.com/kozlov-ma/sesc-backend/pkg/event"
 	"github.com/kozlov-ma/sesc-backend/pkg/event/events"
@@ -59,7 +59,7 @@ type PatchAchievementTemplateRequest struct {
 
 // GetAchievementGroups godoc
 // @Summary Get all achievement groups
-// @Description Retrieves all achievement groups
+// @Description Retrieves all achievement groups with filtering options
 // @Tags achievement-groups
 // @Produce json
 // @Security BearerAuth
@@ -75,18 +75,7 @@ func (a *API) GetAchievementGroups(w http.ResponseWriter, r *http.Request) {
 	rec := event.Get(ctx)
 
 	// Parse query parameters
-	showInactiveStr := r.URL.Query().Get("show_inactive")
-	showInactive := false
-	if showInactiveStr != "" {
-		var err error
-		showInactive, err = strconv.ParseBool(showInactiveStr)
-		if err != nil {
-			rec.Add(events.Error, "invalid show_inactive parameter")
-			a.writeJSON(ctx, w, respond.WithError(ctx, err))
-			return
-		}
-	}
-
+	showInactive := param.QueryBoolOrFalse(r, "show_inactive")
 	search := r.URL.Query().Get("search")
 
 	// Create search options
@@ -193,18 +182,7 @@ func (a *API) GetAchievementTemplates(w http.ResponseWriter, r *http.Request) {
 	rec := event.Get(ctx)
 
 	// Parse query parameters
-	showInactiveStr := r.URL.Query().Get("show_inactive")
-	showInactive := false
-	if showInactiveStr != "" {
-		var err error
-		showInactive, err = strconv.ParseBool(showInactiveStr)
-		if err != nil {
-			rec.Add(events.Error, "invalid show_inactive parameter")
-			a.writeJSON(ctx, w, respond.WithError(ctx, err))
-			return
-		}
-	}
-
+	showInactive := param.QueryBoolOrFalse(r, "show_inactive")
 	search := r.URL.Query().Get("search")
 
 	// Create search options
