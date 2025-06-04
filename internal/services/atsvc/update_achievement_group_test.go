@@ -116,7 +116,7 @@ func TestUpdateAchievementGroup(t *testing.T) {
 
 		// Verify the results
 		require.Equal(t, achievement.ErrAchievementGroupNotFound, err)
-		require.Empty(t, updatedGroup.ID)
+		require.Nil(t, updatedGroup)
 	})
 
 	t.Run("database_error", func(t *testing.T) {
@@ -151,6 +151,6 @@ func TestUpdateAchievementGroup(t *testing.T) {
 
 		// Verify the results
 		require.Error(t, err)
-		require.Empty(t, updatedGroup.ID)
+		require.Nil(t, updatedGroup)
 	})
 }

@@ -71,7 +71,7 @@ func TestAchievementTemplateByID(t *testing.T) {
 
 		// Verify the results
 		require.Equal(t, achievement.ErrAchievementTemplateNotFound, err)
-		require.Empty(t, template.ID)
+		require.Nil(t, template)
 	})
 
 	t.Run("database_error", func(t *testing.T) {
@@ -94,6 +94,6 @@ func TestAchievementTemplateByID(t *testing.T) {
 
 		// Verify the results
 		require.Error(t, err)
-		require.Empty(t, template.ID)
+		require.Nil(t, template)
 	})
 }

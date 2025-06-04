@@ -92,7 +92,7 @@ func TestCreateAchievementTemplate(t *testing.T) {
 
 		// Verify the results
 		require.Error(t, err, "Should return error for invalid kind")
-		require.Empty(t, template.ID, "No template should be created")
+		require.Nil(t, template, "No template should be created")
 	})
 
 	t.Run("group_not_found", func(t *testing.T) {
@@ -121,7 +121,7 @@ func TestCreateAchievementTemplate(t *testing.T) {
 
 		// Verify the results
 		require.Equal(t, achievement.ErrAchievementGroupNotFound, err)
-		require.Empty(t, template.ID, "No template should be created")
+		require.Nil(t, template, "No template should be created")
 	})
 
 	t.Run("database_error", func(t *testing.T) {
@@ -159,6 +159,6 @@ func TestCreateAchievementTemplate(t *testing.T) {
 
 		// Verify the results
 		require.Error(t, err)
-		require.Empty(t, template.ID, "No template should be created")
+		require.Nil(t, template, "No template should be created")
 	})
 }
