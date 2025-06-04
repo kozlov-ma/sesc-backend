@@ -2,27 +2,9 @@ package achievement
 
 import (
 	"github.com/gofrs/uuid/v5"
-	"github.com/kozlov-ma/sesc-backend/sesc"
 )
 
 type UUID = uuid.UUID
-
-// A Document is a file attached to some Achievement as confirmation.
-type Document struct {
-	ID     UUID
-	Name   string
-	FileID UUID
-}
-
-// A Review is a comment from reviewer setting the points to the Achievement.
-// If PointsAssigned will decrease the current achievement points, the Comment field
-// must be added.
-type Review struct {
-	ID             UUID
-	From           sesc.User
-	PointsAssigned int
-	Comment        string
-}
 
 type Status string
 
@@ -51,21 +33,8 @@ const (
 	StatusAccounted = "accounted"
 )
 
-// An Achievement is an report of achievement that belongs to a SESC teacher.
-// Achievements need to be reviewed by multiple people to confirm the points added to the teacher.
-type Achievement struct {
-	ID       UUID
-	Owner    sesc.User
-	Template Template
-
-	Status    Status
-	Points    int
-	Documents []Document
-	Reviews   []Review
-}
-
 type CreateOptions struct {
-	ForUser    sesc.User
+	ForUserID  UUID
 	TemplateID UUID
 }
 

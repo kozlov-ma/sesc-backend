@@ -21,7 +21,6 @@ func (File) Fields() []ent.Field {
 		field.String("s3_object_key").Unique(),
 		field.String("name"),
 		field.Int("size"),
-		field.String("url"),
 	}
 }
 

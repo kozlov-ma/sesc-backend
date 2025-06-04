@@ -16,108 +16,64 @@ import (
 func (s *ACS) CreateAchievement(
 	ctx context.Context,
 	opt achievement.CreateOptions,
-) (achievement.Achievement, error) {
+) (*ent.Achievement, error) {
 	rec := event.Get(ctx).Sub("achsvc/create_achievement")
-	// Group parameters together
 	rec.Sub("params").Set(
-		"user_id", opt.ForUser.ID,
+		"user_id", opt.ForUserID,
 		"template_id", opt.TemplateID,
 	)
 
-	// Track stats in root record
-	statsRec := event.Get(ctx).Sub("stats")
-	queryCount := 0
-	startTime := time.Now()
-	defer func() {
-		statsRec.Add("postgres_queries", queryCount)
-		statsRec.Add("total_time_ms", time.Since(startTime).Milliseconds())
-	}()
+	statsRec := event.Root(ctx).Sub("stats")
 
-	// Check if template exists
-	var template *ent.AchievementTemplate
-	err := rec.Operation("get_template", func(opRec *event.Record) error {
-		opRec.Sub("params").Set("template_id", opt.TemplateID)
+	var ach *ent.Achievement
+	err := withTx(ctx, s.client, func(tx *ent.Tx) error {
+		var template *ent.AchievementTemplate
+		err := rec.Operation("get_template", func(rec *event.Record) error {
+			rec.Sub("params").Set("template_id", opt.TemplateID)
 
-		queryStart := time.Now()
-		tmpl, err := s.client.AchievementTemplate.Get(ctx, opt.TemplateID)
-		queryCount++
-		opRec.Add("query_time_ms", time.Since(queryStart).Milliseconds())
+			start := time.Now()
+			tmpl, err := tx.AchievementTemplate.Get(ctx, opt.TemplateID)
+			statsRec.Add(events.PostgresQueries, 1)
+			statsRec.Add(events.PostgresTime, time.Since(start))
 
+			if ent.IsNotFound(err) {
+				return achievement.ErrAchievementTemplateNotFound
+			} else if err != nil {
+				return fmt.Errorf("failed to get template: %w", err)
+			}
+
+			template = tmpl
+			rec.Set("template", template)
+			return nil
+		})
 		if err != nil {
-			opRec.Add(events.Error, fmt.Errorf("failed to get template: %w", err))
 			return err
 		}
 
-		template = tmpl
-		opRec.Set("template", template)
+		err = rec.Operation("create_achievement", func(_ *event.Record) error {
+			start := time.Now()
+			achievement, err := tx.Achievement.Create().
+				SetOwnerID(opt.ForUserID).
+				SetTemplateID(opt.TemplateID).
+				SetStatus(string(achievement.StatusDraft)).
+				SetPoints(template.PointsLimit).
+				Save(ctx)
+			statsRec.Add(events.PostgresQueries, 1)
+			statsRec.Add(events.PostgresTime, time.Since(start))
+
+			if err != nil {
+				return fmt.Errorf("couldn't save achievement: %w", err)
+			}
+
+			ach = achievement
+			return nil
+		})
+		if err != nil {
+			return err
+		}
+
 		return nil
 	})
-	if err != nil {
-		return achievement.Achievement{}, err
-	}
 
-	// Create achievement in database
-	var achievementEntity *ent.Achievement
-	err = rec.Operation("create_achievement", func(opRec *event.Record) error {
-		// Start a transaction
-		queryStart := time.Now()
-		tx, err := s.client.Tx(ctx)
-		queryCount++
-		opRec.Add("tx_start_time_ms", time.Since(queryStart).Milliseconds())
-
-		if err != nil {
-			opRec.Add(events.Error, fmt.Errorf("failed to start transaction: %w", err))
-			return err
-		}
-
-		// Create achievement
-		queryStart = time.Now()
-		entity, err := tx.Achievement.Create().
-			SetOwnerID(opt.ForUser.ID).
-			SetTemplateID(opt.TemplateID).
-			SetStatus(string(achievement.StatusDraft)).
-			SetPoints(template.PointsLimit).
-			Save(ctx)
-		queryCount++
-		opRec.Add("create_time_ms", time.Since(queryStart).Milliseconds())
-
-		if err != nil {
-			opRec.Add(events.Error, fmt.Errorf("failed to create achievement: %w", err))
-			return rollback(tx, err)
-		}
-
-		// Commit transaction
-		queryStart = time.Now()
-		if err := tx.Commit(); err != nil {
-			opRec.Add(events.Error, fmt.Errorf("failed to commit transaction: %w", err))
-			return err
-		}
-		queryCount++
-		opRec.Add("commit_time_ms", time.Since(queryStart).Milliseconds())
-
-		achievementEntity = entity
-		return nil
-	})
-	if err != nil {
-		return achievement.Achievement{}, err
-	}
-
-	result := achievement.Achievement{
-		ID:    achievementEntity.ID,
-		Owner: opt.ForUser,
-		Template: achievement.Template{
-			ID:          template.ID,
-			Name:        template.Name,
-			Description: template.Description,
-			PointsLimit: template.PointsLimit,
-			GroupID:     template.GroupID,
-			Active:      template.Active,
-			Kind:        template.Kind,
-		},
-		Status: achievement.Status(achievementEntity.Status),
-		Points: achievementEntity.Points,
-	}
-
-	rec.Set("created_achievement", result)
-	return result, nil
+	return ach, err
 }

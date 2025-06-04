@@ -99,20 +99,6 @@ func (fu *FileUpdate) AddSize(i int) *FileUpdate {
 	return fu
 }
 
-// SetURL sets the "url" field.
-func (fu *FileUpdate) SetURL(s string) *FileUpdate {
-	fu.mutation.SetURL(s)
-	return fu
-}
-
-// SetNillableURL sets the "url" field if the given value is not nil.
-func (fu *FileUpdate) SetNillableURL(s *string) *FileUpdate {
-	if s != nil {
-		fu.SetURL(*s)
-	}
-	return fu
-}
-
 // SetOwner sets the "owner" edge to the User entity.
 func (fu *FileUpdate) SetOwner(u *User) *FileUpdate {
 	return fu.SetOwnerID(u.ID)
@@ -212,9 +198,6 @@ func (fu *FileUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := fu.mutation.AddedSize(); ok {
 		_spec.AddField(file.FieldSize, field.TypeInt, value)
-	}
-	if value, ok := fu.mutation.URL(); ok {
-		_spec.SetField(file.FieldURL, field.TypeString, value)
 	}
 	if fu.mutation.OwnerCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -379,20 +362,6 @@ func (fuo *FileUpdateOne) AddSize(i int) *FileUpdateOne {
 	return fuo
 }
 
-// SetURL sets the "url" field.
-func (fuo *FileUpdateOne) SetURL(s string) *FileUpdateOne {
-	fuo.mutation.SetURL(s)
-	return fuo
-}
-
-// SetNillableURL sets the "url" field if the given value is not nil.
-func (fuo *FileUpdateOne) SetNillableURL(s *string) *FileUpdateOne {
-	if s != nil {
-		fuo.SetURL(*s)
-	}
-	return fuo
-}
-
 // SetOwner sets the "owner" edge to the User entity.
 func (fuo *FileUpdateOne) SetOwner(u *User) *FileUpdateOne {
 	return fuo.SetOwnerID(u.ID)
@@ -522,9 +491,6 @@ func (fuo *FileUpdateOne) sqlSave(ctx context.Context) (_node *File, err error) 
 	}
 	if value, ok := fuo.mutation.AddedSize(); ok {
 		_spec.AddField(file.FieldSize, field.TypeInt, value)
-	}
-	if value, ok := fuo.mutation.URL(); ok {
-		_spec.SetField(file.FieldURL, field.TypeString, value)
 	}
 	if fuo.mutation.OwnerCleared() {
 		edge := &sqlgraph.EdgeSpec{

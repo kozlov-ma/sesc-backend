@@ -15,14 +15,14 @@ import (
 	"github.com/go-openapi/validate"
 )
 
-// APIAchievementResponse api achievement response
+// RespondAchievement respond achievement
 //
-// swagger:model api.AchievementResponse
-type APIAchievementResponse struct {
+// swagger:model respond.Achievement
+type RespondAchievement struct {
 
 	// documents
 	// Required: true
-	Documents []*APIDocumentResponse `json:"documents"`
+	Documents []*RespondDocument `json:"documents"`
 
 	// id
 	// Example: 550e8400-e29b-41d4-a716-446655440000
@@ -46,7 +46,7 @@ type APIAchievementResponse struct {
 
 	// reviews
 	// Required: true
-	Reviews []*APIReviewResponse `json:"reviews"`
+	Reviews []*RespondReview `json:"reviews"`
 
 	// status
 	// Example: draft
@@ -64,8 +64,8 @@ type APIAchievementResponse struct {
 	TemplateName *string `json:"templateName"`
 }
 
-// Validate validates this api achievement response
-func (m *APIAchievementResponse) Validate(formats strfmt.Registry) error {
+// Validate validates this respond achievement
+func (m *RespondAchievement) Validate(formats strfmt.Registry) error {
 	var res []error
 
 	if err := m.validateDocuments(formats); err != nil {
@@ -110,7 +110,7 @@ func (m *APIAchievementResponse) Validate(formats strfmt.Registry) error {
 	return nil
 }
 
-func (m *APIAchievementResponse) validateDocuments(formats strfmt.Registry) error {
+func (m *RespondAchievement) validateDocuments(formats strfmt.Registry) error {
 
 	if err := validate.Required("documents", "body", m.Documents); err != nil {
 		return err
@@ -137,7 +137,7 @@ func (m *APIAchievementResponse) validateDocuments(formats strfmt.Registry) erro
 	return nil
 }
 
-func (m *APIAchievementResponse) validateID(formats strfmt.Registry) error {
+func (m *RespondAchievement) validateID(formats strfmt.Registry) error {
 
 	if err := validate.Required("id", "body", m.ID); err != nil {
 		return err
@@ -146,7 +146,7 @@ func (m *APIAchievementResponse) validateID(formats strfmt.Registry) error {
 	return nil
 }
 
-func (m *APIAchievementResponse) validateOwnerID(formats strfmt.Registry) error {
+func (m *RespondAchievement) validateOwnerID(formats strfmt.Registry) error {
 
 	if err := validate.Required("ownerId", "body", m.OwnerID); err != nil {
 		return err
@@ -155,7 +155,7 @@ func (m *APIAchievementResponse) validateOwnerID(formats strfmt.Registry) error 
 	return nil
 }
 
-func (m *APIAchievementResponse) validateOwnerName(formats strfmt.Registry) error {
+func (m *RespondAchievement) validateOwnerName(formats strfmt.Registry) error {
 
 	if err := validate.Required("ownerName", "body", m.OwnerName); err != nil {
 		return err
@@ -164,7 +164,7 @@ func (m *APIAchievementResponse) validateOwnerName(formats strfmt.Registry) erro
 	return nil
 }
 
-func (m *APIAchievementResponse) validatePoints(formats strfmt.Registry) error {
+func (m *RespondAchievement) validatePoints(formats strfmt.Registry) error {
 
 	if err := validate.Required("points", "body", m.Points); err != nil {
 		return err
@@ -173,7 +173,7 @@ func (m *APIAchievementResponse) validatePoints(formats strfmt.Registry) error {
 	return nil
 }
 
-func (m *APIAchievementResponse) validateReviews(formats strfmt.Registry) error {
+func (m *RespondAchievement) validateReviews(formats strfmt.Registry) error {
 
 	if err := validate.Required("reviews", "body", m.Reviews); err != nil {
 		return err
@@ -200,7 +200,7 @@ func (m *APIAchievementResponse) validateReviews(formats strfmt.Registry) error 
 	return nil
 }
 
-func (m *APIAchievementResponse) validateStatus(formats strfmt.Registry) error {
+func (m *RespondAchievement) validateStatus(formats strfmt.Registry) error {
 
 	if err := validate.Required("status", "body", m.Status); err != nil {
 		return err
@@ -209,7 +209,7 @@ func (m *APIAchievementResponse) validateStatus(formats strfmt.Registry) error {
 	return nil
 }
 
-func (m *APIAchievementResponse) validateTemplateID(formats strfmt.Registry) error {
+func (m *RespondAchievement) validateTemplateID(formats strfmt.Registry) error {
 
 	if err := validate.Required("templateId", "body", m.TemplateID); err != nil {
 		return err
@@ -218,7 +218,7 @@ func (m *APIAchievementResponse) validateTemplateID(formats strfmt.Registry) err
 	return nil
 }
 
-func (m *APIAchievementResponse) validateTemplateName(formats strfmt.Registry) error {
+func (m *RespondAchievement) validateTemplateName(formats strfmt.Registry) error {
 
 	if err := validate.Required("templateName", "body", m.TemplateName); err != nil {
 		return err
@@ -227,8 +227,8 @@ func (m *APIAchievementResponse) validateTemplateName(formats strfmt.Registry) e
 	return nil
 }
 
-// ContextValidate validate this api achievement response based on the context it is used
-func (m *APIAchievementResponse) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+// ContextValidate validate this respond achievement based on the context it is used
+func (m *RespondAchievement) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	var res []error
 
 	if err := m.contextValidateDocuments(ctx, formats); err != nil {
@@ -245,7 +245,7 @@ func (m *APIAchievementResponse) ContextValidate(ctx context.Context, formats st
 	return nil
 }
 
-func (m *APIAchievementResponse) contextValidateDocuments(ctx context.Context, formats strfmt.Registry) error {
+func (m *RespondAchievement) contextValidateDocuments(ctx context.Context, formats strfmt.Registry) error {
 
 	for i := 0; i < len(m.Documents); i++ {
 
@@ -270,7 +270,7 @@ func (m *APIAchievementResponse) contextValidateDocuments(ctx context.Context, f
 	return nil
 }
 
-func (m *APIAchievementResponse) contextValidateReviews(ctx context.Context, formats strfmt.Registry) error {
+func (m *RespondAchievement) contextValidateReviews(ctx context.Context, formats strfmt.Registry) error {
 
 	for i := 0; i < len(m.Reviews); i++ {
 
@@ -296,7 +296,7 @@ func (m *APIAchievementResponse) contextValidateReviews(ctx context.Context, for
 }
 
 // MarshalBinary interface implementation
-func (m *APIAchievementResponse) MarshalBinary() ([]byte, error) {
+func (m *RespondAchievement) MarshalBinary() ([]byte, error) {
 	if m == nil {
 		return nil, nil
 	}
@@ -304,8 +304,8 @@ func (m *APIAchievementResponse) MarshalBinary() ([]byte, error) {
 }
 
 // UnmarshalBinary interface implementation
-func (m *APIAchievementResponse) UnmarshalBinary(b []byte) error {
-	var res APIAchievementResponse
+func (m *RespondAchievement) UnmarshalBinary(b []byte) error {
+	var res RespondAchievement
 	if err := swag.ReadJSON(b, &res); err != nil {
 		return err
 	}

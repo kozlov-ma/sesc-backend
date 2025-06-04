@@ -30,12 +30,8 @@ func New(client *ent.Client) *SESC {
 
 type (
 	UUID                             = uuid.UUID
-	User                             = sesc.User
-	Department                       = sesc.Department
 	Role                             = sesc.Role
 	UserUpdateOptions                = sesc.UserUpdateOptions
-	AchievementGroup                 = achievement.Group
-	AchievementTemplate              = achievement.Template
 	AchievementGroupCreateOptions    = achievement.GroupCreateOptions
 	AchievementGroupUpdateOptions    = achievement.GroupUpdateOptions
 	AchievementGroupSearchOptions    = achievement.GroupSearchOptions

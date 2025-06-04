@@ -73,7 +73,7 @@ type PostAchievementTemplatesParams struct {
 
 	   Template details
 	*/
-	Request *models.APICreateAchievementTemplateRequest
+	Request *models.ParamCreateAchievementTemplateRequest
 
 	timeout    time.Duration
 	Context    context.Context
@@ -140,13 +140,13 @@ func (o *PostAchievementTemplatesParams) SetAuthorization(authorization *string)
 }
 
 // WithRequest adds the request to the post achievement templates params
-func (o *PostAchievementTemplatesParams) WithRequest(request *models.APICreateAchievementTemplateRequest) *PostAchievementTemplatesParams {
+func (o *PostAchievementTemplatesParams) WithRequest(request *models.ParamCreateAchievementTemplateRequest) *PostAchievementTemplatesParams {
 	o.SetRequest(request)
 	return o
 }
 
 // SetRequest adds the request to the post achievement templates params
-func (o *PostAchievementTemplatesParams) SetRequest(request *models.APICreateAchievementTemplateRequest) {
+func (o *PostAchievementTemplatesParams) SetRequest(request *models.ParamCreateAchievementTemplateRequest) {
 	o.Request = request
 }
 

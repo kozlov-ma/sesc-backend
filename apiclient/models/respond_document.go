@@ -14,15 +14,20 @@ import (
 	"github.com/go-openapi/validate"
 )
 
-// APIAddDocumentRequest api add document request
+// RespondDocument respond document
 //
-// swagger:model api.AddDocumentRequest
-type APIAddDocumentRequest struct {
+// swagger:model respond.Document
+type RespondDocument struct {
 
 	// file Id
 	// Example: 550e8400-e29b-41d4-a716-446655440000
 	// Required: true
 	FileID *string `json:"fileId"`
+
+	// id
+	// Example: 550e8400-e29b-41d4-a716-446655440000
+	// Required: true
+	ID *string `json:"id"`
 
 	// name
 	// Example: Publication proof
@@ -30,11 +35,15 @@ type APIAddDocumentRequest struct {
 	Name *string `json:"name"`
 }
 
-// Validate validates this api add document request
-func (m *APIAddDocumentRequest) Validate(formats strfmt.Registry) error {
+// Validate validates this respond document
+func (m *RespondDocument) Validate(formats strfmt.Registry) error {
 	var res []error
 
 	if err := m.validateFileID(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateID(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -48,7 +57,7 @@ func (m *APIAddDocumentRequest) Validate(formats strfmt.Registry) error {
 	return nil
 }
 
-func (m *APIAddDocumentRequest) validateFileID(formats strfmt.Registry) error {
+func (m *RespondDocument) validateFileID(formats strfmt.Registry) error {
 
 	if err := validate.Required("fileId", "body", m.FileID); err != nil {
 		return err
@@ -57,7 +66,16 @@ func (m *APIAddDocumentRequest) validateFileID(formats strfmt.Registry) error {
 	return nil
 }
 
-func (m *APIAddDocumentRequest) validateName(formats strfmt.Registry) error {
+func (m *RespondDocument) validateID(formats strfmt.Registry) error {
+
+	if err := validate.Required("id", "body", m.ID); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *RespondDocument) validateName(formats strfmt.Registry) error {
 
 	if err := validate.Required("name", "body", m.Name); err != nil {
 		return err
@@ -66,13 +84,13 @@ func (m *APIAddDocumentRequest) validateName(formats strfmt.Registry) error {
 	return nil
 }
 
-// ContextValidate validates this api add document request based on context it is used
-func (m *APIAddDocumentRequest) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+// ContextValidate validates this respond document based on context it is used
+func (m *RespondDocument) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	return nil
 }
 
 // MarshalBinary interface implementation
-func (m *APIAddDocumentRequest) MarshalBinary() ([]byte, error) {
+func (m *RespondDocument) MarshalBinary() ([]byte, error) {
 	if m == nil {
 		return nil, nil
 	}
@@ -80,8 +98,8 @@ func (m *APIAddDocumentRequest) MarshalBinary() ([]byte, error) {
 }
 
 // UnmarshalBinary interface implementation
-func (m *APIAddDocumentRequest) UnmarshalBinary(b []byte) error {
-	var res APIAddDocumentRequest
+func (m *RespondDocument) UnmarshalBinary(b []byte) error {
+	var res RespondDocument
 	if err := swag.ReadJSON(b, &res); err != nil {
 		return err
 	}

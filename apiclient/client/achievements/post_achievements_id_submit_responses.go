@@ -76,7 +76,7 @@ PostAchievementsIDSubmitOK describes a response with status code 200, with defau
 OK
 */
 type PostAchievementsIDSubmitOK struct {
-	Payload *models.APIAchievementResponse
+	Payload *models.RespondAchievement
 }
 
 // IsSuccess returns true when this post achievements Id submit o k response has a 2xx status code
@@ -119,13 +119,13 @@ func (o *PostAchievementsIDSubmitOK) String() string {
 	return fmt.Sprintf("[POST /achievements/{id}/submit][%d] postAchievementsIdSubmitOK %s", 200, payload)
 }
 
-func (o *PostAchievementsIDSubmitOK) GetPayload() *models.APIAchievementResponse {
+func (o *PostAchievementsIDSubmitOK) GetPayload() *models.RespondAchievement {
 	return o.Payload
 }
 
 func (o *PostAchievementsIDSubmitOK) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIAchievementResponse)
+	o.Payload = new(models.RespondAchievement)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {

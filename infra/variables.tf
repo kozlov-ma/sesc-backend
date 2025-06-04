@@ -25,15 +25,9 @@ variable "project_name" {
   type        = string
 }
 
-variable "main_domain" {
-  description = "Main domain for SSL certificate"
+variable "certificate_id" {
+  description = "Cert Manager certificate id"
   type        = string
-}
-
-variable "additional_domains" {
-  description = "Additional domains for SSL certificate"
-  type        = list(string)
-  default     = []
 }
 
 variable "admin_ip_cidr" {
@@ -115,4 +109,22 @@ variable "accessories_disk_size" {
   description = "Disk size for Kamal accessories VM in GB"
   type        = number
   default     = 20
+}
+
+variable "frontend_domains" {
+  description = "List of frontend domains"
+  type        = list(string)
+  default = [
+    "deathops.tech",
+    "urfu.sesc.online"
+  ]
+}
+
+variable "api_domains" {
+  description = "List of API domains"
+  type        = list(string)
+  default = [
+    "api.deathops.tech",
+    "api.sesc.online"
+  ]
 }

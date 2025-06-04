@@ -154,7 +154,7 @@ func TestUpdateAchievementTemplate(t *testing.T) {
 
 		// Verify the results
 		require.Error(t, err, "Should return error for invalid kind")
-		require.Empty(t, updatedTemplate.ID)
+		require.Nil(t, updatedTemplate)
 	})
 
 	t.Run("template_not_found", func(t *testing.T) {
@@ -180,7 +180,7 @@ func TestUpdateAchievementTemplate(t *testing.T) {
 
 		// Verify the results
 		require.Equal(t, achievement.ErrAchievementTemplateNotFound, err)
-		require.Empty(t, updatedTemplate.ID)
+		require.Nil(t, updatedTemplate)
 	})
 
 	t.Run("database_error", func(t *testing.T) {
@@ -209,6 +209,6 @@ func TestUpdateAchievementTemplate(t *testing.T) {
 
 		// Verify the results
 		require.Error(t, err)
-		require.Empty(t, updatedTemplate.ID)
+		require.Nil(t, updatedTemplate)
 	})
 }

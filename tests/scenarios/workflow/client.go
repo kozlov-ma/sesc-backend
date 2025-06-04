@@ -88,7 +88,6 @@ type FileInfo struct {
 	ID       string
 	UserID   string
 	Filename string
-	FileURL  string
 }
 
 // NewTestClient creates a new test client
@@ -260,7 +259,6 @@ func (c *TestClient) UploadFile(filename string, fileContent []byte) (*FileInfo,
 	return &FileInfo{
 		ID:       uploadResp.Payload.ID,
 		Filename: filename,
-		FileURL:  uploadResp.Payload.DownloadURL,
 		UserID:   uploadResp.Payload.OwnerID,
 	}, nil
 }
@@ -268,7 +266,7 @@ func (c *TestClient) UploadFile(filename string, fileContent []byte) (*FileInfo,
 // CreateAchievement creates a new achievement
 func (c *TestClient) CreateAchievement(templateID string) (*AchievementInfo, error) {
 	createParams := achievements.NewPostAchievementsParams()
-	createParams.SetRequest(&models.APICreateAchievementRequest{
+	createParams.SetRequest(&models.ParamCreateAchievementRequest{
 		TemplateID: &templateID,
 	})
 
@@ -285,7 +283,7 @@ func (c *TestClient) CreateAchievement(templateID string) (*AchievementInfo, err
 }
 
 // GetUserAchievements retrieves achievements for the current user
-func (c *TestClient) GetUserAchievements() ([]*models.APIAchievementResponse, error) {
+func (c *TestClient) GetUserAchievements() ([]*models.RespondAchievement, error) {
 	getParams := achievements.NewGetAchievementsParams()
 
 	getResp, err := c.apiClient.Achievements.GetAchievements(getParams, c.authInfo)
@@ -313,7 +311,7 @@ func (c *TestClient) SubmitAchievement(achievementID string) error {
 func (c *TestClient) ReviewAchievement(achievementID string, points int64, comment string) error {
 	reviewParams := achievements.NewPostAchievementsIDReviewParams()
 	reviewParams.SetID(achievementID)
-	reviewParams.SetRequest(&models.APIReviewAchievementRequest{
+	reviewParams.SetRequest(&models.ParamReviewAchievementRequest{
 		PointsAssigned: &points,
 		Comment:        comment,
 	})
@@ -341,7 +339,7 @@ func (c *TestClient) MarkAllAccounted() error {
 // CreateAchievementGroup creates a new achievement group
 func (c *TestClient) CreateAchievementGroup(name, description string) (*AchievementGroupInfo, error) {
 	createParams := achievement_groups.NewPostAchievementGroupsParams()
-	createParams.SetRequest(&models.APICreateAchievementGroupRequest{
+	createParams.SetRequest(&models.ParamCreateAchievementGroupRequest{
 		Name:        &name,
 		Description: &description,
 	})
@@ -359,7 +357,7 @@ func (c *TestClient) CreateAchievementGroup(name, description string) (*Achievem
 }
 
 // GetAchievementGroups retrieves all achievement groups
-func (c *TestClient) GetAchievementGroups() ([]*models.APIAchievementGroupResponse, error) {
+func (c *TestClient) GetAchievementGroups() ([]*models.RespondAchievementGroup, error) {
 	getParams := achievement_groups.NewGetAchievementGroupsParams()
 
 	getResp, err := c.apiClient.AchievementGroups.GetAchievementGroups(getParams, c.authInfo)
@@ -377,7 +375,7 @@ func (c *TestClient) CreateAchievementTemplate(
 	kind string,
 ) (*AchievementTemplateInfo, error) {
 	createParams := achievement_templates.NewPostAchievementTemplatesParams()
-	createParams.SetRequest(&models.APICreateAchievementTemplateRequest{
+	createParams.SetRequest(&models.ParamCreateAchievementTemplateRequest{
 		GroupID:     &groupID,
 		Name:        &name,
 		Description: &description,
@@ -401,7 +399,7 @@ func (c *TestClient) CreateAchievementTemplate(
 }
 
 // GetAchievementTemplates retrieves all achievement templates
-func (c *TestClient) GetAchievementTemplates() ([]*models.APIAchievementTemplateResponse, error) {
+func (c *TestClient) GetAchievementTemplates() ([]*models.RespondAchievementTemplate, error) {
 	getParams := achievement_templates.NewGetAchievementTemplatesParams()
 
 	getResp, err := c.apiClient.AchievementTemplates.GetAchievementTemplates(getParams, c.authInfo)

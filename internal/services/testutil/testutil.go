@@ -65,7 +65,7 @@ func CreateTestUser(
 	client *ent.Client,
 	firstName, lastName string,
 	role sesc.Role,
-) sesc.User {
+) *ent.User {
 	t.Helper()
 
 	// Create a department first
@@ -79,7 +79,7 @@ func CreateTestUser(
 	// Create the user
 	userID := uuid.Must(uuid.NewV7())
 
-	_, err = client.User.Create().
+	us, err := client.User.Create().
 		SetID(userID).
 		SetFirstName(firstName).
 		SetLastName(lastName).
@@ -88,20 +88,35 @@ func CreateTestUser(
 		Save(ctx)
 	require.NoError(t, err)
 
-	return sesc.User{
-		ID:        userID,
-		FirstName: firstName,
-		LastName:  lastName,
-		Department: sesc.Department{
-			ID:   dept.ID,
-			Name: deptName,
-		},
-		Role: role,
-	}
+	return us
 }
 
-// CreateTestDepartment creates a test department directly in the database
-func CreateTestDepartment(ctx context.Context, t *testing.T, client *ent.Client) sesc.Department {
+// CreateTestUserWithDepartment creates a test user with a specific department
+func CreateTestUserWithDepartment(
+	ctx context.Context,
+	t *testing.T,
+	client *ent.Client,
+	firstName, lastName string,
+	role sesc.Role,
+	dept *ent.Department,
+) *ent.User {
+	t.Helper()
+
+	userID := uuid.Must(uuid.NewV7())
+	us, err := client.User.Create().
+		SetID(userID).
+		SetFirstName(firstName).
+		SetLastName(lastName).
+		SetDepartment(dept).
+		SetRole(role).
+		Save(ctx)
+	require.NoError(t, err)
+
+	return us
+}
+
+// CreateTestDepartment creates a test department directly in the database with a generated name
+func CreateTestDepartment(ctx context.Context, t *testing.T, client *ent.Client) *ent.Department {
 	t.Helper()
 
 	deptName := "Test Department " + strconv.Itoa(rand.Int())
@@ -111,14 +126,24 @@ func CreateTestDepartment(ctx context.Context, t *testing.T, client *ent.Client)
 		Save(ctx)
 	require.NoError(t, err)
 
-	return sesc.Department{
-		ID:   dept.ID,
-		Name: deptName,
-	}
+	return dept
+}
+
+// CreateTestDepartmentWithName creates a test department with a specific name
+func CreateTestDepartmentWithName(ctx context.Context, t *testing.T, client *ent.Client, name string) *ent.Department {
+	t.Helper()
+
+	dept, err := client.Department.Create().
+		SetName(name).
+		SetDescription("For testing").
+		Save(ctx)
+	require.NoError(t, err)
+
+	return dept
 }
 
 // CreateTestAchievementGroup creates a test achievement group directly in the database
-func CreateTestAchievementGroup(ctx context.Context, t *testing.T, client *ent.Client) achievement.Group {
+func CreateTestAchievementGroup(ctx context.Context, t *testing.T, client *ent.Client) *ent.AchievementGroup {
 	t.Helper()
 
 	groupName := "Test Group " + strconv.Itoa(rand.Int())
@@ -128,10 +153,7 @@ func CreateTestAchievementGroup(ctx context.Context, t *testing.T, client *ent.C
 		Save(ctx)
 	require.NoError(t, err)
 
-	return achievement.Group{
-		ID:   group.ID,
-		Name: groupName,
-	}
+	return group
 }
 
 // CreateTestAchievementTemplate creates a test achievement template directly in the database
@@ -140,7 +162,7 @@ func CreateTestAchievementTemplate(
 	t *testing.T,
 	client *ent.Client,
 	kind achievement.Kind,
-) achievement.Template {
+) *ent.AchievementTemplate {
 	t.Helper()
 
 	// Create a group first
@@ -157,14 +179,7 @@ func CreateTestAchievementTemplate(
 		Save(ctx)
 	require.NoError(t, err)
 
-	return achievement.Template{
-		ID:          template.ID,
-		Name:        templateName,
-		Description: "For testing",
-		PointsLimit: 10,
-		Kind:        kind,
-		GroupID:     group.ID,
-	}
+	return template
 }
 
 // CreateTestAchievement creates a test achievement directly in the database
@@ -172,54 +187,42 @@ func CreateTestAchievement(
 	ctx context.Context,
 	t *testing.T,
 	client *ent.Client,
-	user sesc.User,
-	template achievement.Template,
+	user *ent.User,
+	template *ent.AchievementTemplate,
 	status achievement.Status,
-) achievement.Achievement {
+) *ent.Achievement {
 	t.Helper()
 
 	achievementID := uuid.Must(uuid.NewV7())
-	err := client.Achievement.Create().
+	ach, err := client.Achievement.Create().
 		SetID(achievementID).
 		SetStatus(string(status)).
 		SetPoints(0).
 		SetOwnerID(user.ID).
 		SetTemplateID(template.ID).
-		Exec(ctx)
+		Save(ctx)
 	require.NoError(t, err)
 
-	return achievement.Achievement{
-		ID:       achievementID,
-		Status:   status,
-		Points:   0,
-		Owner:    user,
-		Template: template,
-	}
+	return ach
 }
 
 // CreateTestFile creates a test file entry directly in the database
-func CreateTestFile(ctx context.Context, t *testing.T, client *ent.Client) sesc.File {
+func CreateTestFile(ctx context.Context, t *testing.T, client *ent.Client) *ent.File {
 	t.Helper()
 
 	fileID := uuid.Must(uuid.NewV7())
 	fileName := "test-file-" + strconv.Itoa(rand.Int()) + ".pdf"
 	objectKey := "test-files/" + fileID.String()
 
-	_, err := client.File.Create().
+	fi, err := client.File.Create().
 		SetID(fileID).
 		SetName(fileName).
 		SetSize(1024).
-		SetURL("https://example.com/" + fileName).
 		SetS3ObjectKey(objectKey).
 		Save(ctx)
 	require.NoError(t, err)
 
-	return sesc.File{
-		ID:   fileID,
-		Name: fileName,
-		Size: 1024,
-		URL:  "https://example.com/" + fileName,
-	}
+	return fi
 }
 
 // CreateTestContext creates a new context with an event record for testing
@@ -231,11 +234,11 @@ func CreateTestContext(t *testing.T) (context.Context, *event.Record) {
 // TestContext contains shared testing resources
 type TestContext struct {
 	Client   *ent.Client
-	User     sesc.User
-	Template achievement.Template
-	Group    achievement.Group
-	File     sesc.File
-	Dept     sesc.Department
+	User     *ent.User
+	Template *ent.AchievementTemplate
+	Group    *ent.AchievementGroup
+	File     *ent.File
+	Dept     *ent.Department
 }
 
 // SetupTestContext creates a TestContext with all common test resources initialized

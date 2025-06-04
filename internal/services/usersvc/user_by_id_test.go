@@ -30,7 +30,7 @@ func TestUserByID(t *testing.T) {
 		require.Equal(t, expectedUser.ID, user.ID)
 		require.Equal(t, expectedUser.FirstName, user.FirstName)
 		require.Equal(t, expectedUser.LastName, user.LastName)
-		require.Equal(t, &expectedUser.Department.ID, user.DepartmentID)
+		require.Equal(t, expectedUser.DepartmentID, user.DepartmentID)
 		require.Equal(t, expectedUser.Role, user.Role)
 	})
 

@@ -76,7 +76,7 @@ PatchAchievementGroupsIDOK describes a response with status code 200, with defau
 OK
 */
 type PatchAchievementGroupsIDOK struct {
-	Payload *models.APIAchievementGroupResponse
+	Payload *models.RespondAchievementGroup
 }
 
 // IsSuccess returns true when this patch achievement groups Id o k response has a 2xx status code
@@ -119,13 +119,13 @@ func (o *PatchAchievementGroupsIDOK) String() string {
 	return fmt.Sprintf("[PATCH /achievement-groups/{id}][%d] patchAchievementGroupsIdOK %s", 200, payload)
 }
 
-func (o *PatchAchievementGroupsIDOK) GetPayload() *models.APIAchievementGroupResponse {
+func (o *PatchAchievementGroupsIDOK) GetPayload() *models.RespondAchievementGroup {
 	return o.Payload
 }
 
 func (o *PatchAchievementGroupsIDOK) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIAchievementGroupResponse)
+	o.Payload = new(models.RespondAchievementGroup)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {

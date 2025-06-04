@@ -15,14 +15,14 @@ import (
 	"github.com/go-openapi/validate"
 )
 
-// APIPaginatedAchievementsResponse api paginated achievements response
+// RespondUsersWithAchievements respond users with achievements
 //
-// swagger:model api.PaginatedAchievementsResponse
-type APIPaginatedAchievementsResponse struct {
+// swagger:model respond.UsersWithAchievements
+type RespondUsersWithAchievements struct {
 
 	// items
 	// Required: true
-	Items []*APIAchievementResponse `json:"items"`
+	Items []*RespondUserWithAchievements `json:"items"`
 
 	// limit
 	// Required: true
@@ -37,8 +37,8 @@ type APIPaginatedAchievementsResponse struct {
 	TotalCount *int64 `json:"totalCount"`
 }
 
-// Validate validates this api paginated achievements response
-func (m *APIPaginatedAchievementsResponse) Validate(formats strfmt.Registry) error {
+// Validate validates this respond users with achievements
+func (m *RespondUsersWithAchievements) Validate(formats strfmt.Registry) error {
 	var res []error
 
 	if err := m.validateItems(formats); err != nil {
@@ -63,7 +63,7 @@ func (m *APIPaginatedAchievementsResponse) Validate(formats strfmt.Registry) err
 	return nil
 }
 
-func (m *APIPaginatedAchievementsResponse) validateItems(formats strfmt.Registry) error {
+func (m *RespondUsersWithAchievements) validateItems(formats strfmt.Registry) error {
 
 	if err := validate.Required("items", "body", m.Items); err != nil {
 		return err
@@ -90,7 +90,7 @@ func (m *APIPaginatedAchievementsResponse) validateItems(formats strfmt.Registry
 	return nil
 }
 
-func (m *APIPaginatedAchievementsResponse) validateLimit(formats strfmt.Registry) error {
+func (m *RespondUsersWithAchievements) validateLimit(formats strfmt.Registry) error {
 
 	if err := validate.Required("limit", "body", m.Limit); err != nil {
 		return err
@@ -99,7 +99,7 @@ func (m *APIPaginatedAchievementsResponse) validateLimit(formats strfmt.Registry
 	return nil
 }
 
-func (m *APIPaginatedAchievementsResponse) validateOffset(formats strfmt.Registry) error {
+func (m *RespondUsersWithAchievements) validateOffset(formats strfmt.Registry) error {
 
 	if err := validate.Required("offset", "body", m.Offset); err != nil {
 		return err
@@ -108,7 +108,7 @@ func (m *APIPaginatedAchievementsResponse) validateOffset(formats strfmt.Registr
 	return nil
 }
 
-func (m *APIPaginatedAchievementsResponse) validateTotalCount(formats strfmt.Registry) error {
+func (m *RespondUsersWithAchievements) validateTotalCount(formats strfmt.Registry) error {
 
 	if err := validate.Required("totalCount", "body", m.TotalCount); err != nil {
 		return err
@@ -117,8 +117,8 @@ func (m *APIPaginatedAchievementsResponse) validateTotalCount(formats strfmt.Reg
 	return nil
 }
 
-// ContextValidate validate this api paginated achievements response based on the context it is used
-func (m *APIPaginatedAchievementsResponse) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+// ContextValidate validate this respond users with achievements based on the context it is used
+func (m *RespondUsersWithAchievements) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	var res []error
 
 	if err := m.contextValidateItems(ctx, formats); err != nil {
@@ -131,7 +131,7 @@ func (m *APIPaginatedAchievementsResponse) ContextValidate(ctx context.Context, 
 	return nil
 }
 
-func (m *APIPaginatedAchievementsResponse) contextValidateItems(ctx context.Context, formats strfmt.Registry) error {
+func (m *RespondUsersWithAchievements) contextValidateItems(ctx context.Context, formats strfmt.Registry) error {
 
 	for i := 0; i < len(m.Items); i++ {
 
@@ -157,7 +157,7 @@ func (m *APIPaginatedAchievementsResponse) contextValidateItems(ctx context.Cont
 }
 
 // MarshalBinary interface implementation
-func (m *APIPaginatedAchievementsResponse) MarshalBinary() ([]byte, error) {
+func (m *RespondUsersWithAchievements) MarshalBinary() ([]byte, error) {
 	if m == nil {
 		return nil, nil
 	}
@@ -165,8 +165,8 @@ func (m *APIPaginatedAchievementsResponse) MarshalBinary() ([]byte, error) {
 }
 
 // UnmarshalBinary interface implementation
-func (m *APIPaginatedAchievementsResponse) UnmarshalBinary(b []byte) error {
-	var res APIPaginatedAchievementsResponse
+func (m *RespondUsersWithAchievements) UnmarshalBinary(b []byte) error {
+	var res RespondUsersWithAchievements
 	if err := swag.ReadJSON(b, &res); err != nil {
 		return err
 	}

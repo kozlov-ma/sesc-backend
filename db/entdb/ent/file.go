@@ -26,8 +26,6 @@ type File struct {
 	Name string `json:"name,omitempty"`
 	// Size holds the value of the "size" field.
 	Size int `json:"size,omitempty"`
-	// URL holds the value of the "url" field.
-	URL string `json:"url,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the FileQuery when eager-loading is set.
 	Edges        FileEdges `json:"edges"`
@@ -74,7 +72,7 @@ func (*File) scanValues(columns []string) ([]any, error) {
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		case file.FieldSize:
 			values[i] = new(sql.NullInt64)
-		case file.FieldS3ObjectKey, file.FieldName, file.FieldURL:
+		case file.FieldS3ObjectKey, file.FieldName:
 			values[i] = new(sql.NullString)
 		case file.FieldID:
 			values[i] = new(uuid.UUID)
@@ -123,12 +121,6 @@ func (f *File) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field size", values[i])
 			} else if value.Valid {
 				f.Size = int(value.Int64)
-			}
-		case file.FieldURL:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field url", values[i])
-			} else if value.Valid {
-				f.URL = value.String
 			}
 		default:
 			f.selectValues.Set(columns[i], values[i])
@@ -189,9 +181,6 @@ func (f *File) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("size=")
 	builder.WriteString(fmt.Sprintf("%v", f.Size))
-	builder.WriteString(", ")
-	builder.WriteString("url=")
-	builder.WriteString(f.URL)
 	builder.WriteByte(')')
 	return builder.String()
 }

@@ -31,9 +31,9 @@ import type {
   PostAchievementsData,
   PostAchievementsResponse,
   PostAchievementsError,
-  GetAchievementsGroupedData,
-  GetAchievementsGroupedResponse,
-  GetAchievementsGroupedError,
+  GetAchievementsUsersData,
+  GetAchievementsUsersResponse,
+  GetAchievementsUsersError,
   DeleteAchievementsByIdData,
   DeleteAchievementsByIdError,
   GetAchievementsByIdData,
@@ -137,7 +137,7 @@ export type Options<
 
 /**
  * Get all achievement groups
- * Retrieves all achievement groups
+ * Retrieves all achievement groups with filtering options
  */
 export const getAchievementGroups = <ThrowOnError extends boolean = false>(
   options?: Options<GetAchievementGroupsData, ThrowOnError>,
@@ -344,15 +344,15 @@ export const postAchievements = <ThrowOnError extends boolean = false>(
 };
 
 /**
- * Get achievements grouped by user
- * Retrieves all achievements grouped by user with pagination
+ * Get users with achievements
+ * Retrieves users with achievements based on role permissions
  */
-export const getAchievementsGrouped = <ThrowOnError extends boolean = false>(
-  options?: Options<GetAchievementsGroupedData, ThrowOnError>,
+export const getAchievementsUsers = <ThrowOnError extends boolean = false>(
+  options?: Options<GetAchievementsUsersData, ThrowOnError>,
 ) => {
   return (options?.client ?? _heyApiClient).get<
-    GetAchievementsGroupedResponse,
-    GetAchievementsGroupedError,
+    GetAchievementsUsersResponse,
+    GetAchievementsUsersError,
     ThrowOnError
   >({
     security: [
@@ -361,7 +361,7 @@ export const getAchievementsGrouped = <ThrowOnError extends boolean = false>(
         type: "apiKey",
       },
     ],
-    url: "/achievements/grouped",
+    url: "/achievements/users",
     ...options,
   });
 };

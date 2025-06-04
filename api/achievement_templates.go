@@ -4,69 +4,25 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
-	"strconv"
 
 	"github.com/gofrs/uuid/v5"
 	"github.com/kozlov-ma/sesc-backend/achievement"
+	"github.com/kozlov-ma/sesc-backend/api/param"
 	"github.com/kozlov-ma/sesc-backend/api/respond"
 	"github.com/kozlov-ma/sesc-backend/pkg/event"
 	"github.com/kozlov-ma/sesc-backend/pkg/event/events"
 )
 
-type AchievementGroupResponse struct {
-	ID          uuid.UUID `json:"id"          example:"550e8400-e29b-41d4-a716-446655440000" validate:"required"`
-	Name        string    `json:"name"        example:"Научная деятельность"                 validate:"required"`
-	Description string    `json:"description" example:"Достижения в научной деятельности"    validate:"required"`
-	Active      bool      `json:"active"      example:"true"                                 validate:"required"`
-}
-
-type AchievementTemplateResponse struct {
-	ID          uuid.UUID `json:"id"          example:"550e8400-e29b-41d4-a716-446655440000" validate:"required"`
-	Name        string    `json:"name"        example:"Публикация в журнале"                 validate:"required"`
-	Description string    `json:"description" example:"Публикация статьи в научном журнале"  validate:"required"`
-	PointsLimit int       `json:"pointsLimit" example:"10"                                   validate:"required"`
-	GroupID     uuid.UUID `json:"groupId"     example:"550e8400-e29b-41d4-a716-446655440000" validate:"required"`
-	Active      bool      `json:"active"      example:"true"                                 validate:"required"`
-	Kind        string    `json:"kind"        example:"scientific"                           validate:"required" enums:"olympiad,development,scientific"`
-}
-
-type CreateAchievementGroupRequest struct {
-	Name        string `json:"name"        example:"Научная деятельность"              validate:"required"`
-	Description string `json:"description" example:"Достижения в научной деятельности" validate:"required"`
-}
-
-type CreateAchievementTemplateRequest struct {
-	Name        string    `json:"name"        example:"Публикация в журнале"                 validate:"required"`
-	Description string    `json:"description" example:"Публикация статьи в научном журнале"  validate:"required"`
-	PointsLimit int       `json:"pointsLimit" example:"10"                                   validate:"required"`
-	GroupID     uuid.UUID `json:"groupId"     example:"550e8400-e29b-41d4-a716-446655440000" validate:"required"`
-	Kind        string    `json:"kind"        example:"scientific"                           validate:"required,oneof=olympiad development scientific"`
-}
-
-type PatchAchievementGroupRequest struct {
-	Name        *string `json:"name,omitzero"        example:"Научная деятельность"`
-	Description *string `json:"description,omitzero" example:"Достижения в научной деятельности"`
-	Active      *bool   `json:"active,omitzero"      example:"true"`
-}
-
-type PatchAchievementTemplateRequest struct {
-	Name        *string `json:"name,omitzero"        example:"Публикация в журнале"`
-	Description *string `json:"description,omitzero" example:"Публикация статьи в научном журнале"`
-	PointsLimit *int    `json:"pointsLimit,omitzero" example:"10"`
-	Active      *bool   `json:"active,omitzero"      example:"true"`
-	Kind        *string `json:"kind,omitzero"                                                      validate:"omitempty,oneof=olympiad development scientific"`
-}
-
 // GetAchievementGroups godoc
 // @Summary Get all achievement groups
-// @Description Retrieves all achievement groups
+// @Description Retrieves all achievement groups with filtering options
 // @Tags achievement-groups
 // @Produce json
 // @Security BearerAuth
 // @Param Authorization header string false "Bearer JWT token"
 // @Param show_inactive query bool false "Show inactive groups" default(false)
 // @Param search query string false "Search by name"
-// @Success 200 {array} AchievementGroupResponse
+// @Success 200 {array} respond.AchievementGroup
 // @Failure 401 {object} respond.Error "Unauthorized"
 // @Failure 500 {object} respond.Error "Internal server error"
 // @Router /achievement-groups [get]
@@ -75,18 +31,7 @@ func (a *API) GetAchievementGroups(w http.ResponseWriter, r *http.Request) {
 	rec := event.Get(ctx)
 
 	// Parse query parameters
-	showInactiveStr := r.URL.Query().Get("show_inactive")
-	showInactive := false
-	if showInactiveStr != "" {
-		var err error
-		showInactive, err = strconv.ParseBool(showInactiveStr)
-		if err != nil {
-			rec.Add(events.Error, "invalid show_inactive parameter")
-			a.writeJSON(ctx, w, respond.WithError(ctx, err))
-			return
-		}
-	}
-
+	showInactive := param.QueryBoolOrFalse(r, "show_inactive")
 	search := r.URL.Query().Get("search")
 
 	// Create search options
@@ -104,16 +49,7 @@ func (a *API) GetAchievementGroups(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Convert to response format
-	response := make([]AchievementGroupResponse, 0, len(groups))
-	for _, group := range groups {
-		response = append(response, AchievementGroupResponse{
-			ID:          group.ID,
-			Name:        group.Name,
-			Description: group.Description,
-			Active:      group.Active,
-		})
-	}
-
+	response := respond.WithAchievementGroups(groups)
 	a.writeJSON(ctx, w, response)
 }
 
@@ -125,8 +61,8 @@ func (a *API) GetAchievementGroups(w http.ResponseWriter, r *http.Request) {
 // @Produce json
 // @Security BearerAuth
 // @Param Authorization header string false "Bearer JWT token"
-// @Param request body CreateAchievementGroupRequest true "Group details"
-// @Success 201 {object} AchievementGroupResponse
+// @Param request body param.CreateAchievementGroupRequest true "Group details"
+// @Success 201 {object} respond.AchievementGroup
 // @Failure 400 {object} respond.Error "Invalid request format"
 // @Failure 401 {object} respond.Error "Unauthorized"
 // @Failure 403 {object} respond.Error "Forbidden - admin role required"
@@ -136,7 +72,7 @@ func (a *API) CreateAchievementGroup(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	rec := event.Get(ctx)
 
-	var req CreateAchievementGroupRequest
+	var req param.CreateAchievementGroupRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		rec.Add(events.Error, "invalid request body")
 		a.writeJSON(ctx, w, respond.WithError(ctx, err))
@@ -165,13 +101,7 @@ func (a *API) CreateAchievementGroup(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Convert to response format
-	response := AchievementGroupResponse{
-		ID:          group.ID,
-		Name:        group.Name,
-		Description: group.Description,
-		Active:      group.Active,
-	}
-
+	response := respond.WithAchievementGroup(group)
 	a.writeJSON(ctx, w, respond.WithStatus(response, http.StatusCreated))
 }
 
@@ -184,7 +114,7 @@ func (a *API) CreateAchievementGroup(w http.ResponseWriter, r *http.Request) {
 // @Param Authorization header string false "Bearer JWT token"
 // @Param show_inactive query bool false "Show inactive templates" default(false)
 // @Param search query string false "Search by name"
-// @Success 200 {array} AchievementTemplateResponse
+// @Success 200 {array} respond.AchievementTemplate
 // @Failure 401 {object} respond.Error "Unauthorized"
 // @Failure 500 {object} respond.Error "Internal server error"
 // @Router /achievement-templates [get]
@@ -193,18 +123,7 @@ func (a *API) GetAchievementTemplates(w http.ResponseWriter, r *http.Request) {
 	rec := event.Get(ctx)
 
 	// Parse query parameters
-	showInactiveStr := r.URL.Query().Get("show_inactive")
-	showInactive := false
-	if showInactiveStr != "" {
-		var err error
-		showInactive, err = strconv.ParseBool(showInactiveStr)
-		if err != nil {
-			rec.Add(events.Error, "invalid show_inactive parameter")
-			a.writeJSON(ctx, w, respond.WithError(ctx, err))
-			return
-		}
-	}
-
+	showInactive := param.QueryBoolOrFalse(r, "show_inactive")
 	search := r.URL.Query().Get("search")
 
 	// Create search options
@@ -222,19 +141,7 @@ func (a *API) GetAchievementTemplates(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Convert to response format
-	response := make([]AchievementTemplateResponse, 0, len(templates))
-	for _, template := range templates {
-		response = append(response, AchievementTemplateResponse{
-			ID:          template.ID,
-			Name:        template.Name,
-			Description: template.Description,
-			PointsLimit: template.PointsLimit,
-			GroupID:     template.GroupID,
-			Active:      template.Active,
-			Kind:        template.Kind.String(),
-		})
-	}
-
+	response := respond.WithAchievementTemplates(templates)
 	a.writeJSON(ctx, w, response)
 }
 
@@ -246,8 +153,8 @@ func (a *API) GetAchievementTemplates(w http.ResponseWriter, r *http.Request) {
 // @Produce json
 // @Security BearerAuth
 // @Param Authorization header string false "Bearer JWT token"
-// @Param request body CreateAchievementTemplateRequest true "Template details"
-// @Success 201 {object} AchievementTemplateResponse
+// @Param request body param.CreateAchievementTemplateRequest true "Template details"
+// @Success 201 {object} respond.AchievementTemplate
 // @Failure 400 {object} respond.Error "Invalid request format"
 // @Failure 401 {object} respond.Error "Unauthorized"
 // @Failure 403 {object} respond.Error "Forbidden - admin role required"
@@ -258,7 +165,7 @@ func (a *API) CreateAchievementTemplate(w http.ResponseWriter, r *http.Request) 
 	ctx := r.Context()
 	rec := event.Get(ctx)
 
-	var req CreateAchievementTemplateRequest
+	var req param.CreateAchievementTemplateRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		rec.Add(events.Error, "invalid request body")
 		a.writeJSON(ctx, w, respond.WithError(ctx, err))
@@ -305,16 +212,7 @@ func (a *API) CreateAchievementTemplate(w http.ResponseWriter, r *http.Request) 
 	}
 
 	// Convert to response format
-	response := AchievementTemplateResponse{
-		ID:          template.ID,
-		Name:        template.Name,
-		Description: template.Description,
-		PointsLimit: template.PointsLimit,
-		GroupID:     template.GroupID,
-		Active:      template.Active,
-		Kind:        template.Kind.String(),
-	}
-
+	response := respond.WithAchievementTemplate(template)
 	a.writeJSON(ctx, w, respond.WithStatus(response, http.StatusCreated))
 }
 
@@ -327,8 +225,8 @@ func (a *API) CreateAchievementTemplate(w http.ResponseWriter, r *http.Request) 
 // @Security BearerAuth
 // @Param Authorization header string false "Bearer JWT token"
 // @Param id path string true "Group UUID"
-// @Param request body PatchAchievementGroupRequest true "Group fields to update"
-// @Success 200 {object} AchievementGroupResponse
+// @Param request body param.PatchAchievementGroupRequest true "Group fields to update"
+// @Success 200 {object} respond.AchievementGroup
 // @Failure 400 {object} respond.Error "Invalid request format"
 // @Failure 401 {object} respond.Error "Unauthorized"
 // @Failure 403 {object} respond.Error "Forbidden - admin role required"
@@ -347,7 +245,7 @@ func (a *API) PatchAchievementGroup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var req PatchAchievementGroupRequest
+	var req param.PatchAchievementGroupRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		rec.Add(events.Error, "invalid request body")
 		a.writeJSON(ctx, w, respond.WithError(ctx, err))
@@ -374,13 +272,7 @@ func (a *API) PatchAchievementGroup(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Convert to response format
-	response := AchievementGroupResponse{
-		ID:          group.ID,
-		Name:        group.Name,
-		Description: group.Description,
-		Active:      group.Active,
-	}
-
+	response := respond.WithAchievementGroup(group)
 	a.writeJSON(ctx, w, response)
 }
 
@@ -393,8 +285,8 @@ func (a *API) PatchAchievementGroup(w http.ResponseWriter, r *http.Request) {
 // @Security BearerAuth
 // @Param Authorization header string false "Bearer JWT token"
 // @Param id path string true "Template UUID"
-// @Param request body PatchAchievementTemplateRequest true "Template fields to update"
-// @Success 200 {object} AchievementTemplateResponse
+// @Param request body param.PatchAchievementTemplateRequest true "Template fields to update"
+// @Success 200 {object} respond.AchievementTemplate
 // @Failure 400 {object} respond.Error "Invalid request format"
 // @Failure 401 {object} respond.Error "Unauthorized"
 // @Failure 403 {object} respond.Error "Forbidden - admin role required"
@@ -413,7 +305,7 @@ func (a *API) PatchAchievementTemplate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var req PatchAchievementTemplateRequest
+	var req param.PatchAchievementTemplateRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		rec.Add(events.Error, "invalid request body")
 		a.writeJSON(ctx, w, respond.WithError(ctx, err))
@@ -462,15 +354,6 @@ func (a *API) PatchAchievementTemplate(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Convert to response format
-	response := AchievementTemplateResponse{
-		ID:          template.ID,
-		Name:        template.Name,
-		Description: template.Description,
-		PointsLimit: template.PointsLimit,
-		GroupID:     template.GroupID,
-		Active:      template.Active,
-		Kind:        template.Kind.String(),
-	}
-
+	response := respond.WithAchievementTemplate(template)
 	a.writeJSON(ctx, w, response)
 }

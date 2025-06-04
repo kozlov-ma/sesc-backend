@@ -1,162 +1,4 @@
 definitions:
-  api.AchievementGroupResponse:
-    properties:
-      active:
-        example: true
-        type: boolean
-      description:
-        example: Достижения в научной деятельности
-        type: string
-      id:
-        example: 550e8400-e29b-41d4-a716-446655440000
-        type: string
-      name:
-        example: Научная деятельность
-        type: string
-    required:
-    - active
-    - description
-    - id
-    - name
-    type: object
-  api.AchievementResponse:
-    properties:
-      documents:
-        items:
-          $ref: '#/definitions/api.DocumentResponse'
-        type: array
-      id:
-        example: 550e8400-e29b-41d4-a716-446655440000
-        type: string
-      ownerId:
-        example: 550e8400-e29b-41d4-a716-446655440000
-        type: string
-      ownerName:
-        example: Иванов Иван Иванович
-        type: string
-      points:
-        example: 10
-        type: integer
-      reviews:
-        items:
-          $ref: '#/definitions/api.ReviewResponse'
-        type: array
-      status:
-        example: draft
-        type: string
-      templateId:
-        example: 550e8400-e29b-41d4-a716-446655440000
-        type: string
-      templateName:
-        example: регионального уровня
-        type: string
-    required:
-    - documents
-    - id
-    - ownerId
-    - ownerName
-    - points
-    - reviews
-    - status
-    - templateId
-    - templateName
-    type: object
-  api.AchievementTemplateResponse:
-    properties:
-      active:
-        example: true
-        type: boolean
-      description:
-        example: Публикация статьи в научном журнале
-        type: string
-      groupId:
-        example: 550e8400-e29b-41d4-a716-446655440000
-        type: string
-      id:
-        example: 550e8400-e29b-41d4-a716-446655440000
-        type: string
-      kind:
-        enum:
-        - olympiad
-        - development
-        - scientific
-        example: scientific
-        type: string
-      name:
-        example: Публикация в журнале
-        type: string
-      pointsLimit:
-        example: 10
-        type: integer
-    required:
-    - active
-    - description
-    - groupId
-    - id
-    - kind
-    - name
-    - pointsLimit
-    type: object
-  api.AddDocumentRequest:
-    properties:
-      fileId:
-        example: 550e8400-e29b-41d4-a716-446655440000
-        type: string
-      name:
-        example: Publication proof
-        type: string
-    required:
-    - fileId
-    - name
-    type: object
-  api.CreateAchievementGroupRequest:
-    properties:
-      description:
-        example: Достижения в научной деятельности
-        type: string
-      name:
-        example: Научная деятельность
-        type: string
-    required:
-    - description
-    - name
-    type: object
-  api.CreateAchievementRequest:
-    properties:
-      templateId:
-        example: 550e8400-e29b-41d4-a716-446655440000
-        type: string
-    required:
-    - templateId
-    type: object
-  api.CreateAchievementTemplateRequest:
-    properties:
-      description:
-        example: Публикация статьи в научном журнале
-        type: string
-      groupId:
-        example: 550e8400-e29b-41d4-a716-446655440000
-        type: string
-      kind:
-        enum:
-        - olympiad
-        - development
-        - scientific
-        example: scientific
-        type: string
-      name:
-        example: Публикация в журнале
-        type: string
-      pointsLimit:
-        example: 10
-        type: integer
-    required:
-    - description
-    - groupId
-    - kind
-    - name
-    - pointsLimit
-    type: object
   api.CreateDepartmentRequest:
     properties:
       description:
@@ -244,64 +86,6 @@ definitions:
     - password
     - username
     type: object
-  api.DocumentResponse:
-    properties:
-      fileId:
-        example: 550e8400-e29b-41d4-a716-446655440000
-        type: string
-      id:
-        example: 550e8400-e29b-41d4-a716-446655440000
-        type: string
-      name:
-        example: Publication proof
-        type: string
-    required:
-    - fileId
-    - id
-    - name
-    type: object
-  api.FileListResponse:
-    properties:
-      items:
-        items:
-          $ref: '#/definitions/api.FileResponse'
-        type: array
-      totalCount:
-        type: integer
-    type: object
-  api.FileResponse:
-    properties:
-      downloadUrl:
-        type: string
-      fileName:
-        type: string
-      fileSize:
-        type: integer
-      id:
-        type: string
-      ownerId:
-        type: string
-    type: object
-  api.GroupedAchievementsResponse:
-    properties:
-      items:
-        additionalProperties:
-          items:
-            $ref: '#/definitions/api.AchievementResponse'
-          type: array
-        type: object
-      limit:
-        type: integer
-      offset:
-        type: integer
-      totalCount:
-        type: integer
-    required:
-    - items
-    - limit
-    - offset
-    - totalCount
-    type: object
   api.IdentityResponse:
     properties:
       id:
@@ -313,57 +97,6 @@ definitions:
     required:
     - id
     - role
-    type: object
-  api.PaginatedAchievementsResponse:
-    properties:
-      items:
-        items:
-          $ref: '#/definitions/api.AchievementResponse'
-        type: array
-      limit:
-        type: integer
-      offset:
-        type: integer
-      totalCount:
-        type: integer
-    required:
-    - items
-    - limit
-    - offset
-    - totalCount
-    type: object
-  api.PatchAchievementGroupRequest:
-    properties:
-      active:
-        example: true
-        type: boolean
-      description:
-        example: Достижения в научной деятельности
-        type: string
-      name:
-        example: Научная деятельность
-        type: string
-    type: object
-  api.PatchAchievementTemplateRequest:
-    properties:
-      active:
-        example: true
-        type: boolean
-      description:
-        example: Публикация статьи в научном журнале
-        type: string
-      kind:
-        enum:
-        - olympiad
-        - development
-        - scientific
-        type: string
-      name:
-        example: Публикация в журнале
-        type: string
-      pointsLimit:
-        example: 10
-        type: integer
     type: object
   api.PatchUserRequest:
     properties:
@@ -427,40 +160,6 @@ definitions:
     - roleId
     - suspended
     type: object
-  api.ReviewAchievementRequest:
-    properties:
-      comment:
-        example: Good job, but could be better
-        type: string
-      pointsAssigned:
-        example: 8
-        type: integer
-    required:
-    - pointsAssigned
-    type: object
-  api.ReviewResponse:
-    properties:
-      comment:
-        example: Good job, but could be better
-        type: string
-      id:
-        example: 550e8400-e29b-41d4-a716-446655440000
-        type: string
-      pointsAssigned:
-        example: 8
-        type: integer
-      reviewerId:
-        example: 550e8400-e29b-41d4-a716-446655440000
-        type: string
-      reviewerName:
-        example: Петров Петр Петрович
-        type: string
-    required:
-    - id
-    - pointsAssigned
-    - reviewerId
-    - reviewerName
-    type: object
   api.Role:
     properties:
       codeName:
@@ -504,6 +203,226 @@ definitions:
     - description
     - name
     type: object
+  param.AddDocumentRequest:
+    properties:
+      fileId:
+        example: 550e8400-e29b-41d4-a716-446655440000
+        type: string
+      name:
+        example: Publication proof
+        type: string
+    required:
+    - fileId
+    - name
+    type: object
+  param.CreateAchievementGroupRequest:
+    properties:
+      description:
+        example: Достижения в научной деятельности
+        type: string
+      name:
+        example: Научная деятельность
+        type: string
+    required:
+    - description
+    - name
+    type: object
+  param.CreateAchievementRequest:
+    properties:
+      templateId:
+        example: 550e8400-e29b-41d4-a716-446655440000
+        type: string
+    required:
+    - templateId
+    type: object
+  param.CreateAchievementTemplateRequest:
+    properties:
+      description:
+        example: Публикация статьи в научном журнале
+        type: string
+      groupId:
+        example: 550e8400-e29b-41d4-a716-446655440000
+        type: string
+      kind:
+        enum:
+        - olympiad
+        - development
+        - scientific
+        example: scientific
+        type: string
+      name:
+        example: Публикация в журнале
+        type: string
+      pointsLimit:
+        example: 10
+        type: integer
+    required:
+    - description
+    - groupId
+    - kind
+    - name
+    - pointsLimit
+    type: object
+  param.PatchAchievementGroupRequest:
+    properties:
+      active:
+        example: true
+        type: boolean
+      description:
+        example: Достижения в научной деятельности
+        type: string
+      name:
+        example: Научная деятельность
+        type: string
+    type: object
+  param.PatchAchievementTemplateRequest:
+    properties:
+      active:
+        example: true
+        type: boolean
+      description:
+        example: Публикация статьи в научном журнале
+        type: string
+      kind:
+        enum:
+        - olympiad
+        - development
+        - scientific
+        type: string
+      name:
+        example: Публикация в журнале
+        type: string
+      pointsLimit:
+        example: 10
+        type: integer
+    type: object
+  param.ReviewAchievementRequest:
+    properties:
+      comment:
+        example: Good job, but could be better
+        type: string
+      pointsAssigned:
+        example: 8
+        type: integer
+    required:
+    - pointsAssigned
+    type: object
+  respond.Achievement:
+    properties:
+      documents:
+        items:
+          $ref: '#/definitions/respond.Document'
+        type: array
+      id:
+        example: 550e8400-e29b-41d4-a716-446655440000
+        type: string
+      ownerId:
+        example: 550e8400-e29b-41d4-a716-446655440000
+        type: string
+      ownerName:
+        example: Иванов Иван Иванович
+        type: string
+      points:
+        example: 10
+        type: integer
+      reviews:
+        items:
+          $ref: '#/definitions/respond.Review'
+        type: array
+      status:
+        example: draft
+        type: string
+      templateId:
+        example: 550e8400-e29b-41d4-a716-446655440000
+        type: string
+      templateName:
+        example: регионального уровня
+        type: string
+    required:
+    - documents
+    - id
+    - ownerId
+    - ownerName
+    - points
+    - reviews
+    - status
+    - templateId
+    - templateName
+    type: object
+  respond.AchievementGroup:
+    properties:
+      active:
+        example: true
+        type: boolean
+      description:
+        example: Достижения в научной деятельности
+        type: string
+      id:
+        example: 550e8400-e29b-41d4-a716-446655440000
+        type: string
+      name:
+        example: Научная деятельность
+        type: string
+    required:
+    - active
+    - description
+    - id
+    - name
+    type: object
+  respond.AchievementTemplate:
+    properties:
+      active:
+        example: true
+        type: boolean
+      description:
+        example: Публикация статьи в научном журнале
+        type: string
+      groupId:
+        example: 550e8400-e29b-41d4-a716-446655440000
+        type: string
+      id:
+        example: 550e8400-e29b-41d4-a716-446655440000
+        type: string
+      kind:
+        enum:
+        - olympiad
+        - development
+        - scientific
+        example: scientific
+        type: string
+      name:
+        example: Публикация в журнале
+        type: string
+      pointsLimit:
+        example: 10
+        type: integer
+    required:
+    - active
+    - description
+    - groupId
+    - id
+    - kind
+    - name
+    - pointsLimit
+    type: object
+  respond.Achievements:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/respond.Achievement'
+        type: array
+      limit:
+        type: integer
+      offset:
+        type: integer
+      totalCount:
+        type: integer
+    required:
+    - items
+    - limit
+    - offset
+    - totalCount
+    type: object
   respond.Department:
     properties:
       description:
@@ -532,6 +451,22 @@ definitions:
     - departments
     - total
     type: object
+  respond.Document:
+    properties:
+      fileId:
+        example: 550e8400-e29b-41d4-a716-446655440000
+        type: string
+      id:
+        example: 550e8400-e29b-41d4-a716-446655440000
+        type: string
+      name:
+        example: Publication proof
+        type: string
+    required:
+    - fileId
+    - id
+    - name
+    type: object
   respond.Error:
     properties:
       code:
@@ -542,6 +477,49 @@ definitions:
         type: integer
       traceId:
         type: string
+    type: object
+  respond.File:
+    properties:
+      fileName:
+        type: string
+      fileSize:
+        type: integer
+      id:
+        type: string
+      ownerId:
+        type: string
+    type: object
+  respond.Files:
+    properties:
+      files:
+        items:
+          $ref: '#/definitions/respond.File'
+        type: array
+      total:
+        type: integer
+    type: object
+  respond.Review:
+    properties:
+      comment:
+        example: Good job, but could be better
+        type: string
+      id:
+        example: 550e8400-e29b-41d4-a716-446655440000
+        type: string
+      pointsAssigned:
+        example: 8
+        type: integer
+      reviewerId:
+        example: 550e8400-e29b-41d4-a716-446655440000
+        type: string
+      reviewerName:
+        example: Петров Петр Петрович
+        type: string
+    required:
+    - id
+    - pointsAssigned
+    - reviewerId
+    - reviewerName
     type: object
   respond.Role:
     properties:
@@ -628,6 +606,29 @@ definitions:
     - subdivision
     - suspended
     type: object
+  respond.UserWithAchievements:
+    properties:
+      firstName:
+        example: Иван
+        type: string
+      id:
+        example: 550e8400-e29b-41d4-a716-446655440000
+        type: string
+      lastName:
+        example: Иванов
+        type: string
+      middleName:
+        example: Иванович
+        type: string
+      role:
+        example: teacher
+        type: string
+    required:
+    - firstName
+    - id
+    - lastName
+    - role
+    type: object
   respond.Users:
     properties:
       total:
@@ -640,6 +641,24 @@ definitions:
     - total
     - users
     type: object
+  respond.UsersWithAchievements:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/respond.UserWithAchievements'
+        type: array
+      limit:
+        type: integer
+      offset:
+        type: integer
+      totalCount:
+        type: integer
+    required:
+    - items
+    - limit
+    - offset
+    - totalCount
+    type: object
 info:
   contact: {}
   description: API for managing SESC departments, users and permissions
@@ -648,7 +667,7 @@ info:
 paths:
   /achievement-groups:
     get:
-      description: Retrieves all achievement groups
+      description: Retrieves all achievement groups with filtering options
       parameters:
       - description: Bearer JWT token
         in: header
@@ -670,7 +689,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/api.AchievementGroupResponse'
+              $ref: '#/definitions/respond.AchievementGroup'
             type: array
         "401":
           description: Unauthorized
@@ -699,14 +718,14 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/api.CreateAchievementGroupRequest'
+          $ref: '#/definitions/param.CreateAchievementGroupRequest'
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/api.AchievementGroupResponse'
+            $ref: '#/definitions/respond.AchievementGroup'
         "400":
           description: Invalid request format
           schema:
@@ -748,14 +767,14 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/api.PatchAchievementGroupRequest'
+          $ref: '#/definitions/param.PatchAchievementGroupRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/api.AchievementGroupResponse'
+            $ref: '#/definitions/respond.AchievementGroup'
         "400":
           description: Invalid request format
           schema:
@@ -805,7 +824,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: '#/definitions/api.AchievementTemplateResponse'
+              $ref: '#/definitions/respond.AchievementTemplate'
             type: array
         "401":
           description: Unauthorized
@@ -834,14 +853,14 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/api.CreateAchievementTemplateRequest'
+          $ref: '#/definitions/param.CreateAchievementTemplateRequest'
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/api.AchievementTemplateResponse'
+            $ref: '#/definitions/respond.AchievementTemplate'
         "400":
           description: Invalid request format
           schema:
@@ -887,14 +906,14 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/api.PatchAchievementTemplateRequest'
+          $ref: '#/definitions/param.PatchAchievementTemplateRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/api.AchievementTemplateResponse'
+            $ref: '#/definitions/respond.AchievementTemplate'
         "400":
           description: Invalid request format
           schema:
@@ -947,7 +966,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/api.PaginatedAchievementsResponse'
+            $ref: '#/definitions/respond.Achievements'
         "400":
           description: Invalid request parameters
           schema:
@@ -979,14 +998,14 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/api.CreateAchievementRequest'
+          $ref: '#/definitions/param.CreateAchievementRequest'
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/api.AchievementResponse'
+            $ref: '#/definitions/respond.Achievement'
         "400":
           description: Invalid request format
           schema:
@@ -1069,7 +1088,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/api.AchievementResponse'
+            $ref: '#/definitions/respond.Achievement'
         "400":
           description: Invalid UUID format
           schema:
@@ -1111,14 +1130,14 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/api.AddDocumentRequest'
+          $ref: '#/definitions/param.AddDocumentRequest'
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/api.DocumentResponse'
+            $ref: '#/definitions/respond.Document'
         "400":
           description: Invalid request format
           schema:
@@ -1212,14 +1231,14 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/api.ReviewAchievementRequest'
+          $ref: '#/definitions/param.ReviewAchievementRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/api.AchievementResponse'
+            $ref: '#/definitions/respond.Achievement'
         "400":
           description: Points assigned exceed the template's points limit
           schema:
@@ -1268,7 +1287,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/api.AchievementResponse'
+            $ref: '#/definitions/respond.Achievement'
         "400":
           description: Invalid UUID format
           schema:
@@ -1294,9 +1313,9 @@ paths:
       summary: Submit an achievement for review
       tags:
       - achievements
-  /achievements/grouped:
+  /achievements/users:
     get:
-      description: Retrieves all achievements grouped by user with pagination
+      description: Retrieves users with achievements based on role permissions
       parameters:
       - description: Bearer JWT token
         in: header
@@ -1321,7 +1340,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/api.GroupedAchievementsResponse'
+            $ref: '#/definitions/respond.UsersWithAchievements'
         "400":
           description: Invalid request parameters
           schema:
@@ -1340,7 +1359,7 @@ paths:
             $ref: '#/definitions/respond.Error'
       security:
       - BearerAuth: []
-      summary: Get achievements grouped by user
+      summary: Get users with achievements
       tags:
       - achievements
   /auth/admin/login:
@@ -1761,7 +1780,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/api.FileListResponse'
+            $ref: '#/definitions/respond.Files'
         "400":
           description: Bad Request
           schema:
@@ -1796,7 +1815,7 @@ paths:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/api.FileResponse'
+            $ref: '#/definitions/respond.File'
         "400":
           description: Bad Request
           schema:
@@ -1879,7 +1898,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/api.FileResponse'
+            $ref: '#/definitions/respond.File'
         "400":
           description: Bad Request
           schema:

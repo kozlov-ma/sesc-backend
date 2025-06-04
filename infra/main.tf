@@ -2,7 +2,7 @@ terraform {
   required_providers {
     yandex = {
       source  = "yandex-cloud/yandex"
-      version = "~> 0.92.0"
+      version = "~> 0.89.0"
     }
   }
 }
@@ -15,13 +15,8 @@ provider "yandex" {
 }
 
 # Certificate Manager
-resource "yandex_cm_certificate" "main_cert" {
-  name    = "${var.project_name}-certificate"
-  domains = concat([var.main_domain], var.additional_domains, ["*.${var.main_domain}"])
-
-  managed {
-    challenge_type = "DNS_CNAME"
-  }
+data "yandex_cm_certificate" "cert" {
+  certificate_id = var.certificate_id
 }
 
 # Network resources
@@ -63,6 +58,14 @@ resource "yandex_vpc_security_group" "sg" {
     description    = "HTTPS"
     port           = 443
     v4_cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  # Allow backend API port (adjust as needed)
+  ingress {
+    protocol       = "TCP"
+    description    = "Backend API"
+    port           = 8080
+    v4_cidr_blocks = ["10.2.0.0/16"]
   }
 
   # Allow all outbound traffic
@@ -184,7 +187,7 @@ resource "yandex_alb_load_balancer" "lb" {
     }
     tls {
       default_handler {
-        certificate_ids = [yandex_cm_certificate.main_cert.id]
+        certificate_ids = [data.yandex_cm_certificate.cert.id]
         http_handler {
           http_router_id = yandex_alb_http_router.router.id
         }
@@ -208,14 +211,16 @@ resource "yandex_alb_load_balancer" "lb" {
   }
 }
 
-# HTTP Router and backend groups
+# HTTP Router and virtual hosts
 resource "yandex_alb_http_router" "router" {
   name = "${var.project_name}-router"
 }
 
-resource "yandex_alb_virtual_host" "virtual_host" {
-  name           = "${var.project_name}-virtual-host"
+# Frontend virtual host for all domains
+resource "yandex_alb_virtual_host" "frontend_host" {
+  name           = "${var.project_name}-frontend-host"
   http_router_id = yandex_alb_http_router.router.id
+  authority      = var.frontend_domains
 
   route {
     name = "frontend-route"
@@ -227,6 +232,23 @@ resource "yandex_alb_virtual_host" "virtual_host" {
   }
 }
 
+# API virtual host for all API subdomains
+resource "yandex_alb_virtual_host" "api_host" {
+  name           = "${var.project_name}-api-host"
+  http_router_id = yandex_alb_http_router.router.id
+  authority      = var.api_domains
+
+  route {
+    name = "api-route"
+    http_route {
+      http_route_action {
+        backend_group_id = yandex_alb_backend_group.backend_bg.id
+      }
+    }
+  }
+}
+
+# Frontend backend group
 resource "yandex_alb_backend_group" "frontend_bg" {
   name = "${var.project_name}-frontend-bg"
 
@@ -245,11 +267,67 @@ resource "yandex_alb_backend_group" "frontend_bg" {
   }
 }
 
+# Backend backend group
+resource "yandex_alb_backend_group" "backend_bg" {
+  name = "${var.project_name}-backend-bg"
+
+  http_backend {
+    name             = "backend-api"
+    weight           = 1
+    port             = 8080 # Adjust this port based on your backend application
+    target_group_ids = [yandex_alb_target_group.backend_tg.id]
+    healthcheck {
+      timeout  = "10s"
+      interval = "2s"
+      http_healthcheck {
+        path = "/health" # Adjust this path based on your backend health endpoint
+      }
+    }
+  }
+}
+
+# Frontend target group
 resource "yandex_alb_target_group" "frontend_tg" {
   name = "${var.project_name}-frontend-tg"
 
   target {
     subnet_id  = yandex_vpc_subnet.subnet.id
     ip_address = yandex_compute_instance.frontend.network_interface.0.ip_address
+  }
+}
+
+# Backend target group
+resource "yandex_alb_target_group" "backend_tg" {
+  name = "${var.project_name}-backend-tg"
+
+  target {
+    subnet_id  = yandex_vpc_subnet.subnet.id
+    ip_address = yandex_compute_instance.backend.network_interface.0.ip_address
+  }
+}
+
+# Outputs
+output "load_balancer_ip" {
+  description = "External IP address of the load balancer"
+  value       = yandex_alb_load_balancer.lb.listener[0].endpoint[0].address[0].external_ipv4_address[0].address
+}
+
+output "frontend_internal_ip" {
+  description = "Internal IP address of the frontend VM"
+  value       = yandex_compute_instance.frontend.network_interface.0.ip_address
+}
+
+output "backend_internal_ip" {
+  description = "Internal IP address of the backend VM"
+  value       = yandex_compute_instance.backend.network_interface.0.ip_address
+}
+
+output "dns_records_needed" {
+  description = "DNS records that need to be configured"
+  value = {
+    load_balancer_ip = yandex_alb_load_balancer.lb.listener[0].endpoint[0].address[0].external_ipv4_address[0].address
+    frontend_domains = var.frontend_domains
+    api_domains      = var.api_domains
+    note             = "All domains should point to the load_balancer_ip"
   }
 }

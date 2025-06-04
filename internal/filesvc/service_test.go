@@ -22,7 +22,7 @@ import (
 )
 
 // requireFileMatches is a helper to verify that a file matches expected values
-func requireFileMatches(t *testing.T, expected, actual File) {
+func requireFileMatches(t *testing.T, expected, actual *ent.File) {
 	t.Helper()
 	require.Equal(t, expected.ID, actual.ID, "File ID mismatch")
 	require.Equal(t, expected.Name, actual.Name, "File name mismatch")

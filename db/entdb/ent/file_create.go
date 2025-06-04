@@ -54,12 +54,6 @@ func (fc *FileCreate) SetSize(i int) *FileCreate {
 	return fc
 }
 
-// SetURL sets the "url" field.
-func (fc *FileCreate) SetURL(s string) *FileCreate {
-	fc.mutation.SetURL(s)
-	return fc
-}
-
 // SetID sets the "id" field.
 func (fc *FileCreate) SetID(u uuid.UUID) *FileCreate {
 	fc.mutation.SetID(u)
@@ -146,9 +140,6 @@ func (fc *FileCreate) check() error {
 	if _, ok := fc.mutation.Size(); !ok {
 		return &ValidationError{Name: "size", err: errors.New(`ent: missing required field "File.size"`)}
 	}
-	if _, ok := fc.mutation.URL(); !ok {
-		return &ValidationError{Name: "url", err: errors.New(`ent: missing required field "File.url"`)}
-	}
 	return nil
 }
 
@@ -195,10 +186,6 @@ func (fc *FileCreate) createSpec() (*File, *sqlgraph.CreateSpec) {
 	if value, ok := fc.mutation.Size(); ok {
 		_spec.SetField(file.FieldSize, field.TypeInt, value)
 		_node.Size = value
-	}
-	if value, ok := fc.mutation.URL(); ok {
-		_spec.SetField(file.FieldURL, field.TypeString, value)
-		_node.URL = value
 	}
 	if nodes := fc.mutation.OwnerIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

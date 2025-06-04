@@ -14,10 +14,10 @@ import (
 	"github.com/go-openapi/validate"
 )
 
-// APICreateAchievementGroupRequest api create achievement group request
+// ParamCreateAchievementGroupRequest param create achievement group request
 //
-// swagger:model api.CreateAchievementGroupRequest
-type APICreateAchievementGroupRequest struct {
+// swagger:model param.CreateAchievementGroupRequest
+type ParamCreateAchievementGroupRequest struct {
 
 	// description
 	// Example: Достижения в научной деятельности
@@ -30,8 +30,8 @@ type APICreateAchievementGroupRequest struct {
 	Name *string `json:"name"`
 }
 
-// Validate validates this api create achievement group request
-func (m *APICreateAchievementGroupRequest) Validate(formats strfmt.Registry) error {
+// Validate validates this param create achievement group request
+func (m *ParamCreateAchievementGroupRequest) Validate(formats strfmt.Registry) error {
 	var res []error
 
 	if err := m.validateDescription(formats); err != nil {
@@ -48,7 +48,7 @@ func (m *APICreateAchievementGroupRequest) Validate(formats strfmt.Registry) err
 	return nil
 }
 
-func (m *APICreateAchievementGroupRequest) validateDescription(formats strfmt.Registry) error {
+func (m *ParamCreateAchievementGroupRequest) validateDescription(formats strfmt.Registry) error {
 
 	if err := validate.Required("description", "body", m.Description); err != nil {
 		return err
@@ -57,7 +57,7 @@ func (m *APICreateAchievementGroupRequest) validateDescription(formats strfmt.Re
 	return nil
 }
 
-func (m *APICreateAchievementGroupRequest) validateName(formats strfmt.Registry) error {
+func (m *ParamCreateAchievementGroupRequest) validateName(formats strfmt.Registry) error {
 
 	if err := validate.Required("name", "body", m.Name); err != nil {
 		return err
@@ -66,13 +66,13 @@ func (m *APICreateAchievementGroupRequest) validateName(formats strfmt.Registry)
 	return nil
 }
 
-// ContextValidate validates this api create achievement group request based on context it is used
-func (m *APICreateAchievementGroupRequest) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+// ContextValidate validates this param create achievement group request based on context it is used
+func (m *ParamCreateAchievementGroupRequest) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	return nil
 }
 
 // MarshalBinary interface implementation
-func (m *APICreateAchievementGroupRequest) MarshalBinary() ([]byte, error) {
+func (m *ParamCreateAchievementGroupRequest) MarshalBinary() ([]byte, error) {
 	if m == nil {
 		return nil, nil
 	}
@@ -80,8 +80,8 @@ func (m *APICreateAchievementGroupRequest) MarshalBinary() ([]byte, error) {
 }
 
 // UnmarshalBinary interface implementation
-func (m *APICreateAchievementGroupRequest) UnmarshalBinary(b []byte) error {
-	var res APICreateAchievementGroupRequest
+func (m *ParamCreateAchievementGroupRequest) UnmarshalBinary(b []byte) error {
+	var res ParamCreateAchievementGroupRequest
 	if err := swag.ReadJSON(b, &res); err != nil {
 		return err
 	}

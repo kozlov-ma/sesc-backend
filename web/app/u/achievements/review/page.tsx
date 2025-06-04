@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -8,11 +8,19 @@ import { Input } from "@/components/ui/input";
 import { ReviewPageLayout } from "@/components/achievements/review-page-layout";
 import { AchievementDetailsDialog } from "@/components/achievements/achievement-details-dialog";
 import { ReviewAchievementDialog } from "@/components/achievements/review-achievement-dialog";
-import { ApiAchievementResponse } from "@/lib/api/types.gen";
+import { RespondAchievement } from "@/lib/api/types.gen";
 import {
-  getAchievementsGroupedOptions,
+  getAchievementsUsersOptions,
+  getAchievementsOptions,
   getUsersMeOptions,
 } from "@/lib/api/@tanstack/react-query.gen";
+
+type ApiAchievementResponse = RespondAchievement;
+
+// Use the RespondAchievement type directly since it's already defined
+// and includes all the necessary fields
+// We'll keep the ApiAchievement type alias for clarity
+type ApiAchievement = RespondAchievement;
 import {
   getStatusLabel,
   getStatusBadgeVariant,
@@ -62,13 +70,13 @@ export default function ReviewAchievementsPage() {
     enabled: isAuthenticated,
   });
 
-  // Fetch grouped achievements with pagination
+  // Fetch users with achievements pagination
   const {
-    data: groupedAchievementsData,
-    error: groupedAchievementsError,
-    isLoading: isGroupedAchievementsLoading,
+    data: usersData,
+    error: usersError,
+    isLoading: isUsersLoading,
   } = useQuery({
-    ...getAchievementsGroupedOptions({
+    ...getAchievementsUsersOptions({
       query: {
         offset: currentPage * pageSize,
         limit: pageSize,
@@ -76,12 +84,43 @@ export default function ReviewAchievementsPage() {
     }),
   });
 
-  const handleViewDetails = (achievement: ApiAchievementResponse) => {
+  // Fetch achievements for all users
+  const {
+    data: achievementsData,
+    error: achievementsError,
+    isLoading: isAchievementsLoading,
+  } = useQuery({
+    ...getAchievementsOptions({
+      query: {
+        limit: 1000, // Fetch more achievements to cover all users
+      },
+    }),
+  });
+
+  // Combine users with their achievements
+  const groupedAchievementsData = useMemo(() => {
+    if (!usersData || !achievementsData) return { items: [], totalCount: 0 };
+
+    return {
+      items: usersData.items.map((user) => ({
+        ...user,
+        achievements: achievementsData.items.filter(
+          (achievement: RespondAchievement) => achievement.ownerId === user.id,
+        ),
+      })),
+      totalCount: usersData.totalCount,
+    };
+  }, [usersData, achievementsData]);
+
+  const isGroupedAchievementsLoading = isUsersLoading || isAchievementsLoading;
+  const groupedAchievementsError = usersError || achievementsError;
+
+  const handleViewDetails = (achievement: ApiAchievement) => {
     setSelectedAchievement(achievement);
     setIsDetailsDialogOpen(true);
   };
 
-  const handleReviewAchievement = (achievement: ApiAchievementResponse) => {
+  const handleReviewAchievement = (achievement: ApiAchievement) => {
     setSelectedAchievement(achievement);
     setIsReviewDialogOpen(true);
   };
@@ -97,66 +136,90 @@ export default function ReviewAchievementsPage() {
   };
 
   // Check if the current user can review this achievement
-  const canReviewAchievement = (achievement: ApiAchievementResponse) => {
-    if (!currentUser) return false;
+  const canReviewAchievement = useCallback(
+    (achievement: ApiAchievement) => {
+      if (!currentUser) return false;
 
-    // Department heads (role ID 2) can review achievements in dephead_review status
-    if (currentUser.role.id === 2 && achievement.status === "dephead_review") {
-      return true;
-    }
-
-    // Deputies (role IDs 3-5) can review achievements in inspector_review status
-    if (
-      currentUser.role.id >= 3 &&
-      currentUser.role.id <= 5 &&
-      achievement.status === "inspector_review"
-    ) {
-      return true;
-    }
-
-    return false;
-  };
-
-  // Process and filter achievements
-  const processedUsers = Object.entries(groupedAchievementsData?.items || {})
-    .filter(([, achievements]) => {
-      // Filter by search term if provided
-      if (searchTerm.trim() !== "") {
-        const searchLower = searchTerm.toLowerCase();
-        return achievements.some(
-          (achievement: ApiAchievementResponse) =>
-            achievement.ownerName.toLowerCase().includes(searchLower) ||
-            achievement.templateName.toLowerCase().includes(searchLower),
-        );
+      // Department heads (role ID 2) can review achievements in dephead_review status
+      if (
+        currentUser.role.id === 2 &&
+        achievement.status === "dephead_review"
+      ) {
+        return true;
       }
-      return true;
-    })
-    .map(([userId, achievements]) => {
-      // Sort achievements: reviewable first, then by status
-      const sortedAchievements = [...achievements].sort((a, b) => {
-        // First, prioritize achievements that this user can review
-        const aCanReview = canReviewAchievement(a);
-        const bCanReview = canReviewAchievement(b);
 
-        if (aCanReview && !bCanReview) return -1;
-        if (!aCanReview && bCanReview) return 1;
+      // Deputies (role IDs 3-5) can review achievements in inspector_review status
+      if (
+        currentUser.role.id >= 3 &&
+        currentUser.role.id <= 5 &&
+        achievement.status === "inspector_review"
+      ) {
+        return true;
+      }
 
-        // Then sort by status
-        if (a.status === "dephead_review" && b.status !== "dephead_review")
-          return -1;
-        if (a.status !== "dephead_review" && b.status === "dephead_review")
-          return 1;
-        if (a.status === "inspector_review" && b.status !== "inspector_review")
-          return -1;
-        if (a.status !== "inspector_review" && b.status === "inspector_review")
-          return 1;
+      return false;
+    },
+    [currentUser],
+  );
 
-        // Finally, sort by name
-        return a.templateName.localeCompare(b.templateName);
+  // Process and filter users with their achievements
+  const processedUsers = useMemo(() => {
+    const users = groupedAchievementsData?.items || [];
+    return users
+      .filter((user) => {
+        // Filter by search term if provided
+        if (searchTerm.trim() === "") return true;
+
+        const searchLower = searchTerm.toLowerCase();
+        const fullName =
+          `${user.firstName || ""} ${user.lastName || ""} ${user.middleName || ""}`.toLowerCase();
+
+        // Check if user name matches
+        if (fullName.includes(searchLower)) return true;
+
+        // Check if any achievement template name matches
+        return user.achievements?.some((achievement) =>
+          achievement.templateName?.toLowerCase().includes(searchLower),
+        );
+      })
+      .map((user) => {
+        const userAchievements = user.achievements || [];
+
+        // Sort achievements: reviewable first, then by status
+        const sortedAchievements = [...userAchievements].sort((a, b) => {
+          // First, prioritize achievements that this user can review
+          const aCanReview = canReviewAchievement(a);
+          const bCanReview = canReviewAchievement(b);
+
+          if (aCanReview && !bCanReview) return -1;
+          if (!aCanReview && bCanReview) return 1;
+
+          // Then sort by status
+          if (a.status === "dephead_review" && b.status !== "dephead_review")
+            return -1;
+          if (a.status !== "dephead_review" && b.status === "dephead_review")
+            return 1;
+          if (
+            a.status === "inspector_review" &&
+            b.status !== "inspector_review"
+          )
+            return -1;
+          if (
+            a.status !== "inspector_review" &&
+            b.status === "inspector_review"
+          )
+            return 1;
+
+          // Finally, sort by name
+          return (a.templateName || "").localeCompare(b.templateName || "");
+        });
+
+        return {
+          ...user,
+          achievements: sortedAchievements,
+        };
       });
-
-      return [userId, sortedAchievements] as [string, ApiAchievementResponse[]];
-    });
+  }, [groupedAchievementsData?.items, searchTerm, canReviewAchievement]);
 
   return (
     <ReviewPageLayout title="Проверка достижений">
@@ -202,18 +265,16 @@ export default function ReviewAchievementsPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {processedUsers.map(([userId, achievements]) => {
-                  // User information is displayed via UserAvatar component
-                  const isExpanded = expandedUsers.has(userId);
-                  const reviewableCount = achievements.filter((a) =>
-                    canReviewAchievement(a),
-                  ).length;
-
+                {processedUsers.map((user) => {
+                  const isExpanded = expandedUsers.has(user.id);
+                  const reviewableCount =
+                    user.achievements?.filter((a) => canReviewAchievement(a))
+                      .length || 0;
                   return (
-                    <React.Fragment key={userId}>
+                    <React.Fragment key={user.id}>
                       <TableRow
                         className="cursor-pointer hover:bg-muted/50"
-                        onClick={() => toggleUser(userId)}
+                        onClick={() => toggleUser(user.id)}
                       >
                         <TableCell className="font-medium">
                           <div className="flex items-center">
@@ -222,14 +283,14 @@ export default function ReviewAchievementsPage() {
                             ) : (
                               <ChevronRight className="mr-2 h-4 w-4" />
                             )}
-                            <Link href={`/u/users/${userId}`}>
-                              <UserAvatar userId={userId} size="sm" />
+                            <Link href={`/u/users/${user.id}`}>
+                              <UserAvatar userId={user.id} size="sm" />
                             </Link>
                           </div>
                         </TableCell>
                         <TableCell>
                           <div className="flex flex-col">
-                            <span>{achievements.length} всего</span>
+                            <span>{user.achievements?.length || 0} всего</span>
                             {reviewableCount > 0 && (
                               <span className="text-sm text-green-600 font-medium">
                                 {reviewableCount} требуют проверки
@@ -250,8 +311,8 @@ export default function ReviewAchievementsPage() {
                         </TableCell>
                       </TableRow>
 
-                      {isExpanded &&
-                        achievements.map((achievement) => {
+                      {expandedUsers.has(user.id) &&
+                        user.achievements?.map((achievement) => {
                           const canReview = canReviewAchievement(achievement);
                           return (
                             <TableRow
@@ -392,10 +453,18 @@ export default function ReviewAchievementsPage() {
                 <PaginationItem>
                   <PaginationNext
                     onClick={() => {
-                      const maxPages = Math.ceil(
-                        groupedAchievementsData.totalCount / pageSize,
+                      // Handle pagination
+                      const totalPages = Math.ceil(
+                        (usersData?.totalCount || 0) / pageSize,
                       );
-                      setCurrentPage(Math.min(maxPages - 1, currentPage + 1));
+
+                      const handlePageChange = (page: number) => {
+                        setCurrentPage(page);
+                      };
+
+                      handlePageChange(
+                        Math.min(totalPages - 1, currentPage + 1),
+                      );
                     }}
                     className={
                       currentPage >=

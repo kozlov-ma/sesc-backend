@@ -66,6 +66,6 @@ func TestCreateAchievementGroup(t *testing.T) {
 
 		// Verify the results
 		require.Error(t, err)
-		require.Empty(t, group.ID, "No group should be created")
+		require.Nil(t, group, "No group should be created")
 	})
 }

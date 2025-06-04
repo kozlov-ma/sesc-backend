@@ -64,7 +64,7 @@ GetAchievementsOK describes a response with status code 200, with default header
 OK
 */
 type GetAchievementsOK struct {
-	Payload *models.APIPaginatedAchievementsResponse
+	Payload *models.RespondAchievements
 }
 
 // IsSuccess returns true when this get achievements o k response has a 2xx status code
@@ -107,13 +107,13 @@ func (o *GetAchievementsOK) String() string {
 	return fmt.Sprintf("[GET /achievements][%d] getAchievementsOK %s", 200, payload)
 }
 
-func (o *GetAchievementsOK) GetPayload() *models.APIPaginatedAchievementsResponse {
+func (o *GetAchievementsOK) GetPayload() *models.RespondAchievements {
 	return o.Payload
 }
 
 func (o *GetAchievementsOK) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIPaginatedAchievementsResponse)
+	o.Payload = new(models.RespondAchievements)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {

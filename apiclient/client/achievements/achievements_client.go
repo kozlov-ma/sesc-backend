@@ -62,9 +62,9 @@ type ClientService interface {
 
 	GetAchievements(params *GetAchievementsParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetAchievementsOK, error)
 
-	GetAchievementsGrouped(params *GetAchievementsGroupedParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetAchievementsGroupedOK, error)
-
 	GetAchievementsID(params *GetAchievementsIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetAchievementsIDOK, error)
+
+	GetAchievementsUsers(params *GetAchievementsUsersParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetAchievementsUsersOK, error)
 
 	PostAchievements(params *PostAchievementsParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostAchievementsCreated, error)
 
@@ -201,47 +201,6 @@ func (a *Client) GetAchievements(params *GetAchievementsParams, authInfo runtime
 }
 
 /*
-GetAchievementsGrouped gets achievements grouped by user
-
-Retrieves all achievements grouped by user with pagination
-*/
-func (a *Client) GetAchievementsGrouped(params *GetAchievementsGroupedParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetAchievementsGroupedOK, error) {
-	// TODO: Validate the params before sending
-	if params == nil {
-		params = NewGetAchievementsGroupedParams()
-	}
-	op := &runtime.ClientOperation{
-		ID:                 "GetAchievementsGrouped",
-		Method:             "GET",
-		PathPattern:        "/achievements/grouped",
-		ProducesMediaTypes: []string{"application/json"},
-		ConsumesMediaTypes: []string{"application/json"},
-		Schemes:            []string{"http"},
-		Params:             params,
-		Reader:             &GetAchievementsGroupedReader{formats: a.formats},
-		AuthInfo:           authInfo,
-		Context:            params.Context,
-		Client:             params.HTTPClient,
-	}
-	for _, opt := range opts {
-		opt(op)
-	}
-
-	result, err := a.transport.Submit(op)
-	if err != nil {
-		return nil, err
-	}
-	success, ok := result.(*GetAchievementsGroupedOK)
-	if ok {
-		return success, nil
-	}
-	// unexpected success response
-	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
-	msg := fmt.Sprintf("unexpected success response for GetAchievementsGrouped: API contract not enforced by server. Client expected to get an error, but got: %T", result)
-	panic(msg)
-}
-
-/*
 GetAchievementsID gets a specific achievement
 
 Retrieves a specific achievement by ID
@@ -279,6 +238,47 @@ func (a *Client) GetAchievementsID(params *GetAchievementsIDParams, authInfo run
 	// unexpected success response
 	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
 	msg := fmt.Sprintf("unexpected success response for GetAchievementsID: API contract not enforced by server. Client expected to get an error, but got: %T", result)
+	panic(msg)
+}
+
+/*
+GetAchievementsUsers gets users with achievements
+
+Retrieves users with achievements based on role permissions
+*/
+func (a *Client) GetAchievementsUsers(params *GetAchievementsUsersParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetAchievementsUsersOK, error) {
+	// TODO: Validate the params before sending
+	if params == nil {
+		params = NewGetAchievementsUsersParams()
+	}
+	op := &runtime.ClientOperation{
+		ID:                 "GetAchievementsUsers",
+		Method:             "GET",
+		PathPattern:        "/achievements/users",
+		ProducesMediaTypes: []string{"application/json"},
+		ConsumesMediaTypes: []string{"application/json"},
+		Schemes:            []string{"http"},
+		Params:             params,
+		Reader:             &GetAchievementsUsersReader{formats: a.formats},
+		AuthInfo:           authInfo,
+		Context:            params.Context,
+		Client:             params.HTTPClient,
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
+	if err != nil {
+		return nil, err
+	}
+	success, ok := result.(*GetAchievementsUsersOK)
+	if ok {
+		return success, nil
+	}
+	// unexpected success response
+	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
+	msg := fmt.Sprintf("unexpected success response for GetAchievementsUsers: API contract not enforced by server. Client expected to get an error, but got: %T", result)
 	panic(msg)
 }
 

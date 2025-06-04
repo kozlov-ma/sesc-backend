@@ -76,7 +76,7 @@ PostAchievementTemplatesCreated describes a response with status code 201, with 
 Created
 */
 type PostAchievementTemplatesCreated struct {
-	Payload *models.APIAchievementTemplateResponse
+	Payload *models.RespondAchievementTemplate
 }
 
 // IsSuccess returns true when this post achievement templates created response has a 2xx status code
@@ -119,13 +119,13 @@ func (o *PostAchievementTemplatesCreated) String() string {
 	return fmt.Sprintf("[POST /achievement-templates][%d] postAchievementTemplatesCreated %s", 201, payload)
 }
 
-func (o *PostAchievementTemplatesCreated) GetPayload() *models.APIAchievementTemplateResponse {
+func (o *PostAchievementTemplatesCreated) GetPayload() *models.RespondAchievementTemplate {
 	return o.Payload
 }
 
 func (o *PostAchievementTemplatesCreated) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIAchievementTemplateResponse)
+	o.Payload = new(models.RespondAchievementTemplate)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {

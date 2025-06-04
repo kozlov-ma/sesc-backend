@@ -11,23 +11,6 @@ import (
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievementtemplate"
 	"github.com/kozlov-ma/sesc-backend/pkg/event"
 	"github.com/kozlov-ma/sesc-backend/pkg/event/events"
-	"github.com/kozlov-ma/sesc-backend/sesc"
-)
-
-type (
-	UUID                             = uuid.UUID
-	User                             = sesc.User
-	Department                       = sesc.Department
-	Role                             = sesc.Role
-	UserUpdateOptions                = sesc.UserUpdateOptions
-	AchievementGroup                 = achievement.Group
-	AchievementTemplate              = achievement.Template
-	AchievementGroupCreateOptions    = achievement.GroupCreateOptions
-	AchievementGroupUpdateOptions    = achievement.GroupUpdateOptions
-	AchievementGroupSearchOptions    = achievement.GroupSearchOptions
-	AchievementTemplateCreateOptions = achievement.TemplateCreateOptions
-	AchievementTemplateUpdateOptions = achievement.TemplateUpdateOptions
-	AchievementTemplateSearchOptions = achievement.TemplateSearchOptions
 )
 
 type ATS struct {
@@ -41,8 +24,8 @@ func New(client *ent.Client) *ATS {
 }
 
 // AchievementGroupByID gets an achievement group by its ID.
-// Returns sesc.ErrAchievementGroupNotFound if the group does not exist.
-func (s *ATS) AchievementGroupByID(ctx context.Context, id UUID) (AchievementGroup, error) {
+// Returns achievement.ErrAchievementGroupNotFound if the group does not exist.
+func (s *ATS) AchievementGroupByID(ctx context.Context, id uuid.UUID) (*ent.AchievementGroup, error) {
 	rec := event.Get(ctx).Sub("sesc/achievement_group_by_id")
 	rec.Add("group_id", id)
 
@@ -50,25 +33,20 @@ func (s *ATS) AchievementGroupByID(ctx context.Context, id UUID) (AchievementGro
 	if err != nil {
 		if ent.IsNotFound(err) {
 			rec.Add(events.Error, "achievement group not found")
-			return AchievementGroup{}, achievement.ErrAchievementGroupNotFound
+			return nil, achievement.ErrAchievementGroupNotFound
 		}
 		rec.Add(events.Error, fmt.Errorf("failed to get achievement group: %w", err))
-		return AchievementGroup{}, err
+		return nil, err
 	}
 
-	return AchievementGroup{
-		ID:          group.ID,
-		Name:        group.Name,
-		Description: group.Description,
-		Active:      group.Active,
-	}, nil
+	return group, nil
 }
 
 // CreateAchievementGroup creates a new achievement group with auto-generated ID.
 func (s *ATS) CreateAchievementGroup(
 	ctx context.Context,
-	options AchievementGroupCreateOptions,
-) (AchievementGroup, error) {
+	options achievement.GroupCreateOptions,
+) (*ent.AchievementGroup, error) {
 	rec := event.Get(ctx).Sub("sesc/create_achievement_group")
 	rec.Add("group_name", options.Name)
 
@@ -78,27 +56,20 @@ func (s *ATS) CreateAchievementGroup(
 		Save(ctx)
 	if err != nil {
 		rec.Add(events.Error, fmt.Errorf("failed to create achievement group: %w", err))
-		return AchievementGroup{}, err
+		return nil, err
 	}
 
-	result := AchievementGroup{
-		ID:          group.ID,
-		Name:        group.Name,
-		Description: group.Description,
-		Active:      group.Active,
-	}
-
-	rec.Add("created_group", result)
-	return result, nil
+	rec.Add("created_group_id", group.ID)
+	return group, nil
 }
 
 // UpdateAchievementGroup updates an existing achievement group.
-// Returns sesc.ErrAchievementGroupNotFound if the group does not exist.
+// Returns achievement.ErrAchievementGroupNotFound if the group does not exist.
 func (s *ATS) UpdateAchievementGroup(
 	ctx context.Context,
-	id UUID,
-	options AchievementGroupUpdateOptions,
-) (AchievementGroup, error) {
+	id uuid.UUID,
+	options achievement.GroupUpdateOptions,
+) (*ent.AchievementGroup, error) {
 	rec := event.Get(ctx).Sub("sesc/update_achievement_group")
 	rec.Add("group_id", id)
 
@@ -118,28 +89,21 @@ func (s *ATS) UpdateAchievementGroup(
 	switch {
 	case ent.IsNotFound(err):
 		rec.Add(events.Error, "achievement group not found")
-		return AchievementGroup{}, achievement.ErrAchievementGroupNotFound
+		return nil, achievement.ErrAchievementGroupNotFound
 	case err != nil:
 		rec.Add(events.Error, fmt.Errorf("failed to update achievement group: %w", err))
-		return AchievementGroup{}, err
+		return nil, err
 	}
 
-	result := AchievementGroup{
-		ID:          group.ID,
-		Name:        group.Name,
-		Description: group.Description,
-		Active:      group.Active,
-	}
-
-	rec.Add("updated_group", result)
-	return result, nil
+	rec.Add("updated_group_id", group.ID)
+	return group, nil
 }
 
 // AchievementTemplates gets all achievement templates with optional filtering.
 func (s *ATS) AchievementTemplates(
 	ctx context.Context,
-	options AchievementTemplateSearchOptions,
-) ([]AchievementTemplate, error) {
+	options achievement.TemplateSearchOptions,
+) (ent.AchievementTemplates, error) {
 	rec := event.Get(ctx).Sub("sesc/achievement_templates")
 
 	query := s.client.AchievementTemplate.Query()
@@ -163,26 +127,13 @@ func (s *ATS) AchievementTemplates(
 		return nil, err
 	}
 
-	result := make([]AchievementTemplate, 0, len(templates))
-	for _, t := range templates {
-		result = append(result, AchievementTemplate{
-			ID:          t.ID,
-			Name:        t.Name,
-			Description: t.Description,
-			PointsLimit: t.PointsLimit,
-			GroupID:     t.GroupID,
-			Active:      t.Active,
-			Kind:        t.Kind,
-		})
-	}
-
-	rec.Add("templates_count", len(result))
-	return result, nil
+	rec.Add("templates_count", len(templates))
+	return templates, nil
 }
 
 // AchievementTemplateByID gets an achievement template by its ID.
-// Returns sesc.ErrAchievementTemplateNotFound if the template does not exist.
-func (s *ATS) AchievementTemplateByID(ctx context.Context, id UUID) (AchievementTemplate, error) {
+// Returns achievement.ErrAchievementTemplateNotFound if the template does not exist.
+func (s *ATS) AchievementTemplateByID(ctx context.Context, id uuid.UUID) (*ent.AchievementTemplate, error) {
 	rec := event.Get(ctx).Sub("sesc/achievement_template_by_id")
 	rec.Add("template_id", id)
 
@@ -190,29 +141,21 @@ func (s *ATS) AchievementTemplateByID(ctx context.Context, id UUID) (Achievement
 	switch {
 	case ent.IsNotFound(err):
 		rec.Add(events.Error, "achievement template not found")
-		return AchievementTemplate{}, achievement.ErrAchievementTemplateNotFound
+		return nil, achievement.ErrAchievementTemplateNotFound
 	case err != nil:
 		rec.Add(events.Error, fmt.Errorf("failed to get achievement template: %w", err))
-		return AchievementTemplate{}, err
+		return nil, err
 	}
 
-	return AchievementTemplate{
-		ID:          template.ID,
-		Name:        template.Name,
-		Description: template.Description,
-		PointsLimit: template.PointsLimit,
-		GroupID:     template.GroupID,
-		Active:      template.Active,
-		Kind:        template.Kind,
-	}, nil
+	return template, nil
 }
 
 // CreateAchievementTemplate creates a new achievement template with auto-generated ID.
-// Returns sesc.ErrAchievementGroupNotFound if the specified group does not exist.
+// Returns achievement.ErrAchievementGroupNotFound if the specified group does not exist.
 func (s *ATS) CreateAchievementTemplate(
 	ctx context.Context,
-	options AchievementTemplateCreateOptions,
-) (AchievementTemplate, error) {
+	options achievement.TemplateCreateOptions,
+) (*ent.AchievementTemplate, error) {
 	rec := event.Get(ctx).Sub("sesc/create_achievement_template")
 	rec.Add("template_name", options.Name)
 	rec.Add("group_id", options.GroupID)
@@ -220,7 +163,7 @@ func (s *ATS) CreateAchievementTemplate(
 	// Validate the kind
 	if err := options.Kind.Validate(); err != nil {
 		rec.Add(events.Error, fmt.Errorf("invalid achievement kind: %w", err))
-		return AchievementTemplate{}, err
+		return nil, err
 	}
 
 	template, err := s.client.AchievementTemplate.Create().
@@ -233,34 +176,24 @@ func (s *ATS) CreateAchievementTemplate(
 	switch {
 	case ent.IsConstraintError(err):
 		rec.Add(events.Error, "achievement group not found")
-		return AchievementTemplate{}, achievement.ErrAchievementGroupNotFound
+		return nil, achievement.ErrAchievementGroupNotFound
 	case err != nil:
 		rec.Add(events.Error, fmt.Errorf("failed to create achievement template: %w", err))
-		return AchievementTemplate{}, err
+		return nil, err
 	}
 
-	result := AchievementTemplate{
-		ID:          template.ID,
-		Name:        template.Name,
-		Description: template.Description,
-		PointsLimit: template.PointsLimit,
-		GroupID:     template.GroupID,
-		Active:      template.Active,
-		Kind:        template.Kind,
-	}
-
-	rec.Add("created_template", result)
-	return result, nil
+	rec.Add("created_template_id", template.ID)
+	return template, nil
 }
 
 // UpdateAchievementTemplate updates an existing achievement template.
-// Returns sesc.ErrAchievementTemplateNotFound if the template does not exist.
+// Returns achievement.ErrAchievementTemplateNotFound if the template does not exist.
 // Note: GroupID cannot be changed after creation.
 func (s *ATS) UpdateAchievementTemplate(
 	ctx context.Context,
-	id UUID,
-	options AchievementTemplateUpdateOptions,
-) (AchievementTemplate, error) {
+	id uuid.UUID,
+	options achievement.TemplateUpdateOptions,
+) (*ent.AchievementTemplate, error) {
 	rec := event.Get(ctx).Sub("sesc/update_achievement_template")
 	rec.Add("template_id", id)
 
@@ -282,7 +215,7 @@ func (s *ATS) UpdateAchievementTemplate(
 		// Validate the kind
 		if err := options.Kind.Validate(); err != nil {
 			rec.Add(events.Error, fmt.Errorf("invalid achievement kind: %w", err))
-			return AchievementTemplate{}, err
+			return nil, err
 		}
 		update = update.SetKind(*options.Kind)
 	}
@@ -291,22 +224,12 @@ func (s *ATS) UpdateAchievementTemplate(
 	if err != nil {
 		if ent.IsNotFound(err) {
 			rec.Add(events.Error, "achievement template not found")
-			return AchievementTemplate{}, achievement.ErrAchievementTemplateNotFound
+			return nil, achievement.ErrAchievementTemplateNotFound
 		}
 		rec.Add(events.Error, fmt.Errorf("failed to update achievement template: %w", err))
-		return AchievementTemplate{}, err
+		return nil, err
 	}
 
-	result := AchievementTemplate{
-		ID:          template.ID,
-		Name:        template.Name,
-		Description: template.Description,
-		PointsLimit: template.PointsLimit,
-		GroupID:     template.GroupID,
-		Active:      template.Active,
-		Kind:        template.Kind,
-	}
-
-	rec.Add("updated_template", result)
-	return result, nil
+	rec.Add("updated_template_id", template.ID)
+	return template, nil
 }

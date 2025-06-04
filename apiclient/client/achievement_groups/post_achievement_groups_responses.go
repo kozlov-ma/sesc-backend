@@ -70,7 +70,7 @@ PostAchievementGroupsCreated describes a response with status code 201, with def
 Created
 */
 type PostAchievementGroupsCreated struct {
-	Payload *models.APIAchievementGroupResponse
+	Payload *models.RespondAchievementGroup
 }
 
 // IsSuccess returns true when this post achievement groups created response has a 2xx status code
@@ -113,13 +113,13 @@ func (o *PostAchievementGroupsCreated) String() string {
 	return fmt.Sprintf("[POST /achievement-groups][%d] postAchievementGroupsCreated %s", 201, payload)
 }
 
-func (o *PostAchievementGroupsCreated) GetPayload() *models.APIAchievementGroupResponse {
+func (o *PostAchievementGroupsCreated) GetPayload() *models.RespondAchievementGroup {
 	return o.Payload
 }
 
 func (o *PostAchievementGroupsCreated) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIAchievementGroupResponse)
+	o.Payload = new(models.RespondAchievementGroup)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {

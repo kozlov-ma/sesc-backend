@@ -128,8 +128,8 @@ func (a *API) RegisterRoutes(r chi.Router) {
 			r.Get("/", a.GetUserAchievements)
 			r.Post("/", a.CreateAchievement)
 
-			// Route for grouped achievements (for reviewers)
-			r.Get("/grouped", a.GetGroupedAchievements)
+			// Route for users with achievements (for reviewers)
+			r.Get("/users", a.GetUsersWithAchievements)
 
 			// Routes for specific achievement
 			r.Route("/{id}", func(r chi.Router) {

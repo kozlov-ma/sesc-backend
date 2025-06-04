@@ -14,10 +14,10 @@ import (
 	"github.com/go-openapi/validate"
 )
 
-// APIAchievementGroupResponse api achievement group response
+// RespondAchievementGroup respond achievement group
 //
-// swagger:model api.AchievementGroupResponse
-type APIAchievementGroupResponse struct {
+// swagger:model respond.AchievementGroup
+type RespondAchievementGroup struct {
 
 	// active
 	// Example: true
@@ -40,8 +40,8 @@ type APIAchievementGroupResponse struct {
 	Name *string `json:"name"`
 }
 
-// Validate validates this api achievement group response
-func (m *APIAchievementGroupResponse) Validate(formats strfmt.Registry) error {
+// Validate validates this respond achievement group
+func (m *RespondAchievementGroup) Validate(formats strfmt.Registry) error {
 	var res []error
 
 	if err := m.validateActive(formats); err != nil {
@@ -66,7 +66,7 @@ func (m *APIAchievementGroupResponse) Validate(formats strfmt.Registry) error {
 	return nil
 }
 
-func (m *APIAchievementGroupResponse) validateActive(formats strfmt.Registry) error {
+func (m *RespondAchievementGroup) validateActive(formats strfmt.Registry) error {
 
 	if err := validate.Required("active", "body", m.Active); err != nil {
 		return err
@@ -75,7 +75,7 @@ func (m *APIAchievementGroupResponse) validateActive(formats strfmt.Registry) er
 	return nil
 }
 
-func (m *APIAchievementGroupResponse) validateDescription(formats strfmt.Registry) error {
+func (m *RespondAchievementGroup) validateDescription(formats strfmt.Registry) error {
 
 	if err := validate.Required("description", "body", m.Description); err != nil {
 		return err
@@ -84,7 +84,7 @@ func (m *APIAchievementGroupResponse) validateDescription(formats strfmt.Registr
 	return nil
 }
 
-func (m *APIAchievementGroupResponse) validateID(formats strfmt.Registry) error {
+func (m *RespondAchievementGroup) validateID(formats strfmt.Registry) error {
 
 	if err := validate.Required("id", "body", m.ID); err != nil {
 		return err
@@ -93,7 +93,7 @@ func (m *APIAchievementGroupResponse) validateID(formats strfmt.Registry) error 
 	return nil
 }
 
-func (m *APIAchievementGroupResponse) validateName(formats strfmt.Registry) error {
+func (m *RespondAchievementGroup) validateName(formats strfmt.Registry) error {
 
 	if err := validate.Required("name", "body", m.Name); err != nil {
 		return err
@@ -102,13 +102,13 @@ func (m *APIAchievementGroupResponse) validateName(formats strfmt.Registry) erro
 	return nil
 }
 
-// ContextValidate validates this api achievement group response based on context it is used
-func (m *APIAchievementGroupResponse) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+// ContextValidate validates this respond achievement group based on context it is used
+func (m *RespondAchievementGroup) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	return nil
 }
 
 // MarshalBinary interface implementation
-func (m *APIAchievementGroupResponse) MarshalBinary() ([]byte, error) {
+func (m *RespondAchievementGroup) MarshalBinary() ([]byte, error) {
 	if m == nil {
 		return nil, nil
 	}
@@ -116,8 +116,8 @@ func (m *APIAchievementGroupResponse) MarshalBinary() ([]byte, error) {
 }
 
 // UnmarshalBinary interface implementation
-func (m *APIAchievementGroupResponse) UnmarshalBinary(b []byte) error {
-	var res APIAchievementGroupResponse
+func (m *RespondAchievementGroup) UnmarshalBinary(b []byte) error {
+	var res RespondAchievementGroup
 	if err := swag.ReadJSON(b, &res); err != nil {
 		return err
 	}

@@ -14,10 +14,10 @@ import (
 	"github.com/go-openapi/validate"
 )
 
-// APICreateAchievementRequest api create achievement request
+// ParamCreateAchievementRequest param create achievement request
 //
-// swagger:model api.CreateAchievementRequest
-type APICreateAchievementRequest struct {
+// swagger:model param.CreateAchievementRequest
+type ParamCreateAchievementRequest struct {
 
 	// template Id
 	// Example: 550e8400-e29b-41d4-a716-446655440000
@@ -25,8 +25,8 @@ type APICreateAchievementRequest struct {
 	TemplateID *string `json:"templateId"`
 }
 
-// Validate validates this api create achievement request
-func (m *APICreateAchievementRequest) Validate(formats strfmt.Registry) error {
+// Validate validates this param create achievement request
+func (m *ParamCreateAchievementRequest) Validate(formats strfmt.Registry) error {
 	var res []error
 
 	if err := m.validateTemplateID(formats); err != nil {
@@ -39,7 +39,7 @@ func (m *APICreateAchievementRequest) Validate(formats strfmt.Registry) error {
 	return nil
 }
 
-func (m *APICreateAchievementRequest) validateTemplateID(formats strfmt.Registry) error {
+func (m *ParamCreateAchievementRequest) validateTemplateID(formats strfmt.Registry) error {
 
 	if err := validate.Required("templateId", "body", m.TemplateID); err != nil {
 		return err
@@ -48,13 +48,13 @@ func (m *APICreateAchievementRequest) validateTemplateID(formats strfmt.Registry
 	return nil
 }
 
-// ContextValidate validates this api create achievement request based on context it is used
-func (m *APICreateAchievementRequest) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+// ContextValidate validates this param create achievement request based on context it is used
+func (m *ParamCreateAchievementRequest) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	return nil
 }
 
 // MarshalBinary interface implementation
-func (m *APICreateAchievementRequest) MarshalBinary() ([]byte, error) {
+func (m *ParamCreateAchievementRequest) MarshalBinary() ([]byte, error) {
 	if m == nil {
 		return nil, nil
 	}
@@ -62,8 +62,8 @@ func (m *APICreateAchievementRequest) MarshalBinary() ([]byte, error) {
 }
 
 // UnmarshalBinary interface implementation
-func (m *APICreateAchievementRequest) UnmarshalBinary(b []byte) error {
-	var res APICreateAchievementRequest
+func (m *ParamCreateAchievementRequest) UnmarshalBinary(b []byte) error {
+	var res ParamCreateAchievementRequest
 	if err := swag.ReadJSON(b, &res); err != nil {
 		return err
 	}

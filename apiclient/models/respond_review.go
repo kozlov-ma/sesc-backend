@@ -14,10 +14,10 @@ import (
 	"github.com/go-openapi/validate"
 )
 
-// APIReviewResponse api review response
+// RespondReview respond review
 //
-// swagger:model api.ReviewResponse
-type APIReviewResponse struct {
+// swagger:model respond.Review
+type RespondReview struct {
 
 	// comment
 	// Example: Good job, but could be better
@@ -44,8 +44,8 @@ type APIReviewResponse struct {
 	ReviewerName *string `json:"reviewerName"`
 }
 
-// Validate validates this api review response
-func (m *APIReviewResponse) Validate(formats strfmt.Registry) error {
+// Validate validates this respond review
+func (m *RespondReview) Validate(formats strfmt.Registry) error {
 	var res []error
 
 	if err := m.validateID(formats); err != nil {
@@ -70,7 +70,7 @@ func (m *APIReviewResponse) Validate(formats strfmt.Registry) error {
 	return nil
 }
 
-func (m *APIReviewResponse) validateID(formats strfmt.Registry) error {
+func (m *RespondReview) validateID(formats strfmt.Registry) error {
 
 	if err := validate.Required("id", "body", m.ID); err != nil {
 		return err
@@ -79,7 +79,7 @@ func (m *APIReviewResponse) validateID(formats strfmt.Registry) error {
 	return nil
 }
 
-func (m *APIReviewResponse) validatePointsAssigned(formats strfmt.Registry) error {
+func (m *RespondReview) validatePointsAssigned(formats strfmt.Registry) error {
 
 	if err := validate.Required("pointsAssigned", "body", m.PointsAssigned); err != nil {
 		return err
@@ -88,7 +88,7 @@ func (m *APIReviewResponse) validatePointsAssigned(formats strfmt.Registry) erro
 	return nil
 }
 
-func (m *APIReviewResponse) validateReviewerID(formats strfmt.Registry) error {
+func (m *RespondReview) validateReviewerID(formats strfmt.Registry) error {
 
 	if err := validate.Required("reviewerId", "body", m.ReviewerID); err != nil {
 		return err
@@ -97,7 +97,7 @@ func (m *APIReviewResponse) validateReviewerID(formats strfmt.Registry) error {
 	return nil
 }
 
-func (m *APIReviewResponse) validateReviewerName(formats strfmt.Registry) error {
+func (m *RespondReview) validateReviewerName(formats strfmt.Registry) error {
 
 	if err := validate.Required("reviewerName", "body", m.ReviewerName); err != nil {
 		return err
@@ -106,13 +106,13 @@ func (m *APIReviewResponse) validateReviewerName(formats strfmt.Registry) error 
 	return nil
 }
 
-// ContextValidate validates this api review response based on context it is used
-func (m *APIReviewResponse) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+// ContextValidate validates this respond review based on context it is used
+func (m *RespondReview) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	return nil
 }
 
 // MarshalBinary interface implementation
-func (m *APIReviewResponse) MarshalBinary() ([]byte, error) {
+func (m *RespondReview) MarshalBinary() ([]byte, error) {
 	if m == nil {
 		return nil, nil
 	}
@@ -120,8 +120,8 @@ func (m *APIReviewResponse) MarshalBinary() ([]byte, error) {
 }
 
 // UnmarshalBinary interface implementation
-func (m *APIReviewResponse) UnmarshalBinary(b []byte) error {
-	var res APIReviewResponse
+func (m *RespondReview) UnmarshalBinary(b []byte) error {
+	var res RespondReview
 	if err := swag.ReadJSON(b, &res); err != nil {
 		return err
 	}

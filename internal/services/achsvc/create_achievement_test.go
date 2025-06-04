@@ -41,7 +41,7 @@ func TestCreateAchievement(t *testing.T) {
 
 		// Create achievement
 		opt := achievement.CreateOptions{
-			ForUser:    tc.User,
+			ForUserID:  tc.User.ID,
 			TemplateID: tc.Template.ID,
 		}
 
@@ -50,9 +50,9 @@ func TestCreateAchievement(t *testing.T) {
 
 		// Verify achievement was created correctly
 		require.NotEqual(t, uuid.Nil, ach.ID, "Achievement ID should not be nil")
-		require.Equal(t, tc.User.ID, ach.Owner.ID, "Achievement owner should match")
-		require.Equal(t, tc.Template.ID, ach.Template.ID, "Achievement template should match")
-		require.Equal(t, string(achievement.StatusDraft), string(ach.Status), "Achievement should be in draft status")
+		require.Equal(t, tc.User.ID, ach.OwnerID, "Achievement owner should match")
+		require.Equal(t, tc.Template.ID, ach.TemplateID, "Achievement template should match")
+		require.Equal(t, achievement.StatusDraft, ach.Status, "Achievement should be in draft status")
 		require.Equal(t, tc.Template.PointsLimit, ach.Points, "Achievement should have template points limit")
 	})
 
@@ -62,7 +62,7 @@ func TestCreateAchievement(t *testing.T) {
 
 		// Use non-existent template ID
 		opt := achievement.CreateOptions{
-			ForUser:    tc.User,
+			ForUserID:  tc.User.ID,
 			TemplateID: uuid.Must(uuid.NewV7()), // random ID that doesn't exist
 		}
 

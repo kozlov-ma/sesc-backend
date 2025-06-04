@@ -45,25 +45,6 @@ func (k Kind) Validate() error {
 	return nil
 }
 
-// Group represents a group of related achievement templates
-type Group struct {
-	ID          uuid.UUID
-	Name        string
-	Description string
-	Active      bool
-}
-
-// Template represents a template for creating achievements
-type Template struct {
-	ID          uuid.UUID
-	Name        string
-	Description string
-	PointsLimit int
-	GroupID     uuid.UUID
-	Active      bool
-	Kind        Kind
-}
-
 // GroupCreateOptions contains options for creating an achievement group
 type GroupCreateOptions struct {
 	Name        string

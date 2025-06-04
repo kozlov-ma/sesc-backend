@@ -14,10 +14,10 @@ import (
 	"github.com/go-openapi/validate"
 )
 
-// APIReviewAchievementRequest api review achievement request
+// ParamReviewAchievementRequest param review achievement request
 //
-// swagger:model api.ReviewAchievementRequest
-type APIReviewAchievementRequest struct {
+// swagger:model param.ReviewAchievementRequest
+type ParamReviewAchievementRequest struct {
 
 	// comment
 	// Example: Good job, but could be better
@@ -29,8 +29,8 @@ type APIReviewAchievementRequest struct {
 	PointsAssigned *int64 `json:"pointsAssigned"`
 }
 
-// Validate validates this api review achievement request
-func (m *APIReviewAchievementRequest) Validate(formats strfmt.Registry) error {
+// Validate validates this param review achievement request
+func (m *ParamReviewAchievementRequest) Validate(formats strfmt.Registry) error {
 	var res []error
 
 	if err := m.validatePointsAssigned(formats); err != nil {
@@ -43,7 +43,7 @@ func (m *APIReviewAchievementRequest) Validate(formats strfmt.Registry) error {
 	return nil
 }
 
-func (m *APIReviewAchievementRequest) validatePointsAssigned(formats strfmt.Registry) error {
+func (m *ParamReviewAchievementRequest) validatePointsAssigned(formats strfmt.Registry) error {
 
 	if err := validate.Required("pointsAssigned", "body", m.PointsAssigned); err != nil {
 		return err
@@ -52,13 +52,13 @@ func (m *APIReviewAchievementRequest) validatePointsAssigned(formats strfmt.Regi
 	return nil
 }
 
-// ContextValidate validates this api review achievement request based on context it is used
-func (m *APIReviewAchievementRequest) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+// ContextValidate validates this param review achievement request based on context it is used
+func (m *ParamReviewAchievementRequest) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	return nil
 }
 
 // MarshalBinary interface implementation
-func (m *APIReviewAchievementRequest) MarshalBinary() ([]byte, error) {
+func (m *ParamReviewAchievementRequest) MarshalBinary() ([]byte, error) {
 	if m == nil {
 		return nil, nil
 	}
@@ -66,8 +66,8 @@ func (m *APIReviewAchievementRequest) MarshalBinary() ([]byte, error) {
 }
 
 // UnmarshalBinary interface implementation
-func (m *APIReviewAchievementRequest) UnmarshalBinary(b []byte) error {
-	var res APIReviewAchievementRequest
+func (m *ParamReviewAchievementRequest) UnmarshalBinary(b []byte) error {
+	var res ParamReviewAchievementRequest
 	if err := swag.ReadJSON(b, &res); err != nil {
 		return err
 	}
