@@ -1,0 +1,33 @@
+# Yandex Cloud credentials
+yc_oauth_token = "your_oauth_token_here"
+yc_cloud_id    = "your_cloud_id_here"
+yc_folder_id   = "your_folder_id_here"
+yc_zone        = "ru-central1-a"
+
+# Project information
+project_name      = "my-app"
+main_domain       = "example.com"
+additional_domains = ["api.example.com", "admin.example.com"]
+
+# Security
+admin_ip_cidr      = "1.2.3.4/32"  # Restrict to your IP
+ssh_public_key_path = "~/.ssh/id_rsa.pub"
+
+# VM configuration
+vm_platform_id = "standard-v1"
+vm_user        = "ubuntu"
+
+# Frontend VM specs
+frontend_cores    = 2
+frontend_memory   = 4
+frontend_disk_size = 20
+
+# Backend VM specs
+backend_cores     = 2
+backend_memory    = 4
+backend_disk_size = 20
+
+# Kamal accessories VM specs
+accessories_cores    = 2
+accessories_memory   = 4
+accessories_disk_size = 20
