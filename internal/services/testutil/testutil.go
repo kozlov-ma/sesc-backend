@@ -144,7 +144,7 @@ func CreateTestDepartmentWithName(ctx context.Context, t *testing.T, client *ent
 }
 
 // CreateTestAchievementGroup creates a test achievement group directly in the database
-func CreateTestAchievementGroup(ctx context.Context, t *testing.T, client *ent.Client) achievement.Group {
+func CreateTestAchievementGroup(ctx context.Context, t *testing.T, client *ent.Client) *ent.AchievementGroup {
 	t.Helper()
 
 	groupName := "Test Group " + strconv.Itoa(rand.Int())
@@ -154,10 +154,7 @@ func CreateTestAchievementGroup(ctx context.Context, t *testing.T, client *ent.C
 		Save(ctx)
 	require.NoError(t, err)
 
-	return achievement.Group{
-		ID:   group.ID,
-		Name: groupName,
-	}
+	return group
 }
 
 // CreateTestAchievementTemplate creates a test achievement template directly in the database
@@ -166,7 +163,7 @@ func CreateTestAchievementTemplate(
 	t *testing.T,
 	client *ent.Client,
 	kind achievement.Kind,
-) achievement.Template {
+) *ent.AchievementTemplate {
 	t.Helper()
 
 	// Create a group first
@@ -183,14 +180,7 @@ func CreateTestAchievementTemplate(
 		Save(ctx)
 	require.NoError(t, err)
 
-	return achievement.Template{
-		ID:          template.ID,
-		Name:        templateName,
-		Description: "For testing",
-		PointsLimit: 10,
-		Kind:        kind,
-		GroupID:     group.ID,
-	}
+	return template
 }
 
 // CreateTestAchievement creates a test achievement directly in the database
@@ -199,28 +189,22 @@ func CreateTestAchievement(
 	t *testing.T,
 	client *ent.Client,
 	user *ent.User,
-	template achievement.Template,
+	template *ent.AchievementTemplate,
 	status achievement.Status,
-) achievement.Achievement {
+) *ent.Achievement {
 	t.Helper()
 
 	achievementID := uuid.Must(uuid.NewV7())
-	err := client.Achievement.Create().
+	ach, err := client.Achievement.Create().
 		SetID(achievementID).
 		SetStatus(string(status)).
 		SetPoints(0).
 		SetOwnerID(user.ID).
 		SetTemplateID(template.ID).
-		Exec(ctx)
+		Save(ctx)
 	require.NoError(t, err)
 
-	return achievement.Achievement{
-		ID:       achievementID,
-		Status:   status,
-		Points:   0,
-		Owner:    user,
-		Template: template,
-	}
+	return ach
 }
 
 // CreateTestFile creates a test file entry directly in the database
@@ -252,8 +236,8 @@ func CreateTestContext(t *testing.T) (context.Context, *event.Record) {
 type TestContext struct {
 	Client   *ent.Client
 	User     *ent.User
-	Template achievement.Template
-	Group    achievement.Group
+	Template *ent.AchievementTemplate
+	Group    *ent.AchievementGroup
 	File     *ent.File
 	Dept     *ent.Department
 }
