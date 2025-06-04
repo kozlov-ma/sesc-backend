@@ -33,10 +33,29 @@ func (s *ACS) GetUsersWithAchievements(
 	var users []*ent.User
 
 	err := rec.Operation("count_users", func(opRec *event.Record) error {
+		// Get asking user for role-based filtering
 		start := time.Now()
-		count, err := s.client.User.Query().
-			Where(user.HasAchievements()).
-			Count(ctx)
+		askingUser, err := s.client.User.Query().
+			Where(user.ID(whosAsking)).
+			WithDepartment().
+			Only(ctx)
+		statsRec.Add(events.PostgresQueries, 1)
+		statsRec.Add(events.PostgresTime, time.Since(start))
+
+		if err != nil {
+			return fmt.Errorf("failed to get asking user: %w", err)
+		}
+
+		// Build count query with role-based filtering
+		query := s.client.User.Query().
+			Where(user.HasAchievementsWith(func(q *ent.AchievementQuery) {
+				// Apply role-based filters to achievements
+				roleFilter := s.buildRoleBasedFilters(askingUser)
+				roleFilter(q)
+			}))
+
+		start = time.Now()
+		count, err := query.Count(ctx)
 		statsRec.Add(events.PostgresQueries, 1)
 		statsRec.Add(events.PostgresTime, time.Since(start))
 
@@ -65,9 +84,13 @@ func (s *ACS) GetUsersWithAchievements(
 			return fmt.Errorf("failed to get asking user: %w", err)
 		}
 
-		// Build query with role-based ordering
+		// Build query with role-based filtering
 		query := s.client.User.Query().
-			Where(user.HasAchievements()).
+			Where(user.HasAchievementsWith(func(q *ent.AchievementQuery) {
+				// Apply role-based filters to achievements
+				roleFilter := s.buildRoleBasedFilters(askingUser)
+				roleFilter(q)
+			})).
 			WithDepartment().
 			WithAchievements(func(q *ent.AchievementQuery) {
 				q.WithTemplate(func(tq *ent.AchievementTemplateQuery) {
@@ -80,46 +103,15 @@ func (s *ACS) GetUsersWithAchievements(
 						rq.WithReviewer()
 					})
 
-				// Order achievements based on asking user's role
-				if askingUser.Role == sesc.Dephead {
-					// Department head: prioritize achievements from their department with DepheadReview status
-					if askingUser.Edges.Department != nil {
-						q.Where(
-							achievement.And(
-								achievement.HasOwnerWith(user.DepartmentID(askingUser.Edges.Department.ID)),
-								achievement.Status(sesc.DepheadReview),
-							),
-						).Order(ent.Desc(achievement.FieldCreatedAt))
-					}
-				} else if askingUser.Role.IsInspector() {
-					// Inspector: prioritize achievements with InspectorReview status and their specific kind
-					var inspectorKind sesc.AchievementKind
-					switch askingUser.Role {
-					case sesc.OlympiadDeputy:
-						inspectorKind = sesc.Olympiad
-					case sesc.AcademicDirector:
-						inspectorKind = sesc.Development
-					}
+				// Apply role-based filters to achievements
+				roleFilter := s.buildRoleBasedFilters(askingUser)
+				roleFilter(q)
 
-					q.Where(
-						achievement.And(
-							achievement.Status(sesc.InspectorReview),
-							achievement.HasTemplateWith(func(q *ent.AchievementTemplateQuery) {
-								q.Where(func(q *ent.AchievementTemplateQuery) {
-									q.HasGroupWith(func(q *ent.AchievementGroupQuery) {
-										q.Kind(inspectorKind)
-									})
-								})
-							}),
-						),
-					).Order(ent.Desc(achievement.FieldCreatedAt))
-				}
-
-				// Add default ordering by creation time
+				// Order achievements by creation time (newest first)
 				q.Order(ent.Desc(achievement.FieldCreatedAt))
 			})
 
-		// Order users by name as default
+		// Order users by name for consistent pagination
 		query = query.Order(ent.Asc(user.FieldLastName), ent.Asc(user.FieldFirstName))
 
 		start = time.Now()
