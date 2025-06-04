@@ -32,7 +32,7 @@ func TestUpdateDepartment(t *testing.T) {
 		updatedDesc := "Updated description"
 
 		// Call the method being tested
-		err = svc.UpdateDepartment(ctx, dept.ID, updatedName, updatedDesc)
+		_, err = svc.UpdateDepartment(ctx, dept.ID, updatedName, updatedDesc)
 
 		// Verify the results
 		require.NoError(t, err)
@@ -58,7 +58,7 @@ func TestUpdateDepartment(t *testing.T) {
 		nonExistentID := testutil.RandomUUID()
 
 		// Call the method being tested
-		err := svc.UpdateDepartment(ctx, nonExistentID, "Updated Name", "Updated description")
+		_, err := svc.UpdateDepartment(ctx, nonExistentID, "Updated Name", "Updated description")
 
 		// Verify the results
 		require.Error(t, err)
@@ -83,7 +83,7 @@ func TestUpdateDepartment(t *testing.T) {
 		require.NoError(t, err)
 
 		// Try to update dept2 with dept1's name
-		err = svc.UpdateDepartment(ctx, dept2.ID, dept1.Name, "Updated description")
+		_, err = svc.UpdateDepartment(ctx, dept2.ID, dept1.Name, "Updated description")
 
 		// This should fail with a constraint error
 		require.Error(t, err)
@@ -106,7 +106,7 @@ func TestUpdateDepartment(t *testing.T) {
 		client.Close()
 
 		// Call the method being tested
-		err = svc.UpdateDepartment(ctx, dept.ID, "Updated Name", "Updated description")
+		_, err = svc.UpdateDepartment(ctx, dept.ID, "Updated Name", "Updated description")
 
 		// Verify the results
 		require.Error(t, err)

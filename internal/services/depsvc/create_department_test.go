@@ -59,12 +59,11 @@ func TestCreateDepartment(t *testing.T) {
 		require.NotEmpty(t, firstDepartment.ID)
 
 		// Try to create another department with the same name
-		duplicateDepartment, err := svc.CreateDepartment(ctx, name, "Different description")
+		_, err = svc.CreateDepartment(ctx, name, "Different description")
 
 		// Verify the results
 		require.Error(t, err)
 		require.Equal(t, sesc.ErrInvalidDepartmentName, err)
-		require.Empty(t, duplicateDepartment.ID)
 	})
 
 	t.Run("database_error", func(t *testing.T) {
@@ -84,10 +83,9 @@ func TestCreateDepartment(t *testing.T) {
 		description := "Department for testing database errors"
 
 		// Call the method being tested
-		department, err := svc.CreateDepartment(ctx, name, description)
+		_, err := svc.CreateDepartment(ctx, name, description)
 
 		// Verify the results
 		require.Error(t, err)
-		require.Empty(t, department.ID)
 	})
 }

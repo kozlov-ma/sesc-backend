@@ -244,31 +244,6 @@ definitions:
     - password
     - username
     type: object
-  api.Department:
-    properties:
-      description:
-        example: Math department
-        type: string
-      id:
-        example: 550e8400-e29b-41d4-a716-446655440000
-        type: string
-      name:
-        example: Mathematics
-        type: string
-    required:
-    - description
-    - id
-    - name
-    type: object
-  api.DepartmentsResponse:
-    properties:
-      departments:
-        items:
-          $ref: '#/definitions/api.Department'
-        type: array
-    required:
-    - departments
-    type: object
   api.DocumentResponse:
     properties:
       fileId:
@@ -544,6 +519,18 @@ definitions:
     - description
     - id
     - name
+    type: object
+  respond.Departments:
+    properties:
+      departments:
+        items:
+          $ref: '#/definitions/respond.Department'
+        type: array
+      total:
+        type: integer
+    required:
+    - departments
+    - total
     type: object
   respond.Error:
     properties:
@@ -1544,7 +1531,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/api.DepartmentsResponse'
+            $ref: '#/definitions/respond.Departments'
         "500":
           description: Internal server error
           schema:
@@ -1573,7 +1560,7 @@ paths:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/api.Department'
+            $ref: '#/definitions/respond.Department'
         "400":
           description: Invalid request format
           schema:
@@ -1706,7 +1693,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/api.Department'
+            $ref: '#/definitions/respond.Department'
         "400":
           description: Invalid request format
           schema:

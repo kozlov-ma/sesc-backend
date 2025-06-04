@@ -12,8 +12,8 @@ type Department struct {
 }
 
 type Departments struct {
-	Departments []*Department `json:"users" validate:"required"`
-	Total       int           `json:"total" validate:"required"`
+	Departments []*Department `json:"departments" validate:"required"`
+	Total       int           `json:"total"       validate:"required"`
 }
 
 func WithDepartment(d *ent.Department) *Department {

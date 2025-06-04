@@ -1385,7 +1385,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/api.DepartmentsResponse"
+                            "$ref": "#/definitions/respond.Departments"
                         }
                     },
                     "500": {
@@ -1434,7 +1434,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/api.Department"
+                            "$ref": "#/definitions/respond.Department"
                         }
                     },
                     "400": {
@@ -1572,7 +1572,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/api.Department"
+                            "$ref": "#/definitions/respond.Department"
                         }
                     },
                     "400": {
@@ -2844,42 +2844,6 @@ const docTemplate = `{
                 }
             }
         },
-        "api.Department": {
-            "type": "object",
-            "required": [
-                "description",
-                "id",
-                "name"
-            ],
-            "properties": {
-                "description": {
-                    "type": "string",
-                    "example": "Math department"
-                },
-                "id": {
-                    "type": "string",
-                    "example": "550e8400-e29b-41d4-a716-446655440000"
-                },
-                "name": {
-                    "type": "string",
-                    "example": "Mathematics"
-                }
-            }
-        },
-        "api.DepartmentsResponse": {
-            "type": "object",
-            "required": [
-                "departments"
-            ],
-            "properties": {
-                "departments": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/api.Department"
-                    }
-                }
-            }
-        },
         "api.DocumentResponse": {
             "type": "object",
             "required": [
@@ -3265,6 +3229,24 @@ const docTemplate = `{
                 "name": {
                     "type": "string",
                     "example": "Mathematics"
+                }
+            }
+        },
+        "respond.Departments": {
+            "type": "object",
+            "required": [
+                "departments",
+                "total"
+            ],
+            "properties": {
+                "departments": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/respond.Department"
+                    }
+                },
+                "total": {
+                    "type": "integer"
                 }
             }
         },

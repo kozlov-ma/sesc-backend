@@ -307,38 +307,6 @@ export const api_CredentialsRequestSchema = {
   },
 } as const;
 
-export const api_DepartmentSchema = {
-  type: "object",
-  required: ["description", "id", "name"],
-  properties: {
-    description: {
-      type: "string",
-      example: "Math department",
-    },
-    id: {
-      type: "string",
-      example: "550e8400-e29b-41d4-a716-446655440000",
-    },
-    name: {
-      type: "string",
-      example: "Mathematics",
-    },
-  },
-} as const;
-
-export const api_DepartmentsResponseSchema = {
-  type: "object",
-  required: ["departments"],
-  properties: {
-    departments: {
-      type: "array",
-      items: {
-        $ref: "#/definitions/api.Department",
-      },
-    },
-  },
-} as const;
-
 export const api_DocumentResponseSchema = {
   type: "object",
   required: ["fileId", "id", "name"],
@@ -693,6 +661,22 @@ export const respond_DepartmentSchema = {
     name: {
       type: "string",
       example: "Mathematics",
+    },
+  },
+} as const;
+
+export const respond_DepartmentsSchema = {
+  type: "object",
+  required: ["departments", "total"],
+  properties: {
+    departments: {
+      type: "array",
+      items: {
+        $ref: "#/definitions/respond.Department",
+      },
+    },
+    total: {
+      type: "integer",
     },
   },
 } as const;

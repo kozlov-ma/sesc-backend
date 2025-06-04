@@ -82,7 +82,7 @@ PutDepartmentsIDOK describes a response with status code 200, with default heade
 OK
 */
 type PutDepartmentsIDOK struct {
-	Payload *models.APIDepartment
+	Payload *models.RespondDepartment
 }
 
 // IsSuccess returns true when this put departments Id o k response has a 2xx status code
@@ -125,13 +125,13 @@ func (o *PutDepartmentsIDOK) String() string {
 	return fmt.Sprintf("[PUT /departments/{id}][%d] putDepartmentsIdOK %s", 200, payload)
 }
 
-func (o *PutDepartmentsIDOK) GetPayload() *models.APIDepartment {
+func (o *PutDepartmentsIDOK) GetPayload() *models.RespondDepartment {
 	return o.Payload
 }
 
 func (o *PutDepartmentsIDOK) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIDepartment)
+	o.Payload = new(models.RespondDepartment)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {

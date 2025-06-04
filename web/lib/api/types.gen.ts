@@ -81,16 +81,6 @@ export type ApiCredentialsRequest = {
   username: string;
 };
 
-export type ApiDepartment = {
-  description: string;
-  id: string;
-  name: string;
-};
-
-export type ApiDepartmentsResponse = {
-  departments: Array<ApiDepartment>;
-};
-
 export type ApiDocumentResponse = {
   fileId: string;
   id: string;
@@ -202,6 +192,11 @@ export type RespondDepartment = {
   description: string;
   id: string;
   name: string;
+};
+
+export type RespondDepartments = {
+  departments: Array<RespondDepartment>;
+  total: number;
 };
 
 export type RespondError = {
@@ -1268,7 +1263,7 @@ export type GetDepartmentsResponses = {
   /**
    * OK
    */
-  200: ApiDepartmentsResponse;
+  200: RespondDepartments;
 };
 
 export type GetDepartmentsResponse =
@@ -1320,7 +1315,7 @@ export type PostDepartmentsResponses = {
   /**
    * Created
    */
-  201: ApiDepartment;
+  201: RespondDepartment;
 };
 
 export type PostDepartmentsResponse =
@@ -1482,7 +1477,7 @@ export type PutDepartmentsByIdResponses = {
   /**
    * OK
    */
-  200: ApiDepartment;
+  200: RespondDepartment;
 };
 
 export type PutDepartmentsByIdResponse =

@@ -40,10 +40,10 @@ type (
 	// SESC defines the business logic interface required by the API
 	SESC interface {
 		// Department operations
-		Departments(ctx context.Context) ([]sesc.Department, error)
-		DepartmentByID(ctx context.Context, id uuid.UUID) (sesc.Department, error)
-		CreateDepartment(ctx context.Context, name string, description string) (sesc.Department, error)
-		UpdateDepartment(ctx context.Context, id uuid.UUID, name string, description string) error
+		Departments(ctx context.Context) (ent.Departments, error)
+		DepartmentByID(ctx context.Context, id uuid.UUID) (*ent.Department, error)
+		CreateDepartment(ctx context.Context, name string, description string) (*ent.Department, error)
+		UpdateDepartment(ctx context.Context, id uuid.UUID, name string, description string) (*ent.Department, error)
 		DeleteDepartment(ctx context.Context, id uuid.UUID) error
 
 		// User operations

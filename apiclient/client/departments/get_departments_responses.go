@@ -52,7 +52,7 @@ GetDepartmentsOK describes a response with status code 200, with default header 
 OK
 */
 type GetDepartmentsOK struct {
-	Payload *models.APIDepartmentsResponse
+	Payload *models.RespondDepartments
 }
 
 // IsSuccess returns true when this get departments o k response has a 2xx status code
@@ -95,13 +95,13 @@ func (o *GetDepartmentsOK) String() string {
 	return fmt.Sprintf("[GET /departments][%d] getDepartmentsOK %s", 200, payload)
 }
 
-func (o *GetDepartmentsOK) GetPayload() *models.APIDepartmentsResponse {
+func (o *GetDepartmentsOK) GetPayload() *models.RespondDepartments {
 	return o.Payload
 }
 
 func (o *GetDepartmentsOK) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIDepartmentsResponse)
+	o.Payload = new(models.RespondDepartments)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {

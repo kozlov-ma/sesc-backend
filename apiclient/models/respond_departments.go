@@ -15,21 +15,29 @@ import (
 	"github.com/go-openapi/validate"
 )
 
-// APIDepartmentsResponse api departments response
+// RespondDepartments respond departments
 //
-// swagger:model api.DepartmentsResponse
-type APIDepartmentsResponse struct {
+// swagger:model respond.Departments
+type RespondDepartments struct {
 
 	// departments
 	// Required: true
-	Departments []*APIDepartment `json:"departments"`
+	Departments []*RespondDepartment `json:"departments"`
+
+	// total
+	// Required: true
+	Total *int64 `json:"total"`
 }
 
-// Validate validates this api departments response
-func (m *APIDepartmentsResponse) Validate(formats strfmt.Registry) error {
+// Validate validates this respond departments
+func (m *RespondDepartments) Validate(formats strfmt.Registry) error {
 	var res []error
 
 	if err := m.validateDepartments(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateTotal(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -39,7 +47,7 @@ func (m *APIDepartmentsResponse) Validate(formats strfmt.Registry) error {
 	return nil
 }
 
-func (m *APIDepartmentsResponse) validateDepartments(formats strfmt.Registry) error {
+func (m *RespondDepartments) validateDepartments(formats strfmt.Registry) error {
 
 	if err := validate.Required("departments", "body", m.Departments); err != nil {
 		return err
@@ -66,8 +74,17 @@ func (m *APIDepartmentsResponse) validateDepartments(formats strfmt.Registry) er
 	return nil
 }
 
-// ContextValidate validate this api departments response based on the context it is used
-func (m *APIDepartmentsResponse) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+func (m *RespondDepartments) validateTotal(formats strfmt.Registry) error {
+
+	if err := validate.Required("total", "body", m.Total); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// ContextValidate validate this respond departments based on the context it is used
+func (m *RespondDepartments) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	var res []error
 
 	if err := m.contextValidateDepartments(ctx, formats); err != nil {
@@ -80,7 +97,7 @@ func (m *APIDepartmentsResponse) ContextValidate(ctx context.Context, formats st
 	return nil
 }
 
-func (m *APIDepartmentsResponse) contextValidateDepartments(ctx context.Context, formats strfmt.Registry) error {
+func (m *RespondDepartments) contextValidateDepartments(ctx context.Context, formats strfmt.Registry) error {
 
 	for i := 0; i < len(m.Departments); i++ {
 
@@ -106,7 +123,7 @@ func (m *APIDepartmentsResponse) contextValidateDepartments(ctx context.Context,
 }
 
 // MarshalBinary interface implementation
-func (m *APIDepartmentsResponse) MarshalBinary() ([]byte, error) {
+func (m *RespondDepartments) MarshalBinary() ([]byte, error) {
 	if m == nil {
 		return nil, nil
 	}
@@ -114,8 +131,8 @@ func (m *APIDepartmentsResponse) MarshalBinary() ([]byte, error) {
 }
 
 // UnmarshalBinary interface implementation
-func (m *APIDepartmentsResponse) UnmarshalBinary(b []byte) error {
-	var res APIDepartmentsResponse
+func (m *RespondDepartments) UnmarshalBinary(b []byte) error {
+	var res RespondDepartments
 	if err := swag.ReadJSON(b, &res); err != nil {
 		return err
 	}

@@ -295,7 +295,7 @@ func main() {
 func processDepartments(
 	apiClient *client.Apiclient,
 	authInfo runtime.ClientAuthInfoWriter,
-) (map[string]*models.APIDepartment, error) {
+) (map[string]*models.RespondDepartment, error) {
 	// Get existing departments
 	deptResp, err := apiClient.Departments.GetDepartments(departments.NewGetDepartmentsParams())
 	if err != nil {
@@ -303,13 +303,13 @@ func processDepartments(
 	}
 
 	// Create map of existing departments by name
-	existingDepts := make(map[string]*models.APIDepartment)
+	existingDepts := make(map[string]*models.RespondDepartment)
 	for _, dept := range deptResp.Payload.Departments {
 		existingDepts[*dept.Name] = dept
 	}
 
 	// Create map to return
-	departmentMap := make(map[string]*models.APIDepartment)
+	departmentMap := make(map[string]*models.RespondDepartment)
 
 	// Create missing departments
 	for _, deptData := range departmentsData {
@@ -341,7 +341,7 @@ func processDepartments(
 func processUsers(
 	apiClient *client.Apiclient,
 	authInfo runtime.ClientAuthInfoWriter,
-	departmentMap map[string]*models.APIDepartment,
+	departmentMap map[string]*models.RespondDepartment,
 	roleMap map[int64]*models.RespondRole,
 	existingUsers []*models.RespondUser,
 ) ([]UserInfo, error) {

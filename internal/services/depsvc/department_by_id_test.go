@@ -50,11 +50,10 @@ func TestDepartmentByID(t *testing.T) {
 		nonExistentID := testutil.RandomUUID()
 
 		// Call the method being tested
-		department, err := svc.DepartmentByID(ctx, nonExistentID)
+		_, err := svc.DepartmentByID(ctx, nonExistentID)
 
 		// Verify the results
 		require.Equal(t, sesc.ErrDepartmentNotFound, err)
-		require.Empty(t, department.ID)
 	})
 
 	t.Run("database_error", func(t *testing.T) {
@@ -78,10 +77,9 @@ func TestDepartmentByID(t *testing.T) {
 		client.Close()
 
 		// Call the method being tested
-		department, err := svc.DepartmentByID(ctx, createdDept.ID)
+		_, err = svc.DepartmentByID(ctx, createdDept.ID)
 
 		// Verify the results
 		require.Error(t, err)
-		require.Empty(t, department.ID)
 	})
 }

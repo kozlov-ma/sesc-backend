@@ -3,6 +3,7 @@ package depsvc
 import (
 	"testing"
 
+	"github.com/kozlov-ma/sesc-backend/db/entdb/ent"
 	"github.com/kozlov-ma/sesc-backend/internal/services/testutil"
 	"github.com/kozlov-ma/sesc-backend/pkg/event"
 	"github.com/stretchr/testify/require"
@@ -36,7 +37,7 @@ func TestDepartments(t *testing.T) {
 		require.Len(t, departments, 3)
 
 		// Create a map of department IDs for easier verification
-		deptMap := make(map[string]Department)
+		deptMap := make(map[string]*ent.Department)
 		for _, d := range departments {
 			deptMap[d.ID.String()] = d
 		}

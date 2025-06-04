@@ -7,34 +7,19 @@ import (
 
 	"github.com/gofrs/uuid/v5"
 	"github.com/kozlov-ma/sesc-backend/api/respond"
-	"github.com/kozlov-ma/sesc-backend/db/entdb/ent"
 	"github.com/kozlov-ma/sesc-backend/pkg/event"
 	"github.com/kozlov-ma/sesc-backend/pkg/event/events"
 )
-
-type Department struct {
-	ID          uuid.UUID `json:"id"          example:"550e8400-e29b-41d4-a716-446655440000" validate:"required"`
-	Name        string    `json:"name"        example:"Mathematics"                          validate:"required"`
-	Description string    `json:"description" example:"Math department"                      validate:"required"`
-}
 
 type CreateDepartmentRequest struct {
 	Name        string `json:"name"        example:"Mathematics"     validate:"required"`
 	Description string `json:"description" example:"Math department" validate:"required"`
 }
 
-type CreateDepartmentResponse = Department
-
-type DepartmentsResponse struct {
-	Departments []Department `json:"departments" validate:"required"`
-}
-
 type UpdateDepartmentRequest struct {
 	Name        string `json:"name"        example:"Mathematics"     validate:"required"`
 	Description string `json:"description" example:"Math department" validate:"required"`
 }
-
-type UpdateDepartmentResponse = Department
 
 // CreateDepartment godoc
 // @Summary Create a new department
@@ -45,7 +30,7 @@ type UpdateDepartmentResponse = Department
 // @Security BearerAuth
 // @Param Authorization header string false "Bearer JWT token"
 // @Param request body CreateDepartmentRequest true "Department details"
-// @Success 201 {object} Department
+// @Success 201 {object} respond.Department
 // @Failure 400 {object} respond.Error "Invalid request format"
 // @Failure 401 {object} respond.Error "Unauthorized"
 // @Failure 403 {object} respond.Error "Forbidden - admin role required"
@@ -70,11 +55,7 @@ func (a *API) CreateDepartment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	a.writeJSON(ctx, w, respond.WithStatus(CreateDepartmentResponse{
-		ID:          dep.ID,
-		Name:        dep.Name,
-		Description: dep.Description,
-	}, http.StatusCreated))
+	a.writeJSON(ctx, w, respond.WithStatus(respond.WithDepartment(dep), http.StatusCreated))
 }
 
 // Departments godoc
@@ -82,7 +63,7 @@ func (a *API) CreateDepartment(w http.ResponseWriter, r *http.Request) {
 // @Description Retrieves list of all registered departments
 // @Tags departments
 // @Produce json
-// @Success 200 {object} DepartmentsResponse
+// @Success 200 {object} respond.Departments
 // @Failure 500 {object} respond.Error "Internal server error"
 // @Router /departments [get]
 func (a *API) Departments(w http.ResponseWriter, r *http.Request) {
@@ -96,18 +77,7 @@ func (a *API) Departments(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response := DepartmentsResponse{
-		Departments: make([]Department, len(deps)),
-	}
-	for i, d := range deps {
-		response.Departments[i] = Department{
-			ID:          d.ID,
-			Name:        d.Name,
-			Description: d.Description,
-		}
-	}
-
-	a.writeJSON(ctx, w, response)
+	a.writeJSON(ctx, w, respond.WithDepartments(deps, len(deps)))
 }
 
 // UpdateDepartment godoc
@@ -120,7 +90,7 @@ func (a *API) Departments(w http.ResponseWriter, r *http.Request) {
 // @Param Authorization header string false "Bearer JWT token"
 // @Param id path string true "Department UUID"
 // @Param request body UpdateDepartmentRequest true "Updated department details"
-// @Success 200 {object} Department
+// @Success 200 {object} respond.Department
 // @Failure 400 {object} respond.Error "Invalid UUID format"
 // @Failure 400 {object} respond.Error "Invalid request format"
 // @Failure 401 {object} respond.Error "Unauthorized"
@@ -146,18 +116,14 @@ func (a *API) UpdateDepartment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := a.sesc.UpdateDepartment(ctx, id, req.Name, req.Description)
+	dep, err := a.sesc.UpdateDepartment(ctx, id, req.Name, req.Description)
 	if err != nil {
 		rec.Add(events.Error, err)
 		a.writeJSON(ctx, w, respond.WithError(ctx, err))
 		return
 	}
 
-	a.writeJSON(ctx, w, UpdateDepartmentResponse{
-		ID:          id,
-		Name:        req.Name,
-		Description: req.Description,
-	})
+	a.writeJSON(ctx, w, respond.WithDepartment(dep))
 }
 
 // DeleteDepartment godoc
@@ -228,9 +194,5 @@ func (a *API) GetDepartment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	a.writeJSON(ctx, w, respond.WithDepartment(&ent.Department{
-		ID:          depID,
-		Name:        dep.Name,
-		Description: dep.Description,
-	}))
+	a.writeJSON(ctx, w, respond.WithDepartment(dep))
 }

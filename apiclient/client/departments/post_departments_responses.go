@@ -76,7 +76,7 @@ PostDepartmentsCreated describes a response with status code 201, with default h
 Created
 */
 type PostDepartmentsCreated struct {
-	Payload *models.APIDepartment
+	Payload *models.RespondDepartment
 }
 
 // IsSuccess returns true when this post departments created response has a 2xx status code
@@ -119,13 +119,13 @@ func (o *PostDepartmentsCreated) String() string {
 	return fmt.Sprintf("[POST /departments][%d] postDepartmentsCreated %s", 201, payload)
 }
 
-func (o *PostDepartmentsCreated) GetPayload() *models.APIDepartment {
+func (o *PostDepartmentsCreated) GetPayload() *models.RespondDepartment {
 	return o.Payload
 }
 
 func (o *PostDepartmentsCreated) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIDepartment)
+	o.Payload = new(models.RespondDepartment)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
