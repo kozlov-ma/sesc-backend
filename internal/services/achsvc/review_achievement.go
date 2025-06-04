@@ -36,7 +36,7 @@ func (s *ACS) ReviewAchievement(
 	var updatedAch *ent.Achievement
 	err := withTx(ctx, s.client, func(tx *ent.Tx) error {
 		var ach *ent.Achievement
-		err := rec.Operation("query_achievement", func(opRec *event.Record) error {
+		err := rec.Operation("query_achievement", func(_ *event.Record) error {
 			start := time.Now()
 			entity, err := tx.Achievement.Query().
 				Where(
@@ -63,7 +63,7 @@ func (s *ACS) ReviewAchievement(
 		}
 
 		var reviewer *ent.User
-		err = rec.Operation("get_reviewer", func(opRec *event.Record) error {
+		err = rec.Operation("get_reviewer", func(_ *event.Record) error {
 			start := time.Now()
 			user, err := tx.User.Get(ctx, opt.ReviewerID)
 			statsRec.Add(events.PostgresQueries, 1)
@@ -83,39 +83,30 @@ func (s *ACS) ReviewAchievement(
 			return err
 		}
 
-		err = rec.Operation("validate_review", func(opRec *event.Record) error {
+		err = rec.Operation("validate_review", func(_ *event.Record) error {
 			currentStatus := achievement.Status(ach.Status)
-			reviewerRole := reviewer.Role
-			templateKind := ach.Edges.Template.Kind
-
-			// Check if the assigned points exceed the template's limit
-			pointsLimit := ach.Edges.Template.PointsLimit
-			if opt.PointsAssigned > pointsLimit {
-				return achievement.ErrPointsLimitExceeded
-			}
-
-			// If not in a reviewable status
 			if currentStatus != achievement.StatusDepheadReview && currentStatus != achievement.StatusInspectorReview {
 				return achievement.ErrWrongAchievementStatus
 			}
 
-			// Validate reviewer role based on current status
+			reviewerRole := reviewer.Role
+			templateKind := ach.Edges.Template.Kind
+
 			var validReviewer bool
 			switch currentStatus {
 			case achievement.StatusDepheadReview:
-				// Department head review
 				validReviewer = reviewerRole == sesc.Dephead
 			case achievement.StatusInspectorReview:
-				// Inspector review - check if reviewer has the correct role based on template kind
-				expectedRole := templateKind.InspectorRole()
-				validReviewer = reviewerRole == expectedRole
-			default:
-				validReviewer = false
+				validReviewer = reviewerRole == templateKind.InspectorRole()
 			}
 
-			// Check if the reviewer has the required role
 			if !validReviewer {
 				return sesc.ErrInvalidRole
+			}
+
+			pointsLimit := ach.Edges.Template.PointsLimit
+			if opt.PointsAssigned > pointsLimit {
+				return achievement.ErrPointsLimitExceeded
 			}
 
 			return nil
@@ -125,7 +116,7 @@ func (s *ACS) ReviewAchievement(
 		}
 
 		// Create the review
-		err = rec.Operation("create_review", func(opRec *event.Record) error {
+		err = rec.Operation("create_review", func(_ *event.Record) error {
 			reviewID, err := uuid.NewV7()
 			if err != nil {
 				return fmt.Errorf("failed to generate review ID: %w", err)
@@ -152,33 +143,17 @@ func (s *ACS) ReviewAchievement(
 			return err
 		}
 
-		// Update achievement status and points
-		err = rec.Operation("update_achievement", func(opRec *event.Record) error {
+		err = rec.Operation("update_achievement", func(_ *event.Record) error {
 			currentStatus := achievement.Status(ach.Status)
-			reviewerRole := reviewer.Role
-			templateKind := ach.Edges.Template.Kind
 
-			// Determine new status based on current status, reviewer role, and points
 			var newStatus achievement.Status
-			switch currentStatus {
-			case achievement.StatusDepheadReview:
-				// Department head review
-				if reviewerRole == sesc.Dephead {
-					if opt.PointsAssigned > 0 {
-						// If points > 0, move to inspector review
-						newStatus = achievement.StatusInspectorReview
-					} else {
-						// If points = 0, mark as done
-						newStatus = achievement.StatusDone
-					}
-				}
-			case achievement.StatusInspectorReview:
-				// Inspector review - check if reviewer has the correct role based on template kind
-				expectedRole := templateKind.InspectorRole()
-				if reviewerRole == expectedRole {
-					// After inspector review, mark as done
-					newStatus = achievement.StatusDone
-				}
+			switch {
+			case opt.PointsAssigned == 0:
+				newStatus = achievement.StatusDone
+			case currentStatus == achievement.StatusDepheadReview:
+				newStatus = achievement.StatusInspectorReview
+			case currentStatus == achievement.StatusInspectorReview:
+				newStatus = achievement.StatusDone
 			}
 
 			start := time.Now()

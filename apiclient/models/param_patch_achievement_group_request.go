@@ -12,10 +12,10 @@ import (
 	"github.com/go-openapi/swag"
 )
 
-// APIPatchAchievementGroupRequest api patch achievement group request
+// ParamPatchAchievementGroupRequest param patch achievement group request
 //
-// swagger:model api.PatchAchievementGroupRequest
-type APIPatchAchievementGroupRequest struct {
+// swagger:model param.PatchAchievementGroupRequest
+type ParamPatchAchievementGroupRequest struct {
 
 	// active
 	// Example: true
@@ -30,18 +30,18 @@ type APIPatchAchievementGroupRequest struct {
 	Name string `json:"name,omitempty"`
 }
 
-// Validate validates this api patch achievement group request
-func (m *APIPatchAchievementGroupRequest) Validate(formats strfmt.Registry) error {
+// Validate validates this param patch achievement group request
+func (m *ParamPatchAchievementGroupRequest) Validate(formats strfmt.Registry) error {
 	return nil
 }
 
-// ContextValidate validates this api patch achievement group request based on context it is used
-func (m *APIPatchAchievementGroupRequest) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+// ContextValidate validates this param patch achievement group request based on context it is used
+func (m *ParamPatchAchievementGroupRequest) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	return nil
 }
 
 // MarshalBinary interface implementation
-func (m *APIPatchAchievementGroupRequest) MarshalBinary() ([]byte, error) {
+func (m *ParamPatchAchievementGroupRequest) MarshalBinary() ([]byte, error) {
 	if m == nil {
 		return nil, nil
 	}
@@ -49,8 +49,8 @@ func (m *APIPatchAchievementGroupRequest) MarshalBinary() ([]byte, error) {
 }
 
 // UnmarshalBinary interface implementation
-func (m *APIPatchAchievementGroupRequest) UnmarshalBinary(b []byte) error {
-	var res APIPatchAchievementGroupRequest
+func (m *ParamPatchAchievementGroupRequest) UnmarshalBinary(b []byte) error {
+	var res ParamPatchAchievementGroupRequest
 	if err := swag.ReadJSON(b, &res); err != nil {
 		return err
 	}

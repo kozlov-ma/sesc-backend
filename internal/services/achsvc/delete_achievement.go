@@ -31,7 +31,7 @@ func (s *ACS) DeleteAchievement(
 
 	err := withTx(ctx, s.client, func(tx *ent.Tx) error {
 		var ach *ent.Achievement
-		err := rec.Operation("query_achievement", func(opRec *event.Record) error {
+		err := rec.Operation("query_achievement", func(_ *event.Record) error {
 			start := time.Now()
 			entity, err := tx.Achievement.Query().
 				Where(
@@ -56,7 +56,7 @@ func (s *ACS) DeleteAchievement(
 			return err
 		}
 
-		err = rec.Operation("validate_status", func(opRec *event.Record) error {
+		err = rec.Operation("validate_status", func(_ *event.Record) error {
 			if ach.Status != string(achievement.StatusDraft) {
 				return achievement.ErrWrongAchievementStatus
 			}
@@ -66,7 +66,7 @@ func (s *ACS) DeleteAchievement(
 			return err
 		}
 
-		err = rec.Operation("delete_documents", func(opRec *event.Record) error {
+		err = rec.Operation("delete_documents", func(_ *event.Record) error {
 			start := time.Now()
 			_, err := tx.AchievementDocument.Delete().
 				Where(achievementdocument.AchievementID(opt.AchievementID)).
@@ -83,7 +83,7 @@ func (s *ACS) DeleteAchievement(
 			return err
 		}
 
-		err = rec.Operation("delete_achievement", func(opRec *event.Record) error {
+		err = rec.Operation("delete_achievement", func(_ *event.Record) error {
 			start := time.Now()
 			_, err := tx.Achievement.Delete().
 				Where(

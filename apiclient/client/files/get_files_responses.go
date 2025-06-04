@@ -58,7 +58,7 @@ GetFilesOK describes a response with status code 200, with default header values
 OK
 */
 type GetFilesOK struct {
-	Payload *models.APIFileListResponse
+	Payload *models.RespondFiles
 }
 
 // IsSuccess returns true when this get files o k response has a 2xx status code
@@ -101,13 +101,13 @@ func (o *GetFilesOK) String() string {
 	return fmt.Sprintf("[GET /files][%d] getFilesOK %s", 200, payload)
 }
 
-func (o *GetFilesOK) GetPayload() *models.APIFileListResponse {
+func (o *GetFilesOK) GetPayload() *models.RespondFiles {
 	return o.Payload
 }
 
 func (o *GetFilesOK) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIFileListResponse)
+	o.Payload = new(models.RespondFiles)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {

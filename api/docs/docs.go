@@ -22,7 +22,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Retrieves all achievement groups",
+                "description": "Retrieves all achievement groups with filtering options",
                 "produces": [
                     "application/json"
                 ],
@@ -57,7 +57,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/api.AchievementGroupResponse"
+                                "$ref": "#/definitions/respond.AchievementGroup"
                             }
                         }
                     },
@@ -105,7 +105,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/api.CreateAchievementGroupRequest"
+                            "$ref": "#/definitions/param.CreateAchievementGroupRequest"
                         }
                     }
                 ],
@@ -113,7 +113,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/api.AchievementGroupResponse"
+                            "$ref": "#/definitions/respond.AchievementGroup"
                         }
                     },
                     "400": {
@@ -181,7 +181,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/api.PatchAchievementGroupRequest"
+                            "$ref": "#/definitions/param.PatchAchievementGroupRequest"
                         }
                     }
                 ],
@@ -189,7 +189,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/api.AchievementGroupResponse"
+                            "$ref": "#/definitions/respond.AchievementGroup"
                         }
                     },
                     "400": {
@@ -267,7 +267,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/api.AchievementTemplateResponse"
+                                "$ref": "#/definitions/respond.AchievementTemplate"
                             }
                         }
                     },
@@ -315,7 +315,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/api.CreateAchievementTemplateRequest"
+                            "$ref": "#/definitions/param.CreateAchievementTemplateRequest"
                         }
                     }
                 ],
@@ -323,7 +323,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/api.AchievementTemplateResponse"
+                            "$ref": "#/definitions/respond.AchievementTemplate"
                         }
                     },
                     "400": {
@@ -397,7 +397,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/api.PatchAchievementTemplateRequest"
+                            "$ref": "#/definitions/param.PatchAchievementTemplateRequest"
                         }
                     }
                 ],
@@ -405,7 +405,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/api.AchievementTemplateResponse"
+                            "$ref": "#/definitions/respond.AchievementTemplate"
                         }
                     },
                     "400": {
@@ -485,7 +485,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/api.PaginatedAchievementsResponse"
+                            "$ref": "#/definitions/respond.Achievements"
                         }
                     },
                     "400": {
@@ -538,7 +538,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/api.CreateAchievementRequest"
+                            "$ref": "#/definitions/param.CreateAchievementRequest"
                         }
                     }
                 ],
@@ -546,7 +546,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/api.AchievementResponse"
+                            "$ref": "#/definitions/respond.Achievement"
                         }
                     },
                     "400": {
@@ -576,21 +576,21 @@ const docTemplate = `{
                 }
             }
         },
-        "/achievements/grouped": {
+        "/achievements/users": {
             "get": {
                 "security": [
                     {
                         "BearerAuth": []
                     }
                 ],
-                "description": "Retrieves all achievements grouped by user with pagination",
+                "description": "Retrieves users with achievements based on role permissions",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "achievements"
                 ],
-                "summary": "Get achievements grouped by user",
+                "summary": "Get users with achievements",
                 "parameters": [
                     {
                         "type": "string",
@@ -620,7 +620,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/api.GroupedAchievementsResponse"
+                            "$ref": "#/definitions/respond.UsersWithAchievements"
                         }
                     },
                     "400": {
@@ -684,7 +684,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/api.AchievementResponse"
+                            "$ref": "#/definitions/respond.Achievement"
                         }
                     },
                     "400": {
@@ -817,7 +817,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/api.AddDocumentRequest"
+                            "$ref": "#/definitions/param.AddDocumentRequest"
                         }
                     }
                 ],
@@ -825,7 +825,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/api.DocumentResponse"
+                            "$ref": "#/definitions/respond.Document"
                         }
                     },
                     "400": {
@@ -973,7 +973,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/api.ReviewAchievementRequest"
+                            "$ref": "#/definitions/param.ReviewAchievementRequest"
                         }
                     }
                 ],
@@ -981,7 +981,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/api.AchievementResponse"
+                            "$ref": "#/definitions/respond.Achievement"
                         }
                     },
                     "400": {
@@ -1057,7 +1057,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/api.AchievementResponse"
+                            "$ref": "#/definitions/respond.Achievement"
                         }
                     },
                     "400": {
@@ -1744,7 +1744,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/api.FileListResponse"
+                            "$ref": "#/definitions/respond.Files"
                         }
                     },
                     "400": {
@@ -1797,7 +1797,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/api.FileResponse"
+                            "$ref": "#/definitions/respond.File"
                         }
                     },
                     "400": {
@@ -1858,7 +1858,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/api.FileResponse"
+                            "$ref": "#/definitions/respond.File"
                         }
                     },
                     "400": {
@@ -2514,219 +2514,6 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "api.AchievementGroupResponse": {
-            "type": "object",
-            "required": [
-                "active",
-                "description",
-                "id",
-                "name"
-            ],
-            "properties": {
-                "active": {
-                    "type": "boolean",
-                    "example": true
-                },
-                "description": {
-                    "type": "string",
-                    "example": "Достижения в научной деятельности"
-                },
-                "id": {
-                    "type": "string",
-                    "example": "550e8400-e29b-41d4-a716-446655440000"
-                },
-                "name": {
-                    "type": "string",
-                    "example": "Научная деятельность"
-                }
-            }
-        },
-        "api.AchievementResponse": {
-            "type": "object",
-            "required": [
-                "documents",
-                "id",
-                "ownerId",
-                "ownerName",
-                "points",
-                "reviews",
-                "status",
-                "templateId",
-                "templateName"
-            ],
-            "properties": {
-                "documents": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/api.DocumentResponse"
-                    }
-                },
-                "id": {
-                    "type": "string",
-                    "example": "550e8400-e29b-41d4-a716-446655440000"
-                },
-                "ownerId": {
-                    "type": "string",
-                    "example": "550e8400-e29b-41d4-a716-446655440000"
-                },
-                "ownerName": {
-                    "type": "string",
-                    "example": "Иванов Иван Иванович"
-                },
-                "points": {
-                    "type": "integer",
-                    "example": 10
-                },
-                "reviews": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/api.ReviewResponse"
-                    }
-                },
-                "status": {
-                    "type": "string",
-                    "example": "draft"
-                },
-                "templateId": {
-                    "type": "string",
-                    "example": "550e8400-e29b-41d4-a716-446655440000"
-                },
-                "templateName": {
-                    "type": "string",
-                    "example": "регионального уровня"
-                }
-            }
-        },
-        "api.AchievementTemplateResponse": {
-            "type": "object",
-            "required": [
-                "active",
-                "description",
-                "groupId",
-                "id",
-                "kind",
-                "name",
-                "pointsLimit"
-            ],
-            "properties": {
-                "active": {
-                    "type": "boolean",
-                    "example": true
-                },
-                "description": {
-                    "type": "string",
-                    "example": "Публикация статьи в научном журнале"
-                },
-                "groupId": {
-                    "type": "string",
-                    "example": "550e8400-e29b-41d4-a716-446655440000"
-                },
-                "id": {
-                    "type": "string",
-                    "example": "550e8400-e29b-41d4-a716-446655440000"
-                },
-                "kind": {
-                    "type": "string",
-                    "enum": [
-                        "olympiad",
-                        "development",
-                        "scientific"
-                    ],
-                    "example": "scientific"
-                },
-                "name": {
-                    "type": "string",
-                    "example": "Публикация в журнале"
-                },
-                "pointsLimit": {
-                    "type": "integer",
-                    "example": 10
-                }
-            }
-        },
-        "api.AddDocumentRequest": {
-            "type": "object",
-            "required": [
-                "fileId",
-                "name"
-            ],
-            "properties": {
-                "fileId": {
-                    "type": "string",
-                    "example": "550e8400-e29b-41d4-a716-446655440000"
-                },
-                "name": {
-                    "type": "string",
-                    "example": "Publication proof"
-                }
-            }
-        },
-        "api.CreateAchievementGroupRequest": {
-            "type": "object",
-            "required": [
-                "description",
-                "name"
-            ],
-            "properties": {
-                "description": {
-                    "type": "string",
-                    "example": "Достижения в научной деятельности"
-                },
-                "name": {
-                    "type": "string",
-                    "example": "Научная деятельность"
-                }
-            }
-        },
-        "api.CreateAchievementRequest": {
-            "type": "object",
-            "required": [
-                "templateId"
-            ],
-            "properties": {
-                "templateId": {
-                    "type": "string",
-                    "example": "550e8400-e29b-41d4-a716-446655440000"
-                }
-            }
-        },
-        "api.CreateAchievementTemplateRequest": {
-            "type": "object",
-            "required": [
-                "description",
-                "groupId",
-                "kind",
-                "name",
-                "pointsLimit"
-            ],
-            "properties": {
-                "description": {
-                    "type": "string",
-                    "example": "Публикация статьи в научном журнале"
-                },
-                "groupId": {
-                    "type": "string",
-                    "example": "550e8400-e29b-41d4-a716-446655440000"
-                },
-                "kind": {
-                    "type": "string",
-                    "enum": [
-                        "olympiad",
-                        "development",
-                        "scientific"
-                    ],
-                    "example": "scientific"
-                },
-                "name": {
-                    "type": "string",
-                    "example": "Публикация в журнале"
-                },
-                "pointsLimit": {
-                    "type": "integer",
-                    "example": 10
-                }
-            }
-        },
         "api.CreateDepartmentRequest": {
             "type": "object",
             "required": [
@@ -2844,91 +2631,6 @@ const docTemplate = `{
                 }
             }
         },
-        "api.DocumentResponse": {
-            "type": "object",
-            "required": [
-                "fileId",
-                "id",
-                "name"
-            ],
-            "properties": {
-                "fileId": {
-                    "type": "string",
-                    "example": "550e8400-e29b-41d4-a716-446655440000"
-                },
-                "id": {
-                    "type": "string",
-                    "example": "550e8400-e29b-41d4-a716-446655440000"
-                },
-                "name": {
-                    "type": "string",
-                    "example": "Publication proof"
-                }
-            }
-        },
-        "api.FileListResponse": {
-            "type": "object",
-            "properties": {
-                "items": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/api.FileResponse"
-                    }
-                },
-                "totalCount": {
-                    "type": "integer"
-                }
-            }
-        },
-        "api.FileResponse": {
-            "type": "object",
-            "properties": {
-                "downloadUrl": {
-                    "type": "string"
-                },
-                "fileName": {
-                    "type": "string"
-                },
-                "fileSize": {
-                    "type": "integer"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "ownerId": {
-                    "type": "string"
-                }
-            }
-        },
-        "api.GroupedAchievementsResponse": {
-            "type": "object",
-            "required": [
-                "items",
-                "limit",
-                "offset",
-                "totalCount"
-            ],
-            "properties": {
-                "items": {
-                    "type": "object",
-                    "additionalProperties": {
-                        "type": "array",
-                        "items": {
-                            "$ref": "#/definitions/api.AchievementResponse"
-                        }
-                    }
-                },
-                "limit": {
-                    "type": "integer"
-                },
-                "offset": {
-                    "type": "integer"
-                },
-                "totalCount": {
-                    "type": "integer"
-                }
-            }
-        },
         "api.IdentityResponse": {
             "type": "object",
             "required": [
@@ -2943,78 +2645,6 @@ const docTemplate = `{
                 "role": {
                     "type": "string",
                     "example": "user"
-                }
-            }
-        },
-        "api.PaginatedAchievementsResponse": {
-            "type": "object",
-            "required": [
-                "items",
-                "limit",
-                "offset",
-                "totalCount"
-            ],
-            "properties": {
-                "items": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/api.AchievementResponse"
-                    }
-                },
-                "limit": {
-                    "type": "integer"
-                },
-                "offset": {
-                    "type": "integer"
-                },
-                "totalCount": {
-                    "type": "integer"
-                }
-            }
-        },
-        "api.PatchAchievementGroupRequest": {
-            "type": "object",
-            "properties": {
-                "active": {
-                    "type": "boolean",
-                    "example": true
-                },
-                "description": {
-                    "type": "string",
-                    "example": "Достижения в научной деятельности"
-                },
-                "name": {
-                    "type": "string",
-                    "example": "Научная деятельность"
-                }
-            }
-        },
-        "api.PatchAchievementTemplateRequest": {
-            "type": "object",
-            "properties": {
-                "active": {
-                    "type": "boolean",
-                    "example": true
-                },
-                "description": {
-                    "type": "string",
-                    "example": "Публикация статьи в научном журнале"
-                },
-                "kind": {
-                    "type": "string",
-                    "enum": [
-                        "olympiad",
-                        "development",
-                        "scientific"
-                    ]
-                },
-                "name": {
-                    "type": "string",
-                    "example": "Публикация в журнале"
-                },
-                "pointsLimit": {
-                    "type": "integer",
-                    "example": 10
                 }
             }
         },
@@ -3101,53 +2731,6 @@ const docTemplate = `{
                 }
             }
         },
-        "api.ReviewAchievementRequest": {
-            "type": "object",
-            "required": [
-                "pointsAssigned"
-            ],
-            "properties": {
-                "comment": {
-                    "type": "string",
-                    "example": "Good job, but could be better"
-                },
-                "pointsAssigned": {
-                    "type": "integer",
-                    "example": 8
-                }
-            }
-        },
-        "api.ReviewResponse": {
-            "type": "object",
-            "required": [
-                "id",
-                "pointsAssigned",
-                "reviewerId",
-                "reviewerName"
-            ],
-            "properties": {
-                "comment": {
-                    "type": "string",
-                    "example": "Good job, but could be better"
-                },
-                "id": {
-                    "type": "string",
-                    "example": "550e8400-e29b-41d4-a716-446655440000"
-                },
-                "pointsAssigned": {
-                    "type": "integer",
-                    "example": 8
-                },
-                "reviewerId": {
-                    "type": "string",
-                    "example": "550e8400-e29b-41d4-a716-446655440000"
-                },
-                "reviewerName": {
-                    "type": "string",
-                    "example": "Петров Петр Петрович"
-                }
-            }
-        },
         "api.Role": {
             "type": "object",
             "required": [
@@ -3210,6 +2793,307 @@ const docTemplate = `{
                 }
             }
         },
+        "param.AddDocumentRequest": {
+            "type": "object",
+            "required": [
+                "fileId",
+                "name"
+            ],
+            "properties": {
+                "fileId": {
+                    "type": "string",
+                    "example": "550e8400-e29b-41d4-a716-446655440000"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "Publication proof"
+                }
+            }
+        },
+        "param.CreateAchievementGroupRequest": {
+            "type": "object",
+            "required": [
+                "description",
+                "name"
+            ],
+            "properties": {
+                "description": {
+                    "type": "string",
+                    "example": "Достижения в научной деятельности"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "Научная деятельность"
+                }
+            }
+        },
+        "param.CreateAchievementRequest": {
+            "type": "object",
+            "required": [
+                "templateId"
+            ],
+            "properties": {
+                "templateId": {
+                    "type": "string",
+                    "example": "550e8400-e29b-41d4-a716-446655440000"
+                }
+            }
+        },
+        "param.CreateAchievementTemplateRequest": {
+            "type": "object",
+            "required": [
+                "description",
+                "groupId",
+                "kind",
+                "name",
+                "pointsLimit"
+            ],
+            "properties": {
+                "description": {
+                    "type": "string",
+                    "example": "Публикация статьи в научном журнале"
+                },
+                "groupId": {
+                    "type": "string",
+                    "example": "550e8400-e29b-41d4-a716-446655440000"
+                },
+                "kind": {
+                    "type": "string",
+                    "enum": [
+                        "olympiad",
+                        "development",
+                        "scientific"
+                    ],
+                    "example": "scientific"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "Публикация в журнале"
+                },
+                "pointsLimit": {
+                    "type": "integer",
+                    "example": 10
+                }
+            }
+        },
+        "param.PatchAchievementGroupRequest": {
+            "type": "object",
+            "properties": {
+                "active": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "description": {
+                    "type": "string",
+                    "example": "Достижения в научной деятельности"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "Научная деятельность"
+                }
+            }
+        },
+        "param.PatchAchievementTemplateRequest": {
+            "type": "object",
+            "properties": {
+                "active": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "description": {
+                    "type": "string",
+                    "example": "Публикация статьи в научном журнале"
+                },
+                "kind": {
+                    "type": "string",
+                    "enum": [
+                        "olympiad",
+                        "development",
+                        "scientific"
+                    ]
+                },
+                "name": {
+                    "type": "string",
+                    "example": "Публикация в журнале"
+                },
+                "pointsLimit": {
+                    "type": "integer",
+                    "example": 10
+                }
+            }
+        },
+        "param.ReviewAchievementRequest": {
+            "type": "object",
+            "required": [
+                "pointsAssigned"
+            ],
+            "properties": {
+                "comment": {
+                    "type": "string",
+                    "example": "Good job, but could be better"
+                },
+                "pointsAssigned": {
+                    "type": "integer",
+                    "example": 8
+                }
+            }
+        },
+        "respond.Achievement": {
+            "type": "object",
+            "required": [
+                "documents",
+                "id",
+                "ownerId",
+                "ownerName",
+                "points",
+                "reviews",
+                "status",
+                "templateId",
+                "templateName"
+            ],
+            "properties": {
+                "documents": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/respond.Document"
+                    }
+                },
+                "id": {
+                    "type": "string",
+                    "example": "550e8400-e29b-41d4-a716-446655440000"
+                },
+                "ownerId": {
+                    "type": "string",
+                    "example": "550e8400-e29b-41d4-a716-446655440000"
+                },
+                "ownerName": {
+                    "type": "string",
+                    "example": "Иванов Иван Иванович"
+                },
+                "points": {
+                    "type": "integer",
+                    "example": 10
+                },
+                "reviews": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/respond.Review"
+                    }
+                },
+                "status": {
+                    "type": "string",
+                    "example": "draft"
+                },
+                "templateId": {
+                    "type": "string",
+                    "example": "550e8400-e29b-41d4-a716-446655440000"
+                },
+                "templateName": {
+                    "type": "string",
+                    "example": "регионального уровня"
+                }
+            }
+        },
+        "respond.AchievementGroup": {
+            "type": "object",
+            "required": [
+                "active",
+                "description",
+                "id",
+                "name"
+            ],
+            "properties": {
+                "active": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "description": {
+                    "type": "string",
+                    "example": "Достижения в научной деятельности"
+                },
+                "id": {
+                    "type": "string",
+                    "example": "550e8400-e29b-41d4-a716-446655440000"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "Научная деятельность"
+                }
+            }
+        },
+        "respond.AchievementTemplate": {
+            "type": "object",
+            "required": [
+                "active",
+                "description",
+                "groupId",
+                "id",
+                "kind",
+                "name",
+                "pointsLimit"
+            ],
+            "properties": {
+                "active": {
+                    "type": "boolean",
+                    "example": true
+                },
+                "description": {
+                    "type": "string",
+                    "example": "Публикация статьи в научном журнале"
+                },
+                "groupId": {
+                    "type": "string",
+                    "example": "550e8400-e29b-41d4-a716-446655440000"
+                },
+                "id": {
+                    "type": "string",
+                    "example": "550e8400-e29b-41d4-a716-446655440000"
+                },
+                "kind": {
+                    "type": "string",
+                    "enum": [
+                        "olympiad",
+                        "development",
+                        "scientific"
+                    ],
+                    "example": "scientific"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "Публикация в журнале"
+                },
+                "pointsLimit": {
+                    "type": "integer",
+                    "example": 10
+                }
+            }
+        },
+        "respond.Achievements": {
+            "type": "object",
+            "required": [
+                "items",
+                "limit",
+                "offset",
+                "totalCount"
+            ],
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/respond.Achievement"
+                    }
+                },
+                "limit": {
+                    "type": "integer"
+                },
+                "offset": {
+                    "type": "integer"
+                },
+                "totalCount": {
+                    "type": "integer"
+                }
+            }
+        },
         "respond.Department": {
             "type": "object",
             "required": [
@@ -3250,6 +3134,28 @@ const docTemplate = `{
                 }
             }
         },
+        "respond.Document": {
+            "type": "object",
+            "required": [
+                "fileId",
+                "id",
+                "name"
+            ],
+            "properties": {
+                "fileId": {
+                    "type": "string",
+                    "example": "550e8400-e29b-41d4-a716-446655440000"
+                },
+                "id": {
+                    "type": "string",
+                    "example": "550e8400-e29b-41d4-a716-446655440000"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "Publication proof"
+                }
+            }
+        },
         "respond.Error": {
             "type": "object",
             "properties": {
@@ -3264,6 +3170,68 @@ const docTemplate = `{
                 },
                 "traceId": {
                     "type": "string"
+                }
+            }
+        },
+        "respond.File": {
+            "type": "object",
+            "properties": {
+                "fileName": {
+                    "type": "string"
+                },
+                "fileSize": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "ownerId": {
+                    "type": "string"
+                }
+            }
+        },
+        "respond.Files": {
+            "type": "object",
+            "properties": {
+                "files": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/respond.File"
+                    }
+                },
+                "total": {
+                    "type": "integer"
+                }
+            }
+        },
+        "respond.Review": {
+            "type": "object",
+            "required": [
+                "id",
+                "pointsAssigned",
+                "reviewerId",
+                "reviewerName"
+            ],
+            "properties": {
+                "comment": {
+                    "type": "string",
+                    "example": "Good job, but could be better"
+                },
+                "id": {
+                    "type": "string",
+                    "example": "550e8400-e29b-41d4-a716-446655440000"
+                },
+                "pointsAssigned": {
+                    "type": "integer",
+                    "example": 8
+                },
+                "reviewerId": {
+                    "type": "string",
+                    "example": "550e8400-e29b-41d4-a716-446655440000"
+                },
+                "reviewerName": {
+                    "type": "string",
+                    "example": "Петров Петр Петрович"
                 }
             }
         },
@@ -3380,6 +3348,37 @@ const docTemplate = `{
                 }
             }
         },
+        "respond.UserWithAchievements": {
+            "type": "object",
+            "required": [
+                "firstName",
+                "id",
+                "lastName",
+                "role"
+            ],
+            "properties": {
+                "firstName": {
+                    "type": "string",
+                    "example": "Иван"
+                },
+                "id": {
+                    "type": "string",
+                    "example": "550e8400-e29b-41d4-a716-446655440000"
+                },
+                "lastName": {
+                    "type": "string",
+                    "example": "Иванов"
+                },
+                "middleName": {
+                    "type": "string",
+                    "example": "Иванович"
+                },
+                "role": {
+                    "type": "string",
+                    "example": "teacher"
+                }
+            }
+        },
         "respond.Users": {
             "type": "object",
             "required": [
@@ -3395,6 +3394,32 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/respond.User"
                     }
+                }
+            }
+        },
+        "respond.UsersWithAchievements": {
+            "type": "object",
+            "required": [
+                "items",
+                "limit",
+                "offset",
+                "totalCount"
+            ],
+            "properties": {
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/respond.UserWithAchievements"
+                    }
+                },
+                "limit": {
+                    "type": "integer"
+                },
+                "offset": {
+                    "type": "integer"
+                },
+                "totalCount": {
+                    "type": "integer"
                 }
             }
         }

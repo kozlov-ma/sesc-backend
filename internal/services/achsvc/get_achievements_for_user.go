@@ -10,6 +10,7 @@ import (
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/user"
 	"github.com/kozlov-ma/sesc-backend/pkg/event"
 	"github.com/kozlov-ma/sesc-backend/pkg/event/events"
+	"github.com/kozlov-ma/sesc-backend/sesc"
 )
 
 // GetUserAchievements retrieves all achievements for the current user with pagination.
@@ -34,83 +35,86 @@ func (s *ACS) GetUserAchievements(
 	var totalAchievements int
 	var achievementEntities []*ent.Achievement
 
-	err := rec.Operation("count_achievements", func(opRec *event.Record) error {
-		// Get asking user for role-based filtering
-		start := time.Now()
-		askingUser, err := s.client.User.Query().
-			Where(user.ID(whosAsking)).
-			WithDepartment().
-			Only(ctx)
-		statsRec.Add(events.PostgresQueries, 1)
-		statsRec.Add(events.PostgresTime, time.Since(start))
+	err := withTx(ctx, s.client, func(tx *ent.Tx) error {
+		var askingUser *ent.User
+		err := rec.Operation("query_asking_user", func(_ *event.Record) (err error) {
+			start := time.Now()
+			askingUser, err = tx.User.Query().
+				Where(user.ID(whosAsking)).
+				WithDepartment().
+				Only(ctx)
+			statsRec.Add(events.PostgresQueries, 1)
+			statsRec.Add(events.PostgresTime, time.Since(start))
 
+			if ent.IsNotFound(err) {
+				return sesc.ErrUserNotFound
+			}
+
+			if err != nil {
+				return fmt.Errorf("failed to get asking user: %w", err)
+			}
+
+			return nil
+		})
 		if err != nil {
-			return fmt.Errorf("failed to get asking user: %w", err)
+			return err
 		}
 
-		// Apply role-based filtering for count
-		roleFilter := s.buildRoleBasedFilters(askingUser)
+		err = rec.Operation("count_achievements", func(_ *event.Record) error {
+			// Apply role-based filtering for count
+			roleFilter := s.buildRoleBasedFilters(askingUser)
 
-		start = time.Now()
-		count, err := s.client.Achievement.Query().
-			Where(entAchievement.OwnerID(userID)).
-			Where(roleFilter).
-			Order(ent.Desc(entAchievement.FieldStatus)).
-			Offset(offset).
-			Limit(limit).
-			Count(ctx)
-		statsRec.Add(events.PostgresQueries, 1)
-		statsRec.Add(events.PostgresTime, time.Since(start))
+			start := time.Now()
+			count, err := tx.Achievement.Query().
+				Where(entAchievement.OwnerID(userID)).
+				Where(roleFilter).
+				Order(ent.Desc(entAchievement.FieldStatus)).
+				Count(ctx)
+			statsRec.Add(events.PostgresQueries, 1)
+			statsRec.Add(events.PostgresTime, time.Since(start))
 
+			if err != nil {
+				return fmt.Errorf("failed to count achievements: %w", err)
+			}
+
+			totalAchievements = count
+			return nil
+		})
 		if err != nil {
-			return fmt.Errorf("failed to count achievements: %w", err)
+			return err
 		}
 
-		totalAchievements = count
+		err = rec.Operation("query_achievements", func(_ *event.Record) error {
+			roleFilter := s.buildRoleBasedFilters(askingUser)
+
+			start := time.Now()
+			entities, err := tx.Achievement.Query().
+				Where(entAchievement.OwnerID(userID)).
+				Where(roleFilter).
+				Order(ent.Desc(entAchievement.FieldStatus)).
+				Offset(offset).
+				Limit(limit).
+				WithDocuments().
+				WithOwner().
+				WithReviews().
+				WithTemplate().
+				All(ctx)
+			statsRec.Add(events.PostgresQueries, 1)
+			statsRec.Add(events.PostgresTime, time.Since(start))
+
+			if err != nil {
+				return fmt.Errorf("failed to query achievements: %w", err)
+			}
+
+			achievementEntities = entities
+			return nil
+		})
+		if err != nil {
+			return err
+		}
+
 		return nil
 	})
-	if err != nil {
-		return nil, 0, err
-	}
 
-	err = rec.Operation("query_achievements", func(opRec *event.Record) error {
-		// Get asking user for role-based filtering
-		start := time.Now()
-		askingUser, err := s.client.User.Query().
-			Where(user.ID(whosAsking)).
-			WithDepartment().
-			Only(ctx)
-		statsRec.Add(events.PostgresQueries, 1)
-		statsRec.Add(events.PostgresTime, time.Since(start))
-
-		if err != nil {
-			return fmt.Errorf("failed to get asking user: %w", err)
-		}
-
-		// Apply role-based filtering
-		roleFilter := s.buildRoleBasedFilters(askingUser)
-
-		start = time.Now()
-		entities, err := s.client.Achievement.Query().
-			Where(entAchievement.OwnerID(userID)).
-			Where(roleFilter).
-			Order(ent.Desc(entAchievement.FieldStatus)).
-			Offset(offset).
-			Limit(limit).
-			All(ctx)
-		statsRec.Add(events.PostgresQueries, 1)
-		statsRec.Add(events.PostgresTime, time.Since(start))
-
-		if err != nil {
-			return fmt.Errorf("failed to query achievements: %w", err)
-		}
-
-		achievementEntities = entities
-		return nil
-	})
-	if err != nil {
-		return nil, 0, err
-	}
-
-	return achievementEntities, totalAchievements, nil
+	return achievementEntities, totalAchievements, err
 }

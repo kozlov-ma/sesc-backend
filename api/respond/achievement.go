@@ -4,21 +4,20 @@ import (
 	"fmt"
 
 	"github.com/gofrs/uuid/v5"
-	"github.com/kozlov-ma/sesc-backend/achievement"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent"
 )
 
 // Achievement represents a single achievement response
 type Achievement struct {
-	ID           uuid.UUID          `json:"id"           example:"550e8400-e29b-41d4-a716-446655440000" validate:"required"`
-	OwnerID      uuid.UUID          `json:"ownerId"      example:"550e8400-e29b-41d4-a716-446655440000" validate:"required"`
-	OwnerName    string             `json:"ownerName"    example:"Иванов Иван Иванович"                 validate:"required"`
-	TemplateID   uuid.UUID          `json:"templateId"   example:"550e8400-e29b-41d4-a716-446655440000" validate:"required"`
-	TemplateName string             `json:"templateName" example:"регионального уровня"                 validate:"required"`
-	Status       achievement.Status `json:"status"       example:"draft"                                validate:"required"`
-	Points       int                `json:"points"       example:"10"                                   validate:"required"`
-	Documents    []Document         `json:"documents"                                                   validate:"required"`
-	Reviews      []Review           `json:"reviews"                                                     validate:"required"`
+	ID           uuid.UUID  `json:"id"           example:"550e8400-e29b-41d4-a716-446655440000" validate:"required"`
+	OwnerID      uuid.UUID  `json:"ownerId"      example:"550e8400-e29b-41d4-a716-446655440000" validate:"required"`
+	OwnerName    string     `json:"ownerName"    example:"Иванов Иван Иванович"                 validate:"required"`
+	TemplateID   uuid.UUID  `json:"templateId"   example:"550e8400-e29b-41d4-a716-446655440000" validate:"required"`
+	TemplateName string     `json:"templateName" example:"регионального уровня"                 validate:"required"`
+	Status       string     `json:"status"       example:"draft"                                validate:"required"`
+	Points       int        `json:"points"       example:"10"                                   validate:"required"`
+	Documents    []Document `json:"documents"                                                   validate:"required"`
+	Reviews      []Review   `json:"reviews"                                                     validate:"required"`
 }
 
 // Document represents a document response (used in Achievement responses)

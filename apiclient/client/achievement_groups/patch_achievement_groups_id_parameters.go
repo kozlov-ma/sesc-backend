@@ -79,7 +79,7 @@ type PatchAchievementGroupsIDParams struct {
 
 	   Group fields to update
 	*/
-	Request *models.APIPatchAchievementGroupRequest
+	Request *models.ParamPatchAchievementGroupRequest
 
 	timeout    time.Duration
 	Context    context.Context
@@ -157,13 +157,13 @@ func (o *PatchAchievementGroupsIDParams) SetID(id string) {
 }
 
 // WithRequest adds the request to the patch achievement groups ID params
-func (o *PatchAchievementGroupsIDParams) WithRequest(request *models.APIPatchAchievementGroupRequest) *PatchAchievementGroupsIDParams {
+func (o *PatchAchievementGroupsIDParams) WithRequest(request *models.ParamPatchAchievementGroupRequest) *PatchAchievementGroupsIDParams {
 	o.SetRequest(request)
 	return o
 }
 
 // SetRequest adds the request to the patch achievement groups ID params
-func (o *PatchAchievementGroupsIDParams) SetRequest(request *models.APIPatchAchievementGroupRequest) {
+func (o *PatchAchievementGroupsIDParams) SetRequest(request *models.ParamPatchAchievementGroupRequest) {
 	o.Request = request
 }
 

@@ -79,7 +79,7 @@ type PostAchievementsIDReviewParams struct {
 
 	   Review data
 	*/
-	Request *models.APIReviewAchievementRequest
+	Request *models.ParamReviewAchievementRequest
 
 	timeout    time.Duration
 	Context    context.Context
@@ -157,13 +157,13 @@ func (o *PostAchievementsIDReviewParams) SetID(id string) {
 }
 
 // WithRequest adds the request to the post achievements ID review params
-func (o *PostAchievementsIDReviewParams) WithRequest(request *models.APIReviewAchievementRequest) *PostAchievementsIDReviewParams {
+func (o *PostAchievementsIDReviewParams) WithRequest(request *models.ParamReviewAchievementRequest) *PostAchievementsIDReviewParams {
 	o.SetRequest(request)
 	return o
 }
 
 // SetRequest adds the request to the post achievements ID review params
-func (o *PostAchievementsIDReviewParams) SetRequest(request *models.APIReviewAchievementRequest) {
+func (o *PostAchievementsIDReviewParams) SetRequest(request *models.ParamReviewAchievementRequest) {
 	o.Request = request
 }
 

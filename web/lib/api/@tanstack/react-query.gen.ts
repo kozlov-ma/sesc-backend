@@ -10,7 +10,7 @@ import {
   patchAchievementTemplatesById,
   getAchievements,
   postAchievements,
-  getAchievementsGrouped,
+  getAchievementsUsers,
   deleteAchievementsById,
   getAchievementsById,
   postAchievementsByIdDocuments,
@@ -68,9 +68,9 @@ import type {
   PostAchievementsData,
   PostAchievementsError,
   PostAchievementsResponse,
-  GetAchievementsGroupedData,
-  GetAchievementsGroupedError,
-  GetAchievementsGroupedResponse,
+  GetAchievementsUsersData,
+  GetAchievementsUsersError,
+  GetAchievementsUsersResponse,
   DeleteAchievementsByIdData,
   DeleteAchievementsByIdError,
   GetAchievementsByIdData,
@@ -177,7 +177,7 @@ export const getAchievementGroupsQueryKey = (
 
 /**
  * Get all achievement groups
- * Retrieves all achievement groups
+ * Retrieves all achievement groups with filtering options
  */
 export const getAchievementGroupsOptions = (
   options?: Options<GetAchievementGroupsData>,
@@ -547,20 +547,20 @@ export const postAchievementsMutation = (
   return mutationOptions;
 };
 
-export const getAchievementsGroupedQueryKey = (
-  options?: Options<GetAchievementsGroupedData>,
-) => createQueryKey("getAchievementsGrouped", options);
+export const getAchievementsUsersQueryKey = (
+  options?: Options<GetAchievementsUsersData>,
+) => createQueryKey("getAchievementsUsers", options);
 
 /**
- * Get achievements grouped by user
- * Retrieves all achievements grouped by user with pagination
+ * Get users with achievements
+ * Retrieves users with achievements based on role permissions
  */
-export const getAchievementsGroupedOptions = (
-  options?: Options<GetAchievementsGroupedData>,
+export const getAchievementsUsersOptions = (
+  options?: Options<GetAchievementsUsersData>,
 ) => {
   return queryOptions({
     queryFn: async ({ queryKey, signal }) => {
-      const { data } = await getAchievementsGrouped({
+      const { data } = await getAchievementsUsers({
         ...options,
         ...queryKey[0],
         signal,
@@ -568,30 +568,30 @@ export const getAchievementsGroupedOptions = (
       });
       return data;
     },
-    queryKey: getAchievementsGroupedQueryKey(options),
+    queryKey: getAchievementsUsersQueryKey(options),
   });
 };
 
-export const getAchievementsGroupedInfiniteQueryKey = (
-  options?: Options<GetAchievementsGroupedData>,
-): QueryKey<Options<GetAchievementsGroupedData>> =>
-  createQueryKey("getAchievementsGrouped", options, true);
+export const getAchievementsUsersInfiniteQueryKey = (
+  options?: Options<GetAchievementsUsersData>,
+): QueryKey<Options<GetAchievementsUsersData>> =>
+  createQueryKey("getAchievementsUsers", options, true);
 
 /**
- * Get achievements grouped by user
- * Retrieves all achievements grouped by user with pagination
+ * Get users with achievements
+ * Retrieves users with achievements based on role permissions
  */
-export const getAchievementsGroupedInfiniteOptions = (
-  options?: Options<GetAchievementsGroupedData>,
+export const getAchievementsUsersInfiniteOptions = (
+  options?: Options<GetAchievementsUsersData>,
 ) => {
   return infiniteQueryOptions<
-    GetAchievementsGroupedResponse,
-    AxiosError<GetAchievementsGroupedError>,
-    InfiniteData<GetAchievementsGroupedResponse>,
-    QueryKey<Options<GetAchievementsGroupedData>>,
+    GetAchievementsUsersResponse,
+    AxiosError<GetAchievementsUsersError>,
+    InfiniteData<GetAchievementsUsersResponse>,
+    QueryKey<Options<GetAchievementsUsersData>>,
     | number
     | Pick<
-        QueryKey<Options<GetAchievementsGroupedData>>[0],
+        QueryKey<Options<GetAchievementsUsersData>>[0],
         "body" | "headers" | "path" | "query"
       >
   >(
@@ -600,7 +600,7 @@ export const getAchievementsGroupedInfiniteOptions = (
       queryFn: async ({ pageParam, queryKey, signal }) => {
         // @ts-ignore
         const page: Pick<
-          QueryKey<Options<GetAchievementsGroupedData>>[0],
+          QueryKey<Options<GetAchievementsUsersData>>[0],
           "body" | "headers" | "path" | "query"
         > =
           typeof pageParam === "object"
@@ -611,7 +611,7 @@ export const getAchievementsGroupedInfiniteOptions = (
                 },
               };
         const params = createInfiniteParams(queryKey, page);
-        const { data } = await getAchievementsGrouped({
+        const { data } = await getAchievementsUsers({
           ...options,
           ...params,
           signal,
@@ -619,7 +619,7 @@ export const getAchievementsGroupedInfiniteOptions = (
         });
         return data;
       },
-      queryKey: getAchievementsGroupedInfiniteQueryKey(options),
+      queryKey: getAchievementsUsersInfiniteQueryKey(options),
     },
   );
 };

@@ -79,7 +79,7 @@ type PostAchievementsIDDocumentsParams struct {
 
 	   Document data
 	*/
-	Request *models.APIAddDocumentRequest
+	Request *models.ParamAddDocumentRequest
 
 	timeout    time.Duration
 	Context    context.Context
@@ -157,13 +157,13 @@ func (o *PostAchievementsIDDocumentsParams) SetID(id string) {
 }
 
 // WithRequest adds the request to the post achievements ID documents params
-func (o *PostAchievementsIDDocumentsParams) WithRequest(request *models.APIAddDocumentRequest) *PostAchievementsIDDocumentsParams {
+func (o *PostAchievementsIDDocumentsParams) WithRequest(request *models.ParamAddDocumentRequest) *PostAchievementsIDDocumentsParams {
 	o.SetRequest(request)
 	return o
 }
 
 // SetRequest adds the request to the post achievements ID documents params
-func (o *PostAchievementsIDDocumentsParams) SetRequest(request *models.APIAddDocumentRequest) {
+func (o *PostAchievementsIDDocumentsParams) SetRequest(request *models.ParamAddDocumentRequest) {
 	o.Request = request
 }
 

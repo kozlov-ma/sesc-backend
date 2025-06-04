@@ -14,21 +14,6 @@ import (
 	"github.com/kozlov-ma/sesc-backend/sesc"
 )
 
-// FileResponse is the API response for a file
-type FileResponse struct {
-	ID          string  `json:"id"`
-	OwnerID     *string `json:"ownerId,omitempty"`
-	FileName    string  `json:"fileName"`
-	FileSize    int     `json:"fileSize"`
-	DownloadURL string  `json:"downloadUrl"`
-}
-
-// FileListResponse is the API response for a list of files
-type FileListResponse struct {
-	Items      []FileResponse `json:"items"`
-	TotalCount int            `json:"totalCount"`
-}
-
 // FileAccessMiddleware checks if the user has access to the requested file
 func (a *API) FileAccessMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -129,23 +114,6 @@ func (a *API) FileEditAccessMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-// convertFile converts a sesc.File to a FileResponse
-func convertFile(f sesc.File) FileResponse {
-	var ownerID *string
-	if f.OwnerID != nil {
-		id := f.OwnerID.String()
-		ownerID = &id
-	}
-
-	return FileResponse{
-		ID:          f.ID.String(),
-		OwnerID:     ownerID,
-		FileName:    f.Name,
-		FileSize:    f.Size,
-		DownloadURL: f.URL,
-	}
-}
-
 // SearchFiles returns a list of files matching the search criteria
 // @Summary Search files
 // @Description Returns a list of files based on search criteria
@@ -158,7 +126,7 @@ func convertFile(f sesc.File) FileResponse {
 // @Param common query bool false "If true, return only common files"
 // @Param offset query int false "Pagination offset" default(0)
 // @Param limit query int false "Pagination limit" default(50)
-// @Success 200 {object} FileListResponse
+// @Success 200 {object} respond.Files
 // @Failure 400 {object} respond.Error
 // @Failure 500 {object} respond.Error
 // @Router /files [get]
@@ -220,16 +188,7 @@ func (a *API) SearchFiles(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response := FileListResponse{
-		Items:      make([]FileResponse, len(files)),
-		TotalCount: totalCount,
-	}
-
-	for i, file := range files {
-		response.Items[i] = convertFile(file)
-	}
-
-	a.writeJSON(ctx, w, response)
+	a.writeJSON(ctx, w, respond.WithFiles(files, totalCount))
 }
 
 const maxFormSizeBytes = 32 << 20 // 32 megabytes
@@ -242,7 +201,7 @@ const maxFormSizeBytes = 32 << 20 // 32 megabytes
 // @Produce json
 // @Param Authorization header string false "Bearer JWT token"
 // @Param file formData file true "File to upload"
-// @Success 201 {object} FileResponse
+// @Success 201 {object} respond.File
 // @Failure 400 {object} respond.Error
 // @Failure 401 {object} respond.Error "Unauthorized"
 // @Failure 500 {object} respond.Error
@@ -296,9 +255,7 @@ func (a *API) UploadFile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response := convertFile(newFile)
-
-	a.writeJSON(ctx, w, respond.WithStatus(response, http.StatusCreated))
+	a.writeJSON(ctx, w, respond.WithStatus(respond.WithFile(newFile), http.StatusCreated))
 }
 
 // GetFileByID returns a file by ID
@@ -309,7 +266,7 @@ func (a *API) UploadFile(w http.ResponseWriter, r *http.Request) {
 // @Produce json
 // @Param Authorization header string false "Bearer JWT token"
 // @Param id path string true "File ID"
-// @Success 200 {object} FileResponse
+// @Success 200 {object} respond.File
 // @Failure 400 {object} respond.Error
 // @Failure 401 {object} respond.Error "Unauthorized"
 // @Failure 404 {object} respond.Error
@@ -333,9 +290,7 @@ func (a *API) GetFileByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response := convertFile(file)
-
-	a.writeJSON(ctx, w, response)
+	a.writeJSON(ctx, w, respond.WithFile(file))
 }
 
 // DeleteFile deletes a file

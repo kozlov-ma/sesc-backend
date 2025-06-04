@@ -79,7 +79,7 @@ type PatchAchievementTemplatesIDParams struct {
 
 	   Template fields to update
 	*/
-	Request *models.APIPatchAchievementTemplateRequest
+	Request *models.ParamPatchAchievementTemplateRequest
 
 	timeout    time.Duration
 	Context    context.Context
@@ -157,13 +157,13 @@ func (o *PatchAchievementTemplatesIDParams) SetID(id string) {
 }
 
 // WithRequest adds the request to the patch achievement templates ID params
-func (o *PatchAchievementTemplatesIDParams) WithRequest(request *models.APIPatchAchievementTemplateRequest) *PatchAchievementTemplatesIDParams {
+func (o *PatchAchievementTemplatesIDParams) WithRequest(request *models.ParamPatchAchievementTemplateRequest) *PatchAchievementTemplatesIDParams {
 	o.SetRequest(request)
 	return o
 }
 
 // SetRequest adds the request to the patch achievement templates ID params
-func (o *PatchAchievementTemplatesIDParams) SetRequest(request *models.APIPatchAchievementTemplateRequest) {
+func (o *PatchAchievementTemplatesIDParams) SetRequest(request *models.ParamPatchAchievementTemplateRequest) {
 	o.Request = request
 }
 

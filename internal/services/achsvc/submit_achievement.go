@@ -74,7 +74,7 @@ func (s *ACS) SubmitAchievement(
 			return err
 		}
 
-		err = rec.Operation("update_status", func(opRec *event.Record) error {
+		err = rec.Operation("update_status", func(_ *event.Record) error {
 			start := time.Now()
 			entity, err := tx.Achievement.UpdateOne(ach).
 				SetStatus(string(achievement.StatusDepheadReview)).

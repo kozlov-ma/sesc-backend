@@ -12,13 +12,10 @@ import (
 	"github.com/go-openapi/swag"
 )
 
-// APIFileResponse api file response
+// RespondFile respond file
 //
-// swagger:model api.FileResponse
-type APIFileResponse struct {
-
-	// download Url
-	DownloadURL string `json:"downloadUrl,omitempty"`
+// swagger:model respond.File
+type RespondFile struct {
 
 	// file name
 	FileName string `json:"fileName,omitempty"`
@@ -33,18 +30,18 @@ type APIFileResponse struct {
 	OwnerID string `json:"ownerId,omitempty"`
 }
 
-// Validate validates this api file response
-func (m *APIFileResponse) Validate(formats strfmt.Registry) error {
+// Validate validates this respond file
+func (m *RespondFile) Validate(formats strfmt.Registry) error {
 	return nil
 }
 
-// ContextValidate validates this api file response based on context it is used
-func (m *APIFileResponse) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+// ContextValidate validates this respond file based on context it is used
+func (m *RespondFile) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	return nil
 }
 
 // MarshalBinary interface implementation
-func (m *APIFileResponse) MarshalBinary() ([]byte, error) {
+func (m *RespondFile) MarshalBinary() ([]byte, error) {
 	if m == nil {
 		return nil, nil
 	}
@@ -52,8 +49,8 @@ func (m *APIFileResponse) MarshalBinary() ([]byte, error) {
 }
 
 // UnmarshalBinary interface implementation
-func (m *APIFileResponse) UnmarshalBinary(b []byte) error {
-	var res APIFileResponse
+func (m *RespondFile) UnmarshalBinary(b []byte) error {
+	var res RespondFile
 	if err := swag.ReadJSON(b, &res); err != nil {
 		return err
 	}

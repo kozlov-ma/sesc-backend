@@ -13,7 +13,6 @@ import (
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent"
 	"github.com/kozlov-ma/sesc-backend/pkg/event"
 	"github.com/kozlov-ma/sesc-backend/sesc"
-
 	// Import SQLite driver
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/stretchr/testify/require"

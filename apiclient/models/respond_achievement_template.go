@@ -15,10 +15,15 @@ import (
 	"github.com/go-openapi/validate"
 )
 
-// APICreateAchievementTemplateRequest api create achievement template request
+// RespondAchievementTemplate respond achievement template
 //
-// swagger:model api.CreateAchievementTemplateRequest
-type APICreateAchievementTemplateRequest struct {
+// swagger:model respond.AchievementTemplate
+type RespondAchievementTemplate struct {
+
+	// active
+	// Example: true
+	// Required: true
+	Active *bool `json:"active"`
 
 	// description
 	// Example: Публикация статьи в научном журнале
@@ -29,6 +34,11 @@ type APICreateAchievementTemplateRequest struct {
 	// Example: 550e8400-e29b-41d4-a716-446655440000
 	// Required: true
 	GroupID *string `json:"groupId"`
+
+	// id
+	// Example: 550e8400-e29b-41d4-a716-446655440000
+	// Required: true
+	ID *string `json:"id"`
 
 	// kind
 	// Example: scientific
@@ -47,15 +57,23 @@ type APICreateAchievementTemplateRequest struct {
 	PointsLimit *int64 `json:"pointsLimit"`
 }
 
-// Validate validates this api create achievement template request
-func (m *APICreateAchievementTemplateRequest) Validate(formats strfmt.Registry) error {
+// Validate validates this respond achievement template
+func (m *RespondAchievementTemplate) Validate(formats strfmt.Registry) error {
 	var res []error
+
+	if err := m.validateActive(formats); err != nil {
+		res = append(res, err)
+	}
 
 	if err := m.validateDescription(formats); err != nil {
 		res = append(res, err)
 	}
 
 	if err := m.validateGroupID(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateID(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -77,7 +95,16 @@ func (m *APICreateAchievementTemplateRequest) Validate(formats strfmt.Registry) 
 	return nil
 }
 
-func (m *APICreateAchievementTemplateRequest) validateDescription(formats strfmt.Registry) error {
+func (m *RespondAchievementTemplate) validateActive(formats strfmt.Registry) error {
+
+	if err := validate.Required("active", "body", m.Active); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *RespondAchievementTemplate) validateDescription(formats strfmt.Registry) error {
 
 	if err := validate.Required("description", "body", m.Description); err != nil {
 		return err
@@ -86,7 +113,7 @@ func (m *APICreateAchievementTemplateRequest) validateDescription(formats strfmt
 	return nil
 }
 
-func (m *APICreateAchievementTemplateRequest) validateGroupID(formats strfmt.Registry) error {
+func (m *RespondAchievementTemplate) validateGroupID(formats strfmt.Registry) error {
 
 	if err := validate.Required("groupId", "body", m.GroupID); err != nil {
 		return err
@@ -95,7 +122,16 @@ func (m *APICreateAchievementTemplateRequest) validateGroupID(formats strfmt.Reg
 	return nil
 }
 
-var apiCreateAchievementTemplateRequestTypeKindPropEnum []interface{}
+func (m *RespondAchievementTemplate) validateID(formats strfmt.Registry) error {
+
+	if err := validate.Required("id", "body", m.ID); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+var respondAchievementTemplateTypeKindPropEnum []interface{}
 
 func init() {
 	var res []string
@@ -103,31 +139,31 @@ func init() {
 		panic(err)
 	}
 	for _, v := range res {
-		apiCreateAchievementTemplateRequestTypeKindPropEnum = append(apiCreateAchievementTemplateRequestTypeKindPropEnum, v)
+		respondAchievementTemplateTypeKindPropEnum = append(respondAchievementTemplateTypeKindPropEnum, v)
 	}
 }
 
 const (
 
-	// APICreateAchievementTemplateRequestKindOlympiad captures enum value "olympiad"
-	APICreateAchievementTemplateRequestKindOlympiad string = "olympiad"
+	// RespondAchievementTemplateKindOlympiad captures enum value "olympiad"
+	RespondAchievementTemplateKindOlympiad string = "olympiad"
 
-	// APICreateAchievementTemplateRequestKindDevelopment captures enum value "development"
-	APICreateAchievementTemplateRequestKindDevelopment string = "development"
+	// RespondAchievementTemplateKindDevelopment captures enum value "development"
+	RespondAchievementTemplateKindDevelopment string = "development"
 
-	// APICreateAchievementTemplateRequestKindScientific captures enum value "scientific"
-	APICreateAchievementTemplateRequestKindScientific string = "scientific"
+	// RespondAchievementTemplateKindScientific captures enum value "scientific"
+	RespondAchievementTemplateKindScientific string = "scientific"
 )
 
 // prop value enum
-func (m *APICreateAchievementTemplateRequest) validateKindEnum(path, location string, value string) error {
-	if err := validate.EnumCase(path, location, value, apiCreateAchievementTemplateRequestTypeKindPropEnum, true); err != nil {
+func (m *RespondAchievementTemplate) validateKindEnum(path, location string, value string) error {
+	if err := validate.EnumCase(path, location, value, respondAchievementTemplateTypeKindPropEnum, true); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (m *APICreateAchievementTemplateRequest) validateKind(formats strfmt.Registry) error {
+func (m *RespondAchievementTemplate) validateKind(formats strfmt.Registry) error {
 
 	if err := validate.Required("kind", "body", m.Kind); err != nil {
 		return err
@@ -141,7 +177,7 @@ func (m *APICreateAchievementTemplateRequest) validateKind(formats strfmt.Regist
 	return nil
 }
 
-func (m *APICreateAchievementTemplateRequest) validateName(formats strfmt.Registry) error {
+func (m *RespondAchievementTemplate) validateName(formats strfmt.Registry) error {
 
 	if err := validate.Required("name", "body", m.Name); err != nil {
 		return err
@@ -150,7 +186,7 @@ func (m *APICreateAchievementTemplateRequest) validateName(formats strfmt.Regist
 	return nil
 }
 
-func (m *APICreateAchievementTemplateRequest) validatePointsLimit(formats strfmt.Registry) error {
+func (m *RespondAchievementTemplate) validatePointsLimit(formats strfmt.Registry) error {
 
 	if err := validate.Required("pointsLimit", "body", m.PointsLimit); err != nil {
 		return err
@@ -159,13 +195,13 @@ func (m *APICreateAchievementTemplateRequest) validatePointsLimit(formats strfmt
 	return nil
 }
 
-// ContextValidate validates this api create achievement template request based on context it is used
-func (m *APICreateAchievementTemplateRequest) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+// ContextValidate validates this respond achievement template based on context it is used
+func (m *RespondAchievementTemplate) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	return nil
 }
 
 // MarshalBinary interface implementation
-func (m *APICreateAchievementTemplateRequest) MarshalBinary() ([]byte, error) {
+func (m *RespondAchievementTemplate) MarshalBinary() ([]byte, error) {
 	if m == nil {
 		return nil, nil
 	}
@@ -173,8 +209,8 @@ func (m *APICreateAchievementTemplateRequest) MarshalBinary() ([]byte, error) {
 }
 
 // UnmarshalBinary interface implementation
-func (m *APICreateAchievementTemplateRequest) UnmarshalBinary(b []byte) error {
-	var res APICreateAchievementTemplateRequest
+func (m *RespondAchievementTemplate) UnmarshalBinary(b []byte) error {
+	var res RespondAchievementTemplate
 	if err := swag.ReadJSON(b, &res); err != nil {
 		return err
 	}

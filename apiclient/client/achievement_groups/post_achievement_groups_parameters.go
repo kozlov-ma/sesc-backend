@@ -73,7 +73,7 @@ type PostAchievementGroupsParams struct {
 
 	   Group details
 	*/
-	Request *models.APICreateAchievementGroupRequest
+	Request *models.ParamCreateAchievementGroupRequest
 
 	timeout    time.Duration
 	Context    context.Context
@@ -140,13 +140,13 @@ func (o *PostAchievementGroupsParams) SetAuthorization(authorization *string) {
 }
 
 // WithRequest adds the request to the post achievement groups params
-func (o *PostAchievementGroupsParams) WithRequest(request *models.APICreateAchievementGroupRequest) *PostAchievementGroupsParams {
+func (o *PostAchievementGroupsParams) WithRequest(request *models.ParamCreateAchievementGroupRequest) *PostAchievementGroupsParams {
 	o.SetRequest(request)
 	return o
 }
 
 // SetRequest adds the request to the post achievement groups params
-func (o *PostAchievementGroupsParams) SetRequest(request *models.APICreateAchievementGroupRequest) {
+func (o *PostAchievementGroupsParams) SetRequest(request *models.ParamCreateAchievementGroupRequest) {
 	o.Request = request
 }
 

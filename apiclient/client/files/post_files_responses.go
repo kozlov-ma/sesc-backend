@@ -64,7 +64,7 @@ PostFilesCreated describes a response with status code 201, with default header 
 Created
 */
 type PostFilesCreated struct {
-	Payload *models.APIFileResponse
+	Payload *models.RespondFile
 }
 
 // IsSuccess returns true when this post files created response has a 2xx status code
@@ -107,13 +107,13 @@ func (o *PostFilesCreated) String() string {
 	return fmt.Sprintf("[POST /files][%d] postFilesCreated %s", 201, payload)
 }
 
-func (o *PostFilesCreated) GetPayload() *models.APIFileResponse {
+func (o *PostFilesCreated) GetPayload() *models.RespondFile {
 	return o.Payload
 }
 
 func (o *PostFilesCreated) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIFileResponse)
+	o.Payload = new(models.RespondFile)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {

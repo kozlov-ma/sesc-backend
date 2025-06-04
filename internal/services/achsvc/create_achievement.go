@@ -50,7 +50,7 @@ func (s *ACS) CreateAchievement(
 			return err
 		}
 
-		err = rec.Operation("create_achievement", func(opRec *event.Record) error {
+		err = rec.Operation("create_achievement", func(_ *event.Record) error {
 			start := time.Now()
 			achievement, err := tx.Achievement.Create().
 				SetOwnerID(opt.ForUserID).

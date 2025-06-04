@@ -76,7 +76,7 @@ PostAchievementsIDDocumentsCreated describes a response with status code 201, wi
 Created
 */
 type PostAchievementsIDDocumentsCreated struct {
-	Payload *models.APIDocumentResponse
+	Payload *models.RespondDocument
 }
 
 // IsSuccess returns true when this post achievements Id documents created response has a 2xx status code
@@ -119,13 +119,13 @@ func (o *PostAchievementsIDDocumentsCreated) String() string {
 	return fmt.Sprintf("[POST /achievements/{id}/documents][%d] postAchievementsIdDocumentsCreated %s", 201, payload)
 }
 
-func (o *PostAchievementsIDDocumentsCreated) GetPayload() *models.APIDocumentResponse {
+func (o *PostAchievementsIDDocumentsCreated) GetPayload() *models.RespondDocument {
 	return o.Payload
 }
 
 func (o *PostAchievementsIDDocumentsCreated) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIDocumentResponse)
+	o.Payload = new(models.RespondDocument)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {

@@ -58,7 +58,7 @@ GetAchievementTemplatesOK describes a response with status code 200, with defaul
 OK
 */
 type GetAchievementTemplatesOK struct {
-	Payload []*models.APIAchievementTemplateResponse
+	Payload []*models.RespondAchievementTemplate
 }
 
 // IsSuccess returns true when this get achievement templates o k response has a 2xx status code
@@ -101,7 +101,7 @@ func (o *GetAchievementTemplatesOK) String() string {
 	return fmt.Sprintf("[GET /achievement-templates][%d] getAchievementTemplatesOK %s", 200, payload)
 }
 
-func (o *GetAchievementTemplatesOK) GetPayload() []*models.APIAchievementTemplateResponse {
+func (o *GetAchievementTemplatesOK) GetPayload() []*models.RespondAchievementTemplate {
 	return o.Payload
 }
 

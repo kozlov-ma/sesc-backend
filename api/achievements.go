@@ -3,7 +3,6 @@ package api
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	"github.com/gofrs/uuid/v5"
@@ -170,10 +169,17 @@ func (a *API) CreateAchievement(w http.ResponseWriter, r *http.Request) {
 
 	// Create achievement
 	opt := achievement.CreateOptions{
-		ForUser:    *user,
+		ForUserID:  user.ID,
 		TemplateID: req.TemplateID,
 	}
 	ach, err := a.sesc.CreateAchievement(ctx, opt)
+	if err != nil {
+		rec.Add(events.Error, err)
+		a.writeJSON(ctx, w, respond.WithError(ctx, err))
+		return
+	}
+
+	ach, err = a.sesc.GetAchievement(ctx, ach.ID)
 	if err != nil {
 		rec.Add(events.Error, err)
 		a.writeJSON(ctx, w, respond.WithError(ctx, err))
@@ -213,7 +219,7 @@ func (a *API) DeleteAchievement(w http.ResponseWriter, r *http.Request) {
 
 	// Delete achievement
 	opt := achievement.DeleteOptions{
-		OwnerID:       ach.Owner.ID,
+		OwnerID:       ach.OwnerID,
 		AchievementID: ach.ID,
 	}
 	err := a.sesc.DeleteAchievement(ctx, opt)
@@ -264,7 +270,7 @@ func (a *API) AddDocument(w http.ResponseWriter, r *http.Request) {
 
 	// Add document
 	opt := achievement.AddDocumentOptions{
-		OwnerID:       ach.Owner.ID,
+		OwnerID:       ach.OwnerID,
 		AchievementID: ach.ID,
 		Name:          req.Name,
 		FileID:        req.FileID,
@@ -324,7 +330,7 @@ func (a *API) RemoveDocument(w http.ResponseWriter, r *http.Request) {
 
 	// Remove document
 	opt := achievement.RemoveDocumentOptions{
-		OwnerID:       ach.Owner.ID,
+		OwnerID:       ach.OwnerID,
 		AchievementID: ach.ID,
 		DocumentID:    docID,
 	}
@@ -365,10 +371,17 @@ func (a *API) SubmitAchievement(w http.ResponseWriter, r *http.Request) {
 
 	// Submit achievement
 	opt := achievement.SubmitOptions{
-		OwnerID:       ach.Owner.ID,
+		OwnerID:       ach.OwnerID,
 		AchievementID: ach.ID,
 	}
 	updatedAch, err := a.sesc.SubmitAchievement(ctx, opt)
+	if err != nil {
+		rec.Add(events.Error, err)
+		a.writeJSON(ctx, w, respond.WithError(ctx, err))
+		return
+	}
+
+	updatedAch, err = a.sesc.GetAchievement(ctx, updatedAch.ID)
 	if err != nil {
 		rec.Add(events.Error, err)
 		a.writeJSON(ctx, w, respond.WithError(ctx, err))
@@ -427,7 +440,7 @@ func (a *API) ReviewAchievement(w http.ResponseWriter, r *http.Request) {
 
 	// Review achievement
 	opt := achievement.ReviewOptions{
-		AchievementOwnerID: ach.Owner.ID,
+		AchievementOwnerID: ach.OwnerID,
 		AchievementID:      ach.ID,
 		ReviewerID:         reviewer.ID,
 		PointsAssigned:     req.PointsAssigned,

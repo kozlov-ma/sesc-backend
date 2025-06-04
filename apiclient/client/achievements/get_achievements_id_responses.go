@@ -70,7 +70,7 @@ GetAchievementsIDOK describes a response with status code 200, with default head
 OK
 */
 type GetAchievementsIDOK struct {
-	Payload *models.APIAchievementResponse
+	Payload *models.RespondAchievement
 }
 
 // IsSuccess returns true when this get achievements Id o k response has a 2xx status code
@@ -113,13 +113,13 @@ func (o *GetAchievementsIDOK) String() string {
 	return fmt.Sprintf("[GET /achievements/{id}][%d] getAchievementsIdOK %s", 200, payload)
 }
 
-func (o *GetAchievementsIDOK) GetPayload() *models.APIAchievementResponse {
+func (o *GetAchievementsIDOK) GetPayload() *models.RespondAchievement {
 	return o.Payload
 }
 
 func (o *GetAchievementsIDOK) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.APIAchievementResponse)
+	o.Payload = new(models.RespondAchievement)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {

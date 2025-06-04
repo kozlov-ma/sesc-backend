@@ -68,7 +68,7 @@ type ClientService interface {
 /*
 GetAchievementGroups gets all achievement groups
 
-Retrieves all achievement groups
+Retrieves all achievement groups with filtering options
 */
 func (a *Client) GetAchievementGroups(params *GetAchievementGroupsParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetAchievementGroupsOK, error) {
 	// TODO: Validate the params before sending

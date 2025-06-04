@@ -17,7 +17,7 @@ import (
 func processAchievementGroups(
 	apiClient *client.Apiclient,
 	authInfo runtime.ClientAuthInfoWriter,
-) (map[string]*models.APIAchievementGroupResponse, error) {
+) (map[string]*models.RespondAchievementGroup, error) {
 	// Get existing achievement groups
 	groupsResp, err := apiClient.AchievementGroups.GetAchievementGroups(
 		achievement_groups.NewGetAchievementGroupsParams(),
@@ -28,13 +28,13 @@ func processAchievementGroups(
 	}
 
 	// Create map of existing groups by name
-	existingGroups := make(map[string]*models.APIAchievementGroupResponse)
+	existingGroups := make(map[string]*models.RespondAchievementGroup)
 	for _, group := range groupsResp.Payload {
 		existingGroups[*group.Name] = group
 	}
 
 	// Create map to return
-	groupMap := make(map[string]*models.APIAchievementGroupResponse)
+	groupMap := make(map[string]*models.RespondAchievementGroup)
 
 	// Create missing groups
 	for _, groupData := range achievementGroupsData {
@@ -44,7 +44,7 @@ func processAchievementGroups(
 		} else {
 			// Create new group
 			createParams := achievement_groups.NewPostAchievementGroupsParams()
-			createParams.SetRequest(&models.APICreateAchievementGroupRequest{
+			createParams.SetRequest(&models.ParamCreateAchievementGroupRequest{
 				Name:        &groupData.Name,
 				Description: &groupData.Description,
 			})
@@ -93,7 +93,7 @@ func processAchievementTemplates(
 	}
 
 	// Create map of existing templates by name
-	existingTemplates := make(map[string]*models.APIAchievementTemplateResponse)
+	existingTemplates := make(map[string]*models.RespondAchievementTemplate)
 	for _, template := range templatesResp.Payload {
 		if *template.GroupID == groupID {
 			existingTemplates[*template.Name] = template
@@ -107,7 +107,7 @@ func processAchievementTemplates(
 		} else {
 			// Create new template
 			createParams := achievement_templates.NewPostAchievementTemplatesParams()
-			createParams.SetRequest(&models.APICreateAchievementTemplateRequest{
+			createParams.SetRequest(&models.ParamCreateAchievementTemplateRequest{
 				Name:        &templateData.Name,
 				Description: &templateData.Description,
 				GroupID:     &groupID,

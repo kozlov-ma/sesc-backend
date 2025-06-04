@@ -58,7 +58,7 @@ GetAchievementGroupsOK describes a response with status code 200, with default h
 OK
 */
 type GetAchievementGroupsOK struct {
-	Payload []*models.APIAchievementGroupResponse
+	Payload []*models.RespondAchievementGroup
 }
 
 // IsSuccess returns true when this get achievement groups o k response has a 2xx status code
@@ -101,7 +101,7 @@ func (o *GetAchievementGroupsOK) String() string {
 	return fmt.Sprintf("[GET /achievement-groups][%d] getAchievementGroupsOK %s", 200, payload)
 }
 
-func (o *GetAchievementGroupsOK) GetPayload() []*models.APIAchievementGroupResponse {
+func (o *GetAchievementGroupsOK) GetPayload() []*models.RespondAchievementGroup {
 	return o.Payload
 }
 

@@ -31,7 +31,7 @@ func (s *ACS) GetUsersWithAchievements(
 	var totalUsers int
 	var users []*ent.User
 
-	err := rec.Operation("count_users", func(opRec *event.Record) error {
+	err := rec.Operation("count_users", func(_ *event.Record) error {
 		// Get asking user for role-based filtering
 		start := time.Now()
 		askingUser, err := s.client.User.Query().
@@ -65,7 +65,7 @@ func (s *ACS) GetUsersWithAchievements(
 		return nil, 0, err
 	}
 
-	err = rec.Operation("query_users", func(opRec *event.Record) error {
+	err = rec.Operation("query_users", func(_ *event.Record) error {
 		// Get asking user to determine ordering
 		start := time.Now()
 		askingUser, err := s.client.User.Query().

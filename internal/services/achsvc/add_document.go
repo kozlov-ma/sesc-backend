@@ -94,7 +94,7 @@ func (s *ACS) AddDocument(
 			return err
 		}
 
-		err = rec.Operation("create_document", func(opRec *event.Record) (err error) {
+		err = rec.Operation("create_document", func(_ *event.Record) (err error) {
 			rec.Sub("params").Set(
 				"achievement_id", opt.AchievementID,
 				"name", opt.Name,
