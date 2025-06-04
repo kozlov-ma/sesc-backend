@@ -20,8 +20,9 @@ import (
 func (s *ACS) ReviewAchievement(
 	ctx context.Context,
 	opt achievement.ReviewOptions,
-) (achievement.Achievement, error) {
+) (*ent.Achievement, error) {
 	rec := event.Get(ctx).Sub("sesc/review_achievement")
+	statsRec := event.Root(ctx).Sub("stats")
 
 	// Group parameters together
 	rec.Sub("params").Set(
@@ -32,259 +33,155 @@ func (s *ACS) ReviewAchievement(
 		"comment_length", len(opt.Comment),
 	)
 
-	// Track stats in root record
-	statsRec := event.Get(ctx).Sub("stats")
-	queryCount := 0
-	startTime := time.Now()
-	defer func() {
-		statsRec.Add("postgres_queries", queryCount)
-		statsRec.Add("total_time_ms", time.Since(startTime).Milliseconds())
-	}()
+	var updatedAch *ent.Achievement
+	err := withTx(ctx, s.client, func(tx *ent.Tx) error {
+		var ach *ent.Achievement
+		err := rec.Operation("query_achievement", func(opRec *event.Record) error {
+			start := time.Now()
+			entity, err := tx.Achievement.Query().
+				Where(
+					entAchievement.ID(opt.AchievementID),
+					entAchievement.OwnerID(opt.AchievementOwnerID),
+				).
+				WithTemplate().
+				Only(ctx)
+			statsRec.Add(events.PostgresQueries, 1)
+			statsRec.Add(events.PostgresTime, time.Since(start))
 
-	// Start a transaction and get achievement data
-	var (
-		tx                *ent.Tx
-		achievementEntity *ent.Achievement
-		reviewer          *ent.User
-		reviewID          UUID
-		updatedEntity     *ent.Achievement
-		newStatus         achievement.Status
-		isValidReviewer   bool
-	)
+			if ent.IsNotFound(err) {
+				return achievement.ErrAchievementNotFound
+			}
+			if err != nil {
+				return fmt.Errorf("failed to query achievement: %w", err)
+			}
 
-	// Initialize transaction
-	err := rec.Operation("start_transaction", func(opRec *event.Record) error {
-		queryStart := time.Now()
-		txn, err := s.client.Tx(ctx)
-		queryCount++
-		opRec.Add("tx_start_time_ms", time.Since(queryStart).Milliseconds())
-
+			ach = entity
+			return nil
+		})
 		if err != nil {
-			opRec.Add(events.Error, fmt.Errorf("failed to start transaction: %w", err))
 			return err
 		}
-		tx = txn
-		return nil
-	})
-	if err != nil {
-		return achievement.Achievement{}, err
-	}
 
-	// Get achievement with all related data
-	err = rec.Operation("query_achievement", func(opRec *event.Record) error {
-		opRec.Sub("params").Set(
-			"achievement_id", opt.AchievementID,
-			"owner_id", opt.AchievementOwnerID,
-		)
+		var reviewer *ent.User
+		err = rec.Operation("get_reviewer", func(opRec *event.Record) error {
+			start := time.Now()
+			user, err := tx.User.Get(ctx, opt.ReviewerID)
+			statsRec.Add(events.PostgresQueries, 1)
+			statsRec.Add(events.PostgresTime, time.Since(start))
 
-		queryStart := time.Now()
-		entity, err := tx.Achievement.Query().
-			Where(
-				entAchievement.ID(opt.AchievementID),
-				entAchievement.OwnerID(opt.AchievementOwnerID),
-			).
-			WithTemplate().
-			WithOwner().
-			WithDocuments(func(q *ent.AchievementDocumentQuery) {
-				q.WithFile()
-			}).
-			WithReviews(func(q *ent.AchievementReviewQuery) {
-				q.WithReviewer()
-			}).
-			Only(ctx)
-		queryCount++
-		opRec.Add("query_time_ms", time.Since(queryStart).Milliseconds())
+			if ent.IsNotFound(err) {
+				return sesc.ErrUserNotFound
+			}
+			if err != nil {
+				return fmt.Errorf("failed to get reviewer: %w", err)
+			}
 
-		if ent.IsNotFound(err) {
-			opRec.Add(events.Error, "achievement not found")
-			return rollback(tx, achievement.ErrAchievementNotFound)
-		}
+			reviewer = user
+			return nil
+		})
 		if err != nil {
-			opRec.Add(events.Error, fmt.Errorf("failed to query achievement: %w", err))
-			return rollback(tx, err)
+			return err
 		}
 
-		achievementEntity = entity
-		opRec.Set("current_status", achievementEntity.Status)
-		return nil
-	})
-	if err != nil {
-		return achievement.Achievement{}, err
-	}
+		err = rec.Operation("validate_review", func(opRec *event.Record) error {
+			currentStatus := achievement.Status(ach.Status)
+			reviewerRole := reviewer.Role
+			templateKind := ach.Edges.Template.Kind
 
-	// Get reviewer to ensure they exist
-	err = rec.Operation("get_reviewer", func(opRec *event.Record) error {
-		opRec.Sub("params").Set("reviewer_id", opt.ReviewerID)
+			// Check if the assigned points exceed the template's limit
+			pointsLimit := ach.Edges.Template.PointsLimit
+			if opt.PointsAssigned > pointsLimit {
+				return achievement.ErrPointsLimitExceeded
+			}
 
-		queryStart := time.Now()
-		user, err := tx.User.Get(ctx, opt.ReviewerID)
-		queryCount++
-		opRec.Add("query_time_ms", time.Since(queryStart).Milliseconds())
-
-		if ent.IsNotFound(err) {
-			opRec.Add(events.Error, "reviewer not found")
-			return rollback(tx, sesc.ErrUserNotFound)
-		}
-		if err != nil {
-			opRec.Add(events.Error, fmt.Errorf("failed to get reviewer: %w", err))
-			return rollback(tx, err)
-		}
-
-		reviewer = user
-		opRec.Set("reviewer_role", reviewer.Role)
-		return nil
-	})
-	if err != nil {
-		return achievement.Achievement{}, err
-	}
-
-	// Validate review parameters
-	err = rec.Operation("validate_review", func(opRec *event.Record) error {
-		// Check if achievement is in the correct status for review
-		currentStatus := achievement.Status(achievementEntity.Status)
-		reviewerRole := reviewer.Role
-		templateKind := achievementEntity.Edges.Template.Kind
-
-		opRec.Sub("params").Set(
-			"current_status", currentStatus,
-			"reviewer_role", reviewerRole,
-			"template_kind", templateKind,
-			"points_assigned", opt.PointsAssigned,
-		)
-
-		// Check if the assigned points exceed the template's limit
-		pointsLimit := achievementEntity.Edges.Template.PointsLimit
-		opRec.Set("points_limit", pointsLimit)
-
-		if opt.PointsAssigned > pointsLimit {
-			opRec.Add(
-				events.Error,
-				fmt.Sprintf("points assigned (%d) exceed template limit (%d)", opt.PointsAssigned, pointsLimit),
+			// Determine the new status based on current status, reviewer role, and points
+			newStatus, validReviewer := determineNewStatus(
+				currentStatus,
+				reviewerRole,
+				templateKind,
+				opt.PointsAssigned,
+				opRec,
 			)
-			return rollback(tx, achievement.ErrPointsLimitExceeded)
-		}
 
-		// Determine the new status based on current status, reviewer role, and points
-		status, validReviewer := determineNewStatus(
-			currentStatus,
-			reviewerRole,
-			templateKind,
-			opt.PointsAssigned,
-			opRec,
-		)
+			// If not in a reviewable status
+			if currentStatus != achievement.StatusDepheadReview && currentStatus != achievement.StatusInspectorReview {
+				return achievement.ErrWrongAchievementStatus
+			}
 
-		newStatus = status
-		isValidReviewer = validReviewer
+			// Check if the reviewer has the required role
+			if !validReviewer {
+				return sesc.ErrInvalidRole
+			}
 
-		// If not in a reviewable status
-		if currentStatus != achievement.StatusDepheadReview && currentStatus != achievement.StatusInspectorReview {
-			opRec.Add(events.Error, "achievement is not in a reviewable status")
-			return rollback(tx, achievement.ErrWrongAchievementStatus)
-		}
-
-		// Check if the reviewer has the required role
-		if !isValidReviewer {
-			opRec.Add(events.Error, "reviewer does not have the required role")
-			return rollback(tx, sesc.ErrInvalidRole)
-		}
-
-		return nil
-	})
-	if err != nil {
-		return achievement.Achievement{}, err
-	}
-
-	// Create the review and update the achievement
-	err = rec.Operation("create_review", func(opRec *event.Record) error {
-		// Generate new UUID for review
-		id, err := uuid.NewV7()
+			return nil
+		})
 		if err != nil {
-			opRec.Add(events.Error, fmt.Errorf("failed to generate review ID: %w", err))
-			return rollback(tx, err)
+			return err
 		}
-		reviewID = id
-		opRec.Set("review_id", reviewID)
 
-		// Create review
-		queryStart := time.Now()
-		_, err = tx.AchievementReview.Create().
-			SetID(reviewID).
-			SetAchievementID(opt.AchievementID).
-			SetReviewerID(opt.ReviewerID).
-			SetPointsAssigned(opt.PointsAssigned).
-			SetComment(opt.Comment).
-			Save(ctx)
-		queryCount++
-		opRec.Add("create_review_time_ms", time.Since(queryStart).Milliseconds())
+		// Create the review
+		err = rec.Operation("create_review", func(opRec *event.Record) error {
+			reviewID, err := uuid.NewV7()
+			if err != nil {
+				return fmt.Errorf("failed to generate review ID: %w", err)
+			}
 
+			start := time.Now()
+			_, err = tx.AchievementReview.Create().
+				SetID(reviewID).
+				SetAchievementID(opt.AchievementID).
+				SetReviewerID(opt.ReviewerID).
+				SetPointsAssigned(opt.PointsAssigned).
+				SetComment(opt.Comment).
+				Save(ctx)
+			statsRec.Add(events.PostgresQueries, 1)
+			statsRec.Add(events.PostgresTime, time.Since(start))
+
+			if err != nil {
+				return fmt.Errorf("failed to create review: %w", err)
+			}
+
+			return nil
+		})
 		if err != nil {
-			opRec.Add(events.Error, fmt.Errorf("failed to create review: %w", err))
-			return rollback(tx, err)
+			return err
 		}
 
 		// Update achievement status and points
-		queryStart = time.Now()
-		updated, err := tx.Achievement.UpdateOne(achievementEntity).
-			SetStatus(string(newStatus)).
-			SetPoints(opt.PointsAssigned).
-			Save(ctx)
-		queryCount++
-		opRec.Add("update_achievement_time_ms", time.Since(queryStart).Milliseconds())
+		err = rec.Operation("update_achievement", func(opRec *event.Record) error {
+			currentStatus := achievement.Status(ach.Status)
+			reviewerRole := reviewer.Role
+			templateKind := ach.Edges.Template.Kind
 
+			newStatus, _ := determineNewStatus(
+				currentStatus,
+				reviewerRole,
+				templateKind,
+				opt.PointsAssigned,
+				opRec,
+			)
+
+			start := time.Now()
+			updated, err := tx.Achievement.UpdateOne(ach).
+				SetStatus(string(newStatus)).
+				SetPoints(opt.PointsAssigned).
+				Save(ctx)
+			statsRec.Add(events.PostgresQueries, 1)
+			statsRec.Add(events.PostgresTime, time.Since(start))
+
+			if err != nil {
+				return fmt.Errorf("failed to update achievement: %w", err)
+			}
+
+			updatedAch = updated
+			return nil
+		})
 		if err != nil {
-			opRec.Add(events.Error, fmt.Errorf("failed to update achievement: %w", err))
-			return rollback(tx, err)
-		}
-
-		updatedEntity = updated
-		opRec.Set("new_status", updatedEntity.Status)
-		opRec.Set("new_points", updatedEntity.Points)
-		return nil
-	})
-	if err != nil {
-		return achievement.Achievement{}, err
-	}
-
-	// Commit transaction
-	err = rec.Operation("commit_transaction", func(opRec *event.Record) error {
-		queryStart := time.Now()
-		err := tx.Commit()
-		queryCount++
-		opRec.Add("commit_time_ms", time.Since(queryStart).Milliseconds())
-
-		if err != nil {
-			opRec.Add(events.Error, fmt.Errorf("failed to commit transaction: %w", err))
 			return err
 		}
+
 		return nil
 	})
-	if err != nil {
-		return achievement.Achievement{}, err
-	}
 
-	// Convert to domain model
-	var result achievement.Achievement
-	err = rec.Operation("convert_to_domain", func(opRec *event.Record) error {
-		domainModel := convertAchievementToModel(achievementEntity, reviewer, reviewID, opt, opRec)
-
-		// Update the status and points to match the updated entity
-		domainModel.Status = achievement.Status(updatedEntity.Status)
-		domainModel.Points = updatedEntity.Points
-
-		result = domainModel
-		return nil
-	})
-	if err != nil {
-		return achievement.Achievement{}, err
-	}
-
-	// Record final result
-	rec.Sub("result").Set(
-		"achievement_id", result.ID,
-		"new_status", result.Status,
-		"points", result.Points,
-		"review_id", reviewID,
-	)
-
-	return result, nil
+	return updatedAch, err
 }

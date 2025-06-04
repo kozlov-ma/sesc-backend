@@ -12,35 +12,25 @@ import (
 	"github.com/kozlov-ma/sesc-backend/pkg/event/events"
 )
 
-// GetAchievement retrieves an achievement by ID and owner ID.
+// GetAchievement retrieves an achievement by ID.
 // Returns achievement.ErrAchievementNotFound if the achievement does not exist.
 func (s *ACS) GetAchievement(
 	ctx context.Context,
 	achievementID UUID,
-) (achievement.Achievement, error) {
+) (*ent.Achievement, error) {
 	rec := event.Get(ctx).Sub("sesc/get_achievement")
+	statsRec := event.Root(ctx).Sub("stats")
+
 	// Group parameters together
 	rec.Sub("params").Set("achievement_id", achievementID)
 
-	// Track stats in root record
-	statsRec := event.Get(ctx).Sub("stats")
-	queryCount := 0
-	startTime := time.Now()
-	defer func() {
-		statsRec.Add("postgres_queries", queryCount)
-		statsRec.Add("total_time_ms", time.Since(startTime).Milliseconds())
-	}()
-
-	// Get achievement with all related data
-	var achievementEntity *ent.Achievement
+	var ach *ent.Achievement
 	err := rec.Operation("query_achievement", func(opRec *event.Record) error {
 		opRec.Sub("params").Set("achievement_id", achievementID)
 
-		queryStart := time.Now()
+		start := time.Now()
 		entity, err := s.client.Achievement.Query().
-			Where(
-				entAchievement.ID(achievementID),
-			).
+			Where(entAchievement.ID(achievementID)).
 			WithTemplate().
 			WithOwner(func(q *ent.UserQuery) {
 				q.WithDepartment()
@@ -52,41 +42,19 @@ func (s *ACS) GetAchievement(
 				q.WithReviewer()
 			}).
 			Only(ctx)
-		queryCount++
-		opRec.Add("query_time_ms", time.Since(queryStart).Milliseconds())
+		statsRec.Add(events.PostgresQueries, 1)
+		statsRec.Add(events.PostgresTime, time.Since(start))
 
 		if ent.IsNotFound(err) {
-			opRec.Add(events.Error, "achievement not found")
 			return achievement.ErrAchievementNotFound
 		}
 		if err != nil {
-			opRec.Add(events.Error, fmt.Errorf("failed to query achievement: %w", err))
-			return err
+			return fmt.Errorf("failed to query achievement: %w", err)
 		}
 
-		achievementEntity = entity
-		opRec.Set("found", true)
+		ach = entity
 		return nil
 	})
-	if err != nil {
-		return achievement.Achievement{}, err
-	}
 
-	// Convert to domain model
-	var result achievement.Achievement
-	err = rec.Operation("convert_to_domain", func(opRec *event.Record) error {
-		domainModel, err := convertAchievementEntityToDomain(achievementEntity, opRec)
-		if err != nil {
-			opRec.Add(events.Error, err)
-			return err
-		}
-		result = domainModel
-		return nil
-	})
-	if err != nil {
-		return achievement.Achievement{}, err
-	}
-
-	rec.Set("achievement", result)
-	return result, nil
+	return ach, err
 }
