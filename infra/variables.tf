@@ -1,130 +1,43 @@
 variable "yc_oauth_token" {
-  description = "Yandex Cloud OAuth token"
   type        = string
+  description = "Yandex Cloud OAuth token"
   sensitive   = true
 }
 
 variable "yc_cloud_id" {
-  description = "Yandex Cloud ID"
   type        = string
+  description = "Yandex Cloud ID"
 }
 
 variable "yc_folder_id" {
-  description = "Yandex Cloud Folder ID"
   type        = string
+  description = "Existing folder ID where new folder will be created"
 }
 
 variable "yc_zone" {
-  description = "Yandex Cloud availability zone"
   type        = string
+  description = "Yandex Cloud zone"
   default     = "ru-central1-a"
 }
 
 variable "project_name" {
-  description = "Project name to be used in resource names"
   type        = string
-}
-
-variable "certificate_id" {
-  description = "Cert Manager certificate id"
-  type        = string
+  description = "Project name prefix for resources"
 }
 
 variable "admin_ip_cidr" {
-  description = "CIDR block for admin access (for SSH)"
   type        = string
-  default     = "0.0.0.0/0" # Warning: It's better to restrict this in production
-}
-
-variable "vm_platform_id" {
-  description = "Yandex Compute platform ID"
-  type        = string
-  default     = "standard-v1"
+  description = "Admin IP CIDR for SSH access"
+  default     = "0.0.0.0/0"
 }
 
 variable "vm_user" {
-  description = "Username for VM SSH access"
   type        = string
+  description = "VM user name"
   default     = "ubuntu"
 }
 
 variable "ssh_public_key_path" {
-  description = "Path to the SSH public key"
   type        = string
-  default     = "~/.ssh/id_rsa.pub"
-}
-
-# Frontend VM specs
-variable "frontend_cores" {
-  description = "Number of vCPUs for frontend VM"
-  type        = number
-  default     = 2
-}
-
-variable "frontend_memory" {
-  description = "RAM size for frontend VM in GB"
-  type        = number
-  default     = 4
-}
-
-variable "frontend_disk_size" {
-  description = "Disk size for frontend VM in GB"
-  type        = number
-  default     = 10
-}
-
-# Backend VM specs
-variable "backend_cores" {
-  description = "Number of vCPUs for backend VM"
-  type        = number
-  default     = 2
-}
-
-variable "backend_memory" {
-  description = "RAM size for backend VM in GB"
-  type        = number
-  default     = 4
-}
-
-variable "backend_disk_size" {
-  description = "Disk size for backend VM in GB"
-  type        = number
-  default     = 10
-}
-
-# Kamal accessories VM specs
-variable "accessories_cores" {
-  description = "Number of vCPUs for Kamal accessories VM"
-  type        = number
-  default     = 2
-}
-
-variable "accessories_memory" {
-  description = "RAM size for Kamal accessories VM in GB"
-  type        = number
-  default     = 4
-}
-
-variable "accessories_disk_size" {
-  description = "Disk size for Kamal accessories VM in GB"
-  type        = number
-  default     = 20
-}
-
-variable "frontend_domains" {
-  description = "List of frontend domains"
-  type        = list(string)
-  default = [
-    "deathops.tech",
-    "urfu.sesc.online"
-  ]
-}
-
-variable "api_domains" {
-  description = "List of API domains"
-  type        = list(string)
-  default = [
-    "api.deathops.tech",
-    "api.sesc.online"
-  ]
+  description = "Path to SSH public key"
 }
