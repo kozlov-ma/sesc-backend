@@ -69,7 +69,7 @@ export default function UserPointsReportPage() {
   } = useQuery({
     ...getAchievementsOptions({
       query: {
-        limit: 1000, // Fetch more achievements to cover all users
+        limit: 100, // Fetch more achievements to cover all users
         // Remove status filter since it's not part of the query params
       },
     }),
