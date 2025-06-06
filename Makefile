@@ -56,7 +56,7 @@ ssl-init:
 ssl-renew:
 	@echo "🔄 Renewing SSL certificates..."
 	docker run --rm -v $(PWD)/certbot/conf:/etc/letsencrypt -v $(PWD)/certbot/www:/var/www/certbot certbot/certbot renew
-	docker-compose -f docker-compose.prod.yml exec nginx nginx -s reload
+	docker-compose -f docker-compose.simple.yml exec nginx nginx -s reload
 
 ssl-status:
 	@echo "📋 SSL Certificate Status:"
@@ -72,15 +72,15 @@ ssl-test:
 # Production deployment
 deploy-prod:
 	@echo "🚀 Deploying to production..."
-	docker-compose -f docker-compose.prod.yml pull
-	docker-compose -f docker-compose.prod.yml up -d --remove-orphans
+	docker-compose -f docker-compose.simple.yml pull
+	docker-compose -f docker-compose.simple.yml up -d --remove-orphans
 	docker image prune -f
 	@echo "✅ Production deployment complete!"
 
 # Production logs
 logs-prod:
-	docker-compose -f docker-compose.prod.yml logs -f
+	docker-compose -f docker-compose.simple.yml logs -f
 
 # Production status
 status-prod:
-	docker-compose -f docker-compose.prod.yml ps
+	docker-compose -f docker-compose.simple.yml ps

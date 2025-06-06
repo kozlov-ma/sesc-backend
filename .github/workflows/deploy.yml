@@ -1,96 +1,138 @@
 name: Deploy to Production
 
 on:
-  workflow_dispatch:   # Разрешаем запуск вручную
+  workflow_dispatch: # Разрешаем запуск вручную
     inputs:
       tag:
-        description: 'Docker image tag (default: latest)'
+        description: "Docker image tag (default: latest)"
         required: false
-        default: 'latest'
+        default: "latest"
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Deploy via SSH
-      uses: appleboy/ssh-action@v1.0.0
-      with:
-        host: ${{ secrets.SSH_HOST }}
-        username: ${{ secrets.SSH_USER }}
-        key: ${{ secrets.SSH_KEY }}
-        script: |
-          # Путь к production конфигу
-          COMPOSE_FILE="/opt/sesc/docker-compose.prod.yml"
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            # Путь к production конфигу
+            COMPOSE_FILE="/opt/sesc/docker-compose.simple.yml"
 
-          # Выполняем деплой
-          echo "🔄 Deploying to production with tag ${{ inputs.tag }}"
-          cd /opt/sesc
+            # Выполняем деплой
+            echo "🔄 Deploying to production with tag ${{ inputs.tag }}"
+            cd /opt/sesc
 
-          # Авторизация в GitHub Container Registry
-          echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+            # Авторизация в GitHub Container Registry
+            echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
 
-          # Создаем необходимые директории
-          mkdir -p certbot/conf certbot/www certbot/logs nginx
+            # Создаем необходимые директории
+            mkdir -p certbot/conf certbot/www certbot/logs nginx
 
-          # Создаем резервную копию compose файла
-          cp "$COMPOSE_FILE" "${COMPOSE_FILE}.backup"
+            # Создаем резервную копию compose файла
+            if [ -f "$COMPOSE_FILE" ]; then
+              cp "$COMPOSE_FILE" "${COMPOSE_FILE}.backup"
+            else
+              echo "⚠️ Compose file not found, using production version as fallback"
+              COMPOSE_FILE="/opt/sesc/docker-compose.prod.yml"
+              cp "$COMPOSE_FILE" "${COMPOSE_FILE}.backup"
+            fi
 
-          # Обновляем теги образов при необходимости
-          if [ "${{ inputs.tag }}" != "latest" ]; then
-            sed -i "s|backend:latest|backend:${{ inputs.tag }}|g" "$COMPOSE_FILE"
-            sed -i "s|frontend:latest|frontend:${{ inputs.tag }}|g" "$COMPOSE_FILE"
-          fi
+            # Обновляем теги образов при необходимости
+            if [ "${{ inputs.tag }}" != "latest" ]; then
+              sed -i "s|backend:latest|backend:${{ inputs.tag }}|g" "$COMPOSE_FILE"
+              sed -i "s|frontend:latest|frontend:${{ inputs.tag }}|g" "$COMPOSE_FILE"
+            fi
 
-          # Выполняем обновление с проверкой успешности
-          echo "🔄 Pulling new images..."
-          if ! docker-compose -f "$COMPOSE_FILE" pull; then
-            echo "❌ Failed to pull images, restoring backup"
-            mv "${COMPOSE_FILE}.backup" "$COMPOSE_FILE"
-            exit 1
-          fi
+            # Выполняем обновление с проверкой успешности
+            echo "🔄 Pulling new images..."
+            if ! docker-compose -f "$COMPOSE_FILE" pull; then
+              echo "❌ Failed to pull images, restoring backup"
+              mv "${COMPOSE_FILE}.backup" "$COMPOSE_FILE"
+              exit 1
+            fi
 
-          # Проверяем SSL сертификаты
-          if [ ! -f "certbot/conf/live/sesc.online/fullchain.pem" ]; then
-            echo "⚠️  SSL certificates not found. Please run init-ssl.sh first!"
-            echo "ℹ️  For now, creating dummy certificates to allow nginx to start..."
+            # Проверяем SSL сертификаты
+            if [ ! -f "certbot/conf/live/sesc.online/fullchain.pem" ]; then
+              echo "⚠️  SSL certificates not found. Please run init-ssl.sh first!"
+              echo "ℹ️  For now, creating dummy certificates to allow nginx to start..."
+
+              # Create dummy certificates
+              mkdir -p certbot/conf/live/sesc.online
+              mkdir -p certbot/conf/live/api.sesc.online
+
+              openssl req -x509 -nodes -newkey rsa:2048 -days 1 \
+                -keyout certbot/conf/live/sesc.online/privkey.pem \
+                -out certbot/conf/live/sesc.online/fullchain.pem \
+                -subj "/CN=sesc.online" >/dev/null 2>&1
+
+              openssl req -x509 -nodes -newkey rsa:2048 -days 1 \
+                -keyout certbot/conf/live/api.sesc.online/privkey.pem \
+                -out certbot/conf/live/api.sesc.online/fullchain.pem \
+                -subj "/CN=api.sesc.online" >/dev/null 2>&1
+
+              # Download TLS parameters
+              curl -s https://raw.githubusercontent.com/certbot/certbot/master/certbot-nginx/certbot_nginx/_internal/tls_configs/options-ssl-nginx.conf > certbot/conf/options-ssl-nginx.conf
+              curl -s https://raw.githubusercontent.com/certbot/certbot/master/certbot/certbot/ssl-dhparams.pem > certbot/conf/ssl-dhparams.pem
+            fi
+
+            echo "🚀 Starting services step by step..."
             
-            # Create dummy certificates
-            mkdir -p certbot/conf/live/sesc.online
-            mkdir -p certbot/conf/live/api.sesc.online
+            # Start infrastructure services first
+            if ! docker-compose -f "$COMPOSE_FILE" up -d postgres minio; then
+              echo "❌ Failed to start infrastructure services"
+              exit 1
+            fi
             
-            openssl req -x509 -nodes -newkey rsa:2048 -days 1 \
-              -keyout certbot/conf/live/sesc.online/privkey.pem \
-              -out certbot/conf/live/sesc.online/fullchain.pem \
-              -subj "/CN=sesc.online" >/dev/null 2>&1
-              
-            openssl req -x509 -nodes -newkey rsa:2048 -days 1 \
-              -keyout certbot/conf/live/api.sesc.online/privkey.pem \
-              -out certbot/conf/live/api.sesc.online/fullchain.pem \
-              -subj "/CN=api.sesc.online" >/dev/null 2>&1
-              
-            # Download TLS parameters
-            curl -s https://raw.githubusercontent.com/certbot/certbot/master/certbot-nginx/certbot_nginx/_internal/tls_configs/options-ssl-nginx.conf > certbot/conf/options-ssl-nginx.conf
-            curl -s https://raw.githubusercontent.com/certbot/certbot/master/certbot/certbot/ssl-dhparams.pem > certbot/conf/ssl-dhparams.pem
-          fi
+            echo "⏳ Waiting for infrastructure to be ready..."
+            sleep 30
+            
+            # Start application services
+            if ! docker-compose -f "$COMPOSE_FILE" up -d backend frontend; then
+              echo "❌ Failed to start application services, rolling back"
+              docker-compose -f "$COMPOSE_FILE" down
+              mv "${COMPOSE_FILE}.backup" "$COMPOSE_FILE"
+              docker-compose -f "$COMPOSE_FILE" up -d
+              exit 1
+            fi
+            
+            echo "⏳ Waiting for applications to be ready..."
+            sleep 20
+            
+            # Start nginx last
+            if ! docker-compose -f "$COMPOSE_FILE" up -d nginx minio-console; then
+              echo "❌ Failed to start nginx"
+              docker-compose -f "$COMPOSE_FILE" logs nginx
+              exit 1
+            fi
 
-          echo "🚀 Starting services..."
-          if ! docker-compose -f "$COMPOSE_FILE" up -d --remove-orphans; then
-            echo "❌ Failed to start services, rolling back"
-            docker-compose -f "$COMPOSE_FILE" down
-            mv "${COMPOSE_FILE}.backup" "$COMPOSE_FILE"
-            docker-compose -f "$COMPOSE_FILE" up -d
-            exit 1
-          fi
+            # Ждем запуска сервисов
+            echo "⏳ Waiting for services to start..."
+            sleep 45
 
-          # Проверяем здоровье сервисов
-          echo "🏥 Checking service health..."
-          sleep 30
-          if ! docker-compose -f "$COMPOSE_FILE" ps | grep -q "healthy\|running"; then
-            echo "⚠️ Some services may not be healthy, but deployment continued"
-          fi
+            # Проверяем статус сервисов
+            echo "🏥 Checking service status..."
+            if docker-compose -f "$COMPOSE_FILE" ps | grep -E "(Up|running)"; then
+              echo "✅ Services are running"
+            else
+              echo "⚠️ Some services may not be running properly"
+            fi
+
+            # Проверяем что nginx запустился
+            echo "🌐 Checking nginx status..."
+            sleep 10
+            if docker-compose -f "$COMPOSE_FILE" ps nginx | grep -q "Up"; then
+              echo "✅ Nginx is running"
+            else
+              echo "⚠️ Nginx failed to start, checking logs..."
+              docker-compose -f "$COMPOSE_FILE" logs --tail=20 nginx
+            fi
 
           # Очищаем старые образы и временные файлы
           docker image prune -f
@@ -99,18 +141,18 @@ jobs:
           echo "✅ Deployment to production complete!"
           echo "📊 Current service status:"
           docker-compose -f "$COMPOSE_FILE" ps
-          
-          echo ""
-          echo "🌐 Services should be available at:"
-          echo "  - https://sesc.online (Frontend)"
-          echo "  - https://api.sesc.online (Backend API)"
-          echo "  - http://your-server-ip:9001 (MinIO Console)"
-          echo ""
-          echo "🔒 SSL Status:"
-          if [ -f "certbot/conf/live/sesc.online/fullchain.pem" ]; then
-            echo "  ✅ SSL certificates are present"
-            echo "  📅 Certificate expiry dates:"
-            openssl x509 -in certbot/conf/live/sesc.online/fullchain.pem -noout -dates 2>/dev/null || echo "  ⚠️  Could not read certificate dates"
-          else
-            echo "  ⚠️  Using dummy certificates - run init-ssl.sh for real SSL"
-          fi
+
+            echo ""
+            echo "🌐 Services should be available at:"
+            echo "  - https://sesc.online (Frontend)"
+            echo "  - https://api.sesc.online (Backend API)"
+            echo "  - http://your-server-ip:9001 (MinIO Console)"
+            echo ""
+            echo "🔒 SSL Status:"
+            if [ -f "certbot/conf/live/sesc.online/fullchain.pem" ]; then
+              echo "  ✅ SSL certificates are present"
+              echo "  📅 Certificate expiry dates:"
+              openssl x509 -in certbot/conf/live/sesc.online/fullchain.pem -noout -dates 2>/dev/null || echo "  ⚠️  Could not read certificate dates"
+            else
+              echo "  ⚠️  Using dummy certificates - run init-ssl.sh for real SSL"
+            fi

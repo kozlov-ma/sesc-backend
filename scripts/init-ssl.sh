@@ -11,7 +11,7 @@ EMAIL="admin@sesc.online"  # Replace with your email
 STAGING=0  # Set to 1 for staging certificates (for testing)
 
 # Paths
-DOCKER_COMPOSE_FILE="/opt/sesc/docker-compose.prod.yml"
+DOCKER_COMPOSE_FILE="/opt/sesc/docker-compose.simple.yml"
 CERTBOT_DATA_PATH="/opt/sesc/certbot"
 NGINX_CONF_PATH="/opt/sesc/nginx"
 
@@ -61,6 +61,13 @@ done
 
 # Start nginx with dummy certificates
 echo "🌐 Starting nginx with dummy certificates..."
+# First start infrastructure services
+docker-compose -f "$DOCKER_COMPOSE_FILE" up -d postgres minio
+sleep 20
+# Then start application services
+docker-compose -f "$DOCKER_COMPOSE_FILE" up -d backend frontend
+sleep 15
+# Finally start nginx
 docker-compose -f "$DOCKER_COMPOSE_FILE" up -d nginx
 
 # Wait for nginx to start
@@ -113,7 +120,7 @@ docker-compose -f "$DOCKER_COMPOSE_FILE" exec nginx nginx -s reload
 # Set up auto-renewal
 echo "⚙️  Setting up auto-renewal..."
 crontab -l 2>/dev/null | grep -v "certbot renew" | crontab -
-(crontab -l 2>/dev/null; echo "0 12 * * * cd /opt/sesc && docker run --rm -v /opt/sesc/certbot/conf:/etc/letsencrypt -v /opt/sesc/certbot/www:/var/www/certbot certbot/certbot renew --quiet && docker-compose -f docker-compose.prod.yml exec nginx nginx -s reload") | crontab -
+(crontab -l 2>/dev/null; echo "0 12 * * * cd /opt/sesc && docker run --rm -v /opt/sesc/certbot/conf:/etc/letsencrypt -v /opt/sesc/certbot/www:/var/www/certbot certbot/certbot renew --quiet && docker-compose -f docker-compose.simple.yml exec nginx nginx -s reload") | crontab -
 
 echo "✅ SSL certificate initialization complete!"
 echo ""
