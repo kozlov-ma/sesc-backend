@@ -32,6 +32,9 @@ jobs:
           # Авторизация в GitHub Container Registry
           echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
 
+          # Создаем необходимые директории
+          mkdir -p certbot/conf certbot/www certbot/logs nginx
+
           # Создаем резервную копию compose файла
           cp "$COMPOSE_FILE" "${COMPOSE_FILE}.backup"
 
@@ -47,6 +50,30 @@ jobs:
             echo "❌ Failed to pull images, restoring backup"
             mv "${COMPOSE_FILE}.backup" "$COMPOSE_FILE"
             exit 1
+          fi
+
+          # Проверяем SSL сертификаты
+          if [ ! -f "certbot/conf/live/sesc.online/fullchain.pem" ]; then
+            echo "⚠️  SSL certificates not found. Please run init-ssl.sh first!"
+            echo "ℹ️  For now, creating dummy certificates to allow nginx to start..."
+            
+            # Create dummy certificates
+            mkdir -p certbot/conf/live/sesc.online
+            mkdir -p certbot/conf/live/api.sesc.online
+            
+            openssl req -x509 -nodes -newkey rsa:2048 -days 1 \
+              -keyout certbot/conf/live/sesc.online/privkey.pem \
+              -out certbot/conf/live/sesc.online/fullchain.pem \
+              -subj "/CN=sesc.online" >/dev/null 2>&1
+              
+            openssl req -x509 -nodes -newkey rsa:2048 -days 1 \
+              -keyout certbot/conf/live/api.sesc.online/privkey.pem \
+              -out certbot/conf/live/api.sesc.online/fullchain.pem \
+              -subj "/CN=api.sesc.online" >/dev/null 2>&1
+              
+            # Download TLS parameters
+            curl -s https://raw.githubusercontent.com/certbot/certbot/master/certbot-nginx/certbot_nginx/_internal/tls_configs/options-ssl-nginx.conf > certbot/conf/options-ssl-nginx.conf
+            curl -s https://raw.githubusercontent.com/certbot/certbot/master/certbot/certbot/ssl-dhparams.pem > certbot/conf/ssl-dhparams.pem
           fi
 
           echo "🚀 Starting services..."
@@ -72,3 +99,18 @@ jobs:
           echo "✅ Deployment to production complete!"
           echo "📊 Current service status:"
           docker-compose -f "$COMPOSE_FILE" ps
+          
+          echo ""
+          echo "🌐 Services should be available at:"
+          echo "  - https://sesc.online (Frontend)"
+          echo "  - https://api.sesc.online (Backend API)"
+          echo "  - http://your-server-ip:9001 (MinIO Console)"
+          echo ""
+          echo "🔒 SSL Status:"
+          if [ -f "certbot/conf/live/sesc.online/fullchain.pem" ]; then
+            echo "  ✅ SSL certificates are present"
+            echo "  📅 Certificate expiry dates:"
+            openssl x509 -in certbot/conf/live/sesc.online/fullchain.pem -noout -dates 2>/dev/null || echo "  ⚠️  Could not read certificate dates"
+          else
+            echo "  ⚠️  Using dummy certificates - run init-ssl.sh for real SSL"
+          fi
