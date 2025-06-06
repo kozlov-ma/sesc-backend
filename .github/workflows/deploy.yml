@@ -1,0 +1,74 @@
+name: Deploy to Production
+
+on:
+  workflow_dispatch:   # Разрешаем запуск вручную
+    inputs:
+      tag:
+        description: 'Docker image tag (default: latest)'
+        required: false
+        default: 'latest'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Deploy via SSH
+      uses: appleboy/ssh-action@v1.0.0
+      with:
+        host: ${{ secrets.SSH_HOST }}
+        username: ${{ secrets.SSH_USER }}
+        key: ${{ secrets.SSH_KEY }}
+        script: |
+          # Путь к production конфигу
+          COMPOSE_FILE="/opt/sesc/docker-compose.prod.yml"
+
+          # Выполняем деплой
+          echo "🔄 Deploying to production with tag ${{ inputs.tag }}"
+          cd /opt/sesc
+
+          # Авторизация в GitHub Container Registry
+          echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+
+          # Создаем резервную копию compose файла
+          cp "$COMPOSE_FILE" "${COMPOSE_FILE}.backup"
+
+          # Обновляем теги образов при необходимости
+          if [ "${{ inputs.tag }}" != "latest" ]; then
+            sed -i "s|backend:latest|backend:${{ inputs.tag }}|g" "$COMPOSE_FILE"
+            sed -i "s|frontend:latest|frontend:${{ inputs.tag }}|g" "$COMPOSE_FILE"
+          fi
+
+          # Выполняем обновление с проверкой успешности
+          echo "🔄 Pulling new images..."
+          if ! docker compose -f "$COMPOSE_FILE" pull; then
+            echo "❌ Failed to pull images, restoring backup"
+            mv "${COMPOSE_FILE}.backup" "$COMPOSE_FILE"
+            exit 1
+          fi
+
+          echo "🚀 Starting services..."
+          if ! docker compose -f "$COMPOSE_FILE" up -d --remove-orphans; then
+            echo "❌ Failed to start services, rolling back"
+            docker compose -f "$COMPOSE_FILE" down
+            mv "${COMPOSE_FILE}.backup" "$COMPOSE_FILE"
+            docker compose -f "$COMPOSE_FILE" up -d
+            exit 1
+          fi
+
+          # Проверяем здоровье сервисов
+          echo "🏥 Checking service health..."
+          sleep 30
+          if ! docker compose -f "$COMPOSE_FILE" ps | grep -q "healthy\|running"; then
+            echo "⚠️ Some services may not be healthy, but deployment continued"
+          fi
+
+          # Очищаем старые образы и временные файлы
+          docker image prune -f
+          rm -f "${COMPOSE_FILE}.backup"
+
+          echo "✅ Deployment to production complete!"
+          echo "📊 Current service status:"
+          docker compose -f "$COMPOSE_FILE" ps
