@@ -51,7 +51,15 @@ services:
       SESC_MINIO_USE_SSL: "false"
       SESC_MINIO_BUCKET_NAME: sesc-files
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/health"]
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost:8080/health",
+        ]
       interval: 30s
       timeout: 10s
       retries: 3

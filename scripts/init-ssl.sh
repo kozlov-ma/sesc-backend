@@ -51,7 +51,7 @@ echo "🔧 Creating dummy certificates..."
 for domain in "${DOMAINS[@]}"; do
     path="/etc/letsencrypt/live/$domain"
     mkdir -p "$CERTBOT_DATA_PATH/conf/live/$domain"
-    
+
     # Generate dummy certificate
     openssl req -x509 -nodes -newkey rsa:2048 -days 1 \
         -keyout "$CERTBOT_DATA_PATH/conf/live/$domain/privkey.pem" \
@@ -86,10 +86,10 @@ fi
 
 for domain in "${DOMAINS[@]}"; do
     echo "📝 Requesting certificate for $domain..."
-    
+
     # Remove dummy certificate
     rm -rf "$CERTBOT_DATA_PATH/conf/live/$domain"
-    
+
     # Request certificate
     docker run --rm \
         -v "$CERTBOT_DATA_PATH/conf:/etc/letsencrypt" \
@@ -104,7 +104,7 @@ for domain in "${DOMAINS[@]}"; do
         --no-eff-email \
         $staging_arg \
         -d "$domain"
-    
+
     if [ $? -eq 0 ]; then
         echo "✅ Certificate for $domain obtained successfully"
     else

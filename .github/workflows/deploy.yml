@@ -83,16 +83,16 @@ jobs:
             fi
 
             echo "🚀 Starting services step by step..."
-            
+
             # Start infrastructure services first
             if ! docker-compose -f "$COMPOSE_FILE" up -d postgres minio; then
               echo "❌ Failed to start infrastructure services"
               exit 1
             fi
-            
+
             echo "⏳ Waiting for infrastructure to be ready..."
             sleep 30
-            
+
             # Start application services
             if ! docker-compose -f "$COMPOSE_FILE" up -d backend frontend; then
               echo "❌ Failed to start application services, rolling back"
@@ -101,10 +101,10 @@ jobs:
               docker-compose -f "$COMPOSE_FILE" up -d
               exit 1
             fi
-            
+
             echo "⏳ Waiting for applications to be ready..."
             sleep 20
-            
+
             # Start nginx last
             if ! docker-compose -f "$COMPOSE_FILE" up -d nginx minio-console; then
               echo "❌ Failed to start nginx"
@@ -140,7 +140,7 @@ jobs:
 
           echo "✅ Deployment to production complete!"
           echo "📊 Current service status:"
-          
+
           docker-compose -f "$COMPOSE_FILE" ps
 
             echo ""
