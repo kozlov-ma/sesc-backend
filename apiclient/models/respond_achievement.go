@@ -34,11 +34,6 @@ type RespondAchievement struct {
 	// Required: true
 	OwnerID *string `json:"ownerId"`
 
-	// owner name
-	// Example: Иванов Иван Иванович
-	// Required: true
-	OwnerName *string `json:"ownerName"`
-
 	// points
 	// Example: 10
 	// Required: true
@@ -77,10 +72,6 @@ func (m *RespondAchievement) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := m.validateOwnerID(formats); err != nil {
-		res = append(res, err)
-	}
-
-	if err := m.validateOwnerName(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -149,15 +140,6 @@ func (m *RespondAchievement) validateID(formats strfmt.Registry) error {
 func (m *RespondAchievement) validateOwnerID(formats strfmt.Registry) error {
 
 	if err := validate.Required("ownerId", "body", m.OwnerID); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (m *RespondAchievement) validateOwnerName(formats strfmt.Registry) error {
-
-	if err := validate.Required("ownerName", "body", m.OwnerName); err != nil {
 		return err
 	}
 

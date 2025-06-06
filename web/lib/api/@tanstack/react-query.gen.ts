@@ -31,6 +31,7 @@ import {
   postFiles,
   deleteFilesById,
   getFilesById,
+  getFilesByIdDownload,
   postReportsMarkAllAccounted,
   getReportsUserPoints,
   getRoles,
@@ -114,6 +115,7 @@ import type {
   DeleteFilesByIdData,
   DeleteFilesByIdError,
   GetFilesByIdData,
+  GetFilesByIdDownloadData,
   PostReportsMarkAllAccountedData,
   PostReportsMarkAllAccountedError,
   PostReportsMarkAllAccountedResponse,
@@ -1371,6 +1373,31 @@ export const getFilesByIdOptions = (options: Options<GetFilesByIdData>) => {
       return data;
     },
     queryKey: getFilesByIdQueryKey(options),
+  });
+};
+
+export const getFilesByIdDownloadQueryKey = (
+  options: Options<GetFilesByIdDownloadData>,
+) => createQueryKey("getFilesByIdDownload", options);
+
+/**
+ * Download file
+ * Redirects to a pre-signed URL for downloading the file
+ */
+export const getFilesByIdDownloadOptions = (
+  options: Options<GetFilesByIdDownloadData>,
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await getFilesByIdDownload({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: getFilesByIdDownloadQueryKey(options),
   });
 };
 

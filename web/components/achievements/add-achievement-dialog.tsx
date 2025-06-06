@@ -24,15 +24,12 @@ import {
   getAchievementGroupsOptions,
   getAchievementTemplatesOptions,
 } from "@/lib/api/@tanstack/react-query.gen";
-import {
-  ApiAchievementGroupResponse,
-  ApiAchievementTemplateResponse,
-} from "@/lib/api/types.gen";
+import { RespondAchievementGroup, RespondAchievementTemplate } from "@/lib/api";
 
 interface AddAchievementDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onAdd: (template: ApiAchievementTemplateResponse) => void;
+  onAdd: (template: RespondAchievementTemplate) => void;
 }
 
 export function AddAchievementDialog({
@@ -41,7 +38,7 @@ export function AddAchievementDialog({
   onAdd,
 }: AddAchievementDialogProps) {
   const [selectedGroup, setSelectedGroup] =
-    useState<ApiAchievementGroupResponse | null>(null);
+    useState<RespondAchievementGroup | null>(null);
   const [search, setSearch] = useState("");
 
   const { data: groups, isLoading: isLoadingGroups } = useQuery({

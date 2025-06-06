@@ -37,7 +37,11 @@ func (s *ACS) GetUserAchievements(
 
 	err := withTx(ctx, s.client, func(tx *ent.Tx) error {
 		var askingUser *ent.User
-		err := rec.Operation("query_asking_user", func(_ *event.Record) (err error) {
+		err := rec.Operation("query_asking_user", func(rec *event.Record) (err error) {
+			rec.Sub("params").Set(
+				"asking_user_id", whosAsking,
+			)
+
 			start := time.Now()
 			askingUser, err = tx.User.Query().
 				Where(user.ID(whosAsking)).
@@ -54,14 +58,19 @@ func (s *ACS) GetUserAchievements(
 				return fmt.Errorf("failed to get asking user: %w", err)
 			}
 
+			rec.Set("asking_user", askingUser)
+
 			return nil
 		})
 		if err != nil {
 			return err
 		}
 
-		err = rec.Operation("count_achievements", func(_ *event.Record) error {
-			// Apply role-based filtering for count
+		err = rec.Operation("count_achievements", func(rec *event.Record) error {
+			rec.Sub("params").Set(
+				"asking_user_role", askingUser.Role.String(),
+				"owner_id", userID,
+			)
 			roleFilter := s.buildRoleBasedFilters(askingUser)
 
 			start := time.Now()
@@ -78,13 +87,20 @@ func (s *ACS) GetUserAchievements(
 			}
 
 			totalAchievements = count
+			rec.Set("total", count)
 			return nil
 		})
 		if err != nil {
 			return err
 		}
 
-		err = rec.Operation("query_achievements", func(_ *event.Record) error {
+		err = rec.Operation("query_achievements", func(rec *event.Record) error {
+			rec.Sub("params").Set(
+				"asking_user_role", askingUser.Role.String(),
+				"limit", limit,
+				"offset", offset,
+				"owner_id", userID,
+			)
 			roleFilter := s.buildRoleBasedFilters(askingUser)
 
 			start := time.Now()
@@ -106,6 +122,7 @@ func (s *ACS) GetUserAchievements(
 				return fmt.Errorf("failed to query achievements: %w", err)
 			}
 
+			rec.Set("n_enities", len(entities))
 			achievementEntities = entities
 			return nil
 		})

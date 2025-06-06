@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/go-chi/chi/v5"
 	"github.com/gofrs/uuid/v5"
+	"github.com/kozlov-ma/sesc-backend/api/param"
 	"github.com/kozlov-ma/sesc-backend/api/respond"
 	"github.com/kozlov-ma/sesc-backend/iam"
 	"github.com/kozlov-ma/sesc-backend/pkg/event"
@@ -21,7 +21,9 @@ func (a *API) FileAccessMiddleware(next http.Handler) http.Handler {
 		rec := event.Get(ctx).Sub("file_access_check")
 
 		// Extract file ID from URL
-		fileID, err := uuid.FromString(chi.URLParam(r, "id"))
+
+		fileID, err := param.PathUUID(r, "id")
+
 		if err != nil {
 			a.writeJSON(ctx, w, respond.WithError(ctx, err))
 			return
@@ -73,7 +75,9 @@ func (a *API) FileEditAccessMiddleware(next http.Handler) http.Handler {
 		rec := event.Get(ctx).Sub("file_access_check")
 
 		// Extract file ID from URL
-		fileID, err := uuid.FromString(chi.URLParam(r, "id"))
+
+		fileID, err := param.PathUUID(r, "id")
+
 		if err != nil {
 			a.writeJSON(ctx, w, respond.WithError(ctx, err))
 			return
@@ -277,7 +281,8 @@ func (a *API) GetFileByID(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	rec := event.Get(ctx).Sub("api/get_file_by_id")
 
-	fileID, err := uuid.FromString(chi.URLParam(r, "id"))
+	fileID, err := param.PathUUID(r, "id")
+
 	if err != nil {
 		a.writeJSON(ctx, w, respond.WithError(ctx, err))
 		return
@@ -313,7 +318,8 @@ func (a *API) DeleteFile(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	rec := event.Get(ctx).Sub("api/delete_file")
 
-	fileID, err := uuid.FromString(chi.URLParam(r, "id"))
+	fileID, err := param.PathUUID(r, "id")
+
 	if err != nil {
 		a.writeJSON(ctx, w, respond.WithError(ctx, err))
 		return
@@ -328,4 +334,47 @@ func (a *API) DeleteFile(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusNoContent)
+}
+
+// DownloadFile redirects to a pre-signed URL for file download
+// @Summary Download file
+// @Description Redirects to a pre-signed URL for downloading the file
+// @Tags files
+// @Accept json
+// @Produce json
+// @Param Authorization header string false "Bearer JWT token"
+// @Param id path string true "File ID"
+// @Success 307
+// @Failure 400 {object} respond.Error
+// @Failure 401 {object} respond.Error "Unauthorized"
+// @Failure 403 {object} respond.Error "Forbidden"
+// @Failure 404 {object} respond.Error
+// @Failure 500 {object} respond.Error
+// @Router /files/{id}/download [get]
+// @Security BearerAuth
+func (a *API) DownloadFile(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	rec := event.Get(ctx).Sub("api/download_file")
+
+	// Extract file ID from URL
+	fileID, err := param.PathUUID(r, "id")
+	if err != nil {
+		a.writeJSON(ctx, w, respond.WithError(ctx, err))
+		return
+	}
+
+	// Get pre-signed download URL
+	downloadURL, err := a.file.DownloadURL(ctx, fileID)
+	if err != nil {
+		if errors.Is(err, sesc.ErrFileNotFound) {
+			a.writeJSON(ctx, w, respond.WithError(ctx, err))
+			return
+		}
+		rec.Add(events.Error, err)
+		a.writeJSON(ctx, w, respond.WithError(ctx, err))
+		return
+	}
+
+	// Redirect to pre-signed URL
+	http.Redirect(w, r, downloadURL, http.StatusTemporaryRedirect)
 }

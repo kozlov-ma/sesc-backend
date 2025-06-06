@@ -11,13 +11,10 @@ import { Download, Sparkles, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { getFilesByIdOptions } from "@/lib/api/@tanstack/react-query.gen";
+import { RespondFile } from "@/lib/api";
 
 interface FileNameDisplayProps {
-  file: {
-    id: string;
-    fileName?: string;
-    downloadUrl?: string;
-  };
+  file: RespondFile;
   className?: string;
 }
 
@@ -58,16 +55,7 @@ export function FileNameByIdDisplay({ fileId, className }: FileByIdProps) {
     );
   }
 
-  return (
-    <FileNameDisplay
-      file={{
-        id: file?.id || fileId,
-        fileName: file?.fileName,
-        downloadUrl: file?.downloadUrl,
-      }}
-      className={className}
-    />
-  );
+  return <FileNameDisplay file={file} className={className} />;
 }
 
 export function FileNameDisplay({ file, className }: FileNameDisplayProps) {
@@ -76,24 +64,25 @@ export function FileNameDisplay({ file, className }: FileNameDisplayProps) {
   );
 
   const handleDownload = () => {
-    if (!file.downloadUrl) return;
-
     const link = document.createElement("a");
-    link.href = file.downloadUrl;
+    link.href =
+      process.env.NEXT_PUBLIC_API_URL + "/files/" + file.id + "/download";
     link.download = file.fileName || "download";
+    link.target = "_blank";
     link.rel = "noopener noreferrer";
+
+    // Append to body, click, and remove
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
   };
 
-  if (!isImage || !file.downloadUrl || !file.fileName) {
+  if (!isImage || !file.fileName) {
     return (
       <Button
         variant="link"
         className={cn("flex items-center gap-2", className)}
         onClick={handleDownload}
-        disabled={!file.downloadUrl}
       >
         <span className="font-medium">{file.fileName || "Файл"}</span>
       </Button>
@@ -117,7 +106,12 @@ export function FileNameDisplay({ file, className }: FileNameDisplayProps) {
         <div className="flex flex-col">
           <div className="flex-1 flex items-center justify-center bg-muted">
             <img
-              src={file.downloadUrl}
+              src={
+                process.env.NEXT_PUBLIC_API_URL +
+                "/files/" +
+                file.id +
+                "/download"
+              }
               alt={file.fileName}
               className="max-h-full max-w-full object-contain"
             />
@@ -126,12 +120,7 @@ export function FileNameDisplay({ file, className }: FileNameDisplayProps) {
             <DialogTitle className="text-sm text-muted-foreground">
               {file.fileName}
             </DialogTitle>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleDownload}
-              disabled={!file.downloadUrl}
-            >
+            <Button variant="outline" size="sm" onClick={handleDownload}>
               <Download className="mr-2 h-4 w-4" />
               Скачать
             </Button>

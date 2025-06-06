@@ -17,7 +17,7 @@ import {
   getAchievementsOptions,
 } from "@/lib/api/@tanstack/react-query.gen";
 import { postFilesMutation } from "@/lib/api/@tanstack/react-query.gen";
-import type { ApiFileResponse } from "@/lib/api/types.gen";
+import type { RespondFile } from "@/lib/api/types.gen";
 import { Upload } from "lucide-react";
 
 interface AddDocumentFormProps {
@@ -32,9 +32,7 @@ export function AddDocumentForm({
   onCancel,
 }: AddDocumentFormProps) {
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedFile, setSelectedFile] = useState<ApiFileResponse | null>(
-    null,
-  );
+  const [selectedFile, setSelectedFile] = useState<RespondFile | null>(null);
   const [documentName, setDocumentName] = useState("");
   const queryClient = useQueryClient();
 
@@ -51,8 +49,8 @@ export function AddDocumentForm({
   // Query for personal files
   const personalFilesQuery = useInfiniteQuery({
     ...filesOpt,
-    getNextPageParam: (lastPage) =>
-      lastPage.items?.length === 10 ? lastPage.totalCount : undefined,
+    getNextPageParam: (lastPage, pages) =>
+      lastPage.files?.length === 10 ? pages?.length || 0 : undefined,
   });
 
   // Query for common files
@@ -64,8 +62,8 @@ export function AddDocumentForm({
         limit: 10,
       },
     }),
-    getNextPageParam: (lastPage) =>
-      lastPage.items?.length === 10 ? lastPage.totalCount : undefined,
+    getNextPageParam: (lastPage, pages) =>
+      lastPage.files?.length === 10 ? pages?.length || 0 : undefined,
   });
 
   // Mutation for uploading file
@@ -117,7 +115,7 @@ export function AddDocumentForm({
     },
   });
 
-  const handleFileSelect = (file: ApiFileResponse) => {
+  const handleFileSelect = (file: RespondFile) => {
     setSelectedFile(file);
     if (!documentName) {
       setDocumentName(file.fileName || "");
@@ -202,7 +200,7 @@ export function AddDocumentForm({
             <ScrollArea className="h-[200px]">
               <div className="space-y-2">
                 {personalFilesQuery.data?.pages.map((page) =>
-                  page.items?.map((file) => (
+                  page.files?.map((file) => (
                     <Card
                       key={file.id}
                       className={`p-3 cursor-pointer transition-colors ${
@@ -224,7 +222,7 @@ export function AddDocumentForm({
             <ScrollArea className="h-[200px]">
               <div className="space-y-2">
                 {commonFilesQuery.data?.pages.map((page) =>
-                  page.items?.map((file) => (
+                  page.files?.map((file) => (
                     <Card
                       key={file.id}
                       className={`p-3 cursor-pointer transition-colors ${

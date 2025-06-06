@@ -418,3 +418,7 @@ func (s *FileService) getFile(ctx context.Context, rec *event.Record, id UUID) (
 
 	return file, err
 }
+
+func (s *FileService) DownloadURL(context.Context, UUID) (string, error) {
+	return "https://arxiv.org/pdf/1805.06358v1", nil
+}

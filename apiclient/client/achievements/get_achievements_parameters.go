@@ -68,6 +68,12 @@ type GetAchievementsParams struct {
 	*/
 	Authorization *string
 
+	/* ID.
+
+	   User's ID
+	*/
+	ID *string
+
 	/* Limit.
 
 	   Pagination limit
@@ -160,6 +166,17 @@ func (o *GetAchievementsParams) SetAuthorization(authorization *string) {
 	o.Authorization = authorization
 }
 
+// WithID adds the id to the get achievements params
+func (o *GetAchievementsParams) WithID(id *string) *GetAchievementsParams {
+	o.SetID(id)
+	return o
+}
+
+// SetID adds the id to the get achievements params
+func (o *GetAchievementsParams) SetID(id *string) {
+	o.ID = id
+}
+
 // WithLimit adds the limit to the get achievements params
 func (o *GetAchievementsParams) WithLimit(limit *int64) *GetAchievementsParams {
 	o.SetLimit(limit)
@@ -195,6 +212,23 @@ func (o *GetAchievementsParams) WriteToRequest(r runtime.ClientRequest, reg strf
 		// header param Authorization
 		if err := r.SetHeaderParam("Authorization", *o.Authorization); err != nil {
 			return err
+		}
+	}
+
+	if o.ID != nil {
+
+		// query param id
+		var qrID string
+
+		if o.ID != nil {
+			qrID = *o.ID
+		}
+		qID := qrID
+		if qID != "" {
+
+			if err := r.SetQueryParam("id", qID); err != nil {
+				return err
+			}
 		}
 	}
 

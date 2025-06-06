@@ -1,8 +1,11 @@
 package param
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
+
+	"github.com/gofrs/uuid/v5"
 )
 
 func QueryInt(r *http.Request, name string) (int, error) {
@@ -61,4 +64,22 @@ func ParsePagination(r *http.Request) (offset, limit int, err error) {
 	}
 
 	return offset, limit, nil
+}
+
+func QueryUUID(r *http.Request, name string) (uuid.UUID, error) {
+	if name == "" {
+		panic("empty string cannot be a query param key")
+	}
+
+	ids := r.FormValue(name)
+	if ids == "" {
+		return uuid.UUID{}, ErrInvalid(fmt.Sprintf("Query: %s", name))
+	}
+
+	id, err := uuid.FromString(ids)
+	if err != nil {
+		return id, ErrInvalid(fmt.Sprintf("Query: %s", name))
+	}
+
+	return id, nil
 }

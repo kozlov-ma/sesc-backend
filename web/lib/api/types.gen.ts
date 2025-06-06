@@ -120,7 +120,6 @@ export type RespondAchievement = {
   documents: Array<RespondDocument>;
   id: string;
   ownerId: string;
-  ownerName: string;
   points: number;
   reviews: Array<RespondReview>;
   status: string;
@@ -146,10 +145,8 @@ export type RespondAchievementTemplate = {
 };
 
 export type RespondAchievements = {
-  items: Array<RespondAchievement>;
-  limit: number;
-  offset: number;
-  totalCount: number;
+  achievements: Array<RespondAchievement>;
+  total: number;
 };
 
 export type RespondDepartment = {
@@ -193,7 +190,6 @@ export type RespondReview = {
   id: string;
   pointsAssigned: number;
   reviewerId: string;
-  reviewerName: string;
 };
 
 export type RespondRole = {
@@ -224,24 +220,9 @@ export type RespondUser = {
   unemploymentDate?: string;
 };
 
-export type RespondUserWithAchievements = {
-  firstName: string;
-  id: string;
-  lastName: string;
-  middleName?: string;
-  role: string;
-};
-
 export type RespondUsers = {
   total: number;
   users: Array<RespondUser>;
-};
-
-export type RespondUsersWithAchievements = {
-  items: Array<RespondUserWithAchievements>;
-  limit: number;
-  offset: number;
-  totalCount: number;
 };
 
 export type GetAchievementGroupsData = {
@@ -568,6 +549,10 @@ export type GetAchievementsData = {
      * Pagination limit
      */
     limit?: number;
+    /**
+     * User's ID
+     */
+    id?: string;
   };
   url: "/achievements";
 };
@@ -696,7 +681,7 @@ export type GetAchievementsUsersResponses = {
   /**
    * OK
    */
-  200: RespondUsersWithAchievements;
+  200: RespondUsers;
 };
 
 export type GetAchievementsUsersResponse =
@@ -1687,6 +1672,50 @@ export type GetFilesByIdResponses = {
 
 export type GetFilesByIdResponse =
   GetFilesByIdResponses[keyof GetFilesByIdResponses];
+
+export type GetFilesByIdDownloadData = {
+  body?: never;
+  headers?: {
+    /**
+     * Bearer JWT token
+     */
+    Authorization?: string;
+  };
+  path: {
+    /**
+     * File ID
+     */
+    id: string;
+  };
+  query?: never;
+  url: "/files/{id}/download";
+};
+
+export type GetFilesByIdDownloadErrors = {
+  /**
+   * Bad Request
+   */
+  400: RespondError;
+  /**
+   * Unauthorized
+   */
+  401: RespondError;
+  /**
+   * Forbidden
+   */
+  403: RespondError;
+  /**
+   * Not Found
+   */
+  404: RespondError;
+  /**
+   * Internal Server Error
+   */
+  500: RespondError;
+};
+
+export type GetFilesByIdDownloadError =
+  GetFilesByIdDownloadErrors[keyof GetFilesByIdDownloadErrors];
 
 export type PostReportsMarkAllAccountedData = {
   body?: never;

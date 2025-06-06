@@ -25,11 +25,14 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import type { ApiDepartment } from "@/lib/api/types.gen";
 import { ErrorMessage } from "@/components/ui/error-message";
 import { useFormError } from "@/hooks/use-error-handler";
 import { getErrorMessage } from "@/lib/error-handler";
-import { postDepartmentsMutation, putDepartmentsByIdMutation } from "@/lib/api/@tanstack/react-query.gen";
+import {
+  postDepartmentsMutation,
+  putDepartmentsByIdMutation,
+} from "@/lib/api/@tanstack/react-query.gen";
+import { RespondDepartment } from "@/lib/api";
 
 const departmentFormSchema = z.object({
   name: z.string().min(1, "Введите название кафедры"),
@@ -41,7 +44,7 @@ type DepartmentFormValues = z.infer<typeof departmentFormSchema>;
 interface DepartmentFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  department?: ApiDepartment;
+  department?: RespondDepartment;
   onSuccess?: () => void;
 }
 
@@ -137,7 +140,8 @@ export function DepartmentFormDialog({
     }
   };
 
-  const isLoading = createDepartmentMutation.isPending || updateDepartmentMutation.isPending;
+  const isLoading =
+    createDepartmentMutation.isPending || updateDepartmentMutation.isPending;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -207,8 +211,8 @@ export function DepartmentFormDialog({
                     ? "Сохранение..."
                     : "Создание..."
                   : department
-                  ? "Сохранить"
-                  : "Создать"}
+                    ? "Сохранить"
+                    : "Создать"}
               </Button>
             </DialogFooter>
           </form>

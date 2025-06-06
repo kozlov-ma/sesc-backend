@@ -319,9 +319,6 @@ definitions:
       ownerId:
         example: 550e8400-e29b-41d4-a716-446655440000
         type: string
-      ownerName:
-        example: Иванов Иван Иванович
-        type: string
       points:
         example: 10
         type: integer
@@ -342,7 +339,6 @@ definitions:
     - documents
     - id
     - ownerId
-    - ownerName
     - points
     - reviews
     - status
@@ -407,21 +403,15 @@ definitions:
     type: object
   respond.Achievements:
     properties:
-      items:
+      achievements:
         items:
           $ref: '#/definitions/respond.Achievement'
         type: array
-      limit:
-        type: integer
-      offset:
-        type: integer
-      totalCount:
+      total:
         type: integer
     required:
-    - items
-    - limit
-    - offset
-    - totalCount
+    - achievements
+    - total
     type: object
   respond.Department:
     properties:
@@ -512,14 +502,10 @@ definitions:
       reviewerId:
         example: 550e8400-e29b-41d4-a716-446655440000
         type: string
-      reviewerName:
-        example: Петров Петр Петрович
-        type: string
     required:
     - id
     - pointsAssigned
     - reviewerId
-    - reviewerName
     type: object
   respond.Role:
     properties:
@@ -606,29 +592,6 @@ definitions:
     - subdivision
     - suspended
     type: object
-  respond.UserWithAchievements:
-    properties:
-      firstName:
-        example: Иван
-        type: string
-      id:
-        example: 550e8400-e29b-41d4-a716-446655440000
-        type: string
-      lastName:
-        example: Иванов
-        type: string
-      middleName:
-        example: Иванович
-        type: string
-      role:
-        example: teacher
-        type: string
-    required:
-    - firstName
-    - id
-    - lastName
-    - role
-    type: object
   respond.Users:
     properties:
       total:
@@ -640,24 +603,6 @@ definitions:
     required:
     - total
     - users
-    type: object
-  respond.UsersWithAchievements:
-    properties:
-      items:
-        items:
-          $ref: '#/definitions/respond.UserWithAchievements'
-        type: array
-      limit:
-        type: integer
-      offset:
-        type: integer
-      totalCount:
-        type: integer
-    required:
-    - items
-    - limit
-    - offset
-    - totalCount
     type: object
 info:
   contact: {}
@@ -960,6 +905,10 @@ paths:
         minimum: 1
         name: limit
         type: integer
+      - description: User's ID
+        in: query
+        name: id
+        type: string
       produces:
       - application/json
       responses:
@@ -1340,7 +1289,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/respond.UsersWithAchievements'
+            $ref: '#/definitions/respond.Users'
         "400":
           description: Invalid request parameters
           schema:
@@ -1918,6 +1867,51 @@ paths:
       security:
       - BearerAuth: []
       summary: Get file by ID
+      tags:
+      - files
+  /files/{id}/download:
+    get:
+      consumes:
+      - application/json
+      description: Redirects to a pre-signed URL for downloading the file
+      parameters:
+      - description: Bearer JWT token
+        in: header
+        name: Authorization
+        type: string
+      - description: File ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "307":
+          description: Temporary Redirect
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/respond.Error'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/respond.Error'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/respond.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/respond.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/respond.Error'
+      security:
+      - BearerAuth: []
+      summary: Download file
       tags:
       - files
   /reports/mark-all-accounted:

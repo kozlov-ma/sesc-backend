@@ -399,7 +399,6 @@ export const respond_AchievementSchema = {
     "documents",
     "id",
     "ownerId",
-    "ownerName",
     "points",
     "reviews",
     "status",
@@ -420,10 +419,6 @@ export const respond_AchievementSchema = {
     ownerId: {
       type: "string",
       example: "550e8400-e29b-41d4-a716-446655440000",
-    },
-    ownerName: {
-      type: "string",
-      example: "Иванов Иван Иванович",
     },
     points: {
       type: "integer",
@@ -519,21 +514,15 @@ export const respond_AchievementTemplateSchema = {
 
 export const respond_AchievementsSchema = {
   type: "object",
-  required: ["items", "limit", "offset", "totalCount"],
+  required: ["achievements", "total"],
   properties: {
-    items: {
+    achievements: {
       type: "array",
       items: {
         $ref: "#/definitions/respond.Achievement",
       },
     },
-    limit: {
-      type: "integer",
-    },
-    offset: {
-      type: "integer",
-    },
-    totalCount: {
+    total: {
       type: "integer",
     },
   },
@@ -646,7 +635,7 @@ export const respond_FilesSchema = {
 
 export const respond_ReviewSchema = {
   type: "object",
-  required: ["id", "pointsAssigned", "reviewerId", "reviewerName"],
+  required: ["id", "pointsAssigned", "reviewerId"],
   properties: {
     comment: {
       type: "string",
@@ -663,10 +652,6 @@ export const respond_ReviewSchema = {
     reviewerId: {
       type: "string",
       example: "550e8400-e29b-41d4-a716-446655440000",
-    },
-    reviewerName: {
-      type: "string",
-      example: "Петров Петр Петрович",
     },
   },
 } as const;
@@ -782,33 +767,6 @@ export const respond_UserSchema = {
   },
 } as const;
 
-export const respond_UserWithAchievementsSchema = {
-  type: "object",
-  required: ["firstName", "id", "lastName", "role"],
-  properties: {
-    firstName: {
-      type: "string",
-      example: "Иван",
-    },
-    id: {
-      type: "string",
-      example: "550e8400-e29b-41d4-a716-446655440000",
-    },
-    lastName: {
-      type: "string",
-      example: "Иванов",
-    },
-    middleName: {
-      type: "string",
-      example: "Иванович",
-    },
-    role: {
-      type: "string",
-      example: "teacher",
-    },
-  },
-} as const;
-
 export const respond_UsersSchema = {
   type: "object",
   required: ["total", "users"],
@@ -821,28 +779,6 @@ export const respond_UsersSchema = {
       items: {
         $ref: "#/definitions/respond.User",
       },
-    },
-  },
-} as const;
-
-export const respond_UsersWithAchievementsSchema = {
-  type: "object",
-  required: ["items", "limit", "offset", "totalCount"],
-  properties: {
-    items: {
-      type: "array",
-      items: {
-        $ref: "#/definitions/respond.UserWithAchievements",
-      },
-    },
-    limit: {
-      type: "integer",
-    },
-    offset: {
-      type: "integer",
-    },
-    totalCount: {
-      type: "integer",
     },
   },
 } as const;

@@ -20,40 +20,24 @@ import (
 // swagger:model respond.Achievements
 type RespondAchievements struct {
 
-	// items
+	// achievements
 	// Required: true
-	Items []*RespondAchievement `json:"items"`
+	Achievements []*RespondAchievement `json:"achievements"`
 
-	// limit
+	// total
 	// Required: true
-	Limit *int64 `json:"limit"`
-
-	// offset
-	// Required: true
-	Offset *int64 `json:"offset"`
-
-	// total count
-	// Required: true
-	TotalCount *int64 `json:"totalCount"`
+	Total *int64 `json:"total"`
 }
 
 // Validate validates this respond achievements
 func (m *RespondAchievements) Validate(formats strfmt.Registry) error {
 	var res []error
 
-	if err := m.validateItems(formats); err != nil {
+	if err := m.validateAchievements(formats); err != nil {
 		res = append(res, err)
 	}
 
-	if err := m.validateLimit(formats); err != nil {
-		res = append(res, err)
-	}
-
-	if err := m.validateOffset(formats); err != nil {
-		res = append(res, err)
-	}
-
-	if err := m.validateTotalCount(formats); err != nil {
+	if err := m.validateTotal(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -63,23 +47,23 @@ func (m *RespondAchievements) Validate(formats strfmt.Registry) error {
 	return nil
 }
 
-func (m *RespondAchievements) validateItems(formats strfmt.Registry) error {
+func (m *RespondAchievements) validateAchievements(formats strfmt.Registry) error {
 
-	if err := validate.Required("items", "body", m.Items); err != nil {
+	if err := validate.Required("achievements", "body", m.Achievements); err != nil {
 		return err
 	}
 
-	for i := 0; i < len(m.Items); i++ {
-		if swag.IsZero(m.Items[i]) { // not required
+	for i := 0; i < len(m.Achievements); i++ {
+		if swag.IsZero(m.Achievements[i]) { // not required
 			continue
 		}
 
-		if m.Items[i] != nil {
-			if err := m.Items[i].Validate(formats); err != nil {
+		if m.Achievements[i] != nil {
+			if err := m.Achievements[i].Validate(formats); err != nil {
 				if ve, ok := err.(*errors.Validation); ok {
-					return ve.ValidateName("items" + "." + strconv.Itoa(i))
+					return ve.ValidateName("achievements" + "." + strconv.Itoa(i))
 				} else if ce, ok := err.(*errors.CompositeError); ok {
-					return ce.ValidateName("items" + "." + strconv.Itoa(i))
+					return ce.ValidateName("achievements" + "." + strconv.Itoa(i))
 				}
 				return err
 			}
@@ -90,27 +74,9 @@ func (m *RespondAchievements) validateItems(formats strfmt.Registry) error {
 	return nil
 }
 
-func (m *RespondAchievements) validateLimit(formats strfmt.Registry) error {
+func (m *RespondAchievements) validateTotal(formats strfmt.Registry) error {
 
-	if err := validate.Required("limit", "body", m.Limit); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (m *RespondAchievements) validateOffset(formats strfmt.Registry) error {
-
-	if err := validate.Required("offset", "body", m.Offset); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (m *RespondAchievements) validateTotalCount(formats strfmt.Registry) error {
-
-	if err := validate.Required("totalCount", "body", m.TotalCount); err != nil {
+	if err := validate.Required("total", "body", m.Total); err != nil {
 		return err
 	}
 
@@ -121,7 +87,7 @@ func (m *RespondAchievements) validateTotalCount(formats strfmt.Registry) error 
 func (m *RespondAchievements) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	var res []error
 
-	if err := m.contextValidateItems(ctx, formats); err != nil {
+	if err := m.contextValidateAchievements(ctx, formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -131,21 +97,21 @@ func (m *RespondAchievements) ContextValidate(ctx context.Context, formats strfm
 	return nil
 }
 
-func (m *RespondAchievements) contextValidateItems(ctx context.Context, formats strfmt.Registry) error {
+func (m *RespondAchievements) contextValidateAchievements(ctx context.Context, formats strfmt.Registry) error {
 
-	for i := 0; i < len(m.Items); i++ {
+	for i := 0; i < len(m.Achievements); i++ {
 
-		if m.Items[i] != nil {
+		if m.Achievements[i] != nil {
 
-			if swag.IsZero(m.Items[i]) { // not required
+			if swag.IsZero(m.Achievements[i]) { // not required
 				return nil
 			}
 
-			if err := m.Items[i].ContextValidate(ctx, formats); err != nil {
+			if err := m.Achievements[i].ContextValidate(ctx, formats); err != nil {
 				if ve, ok := err.(*errors.Validation); ok {
-					return ve.ValidateName("items" + "." + strconv.Itoa(i))
+					return ve.ValidateName("achievements" + "." + strconv.Itoa(i))
 				} else if ce, ok := err.(*errors.CompositeError); ok {
-					return ce.ValidateName("items" + "." + strconv.Itoa(i))
+					return ce.ValidateName("achievements" + "." + strconv.Itoa(i))
 				}
 				return err
 			}

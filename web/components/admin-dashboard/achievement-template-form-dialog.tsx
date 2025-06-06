@@ -15,7 +15,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { ApiAchievementTemplateResponse } from "@/lib/api/types.gen";
 import { Loader2 } from "lucide-react";
 import {
   Select,
@@ -34,6 +33,7 @@ import { AxiosError } from "axios";
 import type {
   PostAchievementTemplatesError,
   PatchAchievementTemplatesByIdError,
+  RespondAchievementTemplate,
 } from "@/lib/api/types.gen";
 
 const formSchema = z
@@ -66,7 +66,7 @@ type FormValues = z.infer<typeof formSchema>;
 interface AchievementTemplateFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  template?: ApiAchievementTemplateResponse;
+  template?: RespondAchievementTemplate;
   groupId?: string;
   onSuccess?: () => void;
 }

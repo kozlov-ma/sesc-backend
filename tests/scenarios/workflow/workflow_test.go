@@ -7,8 +7,10 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/kozlov-ma/sesc-backend/apiclient/models"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"golang.org/x/sync/errgroup"
 )
 
 const (
@@ -509,14 +511,29 @@ func stepDepartmentHeadReview(t *testing.T, data *TestData) {
 	for _, depHead := range data.DepHeads {
 		data.Client.SetUserAuth(depHead.Token)
 
-		// Get achievements to review
-		achievements, err := data.Client.GetUserAchievements()
+		users, err := data.Client.GetUsersWithAchievements()
+		require.NoError(t, err, "Department head should be able to get users to review their achievements")
+
+		aa := make(chan *models.RespondAchievement, 999)
+
+		var eg errgroup.Group
+		for _, u := range users {
+			eg.Go(func() error {
+				achievements, err := data.Client.GetUserAchievements(u.ID)
+				for _, a := range achievements {
+					aa <- a
+				}
+				return err
+			})
+		}
+		err = eg.Wait()
+		close(aa)
 		require.NoError(t, err, "Department head should be able to get achievements to review")
 
 		reviewedCount := 0
-		for _, achievement := range achievements {
+		for achievement := range aa {
 			// Review the achievement with assigned points
-			err := data.Client.ReviewAchievement(*achievement.ID, 45, "Approved by department head")
+			err := data.Client.ReviewAchievement(*achievement.ID, 3, "Approved by department head")
 			require.NoError(t, err, "Department head should be able to review achievement %s", *achievement.ID)
 			reviewedCount++
 		}
@@ -532,21 +549,34 @@ func stepDepartmentHeadReview(t *testing.T, data *TestData) {
 func stepSecondaryReview(t *testing.T, data *TestData) {
 	t.Log("Secondary Review")
 
-	// Secondary reviewers include deputies and academic director
-	//nolint:gocritic // wtf, why is this not handled by default.
-	secondaryReviewers := append(data.Deputies, data.AcademicDir)
+	secondaryReviewers := data.Deputies
 
 	for _, reviewer := range secondaryReviewers {
 		data.Client.SetUserAuth(reviewer.Token)
 
-		// Get achievements to review
-		achievements, err := data.Client.GetUserAchievements()
-		require.NoError(t, err, "Secondary reviewer should be able to get achievements to review")
+		users, err := data.Client.GetUsersWithAchievements()
+		require.NoError(t, err, "Secondary reviewer head should be able to get users to review their achievements")
+
+		aa := make(chan *models.RespondAchievement, 999)
+
+		var eg errgroup.Group
+		for _, u := range users {
+			eg.Go(func() error {
+				achievements, err := data.Client.GetUserAchievements(u.ID)
+				for _, a := range achievements {
+					aa <- a
+				}
+				return err
+			})
+		}
+		err = eg.Wait()
+		close(aa)
+		require.NoError(t, err, "Secondary reviewer head should be able to get achievements to review")
 
 		reviewedCount := 0
-		for _, achievement := range achievements {
+		for achievement := range aa {
 			// Provide final approval
-			err := data.Client.ReviewAchievement(*achievement.ID, 50, "Final approval by secondary reviewer")
+			err := data.Client.ReviewAchievement(*achievement.ID, 2, "Final approval by secondary reviewer")
 			require.NoError(t, err, "Secondary reviewer should be able to review achievement %s", *achievement.ID)
 			reviewedCount++
 		}
@@ -566,7 +596,7 @@ func stepUserVerificationDone(t *testing.T, data *TestData) {
 		data.Client.SetUserAuth(user.Token)
 
 		// Get user's achievements
-		achievements, err := data.Client.GetUserAchievements()
+		achievements, err := data.Client.GetUserAchievements(nil)
 		require.NoError(t, err, "User %s should be able to get their achievements", user.Username)
 
 		doneCount := 0
@@ -612,7 +642,7 @@ func stepUserVerificationAccounted(t *testing.T, data *TestData) {
 		data.Client.SetUserAuth(user.Token)
 
 		// Get user's achievements
-		achievements, err := data.Client.GetUserAchievements()
+		achievements, err := data.Client.GetUserAchievements(nil)
 		require.NoError(t, err, "User %s should be able to get their achievements", user.Username)
 
 		accountedCount := 0

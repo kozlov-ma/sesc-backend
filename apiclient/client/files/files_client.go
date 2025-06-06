@@ -86,6 +86,8 @@ type ClientService interface {
 
 	GetFilesID(params *GetFilesIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetFilesIDOK, error)
 
+	GetFilesIDDownload(params *GetFilesIDDownloadParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) error
+
 	PostFiles(params *PostFilesParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostFilesCreated, error)
 
 	SetTransport(transport runtime.ClientTransport)
@@ -212,6 +214,40 @@ func (a *Client) GetFilesID(params *GetFilesIDParams, authInfo runtime.ClientAut
 	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
 	msg := fmt.Sprintf("unexpected success response for GetFilesID: API contract not enforced by server. Client expected to get an error, but got: %T", result)
 	panic(msg)
+}
+
+/*
+GetFilesIDDownload downloads file
+
+Redirects to a pre-signed URL for downloading the file
+*/
+func (a *Client) GetFilesIDDownload(params *GetFilesIDDownloadParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) error {
+	// TODO: Validate the params before sending
+	if params == nil {
+		params = NewGetFilesIDDownloadParams()
+	}
+	op := &runtime.ClientOperation{
+		ID:                 "GetFilesIDDownload",
+		Method:             "GET",
+		PathPattern:        "/files/{id}/download",
+		ProducesMediaTypes: []string{"application/json"},
+		ConsumesMediaTypes: []string{"application/json"},
+		Schemes:            []string{"http"},
+		Params:             params,
+		Reader:             &GetFilesIDDownloadReader{formats: a.formats},
+		AuthInfo:           authInfo,
+		Context:            params.Context,
+		Client:             params.HTTPClient,
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	_, err := a.transport.Submit(op)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 /*

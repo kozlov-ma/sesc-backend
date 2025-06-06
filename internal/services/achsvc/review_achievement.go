@@ -83,7 +83,12 @@ func (s *ACS) ReviewAchievement(
 			return err
 		}
 
-		err = rec.Operation("validate_review", func(_ *event.Record) error {
+		err = rec.Operation("validate_review", func(rec *event.Record) error {
+			rec.Sub("params").Set(
+				"reviewer_role", reviewer.Role.String(),
+				"ach_status", ach.Status,
+			)
+
 			currentStatus := achievement.Status(ach.Status)
 			if currentStatus != achievement.StatusDepheadReview && currentStatus != achievement.StatusInspectorReview {
 				return achievement.ErrWrongAchievementStatus
@@ -157,7 +162,7 @@ func (s *ACS) ReviewAchievement(
 			}
 
 			start := time.Now()
-			updated, err := tx.Achievement.UpdateOne(ach).
+			_, err := tx.Achievement.UpdateOne(ach).
 				SetStatus(string(newStatus)).
 				SetPoints(opt.PointsAssigned).
 				Save(ctx)
@@ -167,8 +172,24 @@ func (s *ACS) ReviewAchievement(
 			if err != nil {
 				return fmt.Errorf("failed to update achievement: %w", err)
 			}
+			return nil
+		})
+		if err != nil {
+			return err
+		}
 
-			updatedAch = updated
+		err = rec.Operation("query_updated", func(_ *event.Record) error {
+			var err error
+			updatedAch, err = tx.Achievement.Query().
+				Where(entAchievement.ID(ach.ID)).
+				WithDocuments().
+				WithOwner().
+				WithReviews().
+				WithTemplate().
+				Only(ctx)
+			if err != nil {
+				return fmt.Errorf("failed to query updated achievement: %w", err)
+			}
 			return nil
 		})
 		if err != nil {

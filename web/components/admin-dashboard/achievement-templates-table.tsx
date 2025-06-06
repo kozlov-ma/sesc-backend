@@ -20,10 +20,10 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type {
-  ApiAchievementTemplateResponse,
-  ApiAchievementGroupResponse,
   PatchAchievementGroupsByIdError,
   PatchAchievementTemplatesByIdError,
+  RespondAchievementGroup,
+  RespondAchievementTemplate,
 } from "@/lib/api/types.gen";
 import { ErrorMessage } from "@/components/ui/error-message";
 import {
@@ -62,9 +62,7 @@ import React from "react";
 import { ExpandableText } from "@/components/ui/expandable-text";
 
 const StatusColumnContent = ({ children }: { children: React.ReactNode }) => (
-  <div className="flex justify-center w-full">
-    {children}
-  </div>
+  <div className="flex justify-center w-full">{children}</div>
 );
 
 export function AchievementTemplatesTable() {
@@ -72,14 +70,14 @@ export function AchievementTemplatesTable() {
   const [templateFormOpen, setTemplateFormOpen] = useState(false);
   const [groupFormOpen, setGroupFormOpen] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<
-    ApiAchievementTemplateResponse | undefined
+    RespondAchievementTemplate | undefined
   >(undefined);
   const [selectedGroup, setSelectedGroup] = useState<
-    ApiAchievementGroupResponse | undefined
+    RespondAchievementGroup | undefined
   >(undefined);
   const [deactivateDialogOpen, setDeactivateDialogOpen] = useState(false);
   const [itemToDeactivate, setItemToDeactivate] = useState<
-    ApiAchievementTemplateResponse | ApiAchievementGroupResponse | undefined
+    RespondAchievementTemplate | RespondAchievementGroup | undefined
   >(undefined);
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
   const [selectedGroupId, setSelectedGroupId] = useState<string | undefined>(
@@ -150,7 +148,7 @@ export function AchievementTemplatesTable() {
     setTemplateFormOpen(true);
   };
 
-  const openEditTemplateDialog = (template: ApiAchievementTemplateResponse) => {
+  const openEditTemplateDialog = (template: RespondAchievementTemplate) => {
     setSelectedTemplate(template);
     setTemplateFormOpen(true);
   };
@@ -160,13 +158,13 @@ export function AchievementTemplatesTable() {
     setGroupFormOpen(true);
   };
 
-  const openEditGroupDialog = (group: ApiAchievementGroupResponse) => {
+  const openEditGroupDialog = (group: RespondAchievementGroup) => {
     setSelectedGroup(group);
     setGroupFormOpen(true);
   };
 
   const openDeactivateDialog = (
-    item: ApiAchievementTemplateResponse | ApiAchievementGroupResponse,
+    item: RespondAchievementTemplate | RespondAchievementGroup,
   ) => {
     setItemToDeactivate(item);
     setDeactivateDialogOpen(true);
@@ -265,10 +263,18 @@ export function AchievementTemplatesTable() {
             <TableHeader>
               <TableRow>
                 <TableHead className="text-pretty w-[45%]">Название</TableHead>
-                <TableHead className="hidden sm:table-cell text-pretty w-[22%]">Описание</TableHead>
-                <TableHead className="hidden md:table-cell text-pretty text-right w-[18%]">Тип</TableHead>
-                <TableHead className="text-center hidden lg:table-cell text-pretty w-[7%]">Баллы</TableHead>
-                <TableHead className="text-center text-pretty w-[8%]">Статус</TableHead>
+                <TableHead className="hidden sm:table-cell text-pretty w-[22%]">
+                  Описание
+                </TableHead>
+                <TableHead className="hidden md:table-cell text-pretty text-right w-[18%]">
+                  Тип
+                </TableHead>
+                <TableHead className="text-center hidden lg:table-cell text-pretty w-[7%]">
+                  Баллы
+                </TableHead>
+                <TableHead className="text-center text-pretty w-[8%]">
+                  Статус
+                </TableHead>
                 <TableHead className="w-[60px]"></TableHead>
               </TableRow>
             </TableHeader>
@@ -292,30 +298,32 @@ export function AchievementTemplatesTable() {
                             )}
                           </Button>
                           <div className="min-w-0 flex-1">
-                            <ExpandableText 
-                              text={group.name} 
-                              maxLength={80} 
-                              className="text-pretty break-words whitespace-normal" 
+                            <ExpandableText
+                              text={group.name}
+                              maxLength={80}
+                              className="text-pretty break-words whitespace-normal"
                             />
                             <div className="block sm:hidden text-xs text-muted-foreground mt-1">
-                              <ExpandableText 
-                                text={group.description} 
-                                maxLength={100} 
-                                className="text-pretty break-words whitespace-normal" 
+                              <ExpandableText
+                                text={group.description}
+                                maxLength={100}
+                                className="text-pretty break-words whitespace-normal"
                               />
                             </div>
                           </div>
                         </div>
                       </TableCell>
                       <TableCell className="hidden sm:table-cell align-top py-3">
-                        <ExpandableText 
-                          text={group.description} 
-                          maxLength={150} 
-                          className="text-pretty break-words whitespace-normal" 
+                        <ExpandableText
+                          text={group.description}
+                          maxLength={150}
+                          className="text-pretty break-words whitespace-normal"
                         />
                       </TableCell>
                       <TableCell className="hidden md:table-cell align-top py-3 text-right">
-                        <span className="text-muted-foreground text-pretty">-</span>
+                        <span className="text-muted-foreground text-pretty">
+                          -
+                        </span>
                       </TableCell>
                       <TableCell className="hidden lg:table-cell align-top py-3 text-center">
                         <span className="text-muted-foreground">-</span>
@@ -353,7 +361,9 @@ export function AchievementTemplatesTable() {
                               Редактировать
                             </DropdownMenuItem>
                             <DropdownMenuItem
-                              onClick={() => openCreateTemplateInGroup(group.id)}
+                              onClick={() =>
+                                openCreateTemplateInGroup(group.id)
+                              }
                             >
                               Добавить шаблон
                             </DropdownMenuItem>
@@ -380,22 +390,25 @@ export function AchievementTemplatesTable() {
                           <TableRow key={template.id} className="bg-background">
                             <TableCell className="font-medium pl-8 sm:pl-12 align-top py-3">
                               <div className="min-w-0">
-                                <ExpandableText 
-                                  text={template.name} 
-                                  maxLength={80} 
-                                  className="text-pretty break-words whitespace-normal" 
+                                <ExpandableText
+                                  text={template.name}
+                                  maxLength={80}
+                                  className="text-pretty break-words whitespace-normal"
                                 />
                                 <div className="block sm:hidden text-xs text-muted-foreground mt-1 space-y-1">
-                                  <ExpandableText 
-                                    text={template.description} 
-                                    maxLength={100} 
-                                    className="text-pretty break-words whitespace-normal" 
+                                  <ExpandableText
+                                    text={template.description}
+                                    maxLength={100}
+                                    className="text-pretty break-words whitespace-normal"
                                   />
                                   <div className="flex gap-1 text-xs text-pretty">
                                     <span>
-                                      {template.kind === "olympiad" && "Олимпиада"}
-                                      {template.kind === "development" && "Развитие"}
-                                      {template.kind === "scientific" && "Наука"}
+                                      {template.kind === "olympiad" &&
+                                        "Олимпиада"}
+                                      {template.kind === "development" &&
+                                        "Развитие"}
+                                      {template.kind === "scientific" &&
+                                        "Наука"}
                                     </span>
                                     <span>•</span>
                                     <span>{template.pointsLimit}б</span>
@@ -404,17 +417,19 @@ export function AchievementTemplatesTable() {
                               </div>
                             </TableCell>
                             <TableCell className="hidden sm:table-cell align-top py-3">
-                              <ExpandableText 
-                                text={template.description} 
-                                maxLength={150} 
-                                className="text-pretty break-words whitespace-normal" 
+                              <ExpandableText
+                                text={template.description}
+                                maxLength={150}
+                                className="text-pretty break-words whitespace-normal"
                               />
                             </TableCell>
                             <TableCell className="hidden md:table-cell align-top py-3 text-right">
                               <div className="text-pretty break-words whitespace-normal text-right">
-                                {template.kind === "olympiad" && "Олимпиадная деятельность"}
+                                {template.kind === "olympiad" &&
+                                  "Олимпиадная деятельность"}
                                 {template.kind === "development" && "Развитие"}
-                                {template.kind === "scientific" && "Научная деятельность"}
+                                {template.kind === "scientific" &&
+                                  "Научная деятельность"}
                               </div>
                             </TableCell>
                             <TableCell className="hidden lg:table-cell align-top py-3 text-center">
@@ -446,9 +461,13 @@ export function AchievementTemplatesTable() {
                                   </Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end">
-                                  <DropdownMenuLabel>Действия</DropdownMenuLabel>
+                                  <DropdownMenuLabel>
+                                    Действия
+                                  </DropdownMenuLabel>
                                   <DropdownMenuItem
-                                    onClick={() => openEditTemplateDialog(template)}
+                                    onClick={() =>
+                                      openEditTemplateDialog(template)
+                                    }
                                   >
                                     Редактировать
                                   </DropdownMenuItem>
@@ -459,10 +478,14 @@ export function AchievementTemplatesTable() {
                                         ? "text-destructive"
                                         : "text-green-600"
                                     }
-                                    onClick={() => openDeactivateDialog(template)}
+                                    onClick={() =>
+                                      openDeactivateDialog(template)
+                                    }
                                   >
                                     <Ban className="h-4 w-4 mr-2" />
-                                    {template.active ? "Деактивировать" : "Активировать"}
+                                    {template.active
+                                      ? "Деактивировать"
+                                      : "Активировать"}
                                   </DropdownMenuItem>
                                 </DropdownMenuContent>
                               </DropdownMenu>
@@ -471,7 +494,10 @@ export function AchievementTemplatesTable() {
                         ))}
                     {expandedGroups.has(group.id) && (
                       <TableRow className="bg-background">
-                        <TableCell colSpan={6} className="pl-8 sm:pl-12 align-top py-3">
+                        <TableCell
+                          colSpan={6}
+                          className="pl-8 sm:pl-12 align-top py-3"
+                        >
                           <Button
                             variant="ghost"
                             className="w-full justify-start text-muted-foreground hover:text-foreground"
@@ -540,12 +566,16 @@ export function AchievementTemplatesTable() {
             <AlertDialogCancel>Отмена</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeactivateItem}
-              disabled={deactivateGroupMutation.isPending || deactivateTemplateMutation.isPending}
+              disabled={
+                deactivateGroupMutation.isPending ||
+                deactivateTemplateMutation.isPending
+              }
               className={
                 itemToDeactivate?.active ? "bg-destructive" : "bg-green-600"
               }
             >
-              {deactivateGroupMutation.isPending || deactivateTemplateMutation.isPending ? (
+              {deactivateGroupMutation.isPending ||
+              deactivateTemplateMutation.isPending ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Загрузка...

@@ -17,7 +17,6 @@ interface AddDocumentDialogProps {
 export function AddDocumentDialog({
   open,
   onOpenChange,
-  achievementListId,
   achievementId,
 }: AddDocumentDialogProps) {
   return (
@@ -30,7 +29,6 @@ export function AddDocumentDialog({
           </DialogDescription>
         </DialogHeader>
         <AddDocumentForm
-          achievementListId={achievementListId}
           achievementId={achievementId}
           onSuccess={() => onOpenChange(false)}
           onCancel={() => onOpenChange(false)}

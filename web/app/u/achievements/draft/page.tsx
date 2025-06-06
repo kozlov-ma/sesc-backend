@@ -28,37 +28,38 @@ import {
 } from "@/lib/api/@tanstack/react-query.gen";
 import { useState } from "react";
 import { toast } from "sonner";
-import {
-  ApiAchievementResponse,
-  ApiAchievementTemplateResponse,
-} from "@/lib/api/types.gen";
 import { AchievementsPageLayout } from "@/components/achievements/achievements-page-layout";
 import { AddAchievementDialog } from "@/components/achievements/add-achievement-dialog";
 import { AddDocumentDialog } from "@/components/achievements/add-document-dialog";
 import { FileNameByIdDisplay } from "@/components/files/file-name-display";
+import { RespondAchievement, RespondAchievementTemplate } from "@/lib/api";
 
 export default function DraftAchievementsPage() {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [selectedAchievement, setSelectedAchievement] =
-    useState<ApiAchievementResponse | null>(null);
+    useState<RespondAchievement | null>(null);
   const [isAddDocumentDialogOpen, setIsAddDocumentDialogOpen] = useState(false);
   const [showSubmitConfirmDialog, setShowSubmitConfirmDialog] = useState(false);
   const [showDeleteConfirmDialog, setShowDeleteConfirmDialog] = useState(false);
   const [achievementToAction, setAchievementToAction] =
-    useState<ApiAchievementResponse | null>(null);
+    useState<RespondAchievement | null>(null);
 
   // Fetch user achievements
-  const { data: achievementsData, isLoading: isAchievementsLoading, error: achievementsError } = useQuery({
+  const {
+    data: achievementsData,
+    isLoading: isAchievementsLoading,
+    error: achievementsError,
+  } = useQuery({
     ...getAchievementsOptions(),
   });
 
   // Filter draft achievements
   const draftAchievements =
-    achievementsData?.items.filter(
+    achievementsData?.achievements.filter(
       (achievement) => achievement.status === "draft",
     ) || [];
 
-  const handleAddDocument = (achievement: ApiAchievementResponse) => {
+  const handleAddDocument = (achievement: RespondAchievement) => {
     setSelectedAchievement(achievement);
     setIsAddDocumentDialogOpen(true);
   };
@@ -84,7 +85,7 @@ export default function DraftAchievementsPage() {
   });
 
   const handleRemoveDocument = (
-    achievement: ApiAchievementResponse,
+    achievement: RespondAchievement,
     documentId: string,
   ) => {
     deleteDocument({
@@ -96,24 +97,26 @@ export default function DraftAchievementsPage() {
   };
 
   // Submit achievement mutation
-  const { mutate: submitAchievement, isPending: isSubmitPending } = useMutation({
-    ...postAchievementsByIdSubmitMutation(),
-    onSuccess: () => {
-      toast.success("Достижение отправлено", {
-        description: "Достижение успешно отправлено на проверку",
-      });
-      queryClient.invalidateQueries({
-        queryKey: getAchievementsOptions().queryKey,
-      });
+  const { mutate: submitAchievement, isPending: isSubmitPending } = useMutation(
+    {
+      ...postAchievementsByIdSubmitMutation(),
+      onSuccess: () => {
+        toast.success("Достижение отправлено", {
+          description: "Достижение успешно отправлено на проверку",
+        });
+        queryClient.invalidateQueries({
+          queryKey: getAchievementsOptions().queryKey,
+        });
+      },
+      onError: () => {
+        toast.error("Ошибка", {
+          description: "Не удалось отправить достижение на проверку",
+        });
+      },
     },
-    onError: () => {
-      toast.error("Ошибка", {
-        description: "Не удалось отправить достижение на проверку",
-      });
-    },
-  });
+  );
 
-  const handleSubmitAchievement = (achievement: ApiAchievementResponse) => {
+  const handleSubmitAchievement = (achievement: RespondAchievement) => {
     setAchievementToAction(achievement);
     setShowSubmitConfirmDialog(true);
   };
@@ -129,24 +132,26 @@ export default function DraftAchievementsPage() {
   };
 
   // Delete achievement mutation
-  const { mutate: deleteAchievement, isPending: isDeletePending } = useMutation({
-    ...deleteAchievementsByIdMutation(),
-    onSuccess: () => {
-      toast.success("Достижение удалено", {
-        description: "Достижение успешно удалено",
-      });
-      queryClient.invalidateQueries({
-        queryKey: getAchievementsOptions().queryKey,
-      });
+  const { mutate: deleteAchievement, isPending: isDeletePending } = useMutation(
+    {
+      ...deleteAchievementsByIdMutation(),
+      onSuccess: () => {
+        toast.success("Достижение удалено", {
+          description: "Достижение успешно удалено",
+        });
+        queryClient.invalidateQueries({
+          queryKey: getAchievementsOptions().queryKey,
+        });
+      },
+      onError: () => {
+        toast.error("Ошибка", {
+          description: "Не удалось удалить достижение",
+        });
+      },
     },
-    onError: () => {
-      toast.error("Ошибка", {
-        description: "Не удалось удалить достижение",
-      });
-    },
-  });
+  );
 
-  const handleDeleteAchievement = (achievement: ApiAchievementResponse) => {
+  const handleDeleteAchievement = (achievement: RespondAchievement) => {
     setAchievementToAction(achievement);
     setShowDeleteConfirmDialog(true);
   };
@@ -180,7 +185,7 @@ export default function DraftAchievementsPage() {
     },
   });
 
-  const handleAddAchievement = (template: ApiAchievementTemplateResponse) => {
+  const handleAddAchievement = (template: RespondAchievementTemplate) => {
     addAchievementMutation.mutate({
       body: {
         templateId: template.id,
@@ -303,7 +308,10 @@ export default function DraftAchievementsPage() {
                       </TooltipTrigger>
                       {achievement.documents.length === 0 && (
                         <TooltipContent>
-                          <p>Добавьте хотя бы один документ для отправки достижения</p>
+                          <p>
+                            Добавьте хотя бы один документ для отправки
+                            достижения
+                          </p>
                         </TooltipContent>
                       )}
                     </Tooltip>

@@ -16,7 +16,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import type { ApiAchievementGroupResponse } from "@/lib/api/types.gen";
 import { toast } from "sonner";
 import { useErrorHandler } from "@/hooks/use-error-handler";
 import { getErrorMessage } from "@/lib/error-handler";
@@ -26,6 +25,7 @@ import {
   patchAchievementGroupsByIdMutation,
   getAchievementGroupsOptions,
 } from "@/lib/api/@tanstack/react-query.gen";
+import { RespondAchievementGroup } from "@/lib/api";
 
 const formSchema = z.object({
   name: z.string().min(1, "Название обязательно"),
@@ -37,7 +37,7 @@ type FormData = z.infer<typeof formSchema>;
 interface AchievementGroupFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  group?: ApiAchievementGroupResponse;
+  group?: RespondAchievementGroup;
   onSuccess: () => void;
 }
 
@@ -134,7 +134,8 @@ export function AchievementGroupFormDialog({
     }
   };
 
-  const isLoading = createGroupMutation.isPending || updateGroupMutation.isPending;
+  const isLoading =
+    createGroupMutation.isPending || updateGroupMutation.isPending;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

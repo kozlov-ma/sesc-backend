@@ -89,6 +89,8 @@ import type {
   GetFilesByIdData,
   GetFilesByIdResponse,
   GetFilesByIdError,
+  GetFilesByIdDownloadData,
+  GetFilesByIdDownloadError,
   PostReportsMarkAllAccountedData,
   PostReportsMarkAllAccountedResponse,
   PostReportsMarkAllAccountedError,
@@ -844,6 +846,29 @@ export const getFilesById = <ThrowOnError extends boolean = false>(
       },
     ],
     url: "/files/{id}",
+    ...options,
+  });
+};
+
+/**
+ * Download file
+ * Redirects to a pre-signed URL for downloading the file
+ */
+export const getFilesByIdDownload = <ThrowOnError extends boolean = false>(
+  options: Options<GetFilesByIdDownloadData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).get<
+    unknown,
+    GetFilesByIdDownloadError,
+    ThrowOnError
+  >({
+    security: [
+      {
+        name: "Authorization",
+        type: "apiKey",
+      },
+    ],
+    url: "/files/{id}/download",
     ...options,
   });
 };

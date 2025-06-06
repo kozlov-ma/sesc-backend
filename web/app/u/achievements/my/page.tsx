@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
 import { getAchievementsOptions } from "@/lib/api/@tanstack/react-query.gen";
 import { useState } from "react";
-import { ApiAchievementResponse } from "@/lib/api/types.gen";
+import { RespondAchievement } from "@/lib/api/types.gen";
 import { AchievementDetailsDialog } from "@/components/achievements/achievement-details-dialog";
 import { AchievementsPageLayout } from "@/components/achievements/achievements-page-layout";
 import {
@@ -23,7 +23,7 @@ import {
 
 export default function MyAchievementsPage() {
   const [selectedAchievement, setSelectedAchievement] =
-    useState<ApiAchievementResponse | null>(null);
+    useState<RespondAchievement | null>(null);
   const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
 
   // Fetch user achievements
@@ -37,11 +37,11 @@ export default function MyAchievementsPage() {
 
   // Filter submitted achievements (not drafts)
   const submittedAchievements =
-    achievementsData?.items.filter(
+    achievementsData?.achievements.filter(
       (achievement) => achievement.status !== "draft",
     ) || [];
 
-  const handleViewAchievement = (achievement: ApiAchievementResponse) => {
+  const handleViewAchievement = (achievement: RespondAchievement) => {
     setSelectedAchievement(achievement);
     setIsDetailsDialogOpen(true);
   };

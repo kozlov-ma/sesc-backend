@@ -1,6 +1,5 @@
 "use client";
 
-import { ApiAchievementTemplateResponse } from "@/lib/api/types.gen";
 import {
   Dialog,
   DialogContent,
@@ -21,9 +20,10 @@ import {
 import { useState } from "react";
 import { toast } from "sonner";
 import { postAchievements } from "@/lib/api/sdk.gen";
+import { RespondAchievementTemplate } from "@/lib/api";
 
 interface CreateAchievementDialogProps {
-  templates: ApiAchievementTemplateResponse[] | undefined;
+  templates: RespondAchievementTemplate[] | undefined;
   isTemplatesLoading: boolean;
   templatesError: unknown;
   open: boolean;

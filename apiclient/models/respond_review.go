@@ -37,11 +37,6 @@ type RespondReview struct {
 	// Example: 550e8400-e29b-41d4-a716-446655440000
 	// Required: true
 	ReviewerID *string `json:"reviewerId"`
-
-	// reviewer name
-	// Example: Петров Петр Петрович
-	// Required: true
-	ReviewerName *string `json:"reviewerName"`
 }
 
 // Validate validates this respond review
@@ -57,10 +52,6 @@ func (m *RespondReview) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := m.validateReviewerID(formats); err != nil {
-		res = append(res, err)
-	}
-
-	if err := m.validateReviewerName(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -91,15 +82,6 @@ func (m *RespondReview) validatePointsAssigned(formats strfmt.Registry) error {
 func (m *RespondReview) validateReviewerID(formats strfmt.Registry) error {
 
 	if err := validate.Required("reviewerId", "body", m.ReviewerID); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (m *RespondReview) validateReviewerName(formats strfmt.Registry) error {
-
-	if err := validate.Required("reviewerName", "body", m.ReviewerName); err != nil {
 		return err
 	}
 

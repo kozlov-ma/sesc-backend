@@ -19,7 +19,7 @@ import (
 // @Param Authorization header string false "Bearer JWT token"
 // @Param offset query int false "Pagination offset" default(0) minimum(0)
 // @Param limit query int false "Pagination limit" default(10) minimum(1) maximum(100)
-// @Success 200 {object} respond.UsersWithAchievements
+// @Success 200 {object} respond.Users
 // @Failure 400 {object} respond.Error "Invalid request parameters"
 // @Failure 401 {object} respond.Error "Unauthorized"
 // @Failure 403 {object} respond.Error "Forbidden"
@@ -68,6 +68,6 @@ func (a *API) GetUsersWithAchievements(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Convert to response format
-	response := respond.WithUsersWithAchievements(users, totalCount, offset, limit)
+	response := respond.WithUsers(users, totalCount)
 	a.writeJSON(ctx, w, response)
 }

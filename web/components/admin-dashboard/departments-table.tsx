@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import type { ApiDepartment } from "@/lib/api/types.gen";
 import { ErrorMessage } from "@/components/ui/error-message";
 import { Building, MoreHorizontal, Search, Trash } from "lucide-react";
 import { toast } from "sonner";
@@ -41,15 +40,16 @@ import {
 } from "@/lib/api/@tanstack/react-query.gen";
 import { useFormError } from "@/hooks/use-error-handler";
 import { getErrorMessage } from "@/lib/error-handler";
+import { RespondDepartment } from "@/lib/api";
 
 export function DepartmentsTable() {
   const [searchQuery, setSearchQuery] = useState("");
   const [departmentToDelete, setDepartmentToDelete] = useState<
-    ApiDepartment | undefined
+    RespondDepartment | undefined
   >(undefined);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingDepartment, setEditingDepartment] = useState<
-    ApiDepartment | undefined
+    RespondDepartment | undefined
   >(undefined);
   const queryClient = useQueryClient();
   const { formError, handleFormError, clearFormError } = useFormError();
@@ -87,12 +87,12 @@ export function DepartmentsTable() {
     setIsFormOpen(true);
   };
 
-  const openEditDepartmentDialog = (department: ApiDepartment) => {
+  const openEditDepartmentDialog = (department: RespondDepartment) => {
     setEditingDepartment(department);
     setIsFormOpen(true);
   };
 
-  const openDeleteDialog = (department: ApiDepartment) => {
+  const openDeleteDialog = (department: RespondDepartment) => {
     setDepartmentToDelete(department);
   };
 
@@ -109,7 +109,7 @@ export function DepartmentsTable() {
 
   // Filter departments based on search term
   const filteredDepartments = data?.departments.filter(
-    (department: ApiDepartment) => {
+    (department: RespondDepartment) => {
       const searchLower = searchQuery.toLowerCase();
       return (
         department.name.toLowerCase().includes(searchLower) ||
@@ -157,7 +157,7 @@ export function DepartmentsTable() {
           </TableHeader>
           <TableBody>
             {filteredDepartments && filteredDepartments.length > 0 ? (
-              filteredDepartments.map((department: ApiDepartment) => (
+              filteredDepartments.map((department: RespondDepartment) => (
                 <TableRow key={department.id}>
                   <TableCell className="font-medium">
                     {department.name}

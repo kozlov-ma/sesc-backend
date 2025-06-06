@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import type { ApiFileResponse } from "@/lib/api/types.gen";
+import type { RespondFile } from "@/lib/api/types.gen";
 import { formatFileSize } from "@/lib/utils";
 import { Download, FileText, Search, Trash2, Upload, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -61,9 +61,7 @@ export function FileTable({
   allowUpload = true,
 }: FileTableProps) {
   const [searchQuery, setSearchQuery] = useState(initialFilters.name || "");
-  const [fileToDelete, setFileToDelete] = useState<ApiFileResponse | null>(
-    null,
-  );
+  const [fileToDelete, setFileToDelete] = useState<RespondFile | null>(null);
   const queryClient = useQueryClient();
 
   const fileOpt = getFilesInfiniteOptions({
@@ -85,7 +83,7 @@ export function FileTable({
   } = useInfiniteQuery({
     ...fileOpt,
     getNextPageParam: (lastPage, pages) =>
-      lastPage.items?.length == 20 ? pages.length * 20 : undefined,
+      lastPage.files?.length == 20 ? pages?.length || 0 : undefined,
   });
 
   const uploadFileMutation = useMutation({
@@ -102,7 +100,7 @@ export function FileTable({
     },
   });
 
-  const files = data?.pages.flatMap((page) => page.items || []) || [];
+  const files = data?.pages.flatMap((page) => page.files || []) || [];
   const hasMore = hasNextPage;
 
   const { ref } = useInfiniteScroll({
@@ -132,7 +130,7 @@ export function FileTable({
     }
   };
 
-  const handleDelete = async (file: ApiFileResponse) => {
+  const handleDelete = async (file: RespondFile) => {
     setFileToDelete(file);
   };
 
@@ -152,12 +150,10 @@ export function FileTable({
     }
   };
 
-  const handleDownload = (file: ApiFileResponse) => {
-    if (!file.downloadUrl) return;
-
-    // Create a temporary link element
+  const handleDownload = (file: RespondFile) => {
     const link = document.createElement("a");
-    link.href = file.downloadUrl;
+    link.href =
+      process.env.NEXT_PUBLIC_API_URL + "/files/" + file.id + "/download";
     link.download = file.fileName || "download";
     link.target = "_blank";
     link.rel = "noopener noreferrer";

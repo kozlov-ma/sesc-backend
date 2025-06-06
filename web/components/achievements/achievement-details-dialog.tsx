@@ -1,6 +1,5 @@
 "use client";
 
-import { ApiAchievementResponse } from "@/lib/api/types.gen";
 import {
   Dialog,
   DialogContent,
@@ -22,9 +21,10 @@ import { getStatusBadgeVariant, getStatusLabel } from "./achievement-list";
 import { FileNameByIdDisplay } from "@/components/files/file-name-display";
 import { UserAvatar } from "@/components/ui/user-avatar";
 import Link from "next/link";
+import { RespondAchievement } from "@/lib/api";
 
 interface AchievementDetailsDialogProps {
-  achievement: ApiAchievementResponse | null;
+  achievement: RespondAchievement | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }

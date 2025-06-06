@@ -70,7 +70,7 @@ GetAchievementsUsersOK describes a response with status code 200, with default h
 OK
 */
 type GetAchievementsUsersOK struct {
-	Payload *models.RespondUsersWithAchievements
+	Payload *models.RespondUsers
 }
 
 // IsSuccess returns true when this get achievements users o k response has a 2xx status code
@@ -113,13 +113,13 @@ func (o *GetAchievementsUsersOK) String() string {
 	return fmt.Sprintf("[GET /achievements/users][%d] getAchievementsUsersOK %s", 200, payload)
 }
 
-func (o *GetAchievementsUsersOK) GetPayload() *models.RespondUsersWithAchievements {
+func (o *GetAchievementsUsersOK) GetPayload() *models.RespondUsers {
 	return o.Payload
 }
 
 func (o *GetAchievementsUsersOK) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(models.RespondUsersWithAchievements)
+	o.Payload = new(models.RespondUsers)
 
 	// response payload
 	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {

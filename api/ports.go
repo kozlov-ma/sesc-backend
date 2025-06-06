@@ -130,6 +130,7 @@ type (
 		Delete(ctx context.Context, id uuid.UUID) error
 		// ByID returns a file by its ID
 		ByID(ctx context.Context, id uuid.UUID) (*ent.File, error)
+		DownloadURL(ctx context.Context, id uuid.UUID) (string, error)
 	}
 
 	// EventSink is used by the API to log events

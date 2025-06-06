@@ -283,15 +283,26 @@ func (c *TestClient) CreateAchievement(templateID string) (*AchievementInfo, err
 }
 
 // GetUserAchievements retrieves achievements for the current user
-func (c *TestClient) GetUserAchievements() ([]*models.RespondAchievement, error) {
-	getParams := achievements.NewGetAchievementsParams()
+func (c *TestClient) GetUserAchievements(id *string) ([]*models.RespondAchievement, error) {
+	getParams := achievements.NewGetAchievementsParams().WithID(id)
 
 	getResp, err := c.apiClient.Achievements.GetAchievements(getParams, c.authInfo)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get achievements: %w", err)
 	}
 
-	return getResp.Payload.Items, nil
+	return getResp.Payload.Achievements, nil
+}
+
+func (c *TestClient) GetUsersWithAchievements() ([]*models.RespondUser, error) {
+	gp := achievements.NewGetAchievementsUsersParams()
+
+	res, err := c.apiClient.Achievements.GetAchievementsUsers(gp, c.authInfo)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get users with achievements: %w", err)
+	}
+
+	return res.Payload.Users, nil
 }
 
 // SubmitAchievement submits an achievement for review

@@ -342,18 +342,16 @@ func Root(from context.Context) *Record {
 // This method provides a standardized way to record execution details across the codebase.
 func (r *Record) Operation(name string, operation func(rec *Record) error) error {
 	rec := r.Sub(name)
-	rec.Set("$start_time", time.Now())
+	st := time.Now()
+	rec.Set("$start_time", st)
 
 	err := operation(rec)
 
 	endTime := time.Now()
-	st, ok := rec.Value("$start_time").(time.Time)
-	if !ok {
-		panic("$start_time key was overwritten or did not exist")
-	}
 	duration := time.Since(st)
 
 	if err != nil {
+		rec.Add("$error", err)
 		rec.Set(
 			"$success", false,
 			"$duration_ms", duration.Milliseconds(),

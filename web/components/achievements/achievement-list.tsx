@@ -1,6 +1,5 @@
 "use client";
 
-import { ApiAchievementResponse } from "@/lib/api/types.gen";
 import {
   Table,
   TableBody,
@@ -12,16 +11,17 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { FileEdit, Send, Trash2, Eye } from "lucide-react";
+import { RespondAchievement } from "@/lib/api";
 
 interface AchievementListProps {
-  achievements: ApiAchievementResponse[];
+  achievements: RespondAchievement[];
   isLoading: boolean;
   error: unknown;
   type: "draft" | "submitted";
-  onView?: (achievement: ApiAchievementResponse) => void;
-  onEdit?: (achievement: ApiAchievementResponse) => void;
-  onSubmit?: (achievement: ApiAchievementResponse) => void;
-  onDelete?: (achievement: ApiAchievementResponse) => void;
+  onView?: (achievement: RespondAchievement) => void;
+  onEdit?: (achievement: RespondAchievement) => void;
+  onSubmit?: (achievement: RespondAchievement) => void;
+  onDelete?: (achievement: RespondAchievement) => void;
 }
 
 export function getStatusBadgeVariant(

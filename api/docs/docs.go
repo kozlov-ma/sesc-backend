@@ -479,6 +479,12 @@ const docTemplate = `{
                         "description": "Pagination limit",
                         "name": "limit",
                         "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "User's ID",
+                        "name": "id",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -620,7 +626,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/respond.UsersWithAchievements"
+                            "$ref": "#/definitions/respond.Users"
                         }
                     },
                     "400": {
@@ -1956,6 +1962,76 @@ const docTemplate = `{
                 }
             }
         },
+        "/files/{id}/download": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Redirects to a pre-signed URL for downloading the file",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "files"
+                ],
+                "summary": "Download file",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer JWT token",
+                        "name": "Authorization",
+                        "in": "header"
+                    },
+                    {
+                        "type": "string",
+                        "description": "File ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "307": {
+                        "description": "Temporary Redirect"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/respond.Error"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/respond.Error"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/respond.Error"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/respond.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/respond.Error"
+                        }
+                    }
+                }
+            }
+        },
         "/reports/mark-all-accounted": {
             "post": {
                 "security": [
@@ -2944,7 +3020,6 @@ const docTemplate = `{
                 "documents",
                 "id",
                 "ownerId",
-                "ownerName",
                 "points",
                 "reviews",
                 "status",
@@ -2965,10 +3040,6 @@ const docTemplate = `{
                 "ownerId": {
                     "type": "string",
                     "example": "550e8400-e29b-41d4-a716-446655440000"
-                },
-                "ownerName": {
-                    "type": "string",
-                    "example": "Иванов Иван Иванович"
                 },
                 "points": {
                     "type": "integer",
@@ -3071,25 +3142,17 @@ const docTemplate = `{
         "respond.Achievements": {
             "type": "object",
             "required": [
-                "items",
-                "limit",
-                "offset",
-                "totalCount"
+                "achievements",
+                "total"
             ],
             "properties": {
-                "items": {
+                "achievements": {
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/respond.Achievement"
                     }
                 },
-                "limit": {
-                    "type": "integer"
-                },
-                "offset": {
-                    "type": "integer"
-                },
-                "totalCount": {
+                "total": {
                     "type": "integer"
                 }
             }
@@ -3209,8 +3272,7 @@ const docTemplate = `{
             "required": [
                 "id",
                 "pointsAssigned",
-                "reviewerId",
-                "reviewerName"
+                "reviewerId"
             ],
             "properties": {
                 "comment": {
@@ -3228,10 +3290,6 @@ const docTemplate = `{
                 "reviewerId": {
                     "type": "string",
                     "example": "550e8400-e29b-41d4-a716-446655440000"
-                },
-                "reviewerName": {
-                    "type": "string",
-                    "example": "Петров Петр Петрович"
                 }
             }
         },
@@ -3348,37 +3406,6 @@ const docTemplate = `{
                 }
             }
         },
-        "respond.UserWithAchievements": {
-            "type": "object",
-            "required": [
-                "firstName",
-                "id",
-                "lastName",
-                "role"
-            ],
-            "properties": {
-                "firstName": {
-                    "type": "string",
-                    "example": "Иван"
-                },
-                "id": {
-                    "type": "string",
-                    "example": "550e8400-e29b-41d4-a716-446655440000"
-                },
-                "lastName": {
-                    "type": "string",
-                    "example": "Иванов"
-                },
-                "middleName": {
-                    "type": "string",
-                    "example": "Иванович"
-                },
-                "role": {
-                    "type": "string",
-                    "example": "teacher"
-                }
-            }
-        },
         "respond.Users": {
             "type": "object",
             "required": [
@@ -3394,32 +3421,6 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/respond.User"
                     }
-                }
-            }
-        },
-        "respond.UsersWithAchievements": {
-            "type": "object",
-            "required": [
-                "items",
-                "limit",
-                "offset",
-                "totalCount"
-            ],
-            "properties": {
-                "items": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/respond.UserWithAchievements"
-                    }
-                },
-                "limit": {
-                    "type": "integer"
-                },
-                "offset": {
-                    "type": "integer"
-                },
-                "totalCount": {
-                    "type": "integer"
                 }
             }
         }

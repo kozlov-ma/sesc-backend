@@ -67,6 +67,7 @@ func (a *API) AchievementMiddleware(next http.Handler) http.Handler {
 // @Param Authorization header string false "Bearer JWT token"
 // @Param offset query int false "Pagination offset" default(0) minimum(0)
 // @Param limit query int false "Pagination limit" default(10) minimum(1) maximum(100)
+// @Param id query string false "User's ID"
 // @Success 200 {object} respond.Achievements
 // @Failure 400 {object} respond.Error "Invalid request parameters"
 // @Failure 401 {object} respond.Error "Unauthorized"
@@ -76,11 +77,16 @@ func (a *API) GetUserAchievements(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	rec := event.Get(ctx)
 
-	// Get user from context
-	user, ok := GetUserFromContext(ctx)
+	// Get viewer from context
+	viewer, ok := GetUserFromContext(ctx)
 	if !ok {
 		a.writeJSON(ctx, w, respond.WithError(ctx, sesc.ErrUserNotFound))
 		return
+	}
+
+	userID, err := param.QueryUUID(r, "id")
+	if err != nil {
+		userID = viewer.ID
 	}
 
 	// Parse pagination parameters
@@ -92,7 +98,7 @@ func (a *API) GetUserAchievements(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get achievements for user with pagination
-	achievements, total, err := a.sesc.GetUserAchievements(ctx, user.ID, user.ID, offset, limit)
+	achievements, total, err := a.sesc.GetUserAchievements(ctx, userID, viewer.ID, offset, limit)
 	if err != nil {
 		rec.Add(events.Error, err)
 		a.writeJSON(ctx, w, respond.WithError(ctx, err))
@@ -100,7 +106,7 @@ func (a *API) GetUserAchievements(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Convert to response format
-	response := respond.WithAchievements(achievements, total, offset, limit)
+	response := respond.WithAchievements(achievements, total)
 	a.writeJSON(ctx, w, response)
 }
 
