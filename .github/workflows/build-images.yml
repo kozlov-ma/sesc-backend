@@ -8,7 +8,7 @@ on:
       next_public_api_url:
         description: "API URL for frontend build"
         required: false
-        default: "https://api.yourapp.com"
+        default: "https://api.sesc.online"
 
 env:
   REGISTRY: ghcr.io
@@ -89,4 +89,4 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
-            NEXT_PUBLIC_API_URL=api.deathops.tech
+            NEXT_PUBLIC_API_URL=https://api.sesc.online

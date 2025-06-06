@@ -203,6 +203,7 @@ func main() {
 	adminUsername := flag.String("username", "", "Admin username")
 	adminPassword := flag.String("password", "", "Admin password")
 	host := flag.String("host", "localhost:8080", "API host")
+	useHTTPS := flag.Bool("https", false, "Use HTTPS instead of HTTP")
 	flag.Parse()
 
 	if *adminUsername == "" || *adminPassword == "" {
@@ -211,7 +212,11 @@ func main() {
 	}
 
 	// Create API client
-	transport := httptransport.New(*host, "/", []string{"http"})
+	schemes := []string{"http"}
+	if *useHTTPS {
+		schemes = []string{"https"}
+	}
+	transport := httptransport.New(*host, "/", schemes)
 	apiClient := client.New(transport, strfmt.Default)
 
 	// Login as admin

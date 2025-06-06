@@ -1,0 +1,235 @@
+name: Deploy to Production
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Create docker-compose.prod.yml
+        run: |
+          cat > docker-compose.prod.yml << 'COMPOSE_EOF'
+          version: '3.8'
+
+          networks:
+            traefik:
+              external: true
+            internal:
+              external: false
+
+          volumes:
+            postgres:
+            minio-data:
+            traefik-certificates:
+
+          services:
+            traefik:
+              image: traefik:v3.0
+              container_name: traefik
+              restart: unless-stopped
+              ports:
+                - "80:80"
+                - "443:443"
+              networks:
+                - traefik
+              volumes:
+                - /var/run/docker.sock:/var/run/docker.sock:ro
+                - traefik-certificates:/certificates
+              command:
+                - --api.dashboard=true
+                - --api.insecure=false
+                - --providers.docker=true
+                - --providers.docker.exposedbydefault=false
+                - --providers.docker.network=traefik
+                - --entrypoints.web.address=:80
+                - --entrypoints.websecure.address=:443
+                - --certificatesresolvers.letsencrypt.acme.email=admin@sesc.online
+                - --certificatesresolvers.letsencrypt.acme.storage=/certificates/acme.json
+                - --certificatesresolvers.letsencrypt.acme.httpchallenge=true
+                - --certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web
+                - --entrypoints.web.http.redirections.entrypoint.to=websecure
+                - --entrypoints.web.http.redirections.entrypoint.scheme=https
+              labels:
+                - "traefik.enable=true"
+                - "traefik.http.routers.traefik.rule=Host(`traefik.sesc.online`)"
+                - "traefik.http.routers.traefik.entrypoints=websecure"
+                - "traefik.http.routers.traefik.tls.certresolver=letsencrypt"
+                - "traefik.http.routers.traefik.service=api@internal"
+
+            postgres:
+              image: postgres:15
+              container_name: postgres
+              restart: unless-stopped
+              networks:
+                - internal
+              environment:
+                POSTGRES_DB: sesc
+                POSTGRES_USER: sesc
+                POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+              volumes:
+                - postgres:/var/lib/postgresql/data
+              healthcheck:
+                test: ["CMD", "pg_isready", "-U", "sesc"]
+                interval: 10s
+                retries: 5
+                start_period: 30s
+                timeout: 10s
+
+            minio:
+              image: minio/minio:latest
+              container_name: minio
+              restart: unless-stopped
+              networks:
+                - internal
+              environment:
+                MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+                MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+              volumes:
+                - minio-data:/data
+              command: server /data --console-address ":9001"
+              healthcheck:
+                test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+                interval: 10s
+                retries: 5
+                start_period: 30s
+                timeout: 10s
+
+            backend:
+              image: ghcr.io/kozlov-ma/sesc-backend/backend:latest
+              container_name: sesc-backend
+              restart: unless-stopped
+              networks:
+                - traefik
+                - internal
+              depends_on:
+                postgres:
+                  condition: service_healthy
+                minio:
+                  condition: service_healthy
+              environment:
+                SESC_DATABASE_ADDRESS: postgres://sesc:${POSTGRES_PASSWORD}@postgres:5432/sesc?sslmode=disable
+                SESC_MINIO_ENDPOINT: minio:9000
+                SESC_MINIO_ACCESS_KEY: ${MINIO_ROOT_USER}
+                SESC_MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD}
+                SESC_MINIO_USE_SSL: "false"
+                SESC_MINIO_BUCKET_NAME: sesc-files
+              labels:
+                - "traefik.enable=true"
+                - "traefik.http.routers.backend.rule=Host(`api.sesc.online`)"
+                - "traefik.http.routers.backend.entrypoints=websecure"
+                - "traefik.http.routers.backend.tls.certresolver=letsencrypt"
+                - "traefik.http.services.backend.loadbalancer.server.port=8080"
+
+            frontend:
+              image: ghcr.io/kozlov-ma/sesc-backend/frontend:latest
+              container_name: sesc-frontend
+              restart: unless-stopped
+              networks:
+                - traefik
+
+              labels:
+                - "traefik.enable=true"
+                - "traefik.http.routers.frontend.rule=Host(`sesc.online`)"
+                - "traefik.http.routers.frontend.entrypoints=websecure"
+                - "traefik.http.routers.frontend.tls.certresolver=letsencrypt"
+                - "traefik.http.services.frontend.loadbalancer.server.port=3000"
+          COMPOSE_EOF
+
+      - name: Copy docker-compose file to server
+        run: |
+          scp -i ~/.ssh/id_rsa docker-compose.prod.yml ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:~/docker-compose.yml
+
+      - name: Deploy to server
+        run: |
+          ssh -i ~/.ssh/id_rsa ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
+          # Set environment variables from GitHub secrets
+          export POSTGRES_PASSWORD="${{ secrets.POSTGRES_PASSWORD }}"
+          export MINIO_ROOT_USER="${{ secrets.MINIO_ROOT_USER }}"
+          export MINIO_ROOT_PASSWORD="${{ secrets.MINIO_ROOT_PASSWORD }}"
+          
+          # Login to GitHub Container Registry
+          echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+          
+          # Create traefik network if it doesn't exist
+          docker network create traefik 2>/dev/null || true
+          
+          # Pull latest images
+          docker pull ghcr.io/kozlov-ma/sesc-backend/backend:latest
+          docker pull ghcr.io/kozlov-ma/sesc-backend/frontend:latest
+          
+          # Stop and remove existing containers
+          docker-compose down || true
+          
+          # Start services
+          docker-compose up -d
+          
+          # Wait for services to start
+          echo "Waiting for services to start..."
+          sleep 30
+          
+          # Check service status
+          docker-compose ps
+          
+          # Wait for services to settle
+          echo "Waiting for services to settle..."
+          sleep 30
+          
+          # Check service status
+          docker-compose ps
+          
+          # Restart Traefik to force service discovery
+          docker-compose restart traefik
+          sleep 15
+          
+          # Cleanup unused images
+          docker image prune -f
+          
+          echo "Deployment completed successfully!"
+          EOF
+
+      - name: Verify deployment
+        run: |
+          ssh -i ~/.ssh/id_rsa ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
+          # Set environment variables from GitHub secrets
+          export POSTGRES_PASSWORD="${{ secrets.POSTGRES_PASSWORD }}"
+          export MINIO_ROOT_USER="${{ secrets.MINIO_ROOT_USER }}"
+          export MINIO_ROOT_PASSWORD="${{ secrets.MINIO_ROOT_PASSWORD }}"
+          
+          # Wait for services to be healthy
+          sleep 30
+          
+          # Check if containers are running
+          if ! docker-compose ps | grep -q "Up"; then
+            echo "Deployment failed - containers not running"
+            docker-compose logs
+            exit 1
+          fi
+          
+          # Final verification
+          docker-compose ps
+          
+          echo "Deployment successful!"
+          echo "Services available at:"
+          echo "- Frontend: https://sesc.online"
+          echo "- Backend API: https://api.sesc.online"
+          echo "- Traefik Dashboard: https://traefik.sesc.online (if configured)"
+          echo ""
+          echo "If frontend shows Bad Gateway, check the logs above for port information"
+          EOF
+
+      - name: Cleanup SSH
+        if: always()
+        run: |
+          rm -f ~/.ssh/id_rsa
