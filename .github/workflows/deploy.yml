@@ -140,6 +140,7 @@ jobs:
 
           echo "✅ Deployment to production complete!"
           echo "📊 Current service status:"
+          
           docker-compose -f "$COMPOSE_FILE" ps
 
             echo ""
