@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback, useMemo } from "react";
 import {
   Table,
   TableBody,
@@ -19,11 +19,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import type {
-  RespondUser,
-  ApiPatchUserRequest,
-  PatchUsersByIdError,
-} from "@/lib/api/types.gen";
+import type { RespondUser, ApiPatchUserRequest } from "@/lib/api/types.gen";
 import { ErrorMessage } from "@/components/ui/error-message";
 import { Badge } from "@/components/ui/badge";
 import { MoreHorizontal, Search, UserPlus, Key, User } from "lucide-react";
@@ -33,126 +29,260 @@ import { UserCredentialsDialog } from "./user-credentials-dialog";
 import { toast } from "sonner";
 import { useErrorHandler } from "@/hooks/use-error-handler";
 import { getErrorMessage } from "@/lib/error-handler";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import {
-  getUsersOptions,
+  getUsersInfiniteOptions,
   patchUsersByIdMutation,
 } from "@/lib/api/@tanstack/react-query.gen";
-import type { AxiosError } from "axios";
+import type { InfiniteData } from "@tanstack/react-query";
 import { DepartmentCell } from "./department-cell";
+import { useDebounce } from "@/hooks/use-debounce";
+import { Loader2 } from "lucide-react";
+
+const PAGE_SIZE = 20;
+
+// Extracted search input component to prevent parent re-renders
+function SearchInput({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  return (
+    <div className="relative w-full md:w-72">
+      <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+      <Input
+        placeholder="Поиск пользователей..."
+        className="pl-8"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+      />
+    </div>
+  );
+}
 
 export function UsersTable() {
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchInput, setSearchInput] = useState("");
+  const debouncedSearchTerm = useDebounce(searchInput, 300);
   const [userFormOpen, setUserFormOpen] = useState(false);
   const [userCredentialsOpen, setUserCredentialsOpen] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<RespondUser | undefined>(
-    undefined,
-  );
+  const [selectedUser, setSelectedUser] = useState<RespondUser | undefined>();
 
   const { error: tableError, handleError, clearError } = useErrorHandler();
   const queryClient = useQueryClient();
   const router = useRouter();
 
-  const usersOpt = getUsersOptions({
-    query: {
-      limit: 500,
-    },
+  const queryKey = useMemo(
+    () => ["users", { search: debouncedSearchTerm, limit: PAGE_SIZE }],
+    [debouncedSearchTerm],
+  );
+
+  const {
+    data,
+    error,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isLoading,
+  } = useInfiniteQuery({
+    ...getUsersInfiniteOptions({
+      query: {
+        search: debouncedSearchTerm,
+        limit: PAGE_SIZE,
+      },
+    }),
+    getNextPageParam: (lastPage, pages) =>
+      lastPage?.users.length === PAGE_SIZE
+        ? pages.length * PAGE_SIZE
+        : undefined,
   });
-  const { data, error, isLoading } = useQuery(usersOpt);
 
   const toggleSuspendMutation = useMutation({
     ...patchUsersByIdMutation(),
-    onSuccess: (response) => {
-      queryClient.invalidateQueries({ queryKey: usersOpt.queryKey });
-      toast(
-        response.suspended
-          ? "Пользователь разблокирован"
-          : "Пользователь заблокирован",
-        {
-          description: `Пользователь успешно ${response.suspended ? "разблокирован" : "заблокирован"}.`,
-        },
-      );
+    onMutate: async (variables) => {
+      clearError();
+      await queryClient.cancelQueries({ queryKey });
+
+      const previousUsers =
+        queryClient.getQueryData<InfiniteData<{ users: RespondUser[] }>>(
+          queryKey,
+        );
+
+      if (previousUsers) {
+        const updatedPages = previousUsers.pages.map((page) => ({
+          ...page,
+          users: page.users.map((user) =>
+            user.id === variables.path.id
+              ? { ...user, suspended: variables.body.suspended }
+              : user,
+          ),
+        }));
+
+        queryClient.setQueryData(queryKey, {
+          ...previousUsers,
+          pages: updatedPages,
+        });
+      }
+
+      return { previousUsers };
     },
-    onError: (err: AxiosError<PatchUsersByIdError>) => {
+    onError: (err, _, context) => {
+      if (context?.previousUsers) {
+        queryClient.setQueryData(queryKey, context.previousUsers);
+      }
+
       handleError(err);
       toast.error("Ошибка", {
         description: getErrorMessage(err),
       });
     },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey });
+    },
   });
 
-  const handleToggleSuspend = async (user: RespondUser) => {
-    clearError();
-    const userData: ApiPatchUserRequest = {
-      firstName: user.firstName,
-      lastName: user.lastName,
-      middleName: user.middleName,
-      roleId: user.role.id,
-      departmentId: user.departmentId,
-      pictureUrl: user.pictureUrl,
-      suspended: !user.suspended,
-    };
-    await toggleSuspendMutation.mutateAsync({
-      path: {
-        id: user.id,
-      },
-      body: userData,
-    });
-  };
+  const handleToggleSuspend = useCallback(
+    (user: RespondUser) => {
+      const userData: ApiPatchUserRequest = {
+        firstName: user.firstName,
+        lastName: user.lastName,
+        middleName: user.middleName,
+        roleId: user.role.id,
+        departmentId: user.departmentId,
+        pictureUrl: user.pictureUrl,
+        suspended: !user.suspended,
+      };
 
-  const openCreateUserDialog = () => {
+      toggleSuspendMutation.mutate({
+        path: { id: user.id },
+        body: userData,
+      });
+    },
+    [toggleSuspendMutation],
+  );
+
+  const openCreateUserDialog = useCallback(() => {
     setSelectedUser(undefined);
     setUserFormOpen(true);
-  };
+  }, []);
 
-  const openEditUserDialog = (user: RespondUser) => {
+  const openEditUserDialog = useCallback((user: RespondUser) => {
     setSelectedUser(user);
     setUserFormOpen(true);
-  };
+  }, []);
 
-  const openCredentialsDialog = (user: RespondUser) => {
+  const openCredentialsDialog = useCallback((user: RespondUser) => {
     setSelectedUser(user);
     setUserCredentialsOpen(true);
-  };
+  }, []);
 
-  const viewUserProfile = (user: RespondUser) => {
-    router.push(`/admin/users/${user.id}`);
-  };
+  const viewUserProfile = useCallback(
+    (user: RespondUser) => {
+      router.push(`/admin/users/${user.id}`);
+    },
+    [router],
+  );
 
-  // Filter users based on search term
-  const filteredUsers = data?.users.filter((user) => {
-    const searchLower = searchTerm.toLowerCase();
-    return (
-      user.firstName?.toLowerCase().includes(searchLower) ||
-      user.lastName?.toLowerCase().includes(searchLower) ||
-      user.middleName?.toLowerCase().includes(searchLower) ||
-      (user.role?.name || "").toLowerCase().includes(searchLower)
-    );
-  });
+  // Memoize flattened users array
+  const allUsers = useMemo(
+    () => data?.pages.flatMap((page) => page.users) || [],
+    [data],
+  );
 
-  if (isLoading) {
-    return (
-      <div className="flex justify-center items-center p-8">
-        <span className="text-muted-foreground">Загрузка...</span>
-      </div>
-    );
-  }
+  // Memoize user row rendering
+  const renderUserRow = useCallback(
+    (user: RespondUser) => (
+      <TableRow key={user.id}>
+        <TableCell>
+          <div className="flex items-center gap-3">
+            <Avatar className="h-8 w-8">
+              {user.pictureUrl && (
+                <AvatarImage src={user.pictureUrl} alt={user.lastName} />
+              )}
+              <AvatarFallback>
+                {user.firstName?.[0]}
+                {user.lastName?.[0]}
+              </AvatarFallback>
+            </Avatar>
+            <div>
+              <div className="font-medium">
+                {user.lastName} {user.firstName}
+              </div>
+              {user.middleName && (
+                <div className="text-sm text-muted-foreground">
+                  {user.middleName}
+                </div>
+              )}
+            </div>
+          </div>
+        </TableCell>
+        <TableCell>
+          <DepartmentCell departmentId={user.departmentId} />
+        </TableCell>
+        <TableCell>{user.jobTitle || "-"}</TableCell>
+        <TableCell>{user.subdivision || "-"}</TableCell>
+        <TableCell>{user.role?.name || "-"}</TableCell>
+        <TableCell>
+          {user.suspended ? (
+            <Badge variant="destructive">Заблокирован</Badge>
+          ) : (
+            <Badge>Активен</Badge>
+          )}
+        </TableCell>
+        <TableCell>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon">
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>Действия</DropdownMenuLabel>
+              <DropdownMenuItem onClick={() => viewUserProfile(user)}>
+                <User className="h-4 w-4 mr-2" />
+                Просмотр профиля
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => openEditUserDialog(user)}>
+                Редактировать
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => openCredentialsDialog(user)}>
+                <Key className="h-4 w-4 mr-2" />
+                Учетные данные
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                className={user.suspended ? "text-success" : "text-destructive"}
+                onClick={() => handleToggleSuspend(user)}
+              >
+                {user.suspended ? "Разблокировать" : "Заблокировать"}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </TableCell>
+      </TableRow>
+    ),
+    [
+      handleToggleSuspend,
+      openCredentialsDialog,
+      openEditUserDialog,
+      viewUserProfile,
+    ],
+  );
 
   return (
     <div className="space-y-4">
       {(error || tableError) && <ErrorMessage error={error || tableError} />}
 
       <div className="flex justify-between">
-        <div className="relative w-full md:w-72">
-          <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Поиск пользователей..."
-            className="pl-8"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
+        {/* Use extracted SearchInput component */}
+        <SearchInput value={searchInput} onChange={setSearchInput} />
+
         <Button onClick={openCreateUserDialog}>
           <UserPlus className="h-4 w-4 mr-2" />
           Добавить пользователя
@@ -173,90 +303,14 @@ export function UsersTable() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredUsers && filteredUsers.length > 0 ? (
-              filteredUsers.map((user) => (
-                <TableRow key={user.id}>
-                  <TableCell>
-                    <div className="flex items-center gap-3">
-                      <Avatar className="h-8 w-8">
-                        {user.pictureUrl ? (
-                          <AvatarImage
-                            src={user.pictureUrl}
-                            alt={user.lastName}
-                          />
-                        ) : null}
-                        <AvatarFallback>
-                          {user.firstName?.[0]}
-                          {user.lastName?.[0]}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <div className="font-medium">
-                          {user.lastName} {user.firstName}
-                        </div>
-                        {user.middleName ? (
-                          <div className="text-sm text-muted-foreground">
-                            {user.middleName}
-                          </div>
-                        ) : null}
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <DepartmentCell departmentId={user.departmentId} />
-                  </TableCell>
-                  <TableCell>{user.jobTitle || "-"}</TableCell>
-                  <TableCell>{user.subdivision || "-"}</TableCell>
-                  <TableCell>{user.role?.name || "-"}</TableCell>
-                  <TableCell>
-                    {user.suspended ? (
-                      <Badge variant="destructive">Заблокирован</Badge>
-                    ) : (
-                      <Badge>Активен</Badge>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Действия</DropdownMenuLabel>
-                        <DropdownMenuItem onClick={() => viewUserProfile(user)}>
-                          <User className="h-4 w-4 mr-2" />
-                          Просмотр профиля
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => openEditUserDialog(user)}
-                        >
-                          Редактировать
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => openCredentialsDialog(user)}
-                        >
-                          <Key className="h-4 w-4 mr-2" />
-                          Учетные данные
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem
-                          className={
-                            user.suspended ? "text-success" : "text-destructive"
-                          }
-                          onClick={() => handleToggleSuspend(user)}
-                        >
-                          {user.suspended ? "Разблокировать" : "Заблокировать"}
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
-              ))
+            {allUsers.length > 0 ? (
+              allUsers.map(renderUserRow)
             ) : (
               <TableRow>
                 <TableCell colSpan={7} className="h-24 text-center">
-                  Пользователи не найдены
+                  {debouncedSearchTerm
+                    ? "Пользователи не найдены"
+                    : "Нет пользователей"}
                 </TableCell>
               </TableRow>
             )}
@@ -264,12 +318,37 @@ export function UsersTable() {
         </Table>
       </div>
 
+      <div className="flex flex-col items-center gap-4">
+        {(isFetchingNextPage || isLoading) && (
+          <div className="flex items-center justify-center p-4">
+            <Loader2 className="mr-2 h-6 w-6 animate-spin" />
+            <span>Загрузка...</span>
+          </div>
+        )}
+
+        {hasNextPage && !isFetchingNextPage && (
+          <Button
+            onClick={() => fetchNextPage()}
+            variant="outline"
+            className="px-8"
+          >
+            Загрузить еще
+          </Button>
+        )}
+
+        {!hasNextPage && allUsers.length > 0 && (
+          <p className="text-sm text-muted-foreground py-4">
+            Все пользователи загружены
+          </p>
+        )}
+      </div>
+
       <UserFormDialog
         open={userFormOpen}
         onOpenChange={setUserFormOpen}
         user={selectedUser}
         onSuccess={() => {
-          queryClient.invalidateQueries({ queryKey: usersOpt.queryKey });
+          queryClient.invalidateQueries({ queryKey });
         }}
       />
 
