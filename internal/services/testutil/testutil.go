@@ -40,7 +40,7 @@ func RandomUUID() uuid.UUID {
 func SetupDatabase(t *testing.T) *ent.Client {
 	t.Helper()
 	// Use a unique database name for each test to avoid locking issues
-	dbName := "file:sesc_test_" + strconv.Itoa(rand.Int()) + "?mode=memory&_fk=1"
+	dbName := "file:sesc_test_" + strconv.Itoa(rand.Int()) + "?cache=shared&mode=memory&_fk=1"
 	client, err := ent.Open(
 		"sqlite3",
 		dbName,

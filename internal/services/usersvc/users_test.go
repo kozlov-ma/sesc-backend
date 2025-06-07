@@ -12,33 +12,26 @@ import (
 
 func TestUsers(t *testing.T) {
 	t.Run("get_all_users", func(t *testing.T) {
-		// Setup test context with database
 		ctx := t.Context()
 		ctx, _ = event.NewRecord(ctx, "test")
 		client := testutil.SetupDatabase(t)
 
-		// Create the service
 		svc := New(client)
 
-		// Create test users
 		user1 := testutil.CreateTestUser(ctx, t, client, "First", "User", sesc.Role(1))
 		user2 := testutil.CreateTestUser(ctx, t, client, "Second", "User", sesc.Role(2))
 		user3 := testutil.CreateTestUser(ctx, t, client, "Third", "User", sesc.Role(1))
 
-		// Call the method being tested
 		users, _, err := svc.Users(ctx, 0, 100, "")
 
-		// Verify the results
 		require.NoError(t, err)
 		require.Len(t, users, 3)
 
-		// Create a map of user IDs for easier verification
 		userMap := make(map[string]*ent.User)
 		for _, u := range users {
 			userMap[u.ID.String()] = u
 		}
 
-		// Verify each user is in the results
 		u1, exists := userMap[user1.ID.String()]
 		require.True(t, exists)
 		require.Equal(t, user1.FirstName, u1.FirstName)
@@ -90,5 +83,66 @@ func TestUsers(t *testing.T) {
 		// Verify the results
 		require.Error(t, err)
 		require.Empty(t, users)
+	})
+
+	t.Run("search_name", func(t *testing.T) {
+		ctx := t.Context()
+		ctx, _ = event.NewRecord(ctx, "test")
+		client := testutil.SetupDatabase(t)
+
+		svc := New(client)
+
+		u := testutil.CreateTestUser(ctx, t, client, "First", "User", sesc.Role(1))
+		testutil.CreateTestUser(ctx, t, client, "Second", "User", sesc.Role(2))
+		testutil.CreateTestUser(ctx, t, client, "Third", "User", sesc.Role(1))
+
+		users, _, err := svc.Users(ctx, 0, 100, "Fir")
+
+		require.NoError(t, err)
+		require.Len(t, users, 1)
+
+		require.Equal(t, u.FirstName, users[0].FirstName)
+		require.Equal(t, u.LastName, users[0].LastName)
+	})
+
+	t.Run("search_role", func(t *testing.T) {
+		ctx := t.Context()
+		ctx, _ = event.NewRecord(ctx, "test")
+		client := testutil.SetupDatabase(t)
+
+		svc := New(client)
+
+		testutil.CreateTestUser(ctx, t, client, "First", "User", sesc.Role(1))
+		testutil.CreateTestUser(ctx, t, client, "Third", "User", sesc.Role(1))
+		u := testutil.CreateTestUser(ctx, t, client, "Second", "User", sesc.Role(2))
+
+		users, _, err := svc.Users(ctx, 0, 100, "зав")
+
+		require.NoError(t, err)
+		require.Len(t, users, 1)
+
+		require.Equal(t, u.FirstName, users[0].FirstName)
+		require.Equal(t, u.LastName, users[0].LastName)
+	})
+
+	t.Run("search_department", func(t *testing.T) {
+		ctx := t.Context()
+		ctx, _ = event.NewRecord(ctx, "test")
+		client := testutil.SetupDatabase(t)
+
+		svc := New(client)
+
+		dep := testutil.CreateTestDepartment(ctx, t, client)
+		testutil.CreateTestUser(ctx, t, client, "First", "User", sesc.Role(1))
+		testutil.CreateTestUser(ctx, t, client, "Third", "User", sesc.Role(1))
+		u := testutil.CreateTestUserWithDepartment(ctx, t, client, "Second", "User", sesc.Role(2), dep)
+
+		users, _, err := svc.Users(ctx, 0, 100, dep.Name[11:])
+
+		require.NoError(t, err)
+		require.Len(t, users, 1)
+
+		require.Equal(t, u.FirstName, users[0].FirstName)
+		require.Equal(t, u.LastName, users[0].LastName)
 	})
 }
