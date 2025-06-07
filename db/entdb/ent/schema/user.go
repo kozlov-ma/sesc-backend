@@ -72,6 +72,8 @@ func (User) Indexes() []ent.Index {
 	return []ent.Index{
 		index.Fields("department_id"),
 		index.Fields("role"),
-		index.Fields("first_name", "last_name"),
+		index.Fields("first_name", "last_name", "middle_name"),
+		index.Fields("last_name"),
+		index.Fields("middle_name"),
 	}
 }

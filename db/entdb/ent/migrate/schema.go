@@ -274,9 +274,19 @@ var (
 				Columns: []*schema.Column{UsersColumns[6]},
 			},
 			{
-				Name:    "user_first_name_last_name",
+				Name:    "user_first_name_last_name_middle_name",
 				Unique:  false,
-				Columns: []*schema.Column{UsersColumns[1], UsersColumns[2]},
+				Columns: []*schema.Column{UsersColumns[1], UsersColumns[2], UsersColumns[3]},
+			},
+			{
+				Name:    "user_last_name",
+				Unique:  false,
+				Columns: []*schema.Column{UsersColumns[2]},
+			},
+			{
+				Name:    "user_middle_name",
+				Unique:  false,
+				Columns: []*schema.Column{UsersColumns[3]},
 			},
 		},
 	}

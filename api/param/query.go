@@ -26,6 +26,16 @@ func QueryString(r *http.Request, name string) (string, error) {
 	return v, nil
 }
 
+// QueryStringOrZero returns a named query param of type string or "".
+//
+// Why this exists if you can just call r.FormValue?
+//
+// Because I was drunk AF and spent at least 30 minutes on debugging an issue
+// that turned out to be calling r.PathValue instead of r.FormValue.
+func QueryStringOrZero(r *http.Request, name string) string {
+	return r.FormValue(name)
+}
+
 func QueryIntOrZero(r *http.Request, name string) int {
 	i, _ := strconv.Atoi(r.FormValue(name))
 	return i

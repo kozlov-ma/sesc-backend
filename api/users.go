@@ -3,10 +3,10 @@ package api
 import (
 	"encoding/json"
 	"net/http"
-	"strconv"
 	"time"
 
 	"github.com/gofrs/uuid/v5"
+	"github.com/kozlov-ma/sesc-backend/api/param"
 	"github.com/kozlov-ma/sesc-backend/api/respond"
 	"github.com/kozlov-ma/sesc-backend/pkg/event"
 	"github.com/kozlov-ma/sesc-backend/pkg/event/events"
@@ -86,13 +86,9 @@ func (a *API) GetUser(w http.ResponseWriter, r *http.Request) {
 // @Failure 500 {object} respond.Error "Internal server error"
 // @Router /users [get]
 func (a *API) GetUsers(w http.ResponseWriter, r *http.Request) {
-	var (
-		offset, limit int
-		search        = r.PathValue("search")
-	)
-
-	offset, _ = strconv.Atoi(r.PathValue("offset"))
-	limit, _ = strconv.Atoi(r.PathValue("limit"))
+	offset := param.QueryIntOrZero(r, "offset")
+	limit := param.QueryIntOrZero(r, "limit")
+	search := param.QueryStringOrZero(r, "search")
 	if limit == 0 || limit >= 500 {
 		limit = 100
 	}

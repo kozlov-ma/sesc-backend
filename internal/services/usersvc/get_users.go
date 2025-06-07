@@ -102,23 +102,57 @@ func nameFilter(search string) []predicate.User {
 
 	split := strings.Fields(search)
 
-	var n1, n2, n3 string
+	if len(split) > 3 {
+		return nil
+	}
+
+	var pre []predicate.User
+
 	switch len(split) {
 	case 3:
-		n1, n2, n3 = split[0], split[1], split[2]
+		n1, n2, n3 := split[0], split[1], split[2]
+		pre = append(
+			pre,
+			user.And(
+				user.LastNameContainsFold(n1),
+				user.FirstNameContainsFold(n2),
+				user.MiddleNameContainsFold(n3),
+			),
+			user.And(
+				user.FirstNameContainsFold(n1),
+				user.MiddleNameContainsFold(n2),
+				user.LastNameContainsFold(n3),
+			),
+		)
 	case 2:
-		n1, n2, n3 = split[0], split[1], split[1]
+		n1, n2 := split[0], split[1]
+		pre = append(
+			pre,
+			user.And(
+				user.LastNameContainsFold(n1),
+				user.FirstNameContainsFold(n2),
+			),
+			user.And(
+				user.FirstNameContainsFold(n1),
+				user.LastNameContainsFold(n2),
+			),
+			user.And(
+				user.FirstNameContainsFold(n1),
+				user.MiddleNameContainsFold(n2),
+			),
+		)
 	case 1:
-		n1, n2, n3 = split[0], split[0], split[0]
+		n1 := split[0]
+		pre = append(
+			pre,
+			user.LastNameContainsFold(n1),
+			user.FirstNameContainsFold(n1),
+		)
 	default:
 		return nil
 	}
 
-	return []predicate.User{
-		user.FirstNameContainsFold(n1),
-		user.LastNameContainsFold(n2),
-		user.LastNameContainsFold(n3),
-	}
+	return pre
 }
 
 func departmentFilter(search string) []predicate.User {
@@ -165,6 +199,20 @@ func roleFilter(search string) []predicate.User {
 
 	if containsAnyOf(lowerRoleName, "эко", "eco", "вед", "chi") {
 		pre = append(pre, user.Role(sesc.ChiefEconomist))
+	}
+
+	if len(pre) > 0 {
+		return pre
+	}
+
+	if containsAnyOf(lowerRoleName, "дир") {
+		pre = append(
+			pre,
+			user.Role(sesc.AcademicDirector),
+			user.Role(sesc.DevelopmentDeputy),
+			user.Role(sesc.OlympiadDeputy),
+			user.Role(sesc.ScientificDeputy),
+		)
 	}
 
 	return pre
