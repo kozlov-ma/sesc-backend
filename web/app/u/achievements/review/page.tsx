@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { ReviewPageLayout } from "@/components/achievements/review-page-layout";
 import { AchievementDetailsDialog } from "@/components/achievements/achievement-details-dialog";
 import { ReviewAchievementDialog } from "@/components/achievements/review-achievement-dialog";
@@ -30,6 +31,7 @@ import {
   ChevronRight,
   Loader2,
   ClipboardCheck,
+  Search,
 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { UserAvatar } from "@/components/ui/user-avatar";
@@ -38,12 +40,34 @@ import React from "react";
 
 type ApiAchievement = RespondAchievement;
 
+// Extracted search input component to prevent parent re-renders
+function SearchInput({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  return (
+    <div className="relative w-full md:w-72">
+      <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+      <Input
+        placeholder="Поиск пользователей..."
+        className="pl-8"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+      />
+    </div>
+  );
+}
+
 export default function ReviewAchievementsPage() {
   const [selectedAchievement, setSelectedAchievement] =
     useState<ApiAchievement | null>(null);
   const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
   const [isReviewDialogOpen, setIsReviewDialogOpen] = useState(false);
   const [expandedUsers, setExpandedUsers] = useState<Set<string>>(new Set());
+  const [searchInput, setSearchInput] = useState("");
 
   const { isAuthenticated } = useAuth();
   const pageSize = 10;
@@ -54,7 +78,7 @@ export default function ReviewAchievementsPage() {
     enabled: isAuthenticated,
   });
 
-  // Infinite query for users
+  // Infinite query for users (БЕЗ search параметра)
   const {
     data: usersData,
     error: usersError,
@@ -74,7 +98,34 @@ export default function ReviewAchievementsPage() {
         : undefined,
   });
 
-  const users = usersData?.pages.flatMap((page) => page.users) || [];
+  const allUsers = usersData?.pages.flatMap((page) => page.users) || [];
+
+  // Клиентская фильтрация пользователей
+  const filteredUsers = useMemo(() => {
+    if (!searchInput.trim()) {
+      return allUsers;
+    }
+
+    const query = searchInput.toLowerCase().trim();
+    return allUsers.filter((user) => {
+      // Search by full name (different orders)
+      const fullName = `${user.lastName} ${user.firstName} ${user.middleName || ""}`.toLowerCase();
+      const reverseName = `${user.firstName} ${user.lastName} ${user.middleName || ""}`.toLowerCase();
+      
+      // Search by individual name parts
+      const firstNameMatch = user.firstName.toLowerCase().includes(query);
+      const lastNameMatch = user.lastName.toLowerCase().includes(query);
+      const middleNameMatch = user.middleName && user.middleName.toLowerCase().includes(query);
+      
+      return (
+        fullName.includes(query) ||
+        reverseName.includes(query) ||
+        firstNameMatch ||
+        lastNameMatch ||
+        middleNameMatch
+      );
+    });
+  }, [allUsers, searchInput]);
 
   const handleViewDetails = (achievement: ApiAchievement) => {
     setSelectedAchievement(achievement);
@@ -124,22 +175,40 @@ export default function ReviewAchievementsPage() {
   return (
     <ReviewPageLayout title="Проверка достижений">
       <div className="space-y-4">
+        {/* Search Bar */}
+        <div className="flex justify-between">
+          <SearchInput value={searchInput} onChange={setSearchInput} />
+        </div>
+
         {isUsersLoading ? (
-          <div className="flex justify-center py-8">
-            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-            <p className="ml-2 text-muted-foreground">
-              Загрузка пользователей...
-            </p>
+          <div className="flex items-center justify-center p-4">
+            <Loader2 className="mr-2 h-6 w-6 animate-spin" />
+            <span>Загрузка...</span>
           </div>
         ) : usersError ? (
           <div className="flex justify-center py-8">
             <p className="text-destructive">Ошибка загрузки пользователей</p>
           </div>
-        ) : users.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-12 gap-4">
-            <p className="text-muted-foreground">
-              Нет пользователей с достижениями
-            </p>
+        ) : filteredUsers.length === 0 ? (
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-[300px]">Пользователь</TableHead>
+                  <TableHead>Действия</TableHead>
+                  <TableHead className="text-right">Статус</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                <TableRow>
+                  <TableCell colSpan={3} className="h-24 text-center">
+                    {searchInput.trim()
+                      ? "Пользователи не найдены"
+                      : "Нет пользователей с достижениями"}
+                  </TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
           </div>
         ) : (
           <div className="rounded-md border">
@@ -152,7 +221,7 @@ export default function ReviewAchievementsPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {users.map((user) => (
+                {filteredUsers.map((user) => (
                   <UserRow
                     key={user.id}
                     user={user}
@@ -168,30 +237,31 @@ export default function ReviewAchievementsPage() {
           </div>
         )}
 
-        {hasNextUsersPage && (
-          <div className="flex justify-center">
-            <Button
-              variant="outline"
-              onClick={() => fetchNextUsersPage()}
-              disabled={isFetchingNextUsersPage}
-            >
-              {isFetchingNextUsersPage ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Загрузка...
-                </>
-              ) : (
-                "Загрузить ещё пользователей"
-              )}
-            </Button>
-          </div>
-        )}
+        {/* Load more button */}
+        <div className="flex flex-col items-center gap-4">
+          {isFetchingNextUsersPage && (
+            <div className="flex items-center justify-center p-4">
+              <Loader2 className="mr-2 h-6 w-6 animate-spin" />
+              <span>Загрузка...</span>
+            </div>
+          )}
 
-        {users.length > 0 && !hasNextUsersPage && (
-          <div className="text-center text-muted-foreground py-4">
-            Все пользователи загружены
-          </div>
-        )}
+          {!searchInput && hasNextUsersPage && !isFetchingNextUsersPage && (
+            <Button
+              onClick={() => fetchNextUsersPage()}
+              variant="outline"
+              className="px-8"
+            >
+              Загрузить еще
+            </Button>
+          )}
+
+          {!hasNextUsersPage && allUsers.length > 0 && (
+            <p className="text-sm text-muted-foreground py-4">
+              Все пользователи загружены
+            </p>
+          )}
+        </div>
       </div>
 
       {selectedAchievement && (
@@ -276,9 +346,14 @@ function UserRow({
             <Link href={`/u/users/${user.id}`}>
               <UserAvatar userId={user.id} size="sm" />
             </Link>
-            <span className="ml-2">
-              {user.lastName} {user.firstName} {user.middleName}
-            </span>
+            <div className="ml-2">
+              <div className="font-medium">
+                {user.lastName} {user.firstName} {user.middleName}
+              </div>
+              <div className="text-sm text-muted-foreground">
+                ID кафедры: {user.departmentId}
+              </div>
+            </div>
           </div>
         </TableCell>
         <TableCell>
