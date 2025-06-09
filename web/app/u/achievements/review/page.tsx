@@ -13,6 +13,7 @@ import {
   getAchievementsUsersInfiniteOptions,
   getAchievementsInfiniteOptions,
   getUsersMeOptions,
+  getDepartmentsOptions,
 } from "@/lib/api/@tanstack/react-query.gen";
 import {
   getStatusLabel,
@@ -40,7 +41,6 @@ import React from "react";
 
 type ApiAchievement = RespondAchievement;
 
-// Extracted search input component to prevent parent re-renders
 function SearchInput({
   value,
   onChange,
@@ -62,8 +62,7 @@ function SearchInput({
 }
 
 export default function ReviewAchievementsPage() {
-  const [selectedAchievement, setSelectedAchievement] =
-    useState<ApiAchievement | null>(null);
+  const [selectedAchievement, setSelectedAchievement] = useState<ApiAchievement | null>(null);
   const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
   const [isReviewDialogOpen, setIsReviewDialogOpen] = useState(false);
   const [expandedUsers, setExpandedUsers] = useState<Set<string>>(new Set());
@@ -72,13 +71,23 @@ export default function ReviewAchievementsPage() {
   const { isAuthenticated } = useAuth();
   const pageSize = 10;
 
-  // Fetch current user information
   const { data: currentUser } = useQuery({
     ...getUsersMeOptions(),
     enabled: isAuthenticated,
   });
 
-  // Infinite query for users (БЕЗ search параметра)
+  const { data: departments } = useQuery({
+    ...getDepartmentsOptions(),
+    enabled: isAuthenticated,
+  });
+
+  const departmentMap = useMemo(() => {
+    if (!departments?.departments) return new Map();
+    return new Map(
+      departments.departments.map((dept) => [dept.id, dept.name])
+    );
+  }, [departments]);
+
   const {
     data: usersData,
     error: usersError,
@@ -100,7 +109,6 @@ export default function ReviewAchievementsPage() {
 
   const allUsers = usersData?.pages.flatMap((page) => page.users) || [];
 
-  // Клиентская фильтрация пользователей
   const filteredUsers = useMemo(() => {
     if (!searchInput.trim()) {
       return allUsers;
@@ -108,24 +116,24 @@ export default function ReviewAchievementsPage() {
 
     const query = searchInput.toLowerCase().trim();
     return allUsers.filter((user) => {
-      // Search by full name (different orders)
       const fullName = `${user.lastName} ${user.firstName} ${user.middleName || ""}`.toLowerCase();
       const reverseName = `${user.firstName} ${user.lastName} ${user.middleName || ""}`.toLowerCase();
-      
-      // Search by individual name parts
       const firstNameMatch = user.firstName.toLowerCase().includes(query);
       const lastNameMatch = user.lastName.toLowerCase().includes(query);
       const middleNameMatch = user.middleName && user.middleName.toLowerCase().includes(query);
-      
+      const departmentName = departmentMap.get(user.departmentId) || "";
+      const departmentMatch = departmentName.toLowerCase().includes(query);
+
       return (
         fullName.includes(query) ||
         reverseName.includes(query) ||
         firstNameMatch ||
         lastNameMatch ||
-        middleNameMatch
+        middleNameMatch ||
+        departmentMatch
       );
     });
-  }, [allUsers, searchInput]);
+  }, [allUsers, searchInput, departmentMap]);
 
   const handleViewDetails = (achievement: ApiAchievement) => {
     setSelectedAchievement(achievement);
@@ -147,7 +155,6 @@ export default function ReviewAchievementsPage() {
     setExpandedUsers(newExpandedUsers);
   };
 
-  // Check if the current user can review this achievement
   const canReviewAchievement = useCallback(
     (achievement: ApiAchievement) => {
       if (!currentUser) return false;
@@ -175,7 +182,6 @@ export default function ReviewAchievementsPage() {
   return (
     <ReviewPageLayout title="Проверка достижений">
       <div className="space-y-4">
-        {/* Search Bar */}
         <div className="flex justify-between">
           <SearchInput value={searchInput} onChange={setSearchInput} />
         </div>
@@ -225,6 +231,7 @@ export default function ReviewAchievementsPage() {
                   <UserRow
                     key={user.id}
                     user={user}
+                    departmentName={departmentMap.get(user.departmentId) || "Неизвестная кафедра"}
                     isExpanded={expandedUsers.has(user.id)}
                     onToggle={toggleUser}
                     onViewDetails={handleViewDetails}
@@ -237,7 +244,6 @@ export default function ReviewAchievementsPage() {
           </div>
         )}
 
-        {/* Load more button */}
         <div className="flex flex-col items-center gap-4">
           {isFetchingNextUsersPage && (
             <div className="flex items-center justify-center p-4">
@@ -282,9 +288,9 @@ export default function ReviewAchievementsPage() {
   );
 }
 
-// User row component
 function UserRow({
   user,
+  departmentName,
   isExpanded,
   onToggle,
   onViewDetails,
@@ -292,6 +298,7 @@ function UserRow({
   canReviewAchievement,
 }: {
   user: RespondUser;
+  departmentName: string;
   isExpanded: boolean;
   onToggle: (userId: string) => void;
   onViewDetails: (achievement: ApiAchievement) => void;
@@ -300,7 +307,6 @@ function UserRow({
 }) {
   const pageSize = 10;
 
-  // Infinite query for user's achievements
   const {
     data: achievementsData,
     error: achievementsError,
@@ -321,14 +327,8 @@ function UserRow({
         : undefined,
   });
 
-  // Flatten all achievements from all pages
-  const achievements =
-    achievementsData?.pages.flatMap((page) => page.achievements) || [];
-
-  // Calculate reviewable count
-  const reviewableCount = achievements.filter((a) =>
-    canReviewAchievement(a),
-  ).length;
+  const achievements = achievementsData?.pages.flatMap((page) => page.achievements) || [];
+  const reviewableCount = achievements.filter((a) => canReviewAchievement(a)).length;
 
   return (
     <>
@@ -351,7 +351,7 @@ function UserRow({
                 {user.lastName} {user.firstName} {user.middleName}
               </div>
               <div className="text-sm text-muted-foreground">
-                ID кафедры: {user.departmentId}
+                {departmentName}
               </div>
             </div>
           </div>
