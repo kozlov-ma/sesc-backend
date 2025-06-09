@@ -67,9 +67,19 @@ export default function ReviewAchievementsPage() {
   const [isReviewDialogOpen, setIsReviewDialogOpen] = useState(false);
   const [expandedUsers, setExpandedUsers] = useState<Set<string>>(new Set());
   const [searchInput, setSearchInput] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
 
   const { isAuthenticated } = useAuth();
   const pageSize = 10;
+
+  // Debounce search input
+  React.useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchInput);
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchInput]);
 
   const { data: currentUser } = useQuery({
     ...getUsersMeOptions(),
@@ -99,6 +109,7 @@ export default function ReviewAchievementsPage() {
     ...getAchievementsUsersInfiniteOptions({
       query: {
         limit: pageSize,
+        // Убираем search параметр, так как он не поддерживается
       },
     }),
     getNextPageParam: (lastPage, pages) =>
@@ -109,31 +120,18 @@ export default function ReviewAchievementsPage() {
 
   const allUsers = usersData?.pages.flatMap((page) => page.users) || [];
 
+  // Добавляем клиентскую фильтрацию для поиска
   const filteredUsers = useMemo(() => {
-    if (!searchInput.trim()) {
-      return allUsers;
-    }
-
-    const query = searchInput.toLowerCase().trim();
+    if (!debouncedSearch.trim()) return allUsers;
+    
+    const searchTerm = debouncedSearch.toLowerCase();
     return allUsers.filter((user) => {
-      const fullName = `${user.lastName} ${user.firstName} ${user.middleName || ""}`.toLowerCase();
-      const reverseName = `${user.firstName} ${user.lastName} ${user.middleName || ""}`.toLowerCase();
-      const firstNameMatch = user.firstName.toLowerCase().includes(query);
-      const lastNameMatch = user.lastName.toLowerCase().includes(query);
-      const middleNameMatch = user.middleName && user.middleName.toLowerCase().includes(query);
-      const departmentName = departmentMap.get(user.departmentId) || "";
-      const departmentMatch = departmentName.toLowerCase().includes(query);
-
-      return (
-        fullName.includes(query) ||
-        reverseName.includes(query) ||
-        firstNameMatch ||
-        lastNameMatch ||
-        middleNameMatch ||
-        departmentMatch
-      );
+      const fullName = `${user.lastName} ${user.firstName} ${user.middleName}`.toLowerCase();
+      const departmentName = (departmentMap.get(user.departmentId) || "").toLowerCase();
+      
+      return fullName.includes(searchTerm) || departmentName.includes(searchTerm);
     });
-  }, [allUsers, searchInput, departmentMap]);
+  }, [allUsers, debouncedSearch, departmentMap]);
 
   const handleViewDetails = (achievement: ApiAchievement) => {
     setSelectedAchievement(achievement);
@@ -208,7 +206,7 @@ export default function ReviewAchievementsPage() {
               <TableBody>
                 <TableRow>
                   <TableCell colSpan={3} className="h-24 text-center">
-                    {searchInput.trim()
+                    {debouncedSearch.trim()
                       ? "Пользователи не найдены"
                       : "Нет пользователей с достижениями"}
                   </TableCell>
@@ -252,7 +250,7 @@ export default function ReviewAchievementsPage() {
             </div>
           )}
 
-          {!searchInput && hasNextUsersPage && !isFetchingNextUsersPage && (
+          {!debouncedSearch && hasNextUsersPage && !isFetchingNextUsersPage && (
             <Button
               onClick={() => fetchNextUsersPage()}
               variant="outline"
