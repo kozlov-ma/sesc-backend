@@ -26,7 +26,7 @@ import type {
 } from "@/lib/api/types.gen";
 import { ErrorMessage } from "@/components/ui/error-message";
 import { Badge } from "@/components/ui/badge";
-import { MoreHorizontal, Search, UserPlus, Key, User } from "lucide-react";
+import { MoreHorizontal, Search, UserPlus, Key, User, Pencil } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { UserFormDialog } from "./user-form-dialog";
 import { UserCredentialsDialog } from "./user-credentials-dialog";
@@ -227,6 +227,7 @@ export function UsersTable() {
                         <DropdownMenuItem
                           onClick={() => openEditUserDialog(user)}
                         >
+                          <Pencil className="h-4 w-4 mr-2" />
                           Редактировать
                         </DropdownMenuItem>
                         <DropdownMenuItem
