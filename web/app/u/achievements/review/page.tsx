@@ -40,7 +40,28 @@ import React from "react";
 
 type ApiAchievement = RespondAchievement;
 
+function SearchInput({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  return (
+    <div className="relative w-full md:w-72">
+      <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+      <Input
+        placeholder="Поиск пользователей..."
+        className="pl-8"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+      />
+    </div>
+  );
+}
+
 export default function ReviewAchievementsPage() {
+  const [searchInput, setSearchInput] = useState("");
   const [selectedAchievement, setSelectedAchievement] =
     useState<ApiAchievement | null>(null);
   const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
@@ -56,26 +77,6 @@ export default function ReviewAchievementsPage() {
     enabled: isAuthenticated,
   });
 
-  function SearchInput({
-    value,
-    onChange,
-  }: {
-    value: string;
-    onChange: (value: string) => void;
-  }) {
-    return (
-      <div className="relative w-full md:w-72">
-        <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-        <Input
-          placeholder="Поиск пользователей..."
-          className="pl-8"
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-        />
-      </div>
-    );
-  }
-
   // Infinite query for users
   const {
     data: usersData,
@@ -88,6 +89,7 @@ export default function ReviewAchievementsPage() {
     ...getAchievementsUsersInfiniteOptions({
       query: {
         limit: pageSize,
+        search: searchInput,
       },
     }),
     getNextPageParam: (lastPage, pages) =>
@@ -145,6 +147,7 @@ export default function ReviewAchievementsPage() {
 
   return (
     <ReviewPageLayout title="Проверка достижений">
+      <SearchInput value={searchInput} onChange={setSearchInput} />
       <div className="space-y-4">
         {isUsersLoading ? (
           <div className="flex justify-center py-8">
