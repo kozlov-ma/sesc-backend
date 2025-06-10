@@ -211,14 +211,9 @@ export function UsersTable() {
               </AvatarFallback>
             </Avatar>
             <div>
-              <div className="font-medium">
-                {user.lastName} {user.firstName}
+              <div className="font-medium text-pretty">
+                {user.lastName} {user.firstName} {user.middleName}
               </div>
-              {user.middleName && (
-                <div className="text-sm text-muted-foreground">
-                  {user.middleName}
-                </div>
-              )}
             </div>
           </div>
         </TableCell>
