@@ -19,6 +19,7 @@ import (
 // @Param Authorization header string false "Bearer JWT token"
 // @Param offset query int false "Pagination offset" default(0) minimum(0)
 // @Param limit query int false "Pagination limit" default(10) minimum(1) maximum(100)
+// @Param search query string false "Search by name"
 // @Success 200 {object} respond.Users
 // @Failure 400 {object} respond.Error "Invalid request parameters"
 // @Failure 401 {object} respond.Error "Unauthorized"
@@ -51,6 +52,8 @@ func (a *API) GetUsersWithAchievements(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	search := param.QueryStringOrZero(r, "search")
+
 	// Parse pagination parameters
 	offset, limit, err := param.ParsePagination(r)
 	if err != nil {
@@ -60,7 +63,7 @@ func (a *API) GetUsersWithAchievements(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get users with achievements
-	users, totalCount, err := a.sesc.GetUsersWithAchievements(ctx, user.ID, offset, limit)
+	users, totalCount, err := a.sesc.GetUsersWithAchievements(ctx, user.ID, offset, limit, search)
 	if err != nil {
 		rec.Add(events.Error, err)
 		a.writeJSON(ctx, w, respond.WithError(ctx, err))

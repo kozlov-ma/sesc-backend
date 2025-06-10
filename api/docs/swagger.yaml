@@ -1283,6 +1283,10 @@ paths:
         minimum: 1
         name: limit
         type: integer
+      - description: Search by name
+        in: query
+        name: search
+        type: string
       produces:
       - application/json
       responses:

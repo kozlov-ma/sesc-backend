@@ -620,6 +620,12 @@ const docTemplate = `{
                         "description": "Pagination limit",
                         "name": "limit",
                         "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Search by name",
+                        "name": "search",
+                        "in": "query"
                     }
                 ],
                 "responses": {

@@ -96,6 +96,7 @@ type (
 			ctx context.Context,
 			whosAsking uuid.UUID,
 			offset, limit int,
+			search string,
 		) (ent.Users, int, error)
 
 		CreateAchievement(ctx context.Context, opt achievement.CreateOptions) (*ent.Achievement, error)

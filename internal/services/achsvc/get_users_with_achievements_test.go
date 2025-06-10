@@ -33,7 +33,7 @@ func TestGetUsersWithAchievements(t *testing.T) {
 		testutil.CreateTestAchievement(ctx, t, client, user2, template, achievement.StatusDone)
 
 		// Call the method being tested
-		users, total, err := svc.GetUsersWithAchievements(ctx, asker.ID, 0, 10)
+		users, total, err := svc.GetUsersWithAchievements(ctx, asker.ID, 0, 10, "")
 
 		// Verify the results
 		require.NoError(t, err)
@@ -105,7 +105,7 @@ func TestGetUsersWithAchievements(t *testing.T) {
 		) // Should be visible
 
 		// Call the method with department head asking
-		users, total, err := svc.GetUsersWithAchievements(ctx, dephead.ID, 0, 10)
+		users, total, err := svc.GetUsersWithAchievements(ctx, dephead.ID, 0, 10, "")
 
 		// Verify the results - should only see users from their department with DepheadReview achievements
 		require.NoError(t, err)
@@ -177,7 +177,7 @@ func TestGetUsersWithAchievements(t *testing.T) {
 		) // Should not be visible (wrong status)
 
 		// Call the method with olympiad deputy asking
-		users, total, err := svc.GetUsersWithAchievements(ctx, olympiadDeputy.ID, 0, 10)
+		users, total, err := svc.GetUsersWithAchievements(ctx, olympiadDeputy.ID, 0, 10, "")
 
 		// Verify the results - should only see users with InspectorReview achievements of Olympiad kind
 		require.NoError(t, err)
@@ -247,7 +247,7 @@ func TestGetUsersWithAchievements(t *testing.T) {
 		) // Should not be visible (wrong status)
 
 		// Call the method with academic director asking
-		users, total, err := svc.GetUsersWithAchievements(ctx, academicDirector.ID, 0, 10)
+		users, total, err := svc.GetUsersWithAchievements(ctx, academicDirector.ID, 0, 10, "")
 
 		// Verify the results - should only see users with InspectorReview achievements of Development kind
 		require.NoError(t, err)
@@ -301,7 +301,7 @@ func TestGetUsersWithAchievements(t *testing.T) {
 		) // Should not be visible
 
 		// Call the method with department head from dept1
-		users, total, err := svc.GetUsersWithAchievements(ctx, dephead1.ID, 0, 10)
+		users, total, err := svc.GetUsersWithAchievements(ctx, dephead1.ID, 0, 10, "")
 
 		// Verify the results - should only see users from dept1
 		require.NoError(t, err)
@@ -325,7 +325,7 @@ func TestGetUsersWithAchievements(t *testing.T) {
 		asker := testutil.CreateTestUserWithDepartment(ctx, t, client, "Asking", "User", sesc.Dephead, dept)
 
 		// Call the method being tested
-		users, total, err := svc.GetUsersWithAchievements(ctx, asker.ID, 0, 10)
+		users, total, err := svc.GetUsersWithAchievements(ctx, asker.ID, 0, 10, "")
 
 		// Verify the results
 		require.NoError(t, err)
@@ -367,7 +367,7 @@ func TestGetUsersWithAchievements(t *testing.T) {
 		}
 
 		// Call the method being tested with pagination
-		users, total, err := svc.GetUsersWithAchievements(ctx, asker.ID, 0, 2)
+		users, total, err := svc.GetUsersWithAchievements(ctx, asker.ID, 0, 2, "")
 
 		// Verify the results
 		require.NoError(t, err)
@@ -397,7 +397,7 @@ func TestGetUsersWithAchievements(t *testing.T) {
 		client.Close()
 
 		// Call the method being tested
-		_, _, err := svc.GetUsersWithAchievements(ctx, asker.ID, 0, 10)
+		_, _, err := svc.GetUsersWithAchievements(ctx, asker.ID, 0, 10, "")
 
 		// Verify the results
 		require.Error(t, err)
