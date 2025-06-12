@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback } from "react";
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -14,7 +14,6 @@ import {
   getAchievementsUsersInfiniteOptions,
   getAchievementsInfiniteOptions,
   getUsersMeOptions,
-  getDepartmentsOptions,
 } from "@/lib/api/@tanstack/react-query.gen";
 import {
   getStatusLabel,
@@ -38,7 +37,6 @@ import { useAuth } from "@/hooks/use-auth";
 import { UserAvatar } from "@/components/ui/user-avatar";
 import Link from "next/link";
 import React from "react";
-import { useDebounce } from "@/hooks/use-debounce";
 
 type ApiAchievement = RespondAchievement;
 
@@ -64,7 +62,6 @@ function SearchInput({
 
 export default function ReviewAchievementsPage() {
   const [searchInput, setSearchInput] = useState("");
-  const debouncedSearchTerm = useDebounce(searchInput, 300);
   const [selectedAchievement, setSelectedAchievement] =
     useState<ApiAchievement | null>(null);
   const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
@@ -80,19 +77,6 @@ export default function ReviewAchievementsPage() {
     enabled: isAuthenticated,
   });
 
-  // Fetch departments for search
-  const { data: departments } = useQuery({
-    ...getDepartmentsOptions(),
-    enabled: isAuthenticated,
-  });
-
-  const departmentMap = useMemo(() => {
-    if (!departments?.departments) return new Map();
-    return new Map(
-      departments.departments.map((dept) => [dept.id, dept.name])
-    );
-  }, [departments]);
-
   // Infinite query for users
   const {
     data: usersData,
@@ -105,7 +89,7 @@ export default function ReviewAchievementsPage() {
     ...getAchievementsUsersInfiniteOptions({
       query: {
         limit: pageSize,
-        // Убираем search параметр, так как он не поддерживается
+        search: searchInput,
       },
     }),
     getNextPageParam: (lastPage, pages) =>
@@ -114,20 +98,7 @@ export default function ReviewAchievementsPage() {
         : undefined,
   });
 
-  const allUsers = usersData?.pages.flatMap((page) => page.users) || [];
-
-  // Добавляем клиентскую фильтрацию для поиска
-  const filteredUsers = useMemo(() => {
-    if (!debouncedSearchTerm.trim()) return allUsers;
-    
-    const searchTerm = debouncedSearchTerm.toLowerCase();
-    return allUsers.filter((user: RespondUser) => {
-      const fullName = `${user.lastName} ${user.firstName} ${user.middleName}`.toLowerCase();
-      const departmentName = (departmentMap.get(user.departmentId) || "").toLowerCase();
-      
-      return fullName.includes(searchTerm) || departmentName.includes(searchTerm);
-    });
-  }, [allUsers, debouncedSearchTerm, departmentMap]);
+  const users = usersData?.pages.flatMap((page) => page.users) || [];
 
   const handleViewDetails = (achievement: ApiAchievement) => {
     setSelectedAchievement(achievement);
@@ -179,34 +150,21 @@ export default function ReviewAchievementsPage() {
       <SearchInput value={searchInput} onChange={setSearchInput} />
       <div className="space-y-4">
         {isUsersLoading ? (
-          <div className="flex items-center justify-center p-4">
-            <Loader2 className="mr-2 h-6 w-6 animate-spin" />
-            <span>Загрузка...</span>
+          <div className="flex justify-center py-8">
+            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+            <p className="ml-2 text-muted-foreground">
+              Загрузка пользователей...
+            </p>
           </div>
         ) : usersError ? (
           <div className="flex justify-center py-8">
             <p className="text-destructive">Ошибка загрузки пользователей</p>
           </div>
-        ) : filteredUsers.length === 0 ? (
-          <div className="rounded-md border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-[300px]">Пользователь</TableHead>
-                  <TableHead>Действия</TableHead>
-                  <TableHead className="text-right">Статус</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                <TableRow>
-                  <TableCell colSpan={3} className="h-24 text-center">
-                    {debouncedSearchTerm.trim()
-                      ? "Пользователи не найдены"
-                      : "Нет пользователей с достижениями"}
-                  </TableCell>
-                </TableRow>
-              </TableBody>
-            </Table>
+        ) : users.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-12 gap-4">
+            <p className="text-muted-foreground">
+              Нет пользователей с достижениями
+            </p>
           </div>
         ) : (
           <div className="rounded-md border">
@@ -219,7 +177,7 @@ export default function ReviewAchievementsPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredUsers.map((user) => (
+                {users.map((user) => (
                   <UserRow
                     key={user.id}
                     user={user}
@@ -235,30 +193,30 @@ export default function ReviewAchievementsPage() {
           </div>
         )}
 
-        <div className="flex flex-col items-center gap-4">
-          {isFetchingNextUsersPage && (
-            <div className="flex items-center justify-center p-4">
-              <Loader2 className="mr-2 h-6 w-6 animate-spin" />
-              <span>Загрузка...</span>
-            </div>
-          )}
-
-          {!debouncedSearchTerm && hasNextUsersPage && !isFetchingNextUsersPage && (
+        {hasNextUsersPage && (
+          <div className="flex justify-center">
             <Button
-              onClick={() => fetchNextUsersPage()}
               variant="outline"
-              className="px-8"
+              onClick={() => fetchNextUsersPage()}
+              disabled={isFetchingNextUsersPage}
             >
-              Загрузить еще
+              {isFetchingNextUsersPage ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Загрузка...
+                </>
+              ) : (
+                "Загрузить ещё пользователей"
+              )}
             </Button>
-          )}
+          </div>
+        )}
 
-          {!hasNextUsersPage && allUsers.length > 0 && !debouncedSearchTerm && (
-            <p className="text-sm text-muted-foreground py-4">
-              Все пользователи загружены
-            </p>
-          )}
-        </div>
+        {users.length > 0 && !hasNextUsersPage && (
+          <div className="text-center text-muted-foreground py-4">
+            Все пользователи загружены
+          </div>
+        )}
       </div>
 
       {selectedAchievement && (
