@@ -37,6 +37,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { UserAvatar } from "@/components/ui/user-avatar";
 import Link from "next/link";
 import React from "react";
+import { useDebounce } from "@/hooks/use-debounce";
 
 type ApiAchievement = RespondAchievement;
 
@@ -62,6 +63,7 @@ function SearchInput({
 
 export default function ReviewAchievementsPage() {
   const [searchInput, setSearchInput] = useState("");
+  const debouncedSearchTerm = useDebounce(searchInput, 300);
   const [selectedAchievement, setSelectedAchievement] =
     useState<ApiAchievement | null>(null);
   const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
@@ -89,7 +91,7 @@ export default function ReviewAchievementsPage() {
     ...getAchievementsUsersInfiniteOptions({
       query: {
         limit: pageSize,
-        search: searchInput,
+        search: debouncedSearchTerm,
       },
     }),
     getNextPageParam: (lastPage, pages) =>
