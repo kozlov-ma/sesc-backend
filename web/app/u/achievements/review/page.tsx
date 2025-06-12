@@ -8,6 +8,8 @@ import { ReviewPageLayout } from "@/components/achievements/review-page-layout";
 import { AchievementDetailsDialog } from "@/components/achievements/achievement-details-dialog";
 import { ReviewAchievementDialog } from "@/components/achievements/review-achievement-dialog";
 import { RespondAchievement, RespondUser } from "@/lib/api/types.gen";
+import { Search } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import {
   getAchievementsUsersInfiniteOptions,
   getAchievementsInfiniteOptions,
@@ -35,10 +37,33 @@ import { useAuth } from "@/hooks/use-auth";
 import { UserAvatar } from "@/components/ui/user-avatar";
 import Link from "next/link";
 import React from "react";
+import { useDebounce } from "@/hooks/use-debounce";
 
 type ApiAchievement = RespondAchievement;
 
+function SearchInput({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  return (
+    <div className="relative w-full md:w-72">
+      <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+      <Input
+        placeholder="Поиск пользователей..."
+        className="pl-8"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+      />
+    </div>
+  );
+}
+
 export default function ReviewAchievementsPage() {
+  const [searchInput, setSearchInput] = useState("");
+  const debouncedSearchTerm = useDebounce(searchInput, 300);
   const [selectedAchievement, setSelectedAchievement] =
     useState<ApiAchievement | null>(null);
   const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
@@ -66,6 +91,7 @@ export default function ReviewAchievementsPage() {
     ...getAchievementsUsersInfiniteOptions({
       query: {
         limit: pageSize,
+        search: debouncedSearchTerm,
       },
     }),
     getNextPageParam: (lastPage, pages) =>
@@ -123,6 +149,7 @@ export default function ReviewAchievementsPage() {
 
   return (
     <ReviewPageLayout title="Проверка достижений">
+      <SearchInput value={searchInput} onChange={setSearchInput} />
       <div className="space-y-4">
         {isUsersLoading ? (
           <div className="flex justify-center py-8">

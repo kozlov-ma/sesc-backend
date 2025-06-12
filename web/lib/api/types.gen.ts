@@ -651,6 +651,10 @@ export type GetAchievementsUsersData = {
      * Pagination limit
      */
     limit?: number;
+    /**
+     * Search by name
+     */
+    search?: string;
   };
   url: "/achievements/users";
 };

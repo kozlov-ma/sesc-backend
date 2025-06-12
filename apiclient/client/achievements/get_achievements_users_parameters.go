@@ -82,6 +82,12 @@ type GetAchievementsUsersParams struct {
 	*/
 	Offset *int64
 
+	/* Search.
+
+	   Search by name
+	*/
+	Search *string
+
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
@@ -182,6 +188,17 @@ func (o *GetAchievementsUsersParams) SetOffset(offset *int64) {
 	o.Offset = offset
 }
 
+// WithSearch adds the search to the get achievements users params
+func (o *GetAchievementsUsersParams) WithSearch(search *string) *GetAchievementsUsersParams {
+	o.SetSearch(search)
+	return o
+}
+
+// SetSearch adds the search to the get achievements users params
+func (o *GetAchievementsUsersParams) SetSearch(search *string) {
+	o.Search = search
+}
+
 // WriteToRequest writes these params to a swagger request
 func (o *GetAchievementsUsersParams) WriteToRequest(r runtime.ClientRequest, reg strfmt.Registry) error {
 
@@ -227,6 +244,23 @@ func (o *GetAchievementsUsersParams) WriteToRequest(r runtime.ClientRequest, reg
 		if qOffset != "" {
 
 			if err := r.SetQueryParam("offset", qOffset); err != nil {
+				return err
+			}
+		}
+	}
+
+	if o.Search != nil {
+
+		// query param search
+		var qrSearch string
+
+		if o.Search != nil {
+			qrSearch = *o.Search
+		}
+		qSearch := qrSearch
+		if qSearch != "" {
+
+			if err := r.SetQueryParam("search", qSearch); err != nil {
 				return err
 			}
 		}
