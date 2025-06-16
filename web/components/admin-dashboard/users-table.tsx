@@ -230,7 +230,7 @@ export function UsersTable() {
             <Badge>Активен</Badge>
           )}
         </TableCell>
-        <TableCell>
+        <TableCell className="text-center">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon">
@@ -295,7 +295,7 @@ export function UsersTable() {
               <TableHead>Подразделение</TableHead>
               <TableHead>Роль</TableHead>
               <TableHead>Статус</TableHead>
-              <TableHead className="text-right">Действия</TableHead>
+              <TableHead className="text-center w-[150px]">Действия</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
