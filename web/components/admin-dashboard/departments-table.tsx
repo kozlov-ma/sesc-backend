@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ErrorMessage } from "@/components/ui/error-message";
-import { Building, MoreHorizontal, Search, Trash } from "lucide-react";
+import { Building, MoreHorizontal, Search, Trash, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import { DepartmentFormDialog } from "./department-form-dialog";
 import {
@@ -152,7 +152,7 @@ export function DepartmentsTable() {
             <TableRow>
               <TableHead className="w-[300px]">Название кафедры</TableHead>
               <TableHead>Описание</TableHead>
-              <TableHead className="w-[70px]"></TableHead>
+              <TableHead className="text-center w-[150px]">Действия</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -163,7 +163,7 @@ export function DepartmentsTable() {
                     {department.name}
                   </TableCell>
                   <TableCell>{department.description}</TableCell>
-                  <TableCell>
+                  <TableCell className="text-center">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button variant="ghost" size="icon">
@@ -175,6 +175,7 @@ export function DepartmentsTable() {
                         <DropdownMenuItem
                           onClick={() => openEditDepartmentDialog(department)}
                         >
+                          <Pencil className="h-4 w-4 mr-2" />
                           Редактировать
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />

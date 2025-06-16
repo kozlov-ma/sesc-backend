@@ -234,10 +234,10 @@ export function FileTable({
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Имя файла</TableHead>
+                  <TableHead className="pl-[25px]">Имя файла</TableHead>
                   {showOwner && <TableHead>Владелец</TableHead>}
                   <TableHead>Размер</TableHead>
-                  <TableHead className="text-right">Действия</TableHead>
+                  <TableHead className="text-center w-[150px]">Действия</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -254,8 +254,7 @@ export function FileTable({
                       </TableCell>
                     )}
                     <TableCell>{formatFileSize(file.fileSize || 0)}</TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
+                    <TableCell className="text-center">
                         <Button
                           variant="ghost"
                           size="icon"
@@ -272,7 +271,6 @@ export function FileTable({
                             <Trash2 className="h-4 w-4" />
                           </Button>
                         )}
-                      </div>
                     </TableCell>
                   </TableRow>
                 ))}

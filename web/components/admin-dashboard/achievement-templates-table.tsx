@@ -34,6 +34,7 @@ import {
   ChevronRight,
   ChevronDown,
   Loader2,
+  Pencil,
 } from "lucide-react";
 import { toast } from "sonner";
 import { AchievementTemplateFormDialog } from "./achievement-template-form-dialog";
@@ -266,7 +267,7 @@ export function AchievementTemplatesTable() {
                 <TableHead className="hidden sm:table-cell text-pretty w-[22%]">
                   Описание
                 </TableHead>
-                <TableHead className="hidden md:table-cell text-pretty text-right w-[18%]">
+                <TableHead className="text-center hidden md:table-cell text-pretty ">
                   Тип
                 </TableHead>
                 <TableHead className="text-center hidden lg:table-cell text-pretty w-[7%]">
@@ -275,7 +276,9 @@ export function AchievementTemplatesTable() {
                 <TableHead className="text-center text-pretty w-[8%]">
                   Статус
                 </TableHead>
-                <TableHead className="w-[60px]"></TableHead>
+                <TableHead className="text-center text-pretty w-[150px]">
+                  Действия
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -320,13 +323,15 @@ export function AchievementTemplatesTable() {
                           className="text-pretty break-words whitespace-normal"
                         />
                       </TableCell>
-                      <TableCell className="hidden md:table-cell align-top py-3 text-right">
+                      <TableCell className="text-center hidden md:table-cell align-top py-3">
                         <span className="text-muted-foreground text-pretty">
                           -
                         </span>
                       </TableCell>
-                      <TableCell className="hidden lg:table-cell align-top py-3 text-center">
-                        <span className="text-muted-foreground">-</span>
+                      <TableCell className="text-center hidden lg:table-cell align-top py-3">
+                        <span className="text-muted-foreground">
+                          -
+                        </span>
                       </TableCell>
                       <TableCell className="align-top py-3">
                         <StatusColumnContent>
@@ -346,7 +351,7 @@ export function AchievementTemplatesTable() {
                           </span>
                         </StatusColumnContent>
                       </TableCell>
-                      <TableCell className="align-top py-3">
+                      <TableCell className="text-center align-top py-3">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <Button variant="ghost" size="icon">
@@ -358,6 +363,7 @@ export function AchievementTemplatesTable() {
                             <DropdownMenuItem
                               onClick={() => openEditGroupDialog(group)}
                             >
+                            <Pencil className="h-4 w-4 mr-2" />
                               Редактировать
                             </DropdownMenuItem>
                             <DropdownMenuItem
@@ -365,6 +371,7 @@ export function AchievementTemplatesTable() {
                                 openCreateTemplateInGroup(group.id)
                               }
                             >
+                            <PlusCircle className="h-4 w-4 mr-2" />
                               Добавить шаблон
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
@@ -423,8 +430,8 @@ export function AchievementTemplatesTable() {
                                 className="text-pretty break-words whitespace-normal"
                               />
                             </TableCell>
-                            <TableCell className="hidden md:table-cell align-top py-3 text-right">
-                              <div className="text-pretty break-words whitespace-normal text-right">
+                            <TableCell className="text-center hidden md:table-cell align-top py-3">
+                              <div className="text-pretty break-words whitespace-normal">
                                 {template.kind === "olympiad" &&
                                   "Олимпиадная деятельность"}
                                 {template.kind === "development" && "Развитие"}
@@ -453,7 +460,7 @@ export function AchievementTemplatesTable() {
                                 </span>
                               </StatusColumnContent>
                             </TableCell>
-                            <TableCell className="align-top py-3">
+                            <TableCell className="text-center align-top py-3">
                               <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
                                   <Button variant="ghost" size="icon">
@@ -469,6 +476,7 @@ export function AchievementTemplatesTable() {
                                       openEditTemplateDialog(template)
                                     }
                                   >
+                                  <Pencil className="h-4 w-4 mr-2" />
                                     Редактировать
                                   </DropdownMenuItem>
                                   <DropdownMenuSeparator />
@@ -500,7 +508,7 @@ export function AchievementTemplatesTable() {
                         >
                           <Button
                             variant="ghost"
-                            className="w-full justify-start text-muted-foreground hover:text-foreground"
+                            className="w-full justify-start text-muted-foreground hover:text-foreground pl-8 sm:pl-12"
                             onClick={() => openCreateTemplateInGroup(group.id)}
                           >
                             <PlusCircle className="h-4 w-4 mr-2" />
