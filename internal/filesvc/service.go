@@ -320,55 +320,63 @@ func (s *FileService) Search(ctx context.Context, opts sesc.FileSearchOptions) (
 	)
 
 	// Set default limit if not provided
-	if opts.Limit <= 0 {
+	if opts.Limit <= 0 || opts.Limit > 50 {
 		opts.Limit = 50 // Default limit
 	}
 
 	// Build query predicates
 	predicates := buildFilePredicates(opts, rec)
 
-	// Count total matching files
-	var totalCount int
-	err := recordDBOperation(ctx, rec, "count_total", func() error {
-		var err error
-		totalCount, err = s.client.File.Query().
-			Where(predicates...).
-			Count(ctx)
+	var (
+		files      ent.Files
+		totalCount int
+	)
+	err := withTx(ctx, s.client, func(tx *ent.Tx) error {
+		err := rec.Operation("count_total", func(rec *event.Record) error {
+			var err error
+			totalCount, err = tx.File.Query().
+				Where(predicates...).
+				Count(ctx)
 
-		if err == nil {
-			rec.Sub("count_total").Set("total_count", totalCount)
+			if err == nil {
+				rec.Sub("count_total").Set("total_count", totalCount)
+			} else {
+				return fmt.Errorf("couldn't count total: %w", err)
+			}
+
+			return nil
+		})
+		if err != nil {
+			return err
 		}
 
-		return err
+		err = rec.Operation("query_files", func(rec *event.Record) error {
+			var err error
+			files, err = tx.File.Query().
+				Where(predicates...).
+				Order(ent.Desc(file.FieldID)).
+				Offset(opts.Offset).
+				Limit(opts.Limit).
+				All(ctx)
+
+			if err == nil {
+				rec.Sub("query_files").Set(
+					"result_count", len(files),
+				)
+			} else {
+				return fmt.Errorf("couldn't query files: %w", err)
+			}
+
+			return nil
+		})
+		if err != nil {
+			return err
+		}
+
+		return nil
 	})
 
 	if err != nil {
-		rec.Add(events.Error, err)
-		return nil, 0, err
-	}
-
-	// Get paginated results
-	var files ent.Files
-	err = recordDBOperation(ctx, rec, "query_files", func() error {
-		var err error
-		files, err = s.client.File.Query().
-			Where(predicates...).
-			Order(ent.Desc(file.FieldID)).
-			Offset(opts.Offset).
-			Limit(opts.Limit).
-			All(ctx)
-
-		if err == nil {
-			rec.Sub("query_files").Set(
-				"result_count", len(files),
-			)
-		}
-
-		return err
-	})
-
-	if err != nil {
-		rec.Add(events.Error, err)
 		return nil, 0, err
 	}
 

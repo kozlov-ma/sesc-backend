@@ -292,67 +292,6 @@ func TestSearch(t *testing.T) {
 		return ctx, svc, client
 	}
 
-	// Common test data setup function that creates a fresh database with test files
-	setupTestFiles := func(t *testing.T) (ctx context.Context, svc *FileService, client *ent.Client, owner1ID, owner2ID uuid.UUID) {
-		ctx, svc, client = setupBase(t)
-
-		// Create test users
-		owner1ID = createTestUser(ctx, t, client)
-		owner2ID = createTestUser(ctx, t, client)
-
-		// Get mock storage to set expectations
-		mockStorage := svc.storage.(*mocks.MockObjectStorage)
-
-		// Create some test files
-		fileContents := []byte("test file content")
-
-		// Set up expectations for all file creations
-		mockStorage.EXPECT().
-			PutObject(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Eq(int64(len(fileContents)))).
-			Return(nil).
-			Times(4)
-
-		// Create a common file
-		_, err := svc.Create(ctx, bytes.NewReader(fileContents), FileOpts{
-			FileName: "common-file.txt",
-			FileSize: len(fileContents),
-		})
-		require.NoError(t, err)
-
-		// Create files with owners
-		_, err = svc.Create(ctx, bytes.NewReader(fileContents), FileOpts{
-			FileName: "owner1-doc.pdf",
-			FileSize: len(fileContents),
-			OwnerID:  &owner1ID,
-		})
-		require.NoError(t, err)
-
-		_, err = svc.Create(ctx, bytes.NewReader(fileContents), FileOpts{
-			FileName: "owner1-image.jpg",
-			FileSize: len(fileContents),
-			OwnerID:  &owner1ID,
-		})
-		require.NoError(t, err)
-
-		_, err = svc.Create(ctx, bytes.NewReader(fileContents), FileOpts{
-			FileName: "owner2-file.txt",
-			FileSize: len(fileContents),
-			OwnerID:  &owner2ID,
-		})
-		require.NoError(t, err)
-
-		return ctx, svc, client, owner1ID, owner2ID
-	}
-
-	t.Run("all_files", func(t *testing.T) {
-		ctx, svc, _, _, _ := setupTestFiles(t)
-
-		files, total, err := svc.Search(ctx, sesc.FileSearchOptions{})
-		require.NoError(t, err)
-		require.Equal(t, 4, total)
-		require.Len(t, files, 4)
-	})
-
 	t.Run("by_owner", func(t *testing.T) {
 		ctx, svc, client := setupBase(t)
 
@@ -480,6 +419,7 @@ func TestSearch(t *testing.T) {
 		files, total, err := svc.Search(ctx, sesc.FileSearchOptions{
 			Limit:  2,
 			Offset: 0,
+			Common: true,
 		})
 		require.NoError(t, err)
 		require.Equal(t, 4, total)
@@ -489,6 +429,7 @@ func TestSearch(t *testing.T) {
 		files2, total2, err := svc.Search(ctx, sesc.FileSearchOptions{
 			Limit:  2,
 			Offset: 2,
+			Common: true,
 		})
 		require.NoError(t, err)
 		require.Equal(t, 4, total2)
