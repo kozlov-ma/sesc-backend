@@ -13,6 +13,7 @@ import (
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent"
 	"github.com/kozlov-ma/sesc-backend/pkg/event"
 	"github.com/kozlov-ma/sesc-backend/sesc"
+
 	// Import SQLite driver
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/stretchr/testify/require"
@@ -161,7 +162,7 @@ func CreateTestAchievementTemplate(
 	ctx context.Context,
 	t *testing.T,
 	client *ent.Client,
-	kind achievement.Kind,
+	reviewerRole achievement.ReviewerRole,
 ) *ent.AchievementTemplate {
 	t.Helper()
 
@@ -174,7 +175,7 @@ func CreateTestAchievementTemplate(
 		SetName(templateName).
 		SetDescription("For testing").
 		SetPointsLimit(10).
-		SetKind(kind).
+		SetReviewerRole(reviewerRole).
 		SetGroupID(group.ID).
 		Save(ctx)
 	require.NoError(t, err)
@@ -262,7 +263,7 @@ func SetupTestContext(t *testing.T) *TestContext {
 	group := CreateTestAchievementGroup(ctx, t, client)
 
 	// Create achievement template
-	template := CreateTestAchievementTemplate(ctx, t, client, achievement.Kind("olympiad"))
+	template := CreateTestAchievementTemplate(ctx, t, client, achievement.ReviewerRole(sesc.OlympiadDeputy))
 
 	// Create file
 	file := CreateTestFile(ctx, t, client)

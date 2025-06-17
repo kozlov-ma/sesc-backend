@@ -30,8 +30,8 @@ func (AchievementTemplate) Fields() []ent.Field {
 		field.UUID("group_id", uuid.UUID{}),
 		field.Bool("active").
 			Default(true),
-		field.String("kind").
-			GoType(achievement.Kind("")),
+		field.Int("reviewer_role").
+			GoType(achievement.ReviewerRole(0)),
 	}
 }
 

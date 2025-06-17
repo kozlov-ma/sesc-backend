@@ -9,7 +9,7 @@ var (
 
 	ErrAchievementGroupNotFound    = domerr.New("группа достижений не существует", domerr.KindNotFound)
 	ErrAchievementTemplateNotFound = domerr.New("шаблон достижения не существует", domerr.KindNotFound)
-	ErrInvalidAchievementKind      = domerr.New("некорректный тип достижения", domerr.KindValidation)
+	ErrInvalidReviewerRole         = domerr.New("некорректная роль ревьюера", domerr.KindValidation)
 
 	ErrAchievementNotFound = domerr.New("достижение не существует", domerr.KindNotFound)
 	ErrDocumentNotFound    = domerr.New("документ не существует", domerr.KindNotFound)

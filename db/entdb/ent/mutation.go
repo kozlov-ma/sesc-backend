@@ -2602,7 +2602,7 @@ type AchievementTemplateMutation struct {
 	points_limit        *int
 	addpoints_limit     *int
 	active              *bool
-	kind                *achievement.Kind
+	reviewer_role       *achievement.ReviewerRole
 	clearedFields       map[string]struct{}
 	group               *uuid.UUID
 	clearedgroup        bool
@@ -2792,8 +2792,9 @@ func (m *AchievementTemplateMutation) ClearDescription() {
 }
 
 // DescriptionCleared returns if the "description" field was cleared in this mutation.
-func (m *AchievementTemplateMutation) DescriptionCleared() bool {
-	_, ok := m.clearedFields[achievementtemplate.FieldDescription]
+// ReviewerRoleCleared returns if the "reviewer_role" field was cleared in this mutation.
+func (m *AchievementTemplateMutation) ReviewerRoleCleared() bool {
+	_, ok := m.clearedFields[achievementtemplate.FieldReviewerRole]
 	return ok
 }
 
@@ -2931,40 +2932,40 @@ func (m *AchievementTemplateMutation) ResetActive() {
 	m.active = nil
 }
 
-// SetKind sets the "kind" field.
-func (m *AchievementTemplateMutation) SetKind(a achievement.Kind) {
-	m.kind = &a
+// SetReviewerRole sets the "reviewer_role" field.
+func (m *AchievementTemplateMutation) SetReviewerRole(r achievement.ReviewerRole) {
+	m.reviewer_role = &r
 }
 
-// Kind returns the value of the "kind" field in the mutation.
-func (m *AchievementTemplateMutation) Kind() (r achievement.Kind, exists bool) {
-	v := m.kind
+// ReviewerRole returns the value of the "reviewer_role" field in the mutation.
+func (m *AchievementTemplateMutation) ReviewerRole() (r achievement.ReviewerRole, exists bool) {
+	v := m.reviewer_role
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldKind returns the old "kind" field's value of the AchievementTemplate entity.
+// OldReviewerRole returns the old "reviewer_role" field's value of the AchievementTemplate entity.
 // If the AchievementTemplate object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *AchievementTemplateMutation) OldKind(ctx context.Context) (v achievement.Kind, err error) {
+func (m *AchievementTemplateMutation) OldReviewerRole(ctx context.Context) (v achievement.ReviewerRole, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldKind is only allowed on UpdateOne operations")
+		return v, errors.New("OldReviewerRole is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldKind requires an ID field in the mutation")
+		return v, errors.New("OldReviewerRole requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldKind: %w", err)
+		return v, fmt.Errorf("querying old value for OldReviewerRole: %w", err)
 	}
-	return oldValue.Kind, nil
+	return oldValue.ReviewerRole, nil
 }
 
-// ResetKind resets all changes to the "kind" field.
-func (m *AchievementTemplateMutation) ResetKind() {
-	m.kind = nil
+// ResetReviewerRole resets all changes to the "reviewer_role" field.
+func (m *AchievementTemplateMutation) ResetReviewerRole() {
+	m.reviewer_role = nil
 }
 
 // ClearGroup clears the "group" edge to the AchievementGroup entity.
@@ -3098,8 +3099,8 @@ func (m *AchievementTemplateMutation) Fields() []string {
 	if m.active != nil {
 		fields = append(fields, achievementtemplate.FieldActive)
 	}
-	if m.kind != nil {
-		fields = append(fields, achievementtemplate.FieldKind)
+	if m.reviewer_role != nil {
+		fields = append(fields, achievementtemplate.FieldReviewerRole)
 	}
 	return fields
 }
@@ -3119,8 +3120,8 @@ func (m *AchievementTemplateMutation) Field(name string) (ent.Value, bool) {
 		return m.GroupID()
 	case achievementtemplate.FieldActive:
 		return m.Active()
-	case achievementtemplate.FieldKind:
-		return m.Kind()
+	case achievementtemplate.FieldReviewerRole:
+		return m.ReviewerRole()
 	}
 	return nil, false
 }
@@ -3140,8 +3141,8 @@ func (m *AchievementTemplateMutation) OldField(ctx context.Context, name string)
 		return m.OldGroupID(ctx)
 	case achievementtemplate.FieldActive:
 		return m.OldActive(ctx)
-	case achievementtemplate.FieldKind:
-		return m.OldKind(ctx)
+	case achievementtemplate.FieldReviewerRole:
+		return m.OldReviewerRole(ctx)
 	}
 	return nil, fmt.Errorf("unknown AchievementTemplate field %s", name)
 }
@@ -3186,12 +3187,12 @@ func (m *AchievementTemplateMutation) SetField(name string, value ent.Value) err
 		}
 		m.SetActive(v)
 		return nil
-	case achievementtemplate.FieldKind:
-		v, ok := value.(achievement.Kind)
+	case achievementtemplate.FieldReviewerRole:
+		v, ok := value.(achievement.ReviewerRole)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetKind(v)
+		m.SetReviewerRole(v)
 		return nil
 	}
 	return fmt.Errorf("unknown AchievementTemplate field %s", name)
@@ -3281,8 +3282,8 @@ func (m *AchievementTemplateMutation) ResetField(name string) error {
 	case achievementtemplate.FieldActive:
 		m.ResetActive()
 		return nil
-	case achievementtemplate.FieldKind:
-		m.ResetKind()
+	case achievementtemplate.FieldReviewerRole:
+		m.ResetReviewerRole()
 		return nil
 	}
 	return fmt.Errorf("unknown AchievementTemplate field %s", name)

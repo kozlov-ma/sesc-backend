@@ -81,7 +81,7 @@ func (s *ACS) buildRoleBasedFilters(askingUser *ent.User) predicate.Achievement 
 				achievement.StatusAccounted,
 				achievement.StatusDepheadReview,
 			),
-			entAchievement.HasTemplateWith(achievementtemplate.Kind(achievement.Scientific)),
+			entAchievement.HasTemplateWith(achievementtemplate.ReviewerRole(achievement.ReviewerRole(sesc.ScientificDeputy))),
 		)
 	case sesc.OlympiadDeputy:
 		return entAchievement.And(
@@ -90,7 +90,7 @@ func (s *ACS) buildRoleBasedFilters(askingUser *ent.User) predicate.Achievement 
 				achievement.StatusAccounted,
 				achievement.StatusDepheadReview,
 			),
-			entAchievement.HasTemplateWith(achievementtemplate.Kind(achievement.Olympiad)),
+			entAchievement.HasTemplateWith(achievementtemplate.ReviewerRole(achievement.ReviewerRole(sesc.OlympiadDeputy))),
 		)
 	case sesc.DevelopmentDeputy:
 		return entAchievement.And(
@@ -99,7 +99,7 @@ func (s *ACS) buildRoleBasedFilters(askingUser *ent.User) predicate.Achievement 
 				achievement.StatusAccounted,
 				achievement.StatusDepheadReview,
 			),
-			entAchievement.HasTemplateWith(achievementtemplate.Kind(achievement.Development)),
+			entAchievement.HasTemplateWith(achievementtemplate.ReviewerRole(achievement.ReviewerRole(sesc.DevelopmentDeputy))),
 		)
 	case sesc.AcademicDirector:
 		return entAchievement.And(
@@ -108,7 +108,7 @@ func (s *ACS) buildRoleBasedFilters(askingUser *ent.User) predicate.Achievement 
 				achievement.StatusAccounted,
 				achievement.StatusDepheadReview,
 			),
-			entAchievement.HasTemplateWith(achievementtemplate.Kind(achievement.Development)),
+			entAchievement.HasTemplateWith(achievementtemplate.ReviewerRole(achievement.ReviewerRole(sesc.AcademicDirector))),
 		)
 	case sesc.ChiefEconomist:
 		return entAchievement.Or(

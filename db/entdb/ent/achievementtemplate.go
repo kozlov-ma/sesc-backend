@@ -29,8 +29,8 @@ type AchievementTemplate struct {
 	GroupID uuid.UUID `json:"group_id,omitempty"`
 	// Active holds the value of the "active" field.
 	Active bool `json:"active,omitempty"`
-	// Kind holds the value of the "kind" field.
-	Kind achievement.Kind `json:"kind,omitempty"`
+	// ReviewerRole holds the value of the "reviewer_role" field.
+	ReviewerRole achievement.ReviewerRole `json:"reviewer_role,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the AchievementTemplateQuery when eager-loading is set.
 	Edges        AchievementTemplateEdges `json:"edges"`
@@ -132,11 +132,11 @@ func (at *AchievementTemplate) assignValues(columns []string, values []any) erro
 			} else if value.Valid {
 				at.Active = value.Bool
 			}
-		case achievementtemplate.FieldKind:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field kind", values[i])
+		case achievementtemplate.FieldReviewerRole:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field reviewer_role", values[i])
 			} else if value.Valid {
-				at.Kind = achievement.Kind(value.String)
+				at.ReviewerRole = achievement.ReviewerRole(value.Int64)
 			}
 		default:
 			at.selectValues.Set(columns[i], values[i])

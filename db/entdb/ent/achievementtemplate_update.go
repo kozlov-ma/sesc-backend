@@ -114,16 +114,16 @@ func (atu *AchievementTemplateUpdate) SetNillableActive(b *bool) *AchievementTem
 	return atu
 }
 
-// SetKind sets the "kind" field.
-func (atu *AchievementTemplateUpdate) SetKind(a achievement.Kind) *AchievementTemplateUpdate {
-	atu.mutation.SetKind(a)
+// SetReviewerRole sets the "reviewer_role" field.
+func (atu *AchievementTemplateUpdate) SetReviewerRole(r achievement.ReviewerRole) *AchievementTemplateUpdate {
+	atu.mutation.SetReviewerRole(r)
 	return atu
 }
 
-// SetNillableKind sets the "kind" field if the given value is not nil.
-func (atu *AchievementTemplateUpdate) SetNillableKind(a *achievement.Kind) *AchievementTemplateUpdate {
-	if a != nil {
-		atu.SetKind(*a)
+// SetNillableReviewerRole sets the "reviewer_role" field if the given value is not nil.
+func (atu *AchievementTemplateUpdate) SetNillableReviewerRole(r *achievement.ReviewerRole) *AchievementTemplateUpdate {
+	if r != nil {
+		atu.SetReviewerRole(*r)
 	}
 	return atu
 }
@@ -219,9 +219,9 @@ func (atu *AchievementTemplateUpdate) check() error {
 			return &ValidationError{Name: "points_limit", err: fmt.Errorf(`ent: validator failed for field "AchievementTemplate.points_limit": %w`, err)}
 		}
 	}
-	if v, ok := atu.mutation.Kind(); ok {
+	if v, ok := atu.mutation.ReviewerRole(); ok {
 		if err := v.Validate(); err != nil {
-			return &ValidationError{Name: "kind", err: fmt.Errorf(`ent: validator failed for field "AchievementTemplate.kind": %w`, err)}
+			return &ValidationError{Name: "reviewer_role", err: fmt.Errorf(`ent: validator failed for field "AchievementTemplate.reviewer_role": %w`, err)}
 		}
 	}
 	if atu.mutation.GroupCleared() && len(atu.mutation.GroupIDs()) > 0 {
@@ -260,8 +260,8 @@ func (atu *AchievementTemplateUpdate) sqlSave(ctx context.Context) (n int, err e
 	if value, ok := atu.mutation.Active(); ok {
 		_spec.SetField(achievementtemplate.FieldActive, field.TypeBool, value)
 	}
-	if value, ok := atu.mutation.Kind(); ok {
-		_spec.SetField(achievementtemplate.FieldKind, field.TypeString, value)
+	if value, ok := atu.mutation.ReviewerRole(); ok {
+		_spec.SetField(achievementtemplate.FieldReviewerRole, field.TypeInt, value)
 	}
 	if atu.mutation.GroupCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -440,16 +440,16 @@ func (atuo *AchievementTemplateUpdateOne) SetNillableActive(b *bool) *Achievemen
 	return atuo
 }
 
-// SetKind sets the "kind" field.
-func (atuo *AchievementTemplateUpdateOne) SetKind(a achievement.Kind) *AchievementTemplateUpdateOne {
-	atuo.mutation.SetKind(a)
+// SetReviewerRole sets the "reviewer_role" field.
+func (atuo *AchievementTemplateUpdateOne) SetReviewerRole(r achievement.ReviewerRole) *AchievementTemplateUpdateOne {
+	atuo.mutation.SetReviewerRole(r)
 	return atuo
 }
 
-// SetNillableKind sets the "kind" field if the given value is not nil.
-func (atuo *AchievementTemplateUpdateOne) SetNillableKind(a *achievement.Kind) *AchievementTemplateUpdateOne {
-	if a != nil {
-		atuo.SetKind(*a)
+// SetNillableReviewerRole sets the "reviewer_role" field if the given value is not nil.
+func (atuo *AchievementTemplateUpdateOne) SetNillableReviewerRole(r *achievement.ReviewerRole) *AchievementTemplateUpdateOne {
+	if r != nil {
+		atuo.SetReviewerRole(*r)
 	}
 	return atuo
 }
@@ -558,9 +558,9 @@ func (atuo *AchievementTemplateUpdateOne) check() error {
 			return &ValidationError{Name: "points_limit", err: fmt.Errorf(`ent: validator failed for field "AchievementTemplate.points_limit": %w`, err)}
 		}
 	}
-	if v, ok := atuo.mutation.Kind(); ok {
+	if v, ok := atuo.mutation.ReviewerRole(); ok {
 		if err := v.Validate(); err != nil {
-			return &ValidationError{Name: "kind", err: fmt.Errorf(`ent: validator failed for field "AchievementTemplate.kind": %w`, err)}
+			return &ValidationError{Name: "reviewer_role", err: fmt.Errorf(`ent: validator failed for field "AchievementTemplate.reviewer_role": %w`, err)}
 		}
 	}
 	if atuo.mutation.GroupCleared() && len(atuo.mutation.GroupIDs()) > 0 {
@@ -616,8 +616,8 @@ func (atuo *AchievementTemplateUpdateOne) sqlSave(ctx context.Context) (_node *A
 	if value, ok := atuo.mutation.Active(); ok {
 		_spec.SetField(achievementtemplate.FieldActive, field.TypeBool, value)
 	}
-	if value, ok := atuo.mutation.Kind(); ok {
-		_spec.SetField(achievementtemplate.FieldKind, field.TypeString, value)
+	if value, ok := atuo.mutation.ReviewerRole(); ok {
+		_spec.SetField(achievementtemplate.FieldReviewerRole, field.TypeInt, value)
 	}
 	if atuo.mutation.GroupCleared() {
 		edge := &sqlgraph.EdgeSpec{

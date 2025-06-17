@@ -95,14 +95,14 @@ func (s *ACS) ReviewAchievement(
 			}
 
 			reviewerRole := reviewer.Role
-			templateKind := ach.Edges.Template.Kind
+			templateReviewerRole := ach.Edges.Template.ReviewerRole
 
 			var validReviewer bool
 			switch currentStatus {
 			case achievement.StatusDepheadReview:
 				validReviewer = reviewerRole == sesc.Dephead
 			case achievement.StatusInspectorReview:
-				validReviewer = reviewerRole == templateKind.InspectorRole()
+				validReviewer = reviewerRole == sesc.Role(templateReviewerRole)
 			}
 
 			if !validReviewer {

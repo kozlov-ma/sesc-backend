@@ -329,9 +329,7 @@ export function AchievementTemplatesTable() {
                         </span>
                       </TableCell>
                       <TableCell className="text-center hidden lg:table-cell align-top py-3">
-                        <span className="text-muted-foreground">
-                          -
-                        </span>
+                        <span className="text-muted-foreground">-</span>
                       </TableCell>
                       <TableCell className="align-top py-3">
                         <StatusColumnContent>
@@ -363,7 +361,7 @@ export function AchievementTemplatesTable() {
                             <DropdownMenuItem
                               onClick={() => openEditGroupDialog(group)}
                             >
-                            <Pencil className="h-4 w-4 mr-2" />
+                              <Pencil className="h-4 w-4 mr-2" />
                               Редактировать
                             </DropdownMenuItem>
                             <DropdownMenuItem
@@ -371,7 +369,7 @@ export function AchievementTemplatesTable() {
                                 openCreateTemplateInGroup(group.id)
                               }
                             >
-                            <PlusCircle className="h-4 w-4 mr-2" />
+                              <PlusCircle className="h-4 w-4 mr-2" />
                               Добавить шаблон
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
@@ -476,7 +474,7 @@ export function AchievementTemplatesTable() {
                                       openEditTemplateDialog(template)
                                     }
                                   >
-                                  <Pencil className="h-4 w-4 mr-2" />
+                                    <Pencil className="h-4 w-4 mr-2" />
                                     Редактировать
                                   </DropdownMenuItem>
                                   <DropdownMenuSeparator />

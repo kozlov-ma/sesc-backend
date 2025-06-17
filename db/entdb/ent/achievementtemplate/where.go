@@ -5,7 +5,7 @@ package achievementtemplate
 import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
-	uuid "github.com/gofrs/uuid/v5"
+	"github.com/gofrs/uuid/v5"
 	"github.com/kozlov-ma/sesc-backend/achievement"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/predicate"
 )
@@ -78,12 +78,6 @@ func GroupID(v uuid.UUID) predicate.AchievementTemplate {
 // Active applies equality check predicate on the "active" field. It's identical to ActiveEQ.
 func Active(v bool) predicate.AchievementTemplate {
 	return predicate.AchievementTemplate(sql.FieldEQ(FieldActive, v))
-}
-
-// Kind applies equality check predicate on the "kind" field. It's identical to KindEQ.
-func Kind(v achievement.Kind) predicate.AchievementTemplate {
-	vc := string(v)
-	return predicate.AchievementTemplate(sql.FieldEQ(FieldKind, vc))
 }
 
 // NameEQ applies the EQ predicate on the "name" field.
@@ -206,16 +200,6 @@ func DescriptionHasSuffix(v string) predicate.AchievementTemplate {
 	return predicate.AchievementTemplate(sql.FieldHasSuffix(FieldDescription, v))
 }
 
-// DescriptionIsNil applies the IsNil predicate on the "description" field.
-func DescriptionIsNil() predicate.AchievementTemplate {
-	return predicate.AchievementTemplate(sql.FieldIsNull(FieldDescription))
-}
-
-// DescriptionNotNil applies the NotNil predicate on the "description" field.
-func DescriptionNotNil() predicate.AchievementTemplate {
-	return predicate.AchievementTemplate(sql.FieldNotNull(FieldDescription))
-}
-
 // DescriptionEqualFold applies the EqualFold predicate on the "description" field.
 func DescriptionEqualFold(v string) predicate.AchievementTemplate {
 	return predicate.AchievementTemplate(sql.FieldEqualFold(FieldDescription, v))
@@ -286,6 +270,26 @@ func GroupIDNotIn(vs ...uuid.UUID) predicate.AchievementTemplate {
 	return predicate.AchievementTemplate(sql.FieldNotIn(FieldGroupID, vs...))
 }
 
+// GroupIDGT applies the GT predicate on the "group_id" field.
+func GroupIDGT(v uuid.UUID) predicate.AchievementTemplate {
+	return predicate.AchievementTemplate(sql.FieldGT(FieldGroupID, v))
+}
+
+// GroupIDGTE applies the GTE predicate on the "group_id" field.
+func GroupIDGTE(v uuid.UUID) predicate.AchievementTemplate {
+	return predicate.AchievementTemplate(sql.FieldGTE(FieldGroupID, v))
+}
+
+// GroupIDLT applies the LT predicate on the "group_id" field.
+func GroupIDLT(v uuid.UUID) predicate.AchievementTemplate {
+	return predicate.AchievementTemplate(sql.FieldLT(FieldGroupID, v))
+}
+
+// GroupIDLTE applies the LTE predicate on the "group_id" field.
+func GroupIDLTE(v uuid.UUID) predicate.AchievementTemplate {
+	return predicate.AchievementTemplate(sql.FieldLTE(FieldGroupID, v))
+}
+
 // ActiveEQ applies the EQ predicate on the "active" field.
 func ActiveEQ(v bool) predicate.AchievementTemplate {
 	return predicate.AchievementTemplate(sql.FieldEQ(FieldActive, v))
@@ -296,88 +300,64 @@ func ActiveNEQ(v bool) predicate.AchievementTemplate {
 	return predicate.AchievementTemplate(sql.FieldNEQ(FieldActive, v))
 }
 
-// KindEQ applies the EQ predicate on the "kind" field.
-func KindEQ(v achievement.Kind) predicate.AchievementTemplate {
-	vc := string(v)
-	return predicate.AchievementTemplate(sql.FieldEQ(FieldKind, vc))
+// ReviewerRole applies equality check predicate on the "reviewer_role" field. It's identical to ReviewerRoleEQ.
+func ReviewerRole(v achievement.ReviewerRole) predicate.AchievementTemplate {
+	vc := int(v)
+	return predicate.AchievementTemplate(sql.FieldEQ(FieldReviewerRole, vc))
 }
 
-// KindNEQ applies the NEQ predicate on the "kind" field.
-func KindNEQ(v achievement.Kind) predicate.AchievementTemplate {
-	vc := string(v)
-	return predicate.AchievementTemplate(sql.FieldNEQ(FieldKind, vc))
+// ReviewerRoleEQ applies the EQ predicate on the "reviewer_role" field.
+func ReviewerRoleEQ(v achievement.ReviewerRole) predicate.AchievementTemplate {
+	vc := int(v)
+	return predicate.AchievementTemplate(sql.FieldEQ(FieldReviewerRole, vc))
 }
 
-// KindIn applies the In predicate on the "kind" field.
-func KindIn(vs ...achievement.Kind) predicate.AchievementTemplate {
+// ReviewerRoleNEQ applies the NEQ predicate on the "reviewer_role" field.
+func ReviewerRoleNEQ(v achievement.ReviewerRole) predicate.AchievementTemplate {
+	vc := int(v)
+	return predicate.AchievementTemplate(sql.FieldNEQ(FieldReviewerRole, vc))
+}
+
+// ReviewerRoleIn applies the In predicate on the "reviewer_role" field.
+func ReviewerRoleIn(vs ...achievement.ReviewerRole) predicate.AchievementTemplate {
 	v := make([]any, len(vs))
 	for i := range v {
-		v[i] = string(vs[i])
+		v[i] = int(vs[i])
 	}
-	return predicate.AchievementTemplate(sql.FieldIn(FieldKind, v...))
+	return predicate.AchievementTemplate(sql.FieldIn(FieldReviewerRole, v...))
 }
 
-// KindNotIn applies the NotIn predicate on the "kind" field.
-func KindNotIn(vs ...achievement.Kind) predicate.AchievementTemplate {
+// ReviewerRoleNotIn applies the NotIn predicate on the "reviewer_role" field.
+func ReviewerRoleNotIn(vs ...achievement.ReviewerRole) predicate.AchievementTemplate {
 	v := make([]any, len(vs))
 	for i := range v {
-		v[i] = string(vs[i])
+		v[i] = int(vs[i])
 	}
-	return predicate.AchievementTemplate(sql.FieldNotIn(FieldKind, v...))
+	return predicate.AchievementTemplate(sql.FieldNotIn(FieldReviewerRole, v...))
 }
 
-// KindGT applies the GT predicate on the "kind" field.
-func KindGT(v achievement.Kind) predicate.AchievementTemplate {
-	vc := string(v)
-	return predicate.AchievementTemplate(sql.FieldGT(FieldKind, vc))
+// ReviewerRoleGT applies the GT predicate on the "reviewer_role" field.
+func ReviewerRoleGT(v achievement.ReviewerRole) predicate.AchievementTemplate {
+	vc := int(v)
+	return predicate.AchievementTemplate(sql.FieldGT(FieldReviewerRole, vc))
 }
 
-// KindGTE applies the GTE predicate on the "kind" field.
-func KindGTE(v achievement.Kind) predicate.AchievementTemplate {
-	vc := string(v)
-	return predicate.AchievementTemplate(sql.FieldGTE(FieldKind, vc))
+// ReviewerRoleGTE applies the GTE predicate on the "reviewer_role" field.
+func ReviewerRoleGTE(v achievement.ReviewerRole) predicate.AchievementTemplate {
+	vc := int(v)
+	return predicate.AchievementTemplate(sql.FieldGTE(FieldReviewerRole, vc))
 }
 
-// KindLT applies the LT predicate on the "kind" field.
-func KindLT(v achievement.Kind) predicate.AchievementTemplate {
-	vc := string(v)
-	return predicate.AchievementTemplate(sql.FieldLT(FieldKind, vc))
+// ReviewerRoleLT applies the LT predicate on the "reviewer_role" field.
+func ReviewerRoleLT(v achievement.ReviewerRole) predicate.AchievementTemplate {
+	vc := int(v)
+	return predicate.AchievementTemplate(sql.FieldLT(FieldReviewerRole, vc))
 }
 
-// KindLTE applies the LTE predicate on the "kind" field.
-func KindLTE(v achievement.Kind) predicate.AchievementTemplate {
-	vc := string(v)
-	return predicate.AchievementTemplate(sql.FieldLTE(FieldKind, vc))
-}
-
-// KindContains applies the Contains predicate on the "kind" field.
-func KindContains(v achievement.Kind) predicate.AchievementTemplate {
-	vc := string(v)
-	return predicate.AchievementTemplate(sql.FieldContains(FieldKind, vc))
-}
-
-// KindHasPrefix applies the HasPrefix predicate on the "kind" field.
-func KindHasPrefix(v achievement.Kind) predicate.AchievementTemplate {
-	vc := string(v)
-	return predicate.AchievementTemplate(sql.FieldHasPrefix(FieldKind, vc))
-}
-
-// KindHasSuffix applies the HasSuffix predicate on the "kind" field.
-func KindHasSuffix(v achievement.Kind) predicate.AchievementTemplate {
-	vc := string(v)
-	return predicate.AchievementTemplate(sql.FieldHasSuffix(FieldKind, vc))
-}
-
-// KindEqualFold applies the EqualFold predicate on the "kind" field.
-func KindEqualFold(v achievement.Kind) predicate.AchievementTemplate {
-	vc := string(v)
-	return predicate.AchievementTemplate(sql.FieldEqualFold(FieldKind, vc))
-}
-
-// KindContainsFold applies the ContainsFold predicate on the "kind" field.
-func KindContainsFold(v achievement.Kind) predicate.AchievementTemplate {
-	vc := string(v)
-	return predicate.AchievementTemplate(sql.FieldContainsFold(FieldKind, vc))
+// ReviewerRoleLTE applies the LTE predicate on the "reviewer_role" field.
+func ReviewerRoleLTE(v achievement.ReviewerRole) predicate.AchievementTemplate {
+	vc := int(v)
+	return predicate.AchievementTemplate(sql.FieldLTE(FieldReviewerRole, vc))
 }
 
 // HasGroup applies the HasEdge predicate on the "group" edge.
@@ -385,6 +365,7 @@ func HasGroup() predicate.AchievementTemplate {
 	return predicate.AchievementTemplate(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(GroupTable, FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, GroupTable, GroupColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
@@ -394,7 +375,11 @@ func HasGroup() predicate.AchievementTemplate {
 // HasGroupWith applies the HasEdge predicate on the "group" edge with a given conditions (other predicates).
 func HasGroupWith(preds ...predicate.AchievementGroup) predicate.AchievementTemplate {
 	return predicate.AchievementTemplate(func(s *sql.Selector) {
-		step := newGroupStep()
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(GroupInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, GroupTable, GroupColumn),
+		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)
@@ -408,6 +393,7 @@ func HasAchievements() predicate.AchievementTemplate {
 	return predicate.AchievementTemplate(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(AchievementsTable, FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, AchievementsTable, AchievementsColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
@@ -417,7 +403,11 @@ func HasAchievements() predicate.AchievementTemplate {
 // HasAchievementsWith applies the HasEdge predicate on the "achievements" edge with a given conditions (other predicates).
 func HasAchievementsWith(preds ...predicate.Achievement) predicate.AchievementTemplate {
 	return predicate.AchievementTemplate(func(s *sql.Selector) {
-		step := newAchievementsStep()
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.To(AchievementsInverseTable, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, AchievementsTable, AchievementsColumn),
+		)
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)
@@ -428,15 +418,32 @@ func HasAchievementsWith(preds ...predicate.Achievement) predicate.AchievementTe
 
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.AchievementTemplate) predicate.AchievementTemplate {
-	return predicate.AchievementTemplate(sql.AndPredicates(predicates...))
+	return predicate.AchievementTemplate(func(s *sql.Selector) {
+		s1 := s.Clone().SetP(nil)
+		for _, p := range predicates {
+			p(s1)
+		}
+		s.Where(s1.P())
+	})
 }
 
 // Or groups predicates with the OR operator between them.
 func Or(predicates ...predicate.AchievementTemplate) predicate.AchievementTemplate {
-	return predicate.AchievementTemplate(sql.OrPredicates(predicates...))
+	return predicate.AchievementTemplate(func(s *sql.Selector) {
+		s1 := s.Clone().SetP(nil)
+		for i, p := range predicates {
+			if i > 0 {
+				s1.Or()
+			}
+			p(s1)
+		}
+		s.Where(s1.P())
+	})
 }
 
 // Not applies the not operator on the given predicate.
 func Not(p predicate.AchievementTemplate) predicate.AchievementTemplate {
-	return predicate.AchievementTemplate(sql.NotPredicates(p))
+	return predicate.AchievementTemplate(func(s *sql.Selector) {
+		p(s.Not())
+	})
 }

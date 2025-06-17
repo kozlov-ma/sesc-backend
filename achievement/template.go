@@ -5,42 +5,24 @@ import (
 	"github.com/kozlov-ma/sesc-backend/sesc"
 )
 
-type Kind string
+type ReviewerRole sesc.Role
 
-const (
-	Olympiad    Kind = "olympiad"
-	Development Kind = "development"
-	Scientific  Kind = "scientific"
-)
-
-func (k Kind) InspectorRole() sesc.Role {
-	switch k {
-	case Olympiad:
-		return sesc.OlympiadDeputy
-	case Development:
-		return sesc.DevelopmentDeputy
-	case Scientific:
-		return sesc.ScientificDeputy
-	}
-	panic("wrong achievement kind")
+func (r ReviewerRole) String() string {
+	return sesc.Role(r).String()
 }
 
-func (k Kind) String() string {
-	return string(k)
+func (r ReviewerRole) Name() string {
+	return sesc.Role(r).Name()
 }
 
-func (k Kind) IsValid() bool {
-	switch k {
-	case Olympiad, Development, Scientific:
-		return true
-	default:
-		return false
-	}
+func (r ReviewerRole) IsValid() bool {
+	err := sesc.ValidateRole(int(r))
+	return err == nil
 }
 
-func (k Kind) Validate() error {
-	if !k.IsValid() {
-		return ErrInvalidAchievementKind
+func (r ReviewerRole) Validate() error {
+	if !r.IsValid() {
+		return ErrInvalidReviewerRole
 	}
 	return nil
 }
@@ -60,20 +42,20 @@ type GroupUpdateOptions struct {
 
 // TemplateCreateOptions contains options for creating an achievement template
 type TemplateCreateOptions struct {
-	Name        string
-	Description string
-	PointsLimit int
-	GroupID     uuid.UUID
-	Kind        Kind
+	Name         string
+	Description  string
+	PointsLimit  int
+	GroupID      uuid.UUID
+	ReviewerRole ReviewerRole
 }
 
 // TemplateUpdateOptions contains options for updating an achievement template
 type TemplateUpdateOptions struct {
-	Name        *string
-	Description *string
-	PointsLimit *int
-	Active      *bool
-	Kind        *Kind
+	Name         *string
+	Description  *string
+	PointsLimit  *int
+	Active       *bool
+	ReviewerRole *ReviewerRole
 }
 
 // GroupSearchOptions contains options for searching achievement groups

@@ -6,6 +6,7 @@ import (
 	"github.com/kozlov-ma/sesc-backend/achievement"
 	"github.com/kozlov-ma/sesc-backend/internal/services/testutil"
 	"github.com/kozlov-ma/sesc-backend/pkg/event"
+	"github.com/kozlov-ma/sesc-backend/sesc"
 	"github.com/stretchr/testify/require"
 )
 
@@ -39,14 +40,14 @@ func TestUpdateAchievementTemplate(t *testing.T) {
 		newDesc := "Updated Description"
 		newPointsLimit := 100
 		newActive := false
-		newKind := achievement.Scientific
+		newReviewerRole := achievement.ReviewerRole(sesc.ScientificDeputy)
 
 		updateOptions := achievement.TemplateUpdateOptions{
-			Name:        &newName,
-			Description: &newDesc,
-			PointsLimit: &newPointsLimit,
-			Active:      &newActive,
-			Kind:        &newKind,
+			Name:         &newName,
+			Description:  &newDesc,
+			PointsLimit:  &newPointsLimit,
+			Active:       &newActive,
+			ReviewerRole: &newReviewerRole,
 		}
 
 		// Call the method being tested
@@ -60,7 +61,7 @@ func TestUpdateAchievementTemplate(t *testing.T) {
 		require.Equal(t, newPointsLimit, updatedTemplate.PointsLimit)
 		require.Equal(t, originalTemplate.GroupID, updatedTemplate.GroupID, "GroupID should not change")
 		require.Equal(t, newActive, updatedTemplate.Active)
-		require.Equal(t, newKind, updatedTemplate.Kind)
+		require.Equal(t, newReviewerRole, updatedTemplate.ReviewerRole)
 
 		// Verify the template was actually updated in the database
 		dbTemplate, err := client.AchievementTemplate.Get(ctx, originalTemplate.ID)
@@ -70,7 +71,7 @@ func TestUpdateAchievementTemplate(t *testing.T) {
 		require.Equal(t, newPointsLimit, dbTemplate.PointsLimit)
 		require.Equal(t, originalTemplate.GroupID, dbTemplate.GroupID)
 		require.Equal(t, newActive, dbTemplate.Active)
-		require.Equal(t, newKind, dbTemplate.Kind)
+		require.Equal(t, newReviewerRole, dbTemplate.ReviewerRole)
 	})
 
 	t.Run("partial_update", func(t *testing.T) {
@@ -115,10 +116,10 @@ func TestUpdateAchievementTemplate(t *testing.T) {
 		require.Equal(t, originalTemplate.PointsLimit, updatedTemplate.PointsLimit)
 		require.Equal(t, originalTemplate.GroupID, updatedTemplate.GroupID)
 		require.Equal(t, originalTemplate.Active, updatedTemplate.Active)
-		require.Equal(t, originalTemplate.Kind, updatedTemplate.Kind)
+		require.Equal(t, originalTemplate.ReviewerRole, updatedTemplate.ReviewerRole)
 	})
 
-	t.Run("invalid_kind", func(t *testing.T) {
+	t.Run("invalid_reviewer_role", func(t *testing.T) {
 		// Setup test context with database
 		ctx := t.Context()
 		ctx, _ = event.NewRecord(ctx, "test")
@@ -142,18 +143,18 @@ func TestUpdateAchievementTemplate(t *testing.T) {
 		originalTemplate, err := svc.CreateAchievementTemplate(ctx, templateOptions)
 		require.NoError(t, err)
 
-		// Prepare update data with invalid kind
-		invalidKind := achievement.Kind("invalid_kind")
+		// Prepare update data with invalid reviewer role
+		invalidReviewerRole := achievement.ReviewerRole(999) // Invalid role
 
 		updateOptions := achievement.TemplateUpdateOptions{
-			Kind: &invalidKind,
+			ReviewerRole: &invalidReviewerRole,
 		}
 
 		// Call the method being tested
 		updatedTemplate, err := svc.UpdateAchievementTemplate(ctx, originalTemplate.ID, updateOptions)
 
 		// Verify the results
-		require.Error(t, err, "Should return error for invalid kind")
+		require.Error(t, err, "Should return error for invalid reviewer role")
 		require.Nil(t, updatedTemplate)
 	})
 

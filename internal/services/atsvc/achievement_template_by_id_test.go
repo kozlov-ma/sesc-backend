@@ -6,6 +6,7 @@ import (
 	"github.com/kozlov-ma/sesc-backend/achievement"
 	"github.com/kozlov-ma/sesc-backend/internal/services/testutil"
 	"github.com/kozlov-ma/sesc-backend/pkg/event"
+	"github.com/kozlov-ma/sesc-backend/sesc"
 	"github.com/stretchr/testify/require"
 )
 
@@ -30,11 +31,11 @@ func TestAchievementTemplateByID(t *testing.T) {
 
 		// Create a template that we can then retrieve
 		templateOptions := achievement.TemplateCreateOptions{
-			Name:        "Test Template",
-			Description: "Test Template Description",
-			PointsLimit: 100,
-			GroupID:     group.ID,
-			Kind:        achievement.Kind("olympiad"),
+			Name:         "Test Template",
+			Description:  "Test Template Description",
+			PointsLimit:  100,
+			GroupID:      group.ID,
+			ReviewerRole: achievement.ReviewerRole(sesc.OlympiadDeputy),
 		}
 
 		createdTemplate, err := svc.CreateAchievementTemplate(ctx, templateOptions)
@@ -50,7 +51,7 @@ func TestAchievementTemplateByID(t *testing.T) {
 		require.Equal(t, createdTemplate.Description, template.Description)
 		require.Equal(t, createdTemplate.PointsLimit, template.PointsLimit)
 		require.Equal(t, createdTemplate.GroupID, template.GroupID)
-		require.Equal(t, createdTemplate.Kind, template.Kind)
+		require.Equal(t, createdTemplate.ReviewerRole, template.ReviewerRole)
 		require.Equal(t, createdTemplate.Active, template.Active)
 	})
 

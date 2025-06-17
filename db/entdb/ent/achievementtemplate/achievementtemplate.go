@@ -23,8 +23,8 @@ const (
 	FieldGroupID = "group_id"
 	// FieldActive holds the string denoting the active field in the database.
 	FieldActive = "active"
-	// FieldKind holds the string denoting the kind field in the database.
-	FieldKind = "kind"
+	// FieldReviewerRole holds the string denoting the reviewer_role field in the database.
+	FieldReviewerRole = "reviewer_role"
 	// EdgeGroup holds the string denoting the group edge name in mutations.
 	EdgeGroup = "group"
 	// EdgeAchievements holds the string denoting the achievements edge name in mutations.
@@ -55,7 +55,7 @@ var Columns = []string{
 	FieldPointsLimit,
 	FieldGroupID,
 	FieldActive,
-	FieldKind,
+	FieldReviewerRole,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -66,6 +66,11 @@ func ValidColumn(column string) bool {
 		}
 	}
 	return false
+}
+
+// ByReviewerRole orders the results by the reviewer_role field.
+func ByReviewerRole(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldReviewerRole, opts...).ToFunc()
 }
 
 var (
@@ -112,9 +117,9 @@ func ByActive(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldActive, opts...).ToFunc()
 }
 
-// ByKind orders the results by the kind field.
-func ByKind(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldKind, opts...).ToFunc()
+// ByReviewerRole orders the results by the reviewer_role field.
+func ByReviewerRole(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldReviewerRole, opts...).ToFunc()
 }
 
 // ByGroupField orders the results by group field.

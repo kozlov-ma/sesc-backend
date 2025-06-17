@@ -75,6 +75,12 @@ func (atc *AchievementTemplateCreate) SetKind(a achievement.Kind) *AchievementTe
 	return atc
 }
 
+// SetReviewerRole sets the "reviewer_role" field.
+func (atc *AchievementTemplateCreate) SetReviewerRole(r achievement.ReviewerRole) *AchievementTemplateCreate {
+	atc.mutation.SetReviewerRole(r)
+	return atc
+}
+
 // SetID sets the "id" field.
 func (atc *AchievementTemplateCreate) SetID(u uuid.UUID) *AchievementTemplateCreate {
 	atc.mutation.SetID(u)
@@ -178,12 +184,12 @@ func (atc *AchievementTemplateCreate) check() error {
 	if _, ok := atc.mutation.Active(); !ok {
 		return &ValidationError{Name: "active", err: errors.New(`ent: missing required field "AchievementTemplate.active"`)}
 	}
-	if _, ok := atc.mutation.Kind(); !ok {
-		return &ValidationError{Name: "kind", err: errors.New(`ent: missing required field "AchievementTemplate.kind"`)}
+	if _, ok := atc.mutation.ReviewerRole(); !ok {
+		return &ValidationError{Name: "reviewer_role", err: errors.New(`ent: missing required field "AchievementTemplate.reviewer_role"`)}
 	}
-	if v, ok := atc.mutation.Kind(); ok {
+	if v, ok := atc.mutation.ReviewerRole(); ok {
 		if err := v.Validate(); err != nil {
-			return &ValidationError{Name: "kind", err: fmt.Errorf(`ent: validator failed for field "AchievementTemplate.kind": %w`, err)}
+			return &ValidationError{Name: "reviewer_role", err: fmt.Errorf(`ent: validator failed for field "AchievementTemplate.reviewer_role": %w`, err)}
 		}
 	}
 	if len(atc.mutation.GroupIDs()) == 0 {
@@ -240,9 +246,9 @@ func (atc *AchievementTemplateCreate) createSpec() (*AchievementTemplate, *sqlgr
 		_spec.SetField(achievementtemplate.FieldActive, field.TypeBool, value)
 		_node.Active = value
 	}
-	if value, ok := atc.mutation.Kind(); ok {
-		_spec.SetField(achievementtemplate.FieldKind, field.TypeString, value)
-		_node.Kind = value
+	if value, ok := atc.mutation.ReviewerRole(); ok {
+		_spec.SetField(achievementtemplate.FieldReviewerRole, field.TypeInt, value)
+		_node.ReviewerRole = value
 	}
 	if nodes := atc.mutation.GroupIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

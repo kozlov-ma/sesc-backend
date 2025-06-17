@@ -12,6 +12,7 @@ import (
 	"github.com/go-openapi/runtime"
 	httptransport "github.com/go-openapi/runtime/client"
 	"github.com/go-openapi/strfmt"
+	"github.com/kozlov-ma/sesc-backend/achievement"
 	"github.com/kozlov-ma/sesc-backend/apiclient/client"
 	"github.com/kozlov-ma/sesc-backend/apiclient/client/authentication"
 	"github.com/kozlov-ma/sesc-backend/apiclient/client/departments"
@@ -115,10 +116,10 @@ type AchievementGroupData struct {
 
 // AchievementTemplateData represents the data for an achievement template
 type AchievementTemplateData struct {
-	Name        string
-	Description string
-	PointsLimit int64
-	Kind        string
+	Name         string
+	Description  string
+	PointsLimit  int
+	ReviewerRole achievement.ReviewerRole
 }
 
 // Achievement groups data
