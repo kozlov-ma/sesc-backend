@@ -6,6 +6,7 @@ import (
 	"github.com/kozlov-ma/sesc-backend/achievement"
 	"github.com/kozlov-ma/sesc-backend/internal/services/testutil"
 	"github.com/kozlov-ma/sesc-backend/pkg/event"
+	"github.com/kozlov-ma/sesc-backend/sesc"
 	"github.com/stretchr/testify/require"
 )
 
@@ -24,11 +25,11 @@ func TestUpdateAchievementTemplate(t *testing.T) {
 
 		// Create a template to update
 		templateOptions := achievement.TemplateCreateOptions{
-			Name:        "Original Template",
-			Description: "Original Description",
-			PointsLimit: 50,
-			GroupID:     group.ID,
-			Kind:        achievement.Kind("olympiad"),
+			Name:         "Original Template",
+			Description:  "Original Description",
+			PointsLimit:  50,
+			GroupID:      group.ID,
+			ReviewerRole: sesc.OlympiadDeputy,
 		}
 
 		originalTemplate, err := svc.CreateAchievementTemplate(ctx, templateOptions)
@@ -39,14 +40,14 @@ func TestUpdateAchievementTemplate(t *testing.T) {
 		newDesc := "Updated Description"
 		newPointsLimit := 100
 		newActive := false
-		newKind := achievement.Scientific
+		newRR := sesc.ScientificDeputy
 
 		updateOptions := achievement.TemplateUpdateOptions{
-			Name:        &newName,
-			Description: &newDesc,
-			PointsLimit: &newPointsLimit,
-			Active:      &newActive,
-			Kind:        &newKind,
+			Name:         &newName,
+			Description:  &newDesc,
+			PointsLimit:  &newPointsLimit,
+			Active:       &newActive,
+			ReviewerRole: &newRR,
 		}
 
 		// Call the method being tested
@@ -60,7 +61,7 @@ func TestUpdateAchievementTemplate(t *testing.T) {
 		require.Equal(t, newPointsLimit, updatedTemplate.PointsLimit)
 		require.Equal(t, originalTemplate.GroupID, updatedTemplate.GroupID, "GroupID should not change")
 		require.Equal(t, newActive, updatedTemplate.Active)
-		require.Equal(t, newKind, updatedTemplate.Kind)
+		require.Equal(t, newRR, updatedTemplate.ReviewerRole)
 
 		// Verify the template was actually updated in the database
 		dbTemplate, err := client.AchievementTemplate.Get(ctx, originalTemplate.ID)
@@ -70,7 +71,7 @@ func TestUpdateAchievementTemplate(t *testing.T) {
 		require.Equal(t, newPointsLimit, dbTemplate.PointsLimit)
 		require.Equal(t, originalTemplate.GroupID, dbTemplate.GroupID)
 		require.Equal(t, newActive, dbTemplate.Active)
-		require.Equal(t, newKind, dbTemplate.Kind)
+		require.Equal(t, newRR, dbTemplate.ReviewerRole)
 	})
 
 	t.Run("partial_update", func(t *testing.T) {
@@ -87,11 +88,11 @@ func TestUpdateAchievementTemplate(t *testing.T) {
 
 		// Create a template to update
 		templateOptions := achievement.TemplateCreateOptions{
-			Name:        "Original Template",
-			Description: "Original Description",
-			PointsLimit: 50,
-			GroupID:     group.ID,
-			Kind:        achievement.Kind("olympiad"),
+			Name:         "Original Template",
+			Description:  "Original Description",
+			PointsLimit:  50,
+			GroupID:      group.ID,
+			ReviewerRole: sesc.OlympiadDeputy,
 		}
 
 		originalTemplate, err := svc.CreateAchievementTemplate(ctx, templateOptions)
@@ -115,7 +116,7 @@ func TestUpdateAchievementTemplate(t *testing.T) {
 		require.Equal(t, originalTemplate.PointsLimit, updatedTemplate.PointsLimit)
 		require.Equal(t, originalTemplate.GroupID, updatedTemplate.GroupID)
 		require.Equal(t, originalTemplate.Active, updatedTemplate.Active)
-		require.Equal(t, originalTemplate.Kind, updatedTemplate.Kind)
+		require.Equal(t, originalTemplate.ReviewerRole, updatedTemplate.ReviewerRole)
 	})
 
 	t.Run("invalid_kind", func(t *testing.T) {
@@ -132,21 +133,21 @@ func TestUpdateAchievementTemplate(t *testing.T) {
 
 		// Create a template to update
 		templateOptions := achievement.TemplateCreateOptions{
-			Name:        "Original Template",
-			Description: "Original Description",
-			PointsLimit: 50,
-			GroupID:     group.ID,
-			Kind:        achievement.Kind("olympiad"),
+			Name:         "Original Template",
+			Description:  "Original Description",
+			PointsLimit:  50,
+			GroupID:      group.ID,
+			ReviewerRole: sesc.OlympiadDeputy,
 		}
 
 		originalTemplate, err := svc.CreateAchievementTemplate(ctx, templateOptions)
 		require.NoError(t, err)
 
 		// Prepare update data with invalid kind
-		invalidKind := achievement.Kind("invalid_kind")
+		invalidKind := sesc.Role(22)
 
 		updateOptions := achievement.TemplateUpdateOptions{
-			Kind: &invalidKind,
+			ReviewerRole: &invalidKind,
 		}
 
 		// Call the method being tested

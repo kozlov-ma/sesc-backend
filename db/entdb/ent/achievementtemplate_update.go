@@ -11,11 +11,11 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	uuid "github.com/gofrs/uuid/v5"
-	"github.com/kozlov-ma/sesc-backend/achievement"
-	entachievement "github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievement"
+	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievement"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievementgroup"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievementtemplate"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/predicate"
+	"github.com/kozlov-ma/sesc-backend/sesc"
 )
 
 // AchievementTemplateUpdate is the builder for updating AchievementTemplate entities.
@@ -114,17 +114,24 @@ func (atu *AchievementTemplateUpdate) SetNillableActive(b *bool) *AchievementTem
 	return atu
 }
 
-// SetKind sets the "kind" field.
-func (atu *AchievementTemplateUpdate) SetKind(a achievement.Kind) *AchievementTemplateUpdate {
-	atu.mutation.SetKind(a)
+// SetReviewerRole sets the "reviewer_role" field.
+func (atu *AchievementTemplateUpdate) SetReviewerRole(s sesc.Role) *AchievementTemplateUpdate {
+	atu.mutation.ResetReviewerRole()
+	atu.mutation.SetReviewerRole(s)
 	return atu
 }
 
-// SetNillableKind sets the "kind" field if the given value is not nil.
-func (atu *AchievementTemplateUpdate) SetNillableKind(a *achievement.Kind) *AchievementTemplateUpdate {
-	if a != nil {
-		atu.SetKind(*a)
+// SetNillableReviewerRole sets the "reviewer_role" field if the given value is not nil.
+func (atu *AchievementTemplateUpdate) SetNillableReviewerRole(s *sesc.Role) *AchievementTemplateUpdate {
+	if s != nil {
+		atu.SetReviewerRole(*s)
 	}
+	return atu
+}
+
+// AddReviewerRole adds s to the "reviewer_role" field.
+func (atu *AchievementTemplateUpdate) AddReviewerRole(s sesc.Role) *AchievementTemplateUpdate {
+	atu.mutation.AddReviewerRole(s)
 	return atu
 }
 
@@ -219,9 +226,9 @@ func (atu *AchievementTemplateUpdate) check() error {
 			return &ValidationError{Name: "points_limit", err: fmt.Errorf(`ent: validator failed for field "AchievementTemplate.points_limit": %w`, err)}
 		}
 	}
-	if v, ok := atu.mutation.Kind(); ok {
+	if v, ok := atu.mutation.ReviewerRole(); ok {
 		if err := v.Validate(); err != nil {
-			return &ValidationError{Name: "kind", err: fmt.Errorf(`ent: validator failed for field "AchievementTemplate.kind": %w`, err)}
+			return &ValidationError{Name: "reviewer_role", err: fmt.Errorf(`ent: validator failed for field "AchievementTemplate.reviewer_role": %w`, err)}
 		}
 	}
 	if atu.mutation.GroupCleared() && len(atu.mutation.GroupIDs()) > 0 {
@@ -260,8 +267,11 @@ func (atu *AchievementTemplateUpdate) sqlSave(ctx context.Context) (n int, err e
 	if value, ok := atu.mutation.Active(); ok {
 		_spec.SetField(achievementtemplate.FieldActive, field.TypeBool, value)
 	}
-	if value, ok := atu.mutation.Kind(); ok {
-		_spec.SetField(achievementtemplate.FieldKind, field.TypeString, value)
+	if value, ok := atu.mutation.ReviewerRole(); ok {
+		_spec.SetField(achievementtemplate.FieldReviewerRole, field.TypeInt, value)
+	}
+	if value, ok := atu.mutation.AddedReviewerRole(); ok {
+		_spec.AddField(achievementtemplate.FieldReviewerRole, field.TypeInt, value)
 	}
 	if atu.mutation.GroupCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -300,7 +310,7 @@ func (atu *AchievementTemplateUpdate) sqlSave(ctx context.Context) (n int, err e
 			Columns: []string{achievementtemplate.AchievementsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(entachievement.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(achievement.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -313,7 +323,7 @@ func (atu *AchievementTemplateUpdate) sqlSave(ctx context.Context) (n int, err e
 			Columns: []string{achievementtemplate.AchievementsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(entachievement.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(achievement.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -329,7 +339,7 @@ func (atu *AchievementTemplateUpdate) sqlSave(ctx context.Context) (n int, err e
 			Columns: []string{achievementtemplate.AchievementsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(entachievement.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(achievement.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -440,17 +450,24 @@ func (atuo *AchievementTemplateUpdateOne) SetNillableActive(b *bool) *Achievemen
 	return atuo
 }
 
-// SetKind sets the "kind" field.
-func (atuo *AchievementTemplateUpdateOne) SetKind(a achievement.Kind) *AchievementTemplateUpdateOne {
-	atuo.mutation.SetKind(a)
+// SetReviewerRole sets the "reviewer_role" field.
+func (atuo *AchievementTemplateUpdateOne) SetReviewerRole(s sesc.Role) *AchievementTemplateUpdateOne {
+	atuo.mutation.ResetReviewerRole()
+	atuo.mutation.SetReviewerRole(s)
 	return atuo
 }
 
-// SetNillableKind sets the "kind" field if the given value is not nil.
-func (atuo *AchievementTemplateUpdateOne) SetNillableKind(a *achievement.Kind) *AchievementTemplateUpdateOne {
-	if a != nil {
-		atuo.SetKind(*a)
+// SetNillableReviewerRole sets the "reviewer_role" field if the given value is not nil.
+func (atuo *AchievementTemplateUpdateOne) SetNillableReviewerRole(s *sesc.Role) *AchievementTemplateUpdateOne {
+	if s != nil {
+		atuo.SetReviewerRole(*s)
 	}
+	return atuo
+}
+
+// AddReviewerRole adds s to the "reviewer_role" field.
+func (atuo *AchievementTemplateUpdateOne) AddReviewerRole(s sesc.Role) *AchievementTemplateUpdateOne {
+	atuo.mutation.AddReviewerRole(s)
 	return atuo
 }
 
@@ -558,9 +575,9 @@ func (atuo *AchievementTemplateUpdateOne) check() error {
 			return &ValidationError{Name: "points_limit", err: fmt.Errorf(`ent: validator failed for field "AchievementTemplate.points_limit": %w`, err)}
 		}
 	}
-	if v, ok := atuo.mutation.Kind(); ok {
+	if v, ok := atuo.mutation.ReviewerRole(); ok {
 		if err := v.Validate(); err != nil {
-			return &ValidationError{Name: "kind", err: fmt.Errorf(`ent: validator failed for field "AchievementTemplate.kind": %w`, err)}
+			return &ValidationError{Name: "reviewer_role", err: fmt.Errorf(`ent: validator failed for field "AchievementTemplate.reviewer_role": %w`, err)}
 		}
 	}
 	if atuo.mutation.GroupCleared() && len(atuo.mutation.GroupIDs()) > 0 {
@@ -616,8 +633,11 @@ func (atuo *AchievementTemplateUpdateOne) sqlSave(ctx context.Context) (_node *A
 	if value, ok := atuo.mutation.Active(); ok {
 		_spec.SetField(achievementtemplate.FieldActive, field.TypeBool, value)
 	}
-	if value, ok := atuo.mutation.Kind(); ok {
-		_spec.SetField(achievementtemplate.FieldKind, field.TypeString, value)
+	if value, ok := atuo.mutation.ReviewerRole(); ok {
+		_spec.SetField(achievementtemplate.FieldReviewerRole, field.TypeInt, value)
+	}
+	if value, ok := atuo.mutation.AddedReviewerRole(); ok {
+		_spec.AddField(achievementtemplate.FieldReviewerRole, field.TypeInt, value)
 	}
 	if atuo.mutation.GroupCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -656,7 +676,7 @@ func (atuo *AchievementTemplateUpdateOne) sqlSave(ctx context.Context) (_node *A
 			Columns: []string{achievementtemplate.AchievementsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(entachievement.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(achievement.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -669,7 +689,7 @@ func (atuo *AchievementTemplateUpdateOne) sqlSave(ctx context.Context) (_node *A
 			Columns: []string{achievementtemplate.AchievementsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(entachievement.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(achievement.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -685,7 +705,7 @@ func (atuo *AchievementTemplateUpdateOne) sqlSave(ctx context.Context) (_node *A
 			Columns: []string{achievementtemplate.AchievementsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(entachievement.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(achievement.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

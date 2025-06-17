@@ -10,7 +10,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	uuid "github.com/gofrs/uuid/v5"
-	entachievement "github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievement"
+	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievement"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievementdocument"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/file"
 )
@@ -174,7 +174,7 @@ func (adc *AchievementDocumentCreate) createSpec() (*AchievementDocument, *sqlgr
 			Columns: []string{achievementdocument.AchievementColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(entachievement.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(achievement.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

@@ -92,7 +92,7 @@ const (
 	// AchievementsTable is the table that holds the achievements relation/edge.
 	AchievementsTable = "achievements"
 	// AchievementsInverseTable is the table name for the Achievement entity.
-	// It exists in this package in order to avoid circular dependency with the "entachievement" package.
+	// It exists in this package in order to avoid circular dependency with the "achievement" package.
 	AchievementsInverseTable = "achievements"
 	// AchievementsColumn is the table column denoting the achievements relation/edge.
 	AchievementsColumn = "owner_id"

@@ -11,13 +11,15 @@ const DEPHEAD_ROLE_ID = 2;
 const CONTEST_DEPUTY_ROLE_ID = 3;
 const SCIENTIFIC_DEPUTY_ROLE_ID = 4;
 const DEVELOPMENT_DEPUTY_ROLE_ID = 5;
+const ACADEMIC_DIRECTOR_ROLE_ID = 6;
 
 // Array of role IDs that can review achievements
 const REVIEWER_ROLE_IDS = [
   DEPHEAD_ROLE_ID,
   CONTEST_DEPUTY_ROLE_ID,
   SCIENTIFIC_DEPUTY_ROLE_ID,
-  DEVELOPMENT_DEPUTY_ROLE_ID
+  DEVELOPMENT_DEPUTY_ROLE_ID,
+  ACADEMIC_DIRECTOR_ROLE_ID,
 ];
 
 interface ReviewPageLayoutProps {
@@ -34,7 +36,8 @@ export function ReviewPageLayout({ title, children }: ReviewPageLayoutProps) {
     enabled: isAuthenticated,
   });
 
-  const isReviewer = userData?.role?.id && REVIEWER_ROLE_IDS.includes(userData.role.id);
+  const isReviewer =
+    userData?.role?.id && REVIEWER_ROLE_IDS.includes(userData.role.id);
 
   if (!isAuthenticated || isLoading || isUserLoading) {
     return null;

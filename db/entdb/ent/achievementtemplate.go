@@ -9,9 +9,9 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	uuid "github.com/gofrs/uuid/v5"
-	"github.com/kozlov-ma/sesc-backend/achievement"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievementgroup"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievementtemplate"
+	"github.com/kozlov-ma/sesc-backend/sesc"
 )
 
 // AchievementTemplate is the model entity for the AchievementTemplate schema.
@@ -29,8 +29,8 @@ type AchievementTemplate struct {
 	GroupID uuid.UUID `json:"group_id,omitempty"`
 	// Active holds the value of the "active" field.
 	Active bool `json:"active,omitempty"`
-	// Kind holds the value of the "kind" field.
-	Kind achievement.Kind `json:"kind,omitempty"`
+	// ReviewerRole holds the value of the "reviewer_role" field.
+	ReviewerRole sesc.Role `json:"reviewer_role,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the AchievementTemplateQuery when eager-loading is set.
 	Edges        AchievementTemplateEdges `json:"edges"`
@@ -75,9 +75,9 @@ func (*AchievementTemplate) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case achievementtemplate.FieldActive:
 			values[i] = new(sql.NullBool)
-		case achievementtemplate.FieldPointsLimit:
+		case achievementtemplate.FieldPointsLimit, achievementtemplate.FieldReviewerRole:
 			values[i] = new(sql.NullInt64)
-		case achievementtemplate.FieldName, achievementtemplate.FieldDescription, achievementtemplate.FieldKind:
+		case achievementtemplate.FieldName, achievementtemplate.FieldDescription:
 			values[i] = new(sql.NullString)
 		case achievementtemplate.FieldID, achievementtemplate.FieldGroupID:
 			values[i] = new(uuid.UUID)
@@ -132,11 +132,11 @@ func (at *AchievementTemplate) assignValues(columns []string, values []any) erro
 			} else if value.Valid {
 				at.Active = value.Bool
 			}
-		case achievementtemplate.FieldKind:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field kind", values[i])
+		case achievementtemplate.FieldReviewerRole:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field reviewer_role", values[i])
 			} else if value.Valid {
-				at.Kind = achievement.Kind(value.String)
+				at.ReviewerRole = sesc.Role(value.Int64)
 			}
 		default:
 			at.selectValues.Set(columns[i], values[i])
@@ -199,8 +199,8 @@ func (at *AchievementTemplate) String() string {
 	builder.WriteString("active=")
 	builder.WriteString(fmt.Sprintf("%v", at.Active))
 	builder.WriteString(", ")
-	builder.WriteString("kind=")
-	builder.WriteString(fmt.Sprintf("%v", at.Kind))
+	builder.WriteString("reviewer_role=")
+	builder.WriteString(fmt.Sprintf("%v", at.ReviewerRole))
 	builder.WriteByte(')')
 	return builder.String()
 }

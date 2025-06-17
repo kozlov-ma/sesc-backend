@@ -12,8 +12,7 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	uuid "github.com/gofrs/uuid/v5"
-	"github.com/kozlov-ma/sesc-backend/achievement"
-	entachievement "github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievement"
+	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievement"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievementdocument"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievementgroup"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievementreview"
@@ -450,7 +449,7 @@ func (m *AchievementMutation) ResetReviews() {
 // ClearOwner clears the "owner" edge to the User entity.
 func (m *AchievementMutation) ClearOwner() {
 	m.clearedowner = true
-	m.clearedFields[entachievement.FieldOwnerID] = struct{}{}
+	m.clearedFields[achievement.FieldOwnerID] = struct{}{}
 }
 
 // OwnerCleared reports if the "owner" edge to the User entity was cleared.
@@ -477,7 +476,7 @@ func (m *AchievementMutation) ResetOwner() {
 // ClearTemplate clears the "template" edge to the AchievementTemplate entity.
 func (m *AchievementMutation) ClearTemplate() {
 	m.clearedtemplate = true
-	m.clearedFields[entachievement.FieldTemplateID] = struct{}{}
+	m.clearedFields[achievement.FieldTemplateID] = struct{}{}
 }
 
 // TemplateCleared reports if the "template" edge to the AchievementTemplate entity was cleared.
@@ -537,16 +536,16 @@ func (m *AchievementMutation) Type() string {
 func (m *AchievementMutation) Fields() []string {
 	fields := make([]string, 0, 4)
 	if m.owner != nil {
-		fields = append(fields, entachievement.FieldOwnerID)
+		fields = append(fields, achievement.FieldOwnerID)
 	}
 	if m.template != nil {
-		fields = append(fields, entachievement.FieldTemplateID)
+		fields = append(fields, achievement.FieldTemplateID)
 	}
 	if m.status != nil {
-		fields = append(fields, entachievement.FieldStatus)
+		fields = append(fields, achievement.FieldStatus)
 	}
 	if m.points != nil {
-		fields = append(fields, entachievement.FieldPoints)
+		fields = append(fields, achievement.FieldPoints)
 	}
 	return fields
 }
@@ -556,13 +555,13 @@ func (m *AchievementMutation) Fields() []string {
 // schema.
 func (m *AchievementMutation) Field(name string) (ent.Value, bool) {
 	switch name {
-	case entachievement.FieldOwnerID:
+	case achievement.FieldOwnerID:
 		return m.OwnerID()
-	case entachievement.FieldTemplateID:
+	case achievement.FieldTemplateID:
 		return m.TemplateID()
-	case entachievement.FieldStatus:
+	case achievement.FieldStatus:
 		return m.Status()
-	case entachievement.FieldPoints:
+	case achievement.FieldPoints:
 		return m.Points()
 	}
 	return nil, false
@@ -573,13 +572,13 @@ func (m *AchievementMutation) Field(name string) (ent.Value, bool) {
 // database failed.
 func (m *AchievementMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
 	switch name {
-	case entachievement.FieldOwnerID:
+	case achievement.FieldOwnerID:
 		return m.OldOwnerID(ctx)
-	case entachievement.FieldTemplateID:
+	case achievement.FieldTemplateID:
 		return m.OldTemplateID(ctx)
-	case entachievement.FieldStatus:
+	case achievement.FieldStatus:
 		return m.OldStatus(ctx)
-	case entachievement.FieldPoints:
+	case achievement.FieldPoints:
 		return m.OldPoints(ctx)
 	}
 	return nil, fmt.Errorf("unknown Achievement field %s", name)
@@ -590,28 +589,28 @@ func (m *AchievementMutation) OldField(ctx context.Context, name string) (ent.Va
 // type.
 func (m *AchievementMutation) SetField(name string, value ent.Value) error {
 	switch name {
-	case entachievement.FieldOwnerID:
+	case achievement.FieldOwnerID:
 		v, ok := value.(uuid.UUID)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetOwnerID(v)
 		return nil
-	case entachievement.FieldTemplateID:
+	case achievement.FieldTemplateID:
 		v, ok := value.(uuid.UUID)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetTemplateID(v)
 		return nil
-	case entachievement.FieldStatus:
+	case achievement.FieldStatus:
 		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetStatus(v)
 		return nil
-	case entachievement.FieldPoints:
+	case achievement.FieldPoints:
 		v, ok := value.(int)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
@@ -627,7 +626,7 @@ func (m *AchievementMutation) SetField(name string, value ent.Value) error {
 func (m *AchievementMutation) AddedFields() []string {
 	var fields []string
 	if m.addpoints != nil {
-		fields = append(fields, entachievement.FieldPoints)
+		fields = append(fields, achievement.FieldPoints)
 	}
 	return fields
 }
@@ -637,7 +636,7 @@ func (m *AchievementMutation) AddedFields() []string {
 // was not set, or was not defined in the schema.
 func (m *AchievementMutation) AddedField(name string) (ent.Value, bool) {
 	switch name {
-	case entachievement.FieldPoints:
+	case achievement.FieldPoints:
 		return m.AddedPoints()
 	}
 	return nil, false
@@ -648,7 +647,7 @@ func (m *AchievementMutation) AddedField(name string) (ent.Value, bool) {
 // type.
 func (m *AchievementMutation) AddField(name string, value ent.Value) error {
 	switch name {
-	case entachievement.FieldPoints:
+	case achievement.FieldPoints:
 		v, ok := value.(int)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
@@ -682,16 +681,16 @@ func (m *AchievementMutation) ClearField(name string) error {
 // It returns an error if the field is not defined in the schema.
 func (m *AchievementMutation) ResetField(name string) error {
 	switch name {
-	case entachievement.FieldOwnerID:
+	case achievement.FieldOwnerID:
 		m.ResetOwnerID()
 		return nil
-	case entachievement.FieldTemplateID:
+	case achievement.FieldTemplateID:
 		m.ResetTemplateID()
 		return nil
-	case entachievement.FieldStatus:
+	case achievement.FieldStatus:
 		m.ResetStatus()
 		return nil
-	case entachievement.FieldPoints:
+	case achievement.FieldPoints:
 		m.ResetPoints()
 		return nil
 	}
@@ -702,16 +701,16 @@ func (m *AchievementMutation) ResetField(name string) error {
 func (m *AchievementMutation) AddedEdges() []string {
 	edges := make([]string, 0, 4)
 	if m.documents != nil {
-		edges = append(edges, entachievement.EdgeDocuments)
+		edges = append(edges, achievement.EdgeDocuments)
 	}
 	if m.reviews != nil {
-		edges = append(edges, entachievement.EdgeReviews)
+		edges = append(edges, achievement.EdgeReviews)
 	}
 	if m.owner != nil {
-		edges = append(edges, entachievement.EdgeOwner)
+		edges = append(edges, achievement.EdgeOwner)
 	}
 	if m.template != nil {
-		edges = append(edges, entachievement.EdgeTemplate)
+		edges = append(edges, achievement.EdgeTemplate)
 	}
 	return edges
 }
@@ -720,23 +719,23 @@ func (m *AchievementMutation) AddedEdges() []string {
 // name in this mutation.
 func (m *AchievementMutation) AddedIDs(name string) []ent.Value {
 	switch name {
-	case entachievement.EdgeDocuments:
+	case achievement.EdgeDocuments:
 		ids := make([]ent.Value, 0, len(m.documents))
 		for id := range m.documents {
 			ids = append(ids, id)
 		}
 		return ids
-	case entachievement.EdgeReviews:
+	case achievement.EdgeReviews:
 		ids := make([]ent.Value, 0, len(m.reviews))
 		for id := range m.reviews {
 			ids = append(ids, id)
 		}
 		return ids
-	case entachievement.EdgeOwner:
+	case achievement.EdgeOwner:
 		if id := m.owner; id != nil {
 			return []ent.Value{*id}
 		}
-	case entachievement.EdgeTemplate:
+	case achievement.EdgeTemplate:
 		if id := m.template; id != nil {
 			return []ent.Value{*id}
 		}
@@ -748,10 +747,10 @@ func (m *AchievementMutation) AddedIDs(name string) []ent.Value {
 func (m *AchievementMutation) RemovedEdges() []string {
 	edges := make([]string, 0, 4)
 	if m.removeddocuments != nil {
-		edges = append(edges, entachievement.EdgeDocuments)
+		edges = append(edges, achievement.EdgeDocuments)
 	}
 	if m.removedreviews != nil {
-		edges = append(edges, entachievement.EdgeReviews)
+		edges = append(edges, achievement.EdgeReviews)
 	}
 	return edges
 }
@@ -760,13 +759,13 @@ func (m *AchievementMutation) RemovedEdges() []string {
 // the given name in this mutation.
 func (m *AchievementMutation) RemovedIDs(name string) []ent.Value {
 	switch name {
-	case entachievement.EdgeDocuments:
+	case achievement.EdgeDocuments:
 		ids := make([]ent.Value, 0, len(m.removeddocuments))
 		for id := range m.removeddocuments {
 			ids = append(ids, id)
 		}
 		return ids
-	case entachievement.EdgeReviews:
+	case achievement.EdgeReviews:
 		ids := make([]ent.Value, 0, len(m.removedreviews))
 		for id := range m.removedreviews {
 			ids = append(ids, id)
@@ -780,16 +779,16 @@ func (m *AchievementMutation) RemovedIDs(name string) []ent.Value {
 func (m *AchievementMutation) ClearedEdges() []string {
 	edges := make([]string, 0, 4)
 	if m.cleareddocuments {
-		edges = append(edges, entachievement.EdgeDocuments)
+		edges = append(edges, achievement.EdgeDocuments)
 	}
 	if m.clearedreviews {
-		edges = append(edges, entachievement.EdgeReviews)
+		edges = append(edges, achievement.EdgeReviews)
 	}
 	if m.clearedowner {
-		edges = append(edges, entachievement.EdgeOwner)
+		edges = append(edges, achievement.EdgeOwner)
 	}
 	if m.clearedtemplate {
-		edges = append(edges, entachievement.EdgeTemplate)
+		edges = append(edges, achievement.EdgeTemplate)
 	}
 	return edges
 }
@@ -798,13 +797,13 @@ func (m *AchievementMutation) ClearedEdges() []string {
 // was cleared in this mutation.
 func (m *AchievementMutation) EdgeCleared(name string) bool {
 	switch name {
-	case entachievement.EdgeDocuments:
+	case achievement.EdgeDocuments:
 		return m.cleareddocuments
-	case entachievement.EdgeReviews:
+	case achievement.EdgeReviews:
 		return m.clearedreviews
-	case entachievement.EdgeOwner:
+	case achievement.EdgeOwner:
 		return m.clearedowner
-	case entachievement.EdgeTemplate:
+	case achievement.EdgeTemplate:
 		return m.clearedtemplate
 	}
 	return false
@@ -814,10 +813,10 @@ func (m *AchievementMutation) EdgeCleared(name string) bool {
 // if that edge is not defined in the schema.
 func (m *AchievementMutation) ClearEdge(name string) error {
 	switch name {
-	case entachievement.EdgeOwner:
+	case achievement.EdgeOwner:
 		m.ClearOwner()
 		return nil
-	case entachievement.EdgeTemplate:
+	case achievement.EdgeTemplate:
 		m.ClearTemplate()
 		return nil
 	}
@@ -828,16 +827,16 @@ func (m *AchievementMutation) ClearEdge(name string) error {
 // It returns an error if the edge is not defined in the schema.
 func (m *AchievementMutation) ResetEdge(name string) error {
 	switch name {
-	case entachievement.EdgeDocuments:
+	case achievement.EdgeDocuments:
 		m.ResetDocuments()
 		return nil
-	case entachievement.EdgeReviews:
+	case achievement.EdgeReviews:
 		m.ResetReviews()
 		return nil
-	case entachievement.EdgeOwner:
+	case achievement.EdgeOwner:
 		m.ResetOwner()
 		return nil
-	case entachievement.EdgeTemplate:
+	case achievement.EdgeTemplate:
 		m.ResetTemplate()
 		return nil
 	}
@@ -2602,7 +2601,8 @@ type AchievementTemplateMutation struct {
 	points_limit        *int
 	addpoints_limit     *int
 	active              *bool
-	kind                *achievement.Kind
+	reviewer_role       *sesc.Role
+	addreviewer_role    *sesc.Role
 	clearedFields       map[string]struct{}
 	group               *uuid.UUID
 	clearedgroup        bool
@@ -2931,40 +2931,60 @@ func (m *AchievementTemplateMutation) ResetActive() {
 	m.active = nil
 }
 
-// SetKind sets the "kind" field.
-func (m *AchievementTemplateMutation) SetKind(a achievement.Kind) {
-	m.kind = &a
+// SetReviewerRole sets the "reviewer_role" field.
+func (m *AchievementTemplateMutation) SetReviewerRole(s sesc.Role) {
+	m.reviewer_role = &s
+	m.addreviewer_role = nil
 }
 
-// Kind returns the value of the "kind" field in the mutation.
-func (m *AchievementTemplateMutation) Kind() (r achievement.Kind, exists bool) {
-	v := m.kind
+// ReviewerRole returns the value of the "reviewer_role" field in the mutation.
+func (m *AchievementTemplateMutation) ReviewerRole() (r sesc.Role, exists bool) {
+	v := m.reviewer_role
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldKind returns the old "kind" field's value of the AchievementTemplate entity.
+// OldReviewerRole returns the old "reviewer_role" field's value of the AchievementTemplate entity.
 // If the AchievementTemplate object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *AchievementTemplateMutation) OldKind(ctx context.Context) (v achievement.Kind, err error) {
+func (m *AchievementTemplateMutation) OldReviewerRole(ctx context.Context) (v sesc.Role, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldKind is only allowed on UpdateOne operations")
+		return v, errors.New("OldReviewerRole is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldKind requires an ID field in the mutation")
+		return v, errors.New("OldReviewerRole requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldKind: %w", err)
+		return v, fmt.Errorf("querying old value for OldReviewerRole: %w", err)
 	}
-	return oldValue.Kind, nil
+	return oldValue.ReviewerRole, nil
 }
 
-// ResetKind resets all changes to the "kind" field.
-func (m *AchievementTemplateMutation) ResetKind() {
-	m.kind = nil
+// AddReviewerRole adds s to the "reviewer_role" field.
+func (m *AchievementTemplateMutation) AddReviewerRole(s sesc.Role) {
+	if m.addreviewer_role != nil {
+		*m.addreviewer_role += s
+	} else {
+		m.addreviewer_role = &s
+	}
+}
+
+// AddedReviewerRole returns the value that was added to the "reviewer_role" field in this mutation.
+func (m *AchievementTemplateMutation) AddedReviewerRole() (r sesc.Role, exists bool) {
+	v := m.addreviewer_role
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetReviewerRole resets all changes to the "reviewer_role" field.
+func (m *AchievementTemplateMutation) ResetReviewerRole() {
+	m.reviewer_role = nil
+	m.addreviewer_role = nil
 }
 
 // ClearGroup clears the "group" edge to the AchievementGroup entity.
@@ -3098,8 +3118,8 @@ func (m *AchievementTemplateMutation) Fields() []string {
 	if m.active != nil {
 		fields = append(fields, achievementtemplate.FieldActive)
 	}
-	if m.kind != nil {
-		fields = append(fields, achievementtemplate.FieldKind)
+	if m.reviewer_role != nil {
+		fields = append(fields, achievementtemplate.FieldReviewerRole)
 	}
 	return fields
 }
@@ -3119,8 +3139,8 @@ func (m *AchievementTemplateMutation) Field(name string) (ent.Value, bool) {
 		return m.GroupID()
 	case achievementtemplate.FieldActive:
 		return m.Active()
-	case achievementtemplate.FieldKind:
-		return m.Kind()
+	case achievementtemplate.FieldReviewerRole:
+		return m.ReviewerRole()
 	}
 	return nil, false
 }
@@ -3140,8 +3160,8 @@ func (m *AchievementTemplateMutation) OldField(ctx context.Context, name string)
 		return m.OldGroupID(ctx)
 	case achievementtemplate.FieldActive:
 		return m.OldActive(ctx)
-	case achievementtemplate.FieldKind:
-		return m.OldKind(ctx)
+	case achievementtemplate.FieldReviewerRole:
+		return m.OldReviewerRole(ctx)
 	}
 	return nil, fmt.Errorf("unknown AchievementTemplate field %s", name)
 }
@@ -3186,12 +3206,12 @@ func (m *AchievementTemplateMutation) SetField(name string, value ent.Value) err
 		}
 		m.SetActive(v)
 		return nil
-	case achievementtemplate.FieldKind:
-		v, ok := value.(achievement.Kind)
+	case achievementtemplate.FieldReviewerRole:
+		v, ok := value.(sesc.Role)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetKind(v)
+		m.SetReviewerRole(v)
 		return nil
 	}
 	return fmt.Errorf("unknown AchievementTemplate field %s", name)
@@ -3204,6 +3224,9 @@ func (m *AchievementTemplateMutation) AddedFields() []string {
 	if m.addpoints_limit != nil {
 		fields = append(fields, achievementtemplate.FieldPointsLimit)
 	}
+	if m.addreviewer_role != nil {
+		fields = append(fields, achievementtemplate.FieldReviewerRole)
+	}
 	return fields
 }
 
@@ -3214,6 +3237,8 @@ func (m *AchievementTemplateMutation) AddedField(name string) (ent.Value, bool) 
 	switch name {
 	case achievementtemplate.FieldPointsLimit:
 		return m.AddedPointsLimit()
+	case achievementtemplate.FieldReviewerRole:
+		return m.AddedReviewerRole()
 	}
 	return nil, false
 }
@@ -3229,6 +3254,13 @@ func (m *AchievementTemplateMutation) AddField(name string, value ent.Value) err
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.AddPointsLimit(v)
+		return nil
+	case achievementtemplate.FieldReviewerRole:
+		v, ok := value.(sesc.Role)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddReviewerRole(v)
 		return nil
 	}
 	return fmt.Errorf("unknown AchievementTemplate numeric field %s", name)
@@ -3281,8 +3313,8 @@ func (m *AchievementTemplateMutation) ResetField(name string) error {
 	case achievementtemplate.FieldActive:
 		m.ResetActive()
 		return nil
-	case achievementtemplate.FieldKind:
-		m.ResetKind()
+	case achievementtemplate.FieldReviewerRole:
+		m.ResetReviewerRole()
 		return nil
 	}
 	return fmt.Errorf("unknown AchievementTemplate field %s", name)

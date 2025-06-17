@@ -23,7 +23,7 @@ func TestReviewAchievement(t *testing.T) {
 		// Create test user, reviewer, template, and achievement
 		user := testutil.CreateTestUser(ctx, t, client, "Test", "User", sesc.Role(1))
 		reviewer := testutil.CreateTestUser(ctx, t, client, "Test", "Reviewer", sesc.Dephead)
-		template := testutil.CreateTestAchievementTemplate(ctx, t, client, achievement.Olympiad)
+		template := testutil.CreateTestAchievementTemplate(ctx, t, client, sesc.OlympiadDeputy)
 		ach := testutil.CreateTestAchievement(ctx, t, client, user, template, achievement.StatusDepheadReview)
 
 		// Call the method being tested
@@ -82,7 +82,7 @@ func TestReviewAchievement(t *testing.T) {
 		// Create test user, reviewer, template, and achievement with wrong status
 		user := testutil.CreateTestUser(ctx, t, client, "Test", "User", sesc.Role(1))
 		reviewer := testutil.CreateTestUser(ctx, t, client, "Test", "Reviewer", sesc.Dephead)
-		template := testutil.CreateTestAchievementTemplate(ctx, t, client, achievement.Olympiad)
+		template := testutil.CreateTestAchievementTemplate(ctx, t, client, sesc.OlympiadDeputy)
 		ach := testutil.CreateTestAchievement(ctx, t, client, user, template, achievement.StatusDraft)
 
 		// Call the method being tested
@@ -117,7 +117,7 @@ func TestReviewAchievement(t *testing.T) {
 			"InvalidReviewer",
 			sesc.Role(1),
 		) // Not a dephead
-		template := testutil.CreateTestAchievementTemplate(ctx, t, client, achievement.Olympiad)
+		template := testutil.CreateTestAchievementTemplate(ctx, t, client, sesc.OlympiadDeputy)
 		ach := testutil.CreateTestAchievement(ctx, t, client, user, template, achievement.StatusDepheadReview)
 
 		// Call the method being tested

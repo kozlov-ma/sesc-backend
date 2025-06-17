@@ -44,8 +44,8 @@ const formSchema = z
       .number()
       .min(0, "Количество баллов не может быть отрицательным"),
     isUnlimitedPoints: z.boolean(),
-    kind: z.enum(["olympiad", "development", "scientific"], {
-      required_error: "Выберите тип достижения",
+    kind: z.enum(["olympiad", "development", "scientific", "academic"], {
+      required_error: "Выберите контролирующее лицо",
     }),
   })
   .refine(
@@ -69,6 +69,38 @@ interface AchievementTemplateFormDialogProps {
   template?: RespondAchievementTemplate;
   groupId?: string;
   onSuccess?: () => void;
+}
+
+function kindToRole(
+  kind: "scientific" | "development" | "olympiad" | "academic",
+): number {
+  switch (kind) {
+    case "scientific":
+      return 3;
+    case "development":
+      return 4;
+    case "olympiad":
+      return 5;
+    case "academic":
+      return 6;
+  }
+}
+
+function roleToKind(
+  role: number,
+): "scientific" | "development" | "olympiad" | "academic" {
+  switch (role) {
+    case 3:
+      return "scientific";
+    case 4:
+      return "development";
+    case 5:
+      return "olympiad";
+    case 6:
+      return "academic";
+  }
+
+  return "scientific";
 }
 
 export function AchievementTemplateFormDialog({
@@ -98,7 +130,7 @@ export function AchievementTemplateFormDialog({
           name: template.name,
           description: template.description,
           pointsLimit: template.pointsLimit,
-          kind: template.kind as "olympiad" | "development" | "scientific",
+          kind: roleToKind(template.reviewerRole.id),
         });
       } else {
         form.reset({
@@ -162,7 +194,7 @@ export function AchievementTemplateFormDialog({
             name: data.name,
             description: data.description,
             pointsLimit: data.isUnlimitedPoints ? 0 : data.pointsLimit,
-            kind: data.kind,
+            reviewerRole: kindToRole(data.kind),
           },
         });
       } else {
@@ -175,7 +207,7 @@ export function AchievementTemplateFormDialog({
             description: data.description,
             pointsLimit: data.isUnlimitedPoints ? 0 : data.pointsLimit,
             groupId,
-            kind: data.kind,
+            reviewerRole: kindToRole(data.kind),
           },
         });
       }
@@ -235,7 +267,7 @@ export function AchievementTemplateFormDialog({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="kind">Тип достижения</Label>
+            <Label htmlFor="kind">Контролирующее лицо</Label>
             <Select
               onValueChange={(value) =>
                 form.setValue("kind", value as FormValues["kind"])
@@ -243,12 +275,17 @@ export function AchievementTemplateFormDialog({
               defaultValue={form.getValues("kind")}
             >
               <SelectTrigger>
-                <SelectValue placeholder="Выберите тип достижения" />
+                <SelectValue placeholder="Выберите контролирующее лицо" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="olympiad">Олимпиада</SelectItem>
-                <SelectItem value="development">Развитие</SelectItem>
-                <SelectItem value="scientific">Научная деятельность</SelectItem>
+                <SelectItem value="olympiad">
+                  з.д. по Олимпиадной работе
+                </SelectItem>
+                <SelectItem value="development">з.д. по Развитию</SelectItem>
+                <SelectItem value="scientific">
+                  з.д. по Научной работе
+                </SelectItem>
+                <SelectItem value="academic">Академический директор</SelectItem>
               </SelectContent>
             </Select>
             {form.formState.errors.kind && (

@@ -115,10 +115,10 @@ type AchievementGroupData struct {
 
 // AchievementTemplateData represents the data for an achievement template
 type AchievementTemplateData struct {
-	Name        string
-	Description string
-	PointsLimit int64
-	Kind        string
+	Name         string
+	Description  string
+	PointsLimit  int64
+	ReviewerRole int64
 }
 
 // Achievement groups data

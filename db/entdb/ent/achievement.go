@@ -9,7 +9,7 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	uuid "github.com/gofrs/uuid/v5"
-	entachievement "github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievement"
+	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievement"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievementtemplate"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/user"
 )
@@ -93,11 +93,11 @@ func (*Achievement) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case entachievement.FieldPoints:
+		case achievement.FieldPoints:
 			values[i] = new(sql.NullInt64)
-		case entachievement.FieldStatus:
+		case achievement.FieldStatus:
 			values[i] = new(sql.NullString)
-		case entachievement.FieldID, entachievement.FieldOwnerID, entachievement.FieldTemplateID:
+		case achievement.FieldID, achievement.FieldOwnerID, achievement.FieldTemplateID:
 			values[i] = new(uuid.UUID)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -114,31 +114,31 @@ func (a *Achievement) assignValues(columns []string, values []any) error {
 	}
 	for i := range columns {
 		switch columns[i] {
-		case entachievement.FieldID:
+		case achievement.FieldID:
 			if value, ok := values[i].(*uuid.UUID); !ok {
 				return fmt.Errorf("unexpected type %T for field id", values[i])
 			} else if value != nil {
 				a.ID = *value
 			}
-		case entachievement.FieldOwnerID:
+		case achievement.FieldOwnerID:
 			if value, ok := values[i].(*uuid.UUID); !ok {
 				return fmt.Errorf("unexpected type %T for field owner_id", values[i])
 			} else if value != nil {
 				a.OwnerID = *value
 			}
-		case entachievement.FieldTemplateID:
+		case achievement.FieldTemplateID:
 			if value, ok := values[i].(*uuid.UUID); !ok {
 				return fmt.Errorf("unexpected type %T for field template_id", values[i])
 			} else if value != nil {
 				a.TemplateID = *value
 			}
-		case entachievement.FieldStatus:
+		case achievement.FieldStatus:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field status", values[i])
 			} else if value.Valid {
 				a.Status = value.String
 			}
-		case entachievement.FieldPoints:
+		case achievement.FieldPoints:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field points", values[i])
 			} else if value.Valid {

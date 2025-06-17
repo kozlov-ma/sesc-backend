@@ -7,7 +7,6 @@ package models
 
 import (
 	"context"
-	"encoding/json"
 
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/strfmt"
@@ -30,12 +29,6 @@ type ParamCreateAchievementTemplateRequest struct {
 	// Required: true
 	GroupID *string `json:"groupId"`
 
-	// kind
-	// Example: scientific
-	// Required: true
-	// Enum: ["olympiad","development","scientific"]
-	Kind *string `json:"kind"`
-
 	// name
 	// Example: Публикация в журнале
 	// Required: true
@@ -45,6 +38,11 @@ type ParamCreateAchievementTemplateRequest struct {
 	// Example: 10
 	// Required: true
 	PointsLimit *int64 `json:"pointsLimit"`
+
+	// reviewer role
+	// Example: 3
+	// Required: true
+	ReviewerRole *int64 `json:"reviewerRole"`
 }
 
 // Validate validates this param create achievement template request
@@ -59,15 +57,15 @@ func (m *ParamCreateAchievementTemplateRequest) Validate(formats strfmt.Registry
 		res = append(res, err)
 	}
 
-	if err := m.validateKind(formats); err != nil {
-		res = append(res, err)
-	}
-
 	if err := m.validateName(formats); err != nil {
 		res = append(res, err)
 	}
 
 	if err := m.validatePointsLimit(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateReviewerRole(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -95,52 +93,6 @@ func (m *ParamCreateAchievementTemplateRequest) validateGroupID(formats strfmt.R
 	return nil
 }
 
-var paramCreateAchievementTemplateRequestTypeKindPropEnum []interface{}
-
-func init() {
-	var res []string
-	if err := json.Unmarshal([]byte(`["olympiad","development","scientific"]`), &res); err != nil {
-		panic(err)
-	}
-	for _, v := range res {
-		paramCreateAchievementTemplateRequestTypeKindPropEnum = append(paramCreateAchievementTemplateRequestTypeKindPropEnum, v)
-	}
-}
-
-const (
-
-	// ParamCreateAchievementTemplateRequestKindOlympiad captures enum value "olympiad"
-	ParamCreateAchievementTemplateRequestKindOlympiad string = "olympiad"
-
-	// ParamCreateAchievementTemplateRequestKindDevelopment captures enum value "development"
-	ParamCreateAchievementTemplateRequestKindDevelopment string = "development"
-
-	// ParamCreateAchievementTemplateRequestKindScientific captures enum value "scientific"
-	ParamCreateAchievementTemplateRequestKindScientific string = "scientific"
-)
-
-// prop value enum
-func (m *ParamCreateAchievementTemplateRequest) validateKindEnum(path, location string, value string) error {
-	if err := validate.EnumCase(path, location, value, paramCreateAchievementTemplateRequestTypeKindPropEnum, true); err != nil {
-		return err
-	}
-	return nil
-}
-
-func (m *ParamCreateAchievementTemplateRequest) validateKind(formats strfmt.Registry) error {
-
-	if err := validate.Required("kind", "body", m.Kind); err != nil {
-		return err
-	}
-
-	// value enum
-	if err := m.validateKindEnum("kind", "body", *m.Kind); err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func (m *ParamCreateAchievementTemplateRequest) validateName(formats strfmt.Registry) error {
 
 	if err := validate.Required("name", "body", m.Name); err != nil {
@@ -153,6 +105,15 @@ func (m *ParamCreateAchievementTemplateRequest) validateName(formats strfmt.Regi
 func (m *ParamCreateAchievementTemplateRequest) validatePointsLimit(formats strfmt.Registry) error {
 
 	if err := validate.Required("pointsLimit", "body", m.PointsLimit); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *ParamCreateAchievementTemplateRequest) validateReviewerRole(formats strfmt.Registry) error {
+
+	if err := validate.Required("reviewerRole", "body", m.ReviewerRole); err != nil {
 		return err
 	}
 

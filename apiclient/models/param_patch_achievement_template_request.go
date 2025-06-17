@@ -7,12 +7,9 @@ package models
 
 import (
 	"context"
-	"encoding/json"
 
-	"github.com/go-openapi/errors"
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
-	"github.com/go-openapi/validate"
 )
 
 // ParamPatchAchievementTemplateRequest param patch achievement template request
@@ -28,10 +25,6 @@ type ParamPatchAchievementTemplateRequest struct {
 	// Example: Публикация статьи в научном журнале
 	Description string `json:"description,omitempty"`
 
-	// kind
-	// Enum: ["olympiad","development","scientific"]
-	Kind string `json:"kind,omitempty"`
-
 	// name
 	// Example: Публикация в журнале
 	Name string `json:"name,omitempty"`
@@ -39,64 +32,14 @@ type ParamPatchAchievementTemplateRequest struct {
 	// points limit
 	// Example: 10
 	PointsLimit int64 `json:"pointsLimit,omitempty"`
+
+	// reviewer role
+	// Example: 3
+	ReviewerRole int64 `json:"reviewerRole,omitempty"`
 }
 
 // Validate validates this param patch achievement template request
 func (m *ParamPatchAchievementTemplateRequest) Validate(formats strfmt.Registry) error {
-	var res []error
-
-	if err := m.validateKind(formats); err != nil {
-		res = append(res, err)
-	}
-
-	if len(res) > 0 {
-		return errors.CompositeValidationError(res...)
-	}
-	return nil
-}
-
-var paramPatchAchievementTemplateRequestTypeKindPropEnum []interface{}
-
-func init() {
-	var res []string
-	if err := json.Unmarshal([]byte(`["olympiad","development","scientific"]`), &res); err != nil {
-		panic(err)
-	}
-	for _, v := range res {
-		paramPatchAchievementTemplateRequestTypeKindPropEnum = append(paramPatchAchievementTemplateRequestTypeKindPropEnum, v)
-	}
-}
-
-const (
-
-	// ParamPatchAchievementTemplateRequestKindOlympiad captures enum value "olympiad"
-	ParamPatchAchievementTemplateRequestKindOlympiad string = "olympiad"
-
-	// ParamPatchAchievementTemplateRequestKindDevelopment captures enum value "development"
-	ParamPatchAchievementTemplateRequestKindDevelopment string = "development"
-
-	// ParamPatchAchievementTemplateRequestKindScientific captures enum value "scientific"
-	ParamPatchAchievementTemplateRequestKindScientific string = "scientific"
-)
-
-// prop value enum
-func (m *ParamPatchAchievementTemplateRequest) validateKindEnum(path, location string, value string) error {
-	if err := validate.EnumCase(path, location, value, paramPatchAchievementTemplateRequestTypeKindPropEnum, true); err != nil {
-		return err
-	}
-	return nil
-}
-
-func (m *ParamPatchAchievementTemplateRequest) validateKind(formats strfmt.Registry) error {
-	if swag.IsZero(m.Kind) { // not required
-		return nil
-	}
-
-	// value enum
-	if err := m.validateKindEnum("kind", "body", m.Kind); err != nil {
-		return err
-	}
-
 	return nil
 }
 

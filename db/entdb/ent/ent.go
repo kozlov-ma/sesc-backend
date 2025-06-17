@@ -12,8 +12,7 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
-
-	entachievement "github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievement"
+	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievement"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievementdocument"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievementgroup"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievementreview"
@@ -82,7 +81,7 @@ var (
 func checkColumn(table, column string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
-			entachievement.Table:      entachievement.ValidColumn,
+			achievement.Table:         achievement.ValidColumn,
 			achievementdocument.Table: achievementdocument.ValidColumn,
 			achievementgroup.Table:    achievementgroup.ValidColumn,
 			achievementreview.Table:   achievementreview.ValidColumn,

@@ -6,6 +6,7 @@ import (
 	"github.com/kozlov-ma/sesc-backend/achievement"
 	"github.com/kozlov-ma/sesc-backend/internal/services/testutil"
 	"github.com/kozlov-ma/sesc-backend/pkg/event"
+	"github.com/kozlov-ma/sesc-backend/sesc"
 	"github.com/stretchr/testify/require"
 )
 
@@ -30,11 +31,11 @@ func TestCreateAchievementTemplate(t *testing.T) {
 
 		// Prepare test data for template creation
 		options := achievement.TemplateCreateOptions{
-			Name:        "Test Template",
-			Description: "Test Template Description",
-			PointsLimit: 100,
-			GroupID:     group.ID,
-			Kind:        achievement.Kind("olympiad"),
+			Name:         "Test Template",
+			Description:  "Test Template Description",
+			PointsLimit:  100,
+			GroupID:      group.ID,
+			ReviewerRole: sesc.OlympiadDeputy,
 		}
 
 		// Call the method being tested
@@ -47,7 +48,7 @@ func TestCreateAchievementTemplate(t *testing.T) {
 		require.Equal(t, options.Description, template.Description)
 		require.Equal(t, options.PointsLimit, template.PointsLimit)
 		require.Equal(t, options.GroupID, template.GroupID)
-		require.Equal(t, options.Kind, template.Kind)
+		require.Equal(t, options.ReviewerRole, template.ReviewerRole)
 		require.True(t, template.Active, "Template should be active by default")
 
 		// Verify the template was actually created in the database
@@ -57,7 +58,7 @@ func TestCreateAchievementTemplate(t *testing.T) {
 		require.Equal(t, options.Description, dbTemplate.Description)
 		require.Equal(t, options.PointsLimit, dbTemplate.PointsLimit)
 		require.Equal(t, options.GroupID, dbTemplate.GroupID)
-		require.Equal(t, options.Kind, dbTemplate.Kind)
+		require.Equal(t, options.ReviewerRole, dbTemplate.ReviewerRole)
 	})
 
 	t.Run("invalid_kind", func(t *testing.T) {
@@ -80,11 +81,11 @@ func TestCreateAchievementTemplate(t *testing.T) {
 
 		// Prepare test data with invalid kind
 		options := achievement.TemplateCreateOptions{
-			Name:        "Test Template",
-			Description: "Test Template Description",
-			PointsLimit: 100,
-			GroupID:     group.ID,
-			Kind:        achievement.Kind("invalid_kind"),
+			Name:         "Test Template",
+			Description:  "Test Template Description",
+			PointsLimit:  100,
+			GroupID:      group.ID,
+			ReviewerRole: 112,
 		}
 
 		// Call the method being tested
@@ -109,11 +110,11 @@ func TestCreateAchievementTemplate(t *testing.T) {
 
 		// Prepare test data with non-existent group ID
 		options := achievement.TemplateCreateOptions{
-			Name:        "Test Template",
-			Description: "Test Template Description",
-			PointsLimit: 100,
-			GroupID:     nonExistentGroupID,
-			Kind:        achievement.Kind("olympiad"),
+			Name:         "Test Template",
+			Description:  "Test Template Description",
+			PointsLimit:  100,
+			GroupID:      nonExistentGroupID,
+			ReviewerRole: sesc.OlympiadDeputy,
 		}
 
 		// Call the method being tested
@@ -147,11 +148,11 @@ func TestCreateAchievementTemplate(t *testing.T) {
 
 		// Prepare test data
 		options := achievement.TemplateCreateOptions{
-			Name:        "Test Template",
-			Description: "Test Template Description",
-			PointsLimit: 100,
-			GroupID:     group.ID,
-			Kind:        achievement.Kind("olympiad"),
+			Name:         "Test Template",
+			Description:  "Test Template Description",
+			PointsLimit:  100,
+			GroupID:      group.ID,
+			ReviewerRole: sesc.OlympiadDeputy,
 		}
 
 		// Call the method being tested

@@ -115,7 +115,7 @@ func processAchievementTemplates(
 			})
 
 			// Set the kind
-			createParams.Request.Kind = &templateData.Kind
+			createParams.Request.ReviewerRole = &templateData.ReviewerRole
 
 			_, err := apiClient.AchievementTemplates.PostAchievementTemplates(createParams, authInfo)
 			if err != nil {

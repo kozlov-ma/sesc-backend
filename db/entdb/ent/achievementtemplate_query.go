@@ -14,7 +14,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	uuid "github.com/gofrs/uuid/v5"
-	entachievement "github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievement"
+	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievement"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievementgroup"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievementtemplate"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/predicate"
@@ -101,7 +101,7 @@ func (atq *AchievementTemplateQuery) QueryAchievements() *AchievementQuery {
 		}
 		step := sqlgraph.NewStep(
 			sqlgraph.From(achievementtemplate.Table, achievementtemplate.FieldID, selector),
-			sqlgraph.To(entachievement.Table, entachievement.FieldID),
+			sqlgraph.To(achievement.Table, achievement.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, achievementtemplate.AchievementsTable, achievementtemplate.AchievementsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(atq.driver.Dialect(), step)
@@ -492,7 +492,7 @@ func (atq *AchievementTemplateQuery) loadAchievements(ctx context.Context, query
 		}
 	}
 	if len(query.ctx.Fields) > 0 {
-		query.ctx.AppendFieldOnce(entachievement.FieldTemplateID)
+		query.ctx.AppendFieldOnce(achievement.FieldTemplateID)
 	}
 	query.Where(predicate.Achievement(func(s *sql.Selector) {
 		s.Where(sql.InValues(s.C(achievementtemplate.AchievementsColumn), fks...))

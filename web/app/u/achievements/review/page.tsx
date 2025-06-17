@@ -136,7 +136,7 @@ export default function ReviewAchievementsPage() {
 
       if (
         currentUser.role.id >= 3 &&
-        currentUser.role.id <= 5 &&
+        currentUser.role.id <= 6 &&
         achievement.status === "inspector_review"
       ) {
         return true;

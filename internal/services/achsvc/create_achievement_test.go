@@ -8,6 +8,7 @@ import (
 	"github.com/kozlov-ma/sesc-backend/achievement"
 	"github.com/kozlov-ma/sesc-backend/internal/services/achsvc"
 	"github.com/kozlov-ma/sesc-backend/internal/services/testutil"
+	"github.com/kozlov-ma/sesc-backend/sesc"
 	"github.com/stretchr/testify/require"
 )
 
@@ -23,7 +24,7 @@ func TestCreateAchievement(t *testing.T) {
 
 		// Create test user and template
 		user := testutil.CreateTestUser(ctx, t, client, "Test", "User", 1) // 1 is teacher role
-		template := testutil.CreateTestAchievementTemplate(ctx, t, client, achievement.Kind("scientific"))
+		template := testutil.CreateTestAchievementTemplate(ctx, t, client, sesc.ScientificDeputy)
 
 		// Create achievement service
 		svc := achsvc.New(client)

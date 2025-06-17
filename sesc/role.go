@@ -22,6 +22,26 @@ var Roles = []Role{
 	ChiefEconomist,
 }
 
+func (r Role) Validate() error {
+	switch r {
+	case Teacher, Dephead, ScientificDeputy, DevelopmentDeputy, OlympiadDeputy, AcademicDirector, ChiefEconomist:
+		return nil
+	default:
+		return ErrInvalidRole
+	}
+}
+
+func (r Role) ValidateReviewer() error {
+	switch r {
+	case ScientificDeputy, DevelopmentDeputy, OlympiadDeputy, AcademicDirector:
+		return nil
+	case Teacher, Dephead, ChiefEconomist:
+		fallthrough
+	default:
+		return ErrInvalidRole
+	}
+}
+
 func (r Role) Name() string {
 	switch r {
 	case Teacher:

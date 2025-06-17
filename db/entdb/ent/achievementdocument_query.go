@@ -13,7 +13,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	uuid "github.com/gofrs/uuid/v5"
-	entachievement "github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievement"
+	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievement"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievementdocument"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/file"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/predicate"
@@ -78,7 +78,7 @@ func (adq *AchievementDocumentQuery) QueryAchievement() *AchievementQuery {
 		}
 		step := sqlgraph.NewStep(
 			sqlgraph.From(achievementdocument.Table, achievementdocument.FieldID, selector),
-			sqlgraph.To(entachievement.Table, entachievement.FieldID),
+			sqlgraph.To(achievement.Table, achievement.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, achievementdocument.AchievementTable, achievementdocument.AchievementColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(adq.driver.Dialect(), step)
@@ -463,7 +463,7 @@ func (adq *AchievementDocumentQuery) loadAchievement(ctx context.Context, query 
 	if len(ids) == 0 {
 		return nil
 	}
-	query.Where(entachievement.IDIn(ids...))
+	query.Where(achievement.IDIn(ids...))
 	neighbors, err := query.All(ctx)
 	if err != nil {
 		return err

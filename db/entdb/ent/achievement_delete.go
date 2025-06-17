@@ -8,9 +8,8 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievement"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/predicate"
-
-	entachievement "github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievement"
 )
 
 // AchievementDelete is the builder for deleting a Achievement entity.
@@ -41,7 +40,7 @@ func (ad *AchievementDelete) ExecX(ctx context.Context) int {
 }
 
 func (ad *AchievementDelete) sqlExec(ctx context.Context) (int, error) {
-	_spec := sqlgraph.NewDeleteSpec(entachievement.Table, sqlgraph.NewFieldSpec(entachievement.FieldID, field.TypeUUID))
+	_spec := sqlgraph.NewDeleteSpec(achievement.Table, sqlgraph.NewFieldSpec(achievement.FieldID, field.TypeUUID))
 	if ps := ad.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -75,7 +74,7 @@ func (ado *AchievementDeleteOne) Exec(ctx context.Context) error {
 	case err != nil:
 		return err
 	case n == 0:
-		return &NotFoundError{entachievement.Label}
+		return &NotFoundError{achievement.Label}
 	default:
 		return nil
 	}

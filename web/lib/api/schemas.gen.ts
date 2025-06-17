@@ -308,7 +308,7 @@ export const param_CreateAchievementRequestSchema = {
 
 export const param_CreateAchievementTemplateRequestSchema = {
   type: "object",
-  required: ["description", "groupId", "kind", "name", "pointsLimit"],
+  required: ["description", "groupId", "name", "pointsLimit", "reviewerRole"],
   properties: {
     description: {
       type: "string",
@@ -318,11 +318,6 @@ export const param_CreateAchievementTemplateRequestSchema = {
       type: "string",
       example: "550e8400-e29b-41d4-a716-446655440000",
     },
-    kind: {
-      type: "string",
-      enum: ["olympiad", "development", "scientific"],
-      example: "scientific",
-    },
     name: {
       type: "string",
       example: "Публикация в журнале",
@@ -330,6 +325,10 @@ export const param_CreateAchievementTemplateRequestSchema = {
     pointsLimit: {
       type: "integer",
       example: 10,
+    },
+    reviewerRole: {
+      type: "integer",
+      example: 3,
     },
   },
 } as const;
@@ -363,10 +362,6 @@ export const param_PatchAchievementTemplateRequestSchema = {
       type: "string",
       example: "Публикация статьи в научном журнале",
     },
-    kind: {
-      type: "string",
-      enum: ["olympiad", "development", "scientific"],
-    },
     name: {
       type: "string",
       example: "Публикация в журнале",
@@ -374,6 +369,10 @@ export const param_PatchAchievementTemplateRequestSchema = {
     pointsLimit: {
       type: "integer",
       example: 10,
+    },
+    reviewerRole: {
+      type: "integer",
+      example: 3,
     },
   },
 } as const;
@@ -475,9 +474,9 @@ export const respond_AchievementTemplateSchema = {
     "description",
     "groupId",
     "id",
-    "kind",
     "name",
     "pointsLimit",
+    "reviewerRole",
   ],
   properties: {
     active: {
@@ -496,11 +495,6 @@ export const respond_AchievementTemplateSchema = {
       type: "string",
       example: "550e8400-e29b-41d4-a716-446655440000",
     },
-    kind: {
-      type: "string",
-      enum: ["olympiad", "development", "scientific"],
-      example: "scientific",
-    },
     name: {
       type: "string",
       example: "Публикация в журнале",
@@ -508,6 +502,9 @@ export const respond_AchievementTemplateSchema = {
     pointsLimit: {
       type: "integer",
       example: 10,
+    },
+    reviewerRole: {
+      $ref: "#/definitions/respond.Role",
     },
   },
 } as const;

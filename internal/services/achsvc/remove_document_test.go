@@ -22,7 +22,7 @@ func TestRemoveDocument(t *testing.T) {
 
 		// Create test user, template, achievement, and file
 		user := testutil.CreateTestUser(ctx, t, client, "Test", "User", sesc.Role(1))
-		template := testutil.CreateTestAchievementTemplate(ctx, t, client, achievement.Olympiad)
+		template := testutil.CreateTestAchievementTemplate(ctx, t, client, sesc.OlympiadDeputy)
 		ach := testutil.CreateTestAchievement(ctx, t, client, user, template, achievement.StatusDraft)
 		file := testutil.CreateTestFile(ctx, t, client)
 
@@ -82,7 +82,7 @@ func TestRemoveDocument(t *testing.T) {
 
 		// Create test user, template, and achievement
 		user := testutil.CreateTestUser(ctx, t, client, "Test", "User", sesc.Role(1))
-		template := testutil.CreateTestAchievementTemplate(ctx, t, client, achievement.Olympiad)
+		template := testutil.CreateTestAchievementTemplate(ctx, t, client, sesc.OlympiadDeputy)
 		ach := testutil.CreateTestAchievement(ctx, t, client, user, template, achievement.StatusDraft)
 		nonExistentDocumentID := testutil.RandomUUID()
 
@@ -108,7 +108,7 @@ func TestRemoveDocument(t *testing.T) {
 
 		// Create test user, template, and achievement with non-draft status
 		user := testutil.CreateTestUser(ctx, t, client, "Test", "User", sesc.Role(1))
-		template := testutil.CreateTestAchievementTemplate(ctx, t, client, achievement.Olympiad)
+		template := testutil.CreateTestAchievementTemplate(ctx, t, client, sesc.OlympiadDeputy)
 		ach := testutil.CreateTestAchievement(ctx, t, client, user, template, achievement.StatusDone)
 		nonExistentDocumentID := testutil.RandomUUID()
 

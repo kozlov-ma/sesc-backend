@@ -22,7 +22,7 @@ func TestAddDocument(t *testing.T) {
 
 		// Create test user, template, achievement, and file
 		user := testutil.CreateTestUser(ctx, t, client, "Test", "User", sesc.Role(1))
-		template := testutil.CreateTestAchievementTemplate(ctx, t, client, achievement.Olympiad)
+		template := testutil.CreateTestAchievementTemplate(ctx, t, client, sesc.OlympiadDeputy)
 		ach := testutil.CreateTestAchievement(ctx, t, client, user, template, achievement.StatusDraft)
 		file := testutil.CreateTestFile(ctx, t, client)
 
@@ -81,7 +81,7 @@ func TestAddDocument(t *testing.T) {
 
 		// Create test user, template and achievement but use non-existent file
 		user := testutil.CreateTestUser(ctx, t, client, "Test", "User", sesc.Role(1))
-		template := testutil.CreateTestAchievementTemplate(ctx, t, client, achievement.Development)
+		template := testutil.CreateTestAchievementTemplate(ctx, t, client, sesc.DevelopmentDeputy)
 		ach := testutil.CreateTestAchievement(ctx, t, client, user, template, achievement.StatusDraft)
 		nonExistentFileID := testutil.RandomUUID()
 
@@ -109,7 +109,7 @@ func TestAddDocument(t *testing.T) {
 
 		// Create test user, reviewer, template, achievement, and file
 		user := testutil.CreateTestUser(ctx, t, client, "Test", "User", sesc.Role(1))
-		template := testutil.CreateTestAchievementTemplate(ctx, t, client, achievement.Olympiad)
+		template := testutil.CreateTestAchievementTemplate(ctx, t, client, sesc.OlympiadDeputy)
 		ach := testutil.CreateTestAchievement(ctx, t, client, user, template, achievement.StatusDone)
 		file := testutil.CreateTestFile(ctx, t, client)
 
@@ -138,7 +138,7 @@ func TestAddDocument(t *testing.T) {
 
 		// Create test user, template, achievement, and file
 		user := testutil.CreateTestUser(ctx, t, client, "Test", "User", sesc.Role(1))
-		template := testutil.CreateTestAchievementTemplate(ctx, t, client, achievement.Olympiad)
+		template := testutil.CreateTestAchievementTemplate(ctx, t, client, sesc.OlympiadDeputy)
 		ach := testutil.CreateTestAchievement(ctx, t, client, user, template, achievement.StatusDraft)
 		file := testutil.CreateTestFile(ctx, t, client)
 

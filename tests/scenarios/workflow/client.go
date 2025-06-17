@@ -386,12 +386,26 @@ func (c *TestClient) CreateAchievementTemplate(
 	kind string,
 ) (*AchievementTemplateInfo, error) {
 	createParams := achievement_templates.NewPostAchievementTemplatesParams()
+
+	var rr int64
+	switch kind {
+	case "scientific":
+		rr = 3
+	case "development":
+		rr = 4
+	case "olympiad":
+		rr = 5
+	case "academic":
+		rr = 6
+	default:
+		panic("invalid kind")
+	}
 	createParams.SetRequest(&models.ParamCreateAchievementTemplateRequest{
-		GroupID:     &groupID,
-		Name:        &name,
-		Description: &description,
-		PointsLimit: &pointsLimit,
-		Kind:        &kind,
+		GroupID:      &groupID,
+		Name:         &name,
+		Description:  &description,
+		PointsLimit:  &pointsLimit,
+		ReviewerRole: &rr,
 	})
 
 	createResp, err := c.apiClient.AchievementTemplates.PostAchievementTemplates(createParams, c.authInfo)

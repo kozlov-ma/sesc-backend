@@ -111,7 +111,7 @@ var (
 		{Name: "description", Type: field.TypeString, Nullable: true, Size: 2147483647},
 		{Name: "points_limit", Type: field.TypeInt},
 		{Name: "active", Type: field.TypeBool, Default: true},
-		{Name: "kind", Type: field.TypeString},
+		{Name: "reviewer_role", Type: field.TypeInt},
 		{Name: "group_id", Type: field.TypeUUID},
 	}
 	// AchievementTemplatesTable holds the schema information for the "achievement_templates" table.

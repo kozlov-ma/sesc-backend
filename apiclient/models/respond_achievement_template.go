@@ -7,7 +7,6 @@ package models
 
 import (
 	"context"
-	"encoding/json"
 
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/strfmt"
@@ -40,12 +39,6 @@ type RespondAchievementTemplate struct {
 	// Required: true
 	ID *string `json:"id"`
 
-	// kind
-	// Example: scientific
-	// Required: true
-	// Enum: ["olympiad","development","scientific"]
-	Kind *string `json:"kind"`
-
 	// name
 	// Example: Публикация в журнале
 	// Required: true
@@ -55,6 +48,10 @@ type RespondAchievementTemplate struct {
 	// Example: 10
 	// Required: true
 	PointsLimit *int64 `json:"pointsLimit"`
+
+	// reviewer role
+	// Required: true
+	ReviewerRole *RespondRole `json:"reviewerRole"`
 }
 
 // Validate validates this respond achievement template
@@ -77,15 +74,15 @@ func (m *RespondAchievementTemplate) Validate(formats strfmt.Registry) error {
 		res = append(res, err)
 	}
 
-	if err := m.validateKind(formats); err != nil {
-		res = append(res, err)
-	}
-
 	if err := m.validateName(formats); err != nil {
 		res = append(res, err)
 	}
 
 	if err := m.validatePointsLimit(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateReviewerRole(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -131,52 +128,6 @@ func (m *RespondAchievementTemplate) validateID(formats strfmt.Registry) error {
 	return nil
 }
 
-var respondAchievementTemplateTypeKindPropEnum []interface{}
-
-func init() {
-	var res []string
-	if err := json.Unmarshal([]byte(`["olympiad","development","scientific"]`), &res); err != nil {
-		panic(err)
-	}
-	for _, v := range res {
-		respondAchievementTemplateTypeKindPropEnum = append(respondAchievementTemplateTypeKindPropEnum, v)
-	}
-}
-
-const (
-
-	// RespondAchievementTemplateKindOlympiad captures enum value "olympiad"
-	RespondAchievementTemplateKindOlympiad string = "olympiad"
-
-	// RespondAchievementTemplateKindDevelopment captures enum value "development"
-	RespondAchievementTemplateKindDevelopment string = "development"
-
-	// RespondAchievementTemplateKindScientific captures enum value "scientific"
-	RespondAchievementTemplateKindScientific string = "scientific"
-)
-
-// prop value enum
-func (m *RespondAchievementTemplate) validateKindEnum(path, location string, value string) error {
-	if err := validate.EnumCase(path, location, value, respondAchievementTemplateTypeKindPropEnum, true); err != nil {
-		return err
-	}
-	return nil
-}
-
-func (m *RespondAchievementTemplate) validateKind(formats strfmt.Registry) error {
-
-	if err := validate.Required("kind", "body", m.Kind); err != nil {
-		return err
-	}
-
-	// value enum
-	if err := m.validateKindEnum("kind", "body", *m.Kind); err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func (m *RespondAchievementTemplate) validateName(formats strfmt.Registry) error {
 
 	if err := validate.Required("name", "body", m.Name); err != nil {
@@ -195,8 +146,54 @@ func (m *RespondAchievementTemplate) validatePointsLimit(formats strfmt.Registry
 	return nil
 }
 
-// ContextValidate validates this respond achievement template based on context it is used
+func (m *RespondAchievementTemplate) validateReviewerRole(formats strfmt.Registry) error {
+
+	if err := validate.Required("reviewerRole", "body", m.ReviewerRole); err != nil {
+		return err
+	}
+
+	if m.ReviewerRole != nil {
+		if err := m.ReviewerRole.Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("reviewerRole")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("reviewerRole")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+// ContextValidate validate this respond achievement template based on the context it is used
 func (m *RespondAchievementTemplate) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+	var res []error
+
+	if err := m.contextValidateReviewerRole(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (m *RespondAchievementTemplate) contextValidateReviewerRole(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.ReviewerRole != nil {
+
+		if err := m.ReviewerRole.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("reviewerRole")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("reviewerRole")
+			}
+			return err
+		}
+	}
+
 	return nil
 }
 

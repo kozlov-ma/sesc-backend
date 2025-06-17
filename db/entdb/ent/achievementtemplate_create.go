@@ -10,10 +10,10 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	uuid "github.com/gofrs/uuid/v5"
-	"github.com/kozlov-ma/sesc-backend/achievement"
-	entachievement "github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievement"
+	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievement"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievementgroup"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievementtemplate"
+	"github.com/kozlov-ma/sesc-backend/sesc"
 )
 
 // AchievementTemplateCreate is the builder for creating a AchievementTemplate entity.
@@ -69,9 +69,9 @@ func (atc *AchievementTemplateCreate) SetNillableActive(b *bool) *AchievementTem
 	return atc
 }
 
-// SetKind sets the "kind" field.
-func (atc *AchievementTemplateCreate) SetKind(a achievement.Kind) *AchievementTemplateCreate {
-	atc.mutation.SetKind(a)
+// SetReviewerRole sets the "reviewer_role" field.
+func (atc *AchievementTemplateCreate) SetReviewerRole(s sesc.Role) *AchievementTemplateCreate {
+	atc.mutation.SetReviewerRole(s)
 	return atc
 }
 
@@ -178,12 +178,12 @@ func (atc *AchievementTemplateCreate) check() error {
 	if _, ok := atc.mutation.Active(); !ok {
 		return &ValidationError{Name: "active", err: errors.New(`ent: missing required field "AchievementTemplate.active"`)}
 	}
-	if _, ok := atc.mutation.Kind(); !ok {
-		return &ValidationError{Name: "kind", err: errors.New(`ent: missing required field "AchievementTemplate.kind"`)}
+	if _, ok := atc.mutation.ReviewerRole(); !ok {
+		return &ValidationError{Name: "reviewer_role", err: errors.New(`ent: missing required field "AchievementTemplate.reviewer_role"`)}
 	}
-	if v, ok := atc.mutation.Kind(); ok {
+	if v, ok := atc.mutation.ReviewerRole(); ok {
 		if err := v.Validate(); err != nil {
-			return &ValidationError{Name: "kind", err: fmt.Errorf(`ent: validator failed for field "AchievementTemplate.kind": %w`, err)}
+			return &ValidationError{Name: "reviewer_role", err: fmt.Errorf(`ent: validator failed for field "AchievementTemplate.reviewer_role": %w`, err)}
 		}
 	}
 	if len(atc.mutation.GroupIDs()) == 0 {
@@ -240,9 +240,9 @@ func (atc *AchievementTemplateCreate) createSpec() (*AchievementTemplate, *sqlgr
 		_spec.SetField(achievementtemplate.FieldActive, field.TypeBool, value)
 		_node.Active = value
 	}
-	if value, ok := atc.mutation.Kind(); ok {
-		_spec.SetField(achievementtemplate.FieldKind, field.TypeString, value)
-		_node.Kind = value
+	if value, ok := atc.mutation.ReviewerRole(); ok {
+		_spec.SetField(achievementtemplate.FieldReviewerRole, field.TypeInt, value)
+		_node.ReviewerRole = value
 	}
 	if nodes := atc.mutation.GroupIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -269,7 +269,7 @@ func (atc *AchievementTemplateCreate) createSpec() (*AchievementTemplate, *sqlgr
 			Columns: []string{achievementtemplate.AchievementsColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(entachievement.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(achievement.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

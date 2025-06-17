@@ -74,41 +74,14 @@ func (s *ACS) buildRoleBasedFilters(askingUser *ent.User) predicate.Achievement 
 				),
 			)
 		}
-	case sesc.ScientificDeputy:
+	case sesc.ScientificDeputy, sesc.OlympiadDeputy, sesc.DevelopmentDeputy, sesc.AcademicDirector:
 		return entAchievement.And(
 			entAchievement.StatusNotIn(
 				achievement.StatusDraft,
 				achievement.StatusAccounted,
 				achievement.StatusDepheadReview,
 			),
-			entAchievement.HasTemplateWith(achievementtemplate.Kind(achievement.Scientific)),
-		)
-	case sesc.OlympiadDeputy:
-		return entAchievement.And(
-			entAchievement.StatusNotIn(
-				achievement.StatusDraft,
-				achievement.StatusAccounted,
-				achievement.StatusDepheadReview,
-			),
-			entAchievement.HasTemplateWith(achievementtemplate.Kind(achievement.Olympiad)),
-		)
-	case sesc.DevelopmentDeputy:
-		return entAchievement.And(
-			entAchievement.StatusNotIn(
-				achievement.StatusDraft,
-				achievement.StatusAccounted,
-				achievement.StatusDepheadReview,
-			),
-			entAchievement.HasTemplateWith(achievementtemplate.Kind(achievement.Development)),
-		)
-	case sesc.AcademicDirector:
-		return entAchievement.And(
-			entAchievement.StatusNotIn(
-				achievement.StatusDraft,
-				achievement.StatusAccounted,
-				achievement.StatusDepheadReview,
-			),
-			entAchievement.HasTemplateWith(achievementtemplate.Kind(achievement.Development)),
+			entAchievement.HasTemplateWith(achievementtemplate.ReviewerRole(askingUser.Role)),
 		)
 	case sesc.ChiefEconomist:
 		return entAchievement.Or(

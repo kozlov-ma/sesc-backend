@@ -92,9 +92,9 @@ export type ParamCreateAchievementRequest = {
 export type ParamCreateAchievementTemplateRequest = {
   description: string;
   groupId: string;
-  kind: "olympiad" | "development" | "scientific";
   name: string;
   pointsLimit: number;
+  reviewerRole: number;
 };
 
 export type ParamPatchAchievementGroupRequest = {
@@ -106,9 +106,9 @@ export type ParamPatchAchievementGroupRequest = {
 export type ParamPatchAchievementTemplateRequest = {
   active?: boolean;
   description?: string;
-  kind?: "olympiad" | "development" | "scientific";
   name?: string;
   pointsLimit?: number;
+  reviewerRole?: number;
 };
 
 export type ParamReviewAchievementRequest = {
@@ -139,9 +139,9 @@ export type RespondAchievementTemplate = {
   description: string;
   groupId: string;
   id: string;
-  kind: "olympiad" | "development" | "scientific";
   name: string;
   pointsLimit: number;
+  reviewerRole: RespondRole;
 };
 
 export type RespondAchievements = {

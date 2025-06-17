@@ -11,6 +11,7 @@ import (
 	"github.com/kozlov-ma/sesc-backend/api/respond"
 	"github.com/kozlov-ma/sesc-backend/pkg/event"
 	"github.com/kozlov-ma/sesc-backend/pkg/event/events"
+	"github.com/kozlov-ma/sesc-backend/sesc"
 )
 
 // GetAchievementGroups godoc
@@ -183,19 +184,19 @@ func (a *API) CreateAchievementTemplate(w http.ResponseWriter, r *http.Request) 
 		a.writeJSON(ctx, w, respond.WithError(ctx, achievement.ErrInvalidPointsLimit))
 		return
 	}
-	if err := achievement.Kind(req.Kind).Validate(); err != nil {
-		rec.Add(events.Error, "invalid kind value")
+	if err := sesc.Role(req.ReviewerRole).ValidateReviewer(); err != nil {
+		rec.Add(events.Error, "invalid reviewer role value")
 		a.writeJSON(ctx, w, respond.WithError(ctx, err))
 		return
 	}
 
 	// Create options
 	options := achievement.TemplateCreateOptions{
-		Name:        req.Name,
-		Description: req.Description,
-		PointsLimit: req.PointsLimit,
-		GroupID:     req.GroupID,
-		Kind:        achievement.Kind(req.Kind),
+		Name:         req.Name,
+		Description:  req.Description,
+		PointsLimit:  req.PointsLimit,
+		GroupID:      req.GroupID,
+		ReviewerRole: sesc.Role(req.ReviewerRole),
 	}
 
 	// Call service
@@ -313,9 +314,9 @@ func (a *API) PatchAchievementTemplate(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Validate kind if provided
-	if req.Kind != nil {
-		if err := achievement.Kind(*req.Kind).Validate(); err != nil {
-			rec.Add(events.Error, "invalid kind value")
+	if req.ReviewerRole != nil {
+		if err := sesc.Role(*req.ReviewerRole).ValidateReviewer(); err != nil {
+			rec.Add(events.Error, "invalid reviewer role value")
 			a.writeJSON(ctx, w, respond.WithError(ctx, err))
 			return
 		}
@@ -330,11 +331,11 @@ func (a *API) PatchAchievementTemplate(w http.ResponseWriter, r *http.Request) {
 
 	// Create update options
 	options := achievement.TemplateUpdateOptions{
-		Name:        req.Name,
-		Description: req.Description,
-		PointsLimit: req.PointsLimit,
-		Active:      req.Active,
-		Kind:        (*achievement.Kind)(req.Kind),
+		Name:         req.Name,
+		Description:  req.Description,
+		PointsLimit:  req.PointsLimit,
+		Active:       req.Active,
+		ReviewerRole: (*sesc.Role)(req.ReviewerRole),
 	}
 
 	// Call service

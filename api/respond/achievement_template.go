@@ -15,13 +15,13 @@ type AchievementGroup struct {
 
 // AchievementTemplate represents an achievement template response
 type AchievementTemplate struct {
-	ID          uuid.UUID `json:"id"          example:"550e8400-e29b-41d4-a716-446655440000" validate:"required"`
-	Name        string    `json:"name"        example:"Публикация в журнале"                 validate:"required"`
-	Description string    `json:"description" example:"Публикация статьи в научном журнале"  validate:"required"`
-	PointsLimit int       `json:"pointsLimit" example:"10"                                   validate:"required"`
-	GroupID     uuid.UUID `json:"groupId"     example:"550e8400-e29b-41d4-a716-446655440000" validate:"required"`
-	Active      bool      `json:"active"      example:"true"                                 validate:"required"`
-	Kind        string    `json:"kind"        example:"scientific"                           validate:"required" enums:"olympiad,development,scientific"`
+	ID           uuid.UUID `json:"id"           example:"550e8400-e29b-41d4-a716-446655440000" validate:"required"`
+	Name         string    `json:"name"         example:"Публикация в журнале"                 validate:"required"`
+	Description  string    `json:"description"  example:"Публикация статьи в научном журнале"  validate:"required"`
+	PointsLimit  int       `json:"pointsLimit"  example:"10"                                   validate:"required"`
+	GroupID      uuid.UUID `json:"groupId"      example:"550e8400-e29b-41d4-a716-446655440000" validate:"required"`
+	Active       bool      `json:"active"       example:"true"                                 validate:"required"`
+	ReviewerRole Role      `json:"reviewerRole"                                                validate:"required"`
 }
 
 // WithAchievementGroup converts an ent.AchievementGroup to a response
@@ -46,13 +46,13 @@ func WithAchievementGroups(groups ent.AchievementGroups) []AchievementGroup {
 // WithAchievementTemplate converts an ent.AchievementTemplate to a response
 func WithAchievementTemplate(template *ent.AchievementTemplate) AchievementTemplate {
 	return AchievementTemplate{
-		ID:          template.ID,
-		Name:        template.Name,
-		Description: template.Description,
-		PointsLimit: template.PointsLimit,
-		GroupID:     template.GroupID,
-		Active:      template.Active,
-		Kind:        template.Kind.String(),
+		ID:           template.ID,
+		Name:         template.Name,
+		Description:  template.Description,
+		PointsLimit:  template.PointsLimit,
+		GroupID:      template.GroupID,
+		Active:       template.Active,
+		ReviewerRole: WithRole(template.ReviewerRole),
 	}
 }
 

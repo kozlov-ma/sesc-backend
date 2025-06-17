@@ -161,8 +161,8 @@ func (s *ATS) CreateAchievementTemplate(
 	rec.Add("group_id", options.GroupID)
 
 	// Validate the kind
-	if err := options.Kind.Validate(); err != nil {
-		rec.Add(events.Error, fmt.Errorf("invalid achievement kind: %w", err))
+	if err := options.ReviewerRole.ValidateReviewer(); err != nil {
+		rec.Add(events.Error, fmt.Errorf("invalid reviewer role: %w", err))
 		return nil, err
 	}
 
@@ -171,7 +171,7 @@ func (s *ATS) CreateAchievementTemplate(
 		SetDescription(options.Description).
 		SetPointsLimit(options.PointsLimit).
 		SetGroupID(options.GroupID).
-		SetKind(options.Kind).
+		SetReviewerRole(options.ReviewerRole).
 		Save(ctx)
 	switch {
 	case ent.IsConstraintError(err):
@@ -211,13 +211,13 @@ func (s *ATS) UpdateAchievementTemplate(
 	if options.Active != nil {
 		update = update.SetActive(*options.Active)
 	}
-	if options.Kind != nil {
+	if options.ReviewerRole != nil {
 		// Validate the kind
-		if err := options.Kind.Validate(); err != nil {
+		if err := options.ReviewerRole.ValidateReviewer(); err != nil {
 			rec.Add(events.Error, fmt.Errorf("invalid achievement kind: %w", err))
 			return nil, err
 		}
-		update = update.SetKind(*options.Kind)
+		update = update.SetReviewerRole(*options.ReviewerRole)
 	}
 
 	template, err := update.Save(ctx)

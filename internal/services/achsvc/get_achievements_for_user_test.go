@@ -25,7 +25,7 @@ func TestGetUserAchievements(t *testing.T) {
 		owner := testutil.CreateTestUserWithDepartment(ctx, t, client, "Test", "Owner", sesc.Teacher, dept)
 
 		// Create template and achievements
-		template := testutil.CreateTestAchievementTemplate(ctx, t, client, achievement.Olympiad)
+		template := testutil.CreateTestAchievementTemplate(ctx, t, client, sesc.OlympiadDeputy)
 		ach1 := testutil.CreateTestAchievement(ctx, t, client, owner, template, achievement.StatusDraft)
 		ach2 := testutil.CreateTestAchievement(ctx, t, client, owner, template, achievement.StatusDone)
 
@@ -64,7 +64,7 @@ func TestGetUserAchievements(t *testing.T) {
 		dephead := testutil.CreateTestUserWithDepartment(ctx, t, client, "Dep", "Head", sesc.Dephead, dept1)
 
 		// Create template and achievements
-		template := testutil.CreateTestAchievementTemplate(ctx, t, client, achievement.Olympiad)
+		template := testutil.CreateTestAchievementTemplate(ctx, t, client, sesc.OlympiadDeputy)
 
 		// Create achievements with different statuses
 		testutil.CreateTestAchievement(ctx, t, client, owner, template, achievement.StatusDraft)
@@ -110,8 +110,8 @@ func TestGetUserAchievements(t *testing.T) {
 		)
 
 		// Create templates for different kinds
-		olympiadTemplate := testutil.CreateTestAchievementTemplate(ctx, t, client, achievement.Olympiad)
-		devTemplate := testutil.CreateTestAchievementTemplate(ctx, t, client, achievement.Development)
+		olympiadTemplate := testutil.CreateTestAchievementTemplate(ctx, t, client, sesc.OlympiadDeputy)
+		devTemplate := testutil.CreateTestAchievementTemplate(ctx, t, client, sesc.DevelopmentDeputy)
 
 		// Create achievements with different kinds and statuses
 		testutil.CreateTestAchievement(ctx, t, client, owner, olympiadTemplate, achievement.StatusDepheadReview)
@@ -159,8 +159,8 @@ func TestGetUserAchievements(t *testing.T) {
 		)
 
 		// Create templates for different kinds
-		olympiadTemplate := testutil.CreateTestAchievementTemplate(ctx, t, client, achievement.Olympiad)
-		devTemplate := testutil.CreateTestAchievementTemplate(ctx, t, client, achievement.Development)
+		olympiadTemplate := testutil.CreateTestAchievementTemplate(ctx, t, client, sesc.OlympiadDeputy)
+		devTemplate := testutil.CreateTestAchievementTemplate(ctx, t, client, sesc.AcademicDirector)
 
 		// Create achievements with different kinds and statuses
 		testutil.CreateTestAchievement(ctx, t, client, owner, olympiadTemplate, achievement.StatusInspectorReview)
@@ -221,7 +221,7 @@ func TestGetUserAchievements(t *testing.T) {
 		dept := testutil.CreateTestDepartmentWithName(ctx, t, client, "Test Department")
 		owner := testutil.CreateTestUserWithDepartment(ctx, t, client, "Test", "Owner", sesc.Teacher, dept)
 		asker := testutil.CreateTestUserWithDepartment(ctx, t, client, "Asking", "User", sesc.Dephead, dept)
-		template := testutil.CreateTestAchievementTemplate(ctx, t, client, achievement.Olympiad)
+		template := testutil.CreateTestAchievementTemplate(ctx, t, client, sesc.OlympiadDeputy)
 
 		// Create multiple achievements
 		for range 5 {

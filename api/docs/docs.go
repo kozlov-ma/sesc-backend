@@ -2926,9 +2926,9 @@ const docTemplate = `{
             "required": [
                 "description",
                 "groupId",
-                "kind",
                 "name",
-                "pointsLimit"
+                "pointsLimit",
+                "reviewerRole"
             ],
             "properties": {
                 "description": {
@@ -2939,15 +2939,6 @@ const docTemplate = `{
                     "type": "string",
                     "example": "550e8400-e29b-41d4-a716-446655440000"
                 },
-                "kind": {
-                    "type": "string",
-                    "enum": [
-                        "olympiad",
-                        "development",
-                        "scientific"
-                    ],
-                    "example": "scientific"
-                },
                 "name": {
                     "type": "string",
                     "example": "Публикация в журнале"
@@ -2955,6 +2946,10 @@ const docTemplate = `{
                 "pointsLimit": {
                     "type": "integer",
                     "example": 10
+                },
+                "reviewerRole": {
+                    "type": "integer",
+                    "example": 3
                 }
             }
         },
@@ -2986,14 +2981,6 @@ const docTemplate = `{
                     "type": "string",
                     "example": "Публикация статьи в научном журнале"
                 },
-                "kind": {
-                    "type": "string",
-                    "enum": [
-                        "olympiad",
-                        "development",
-                        "scientific"
-                    ]
-                },
                 "name": {
                     "type": "string",
                     "example": "Публикация в журнале"
@@ -3001,6 +2988,10 @@ const docTemplate = `{
                 "pointsLimit": {
                     "type": "integer",
                     "example": 10
+                },
+                "reviewerRole": {
+                    "type": "integer",
+                    "example": 3
                 }
             }
         },
@@ -3105,9 +3096,9 @@ const docTemplate = `{
                 "description",
                 "groupId",
                 "id",
-                "kind",
                 "name",
-                "pointsLimit"
+                "pointsLimit",
+                "reviewerRole"
             ],
             "properties": {
                 "active": {
@@ -3126,15 +3117,6 @@ const docTemplate = `{
                     "type": "string",
                     "example": "550e8400-e29b-41d4-a716-446655440000"
                 },
-                "kind": {
-                    "type": "string",
-                    "enum": [
-                        "olympiad",
-                        "development",
-                        "scientific"
-                    ],
-                    "example": "scientific"
-                },
                 "name": {
                     "type": "string",
                     "example": "Публикация в журнале"
@@ -3142,6 +3124,9 @@ const docTemplate = `{
                 "pointsLimit": {
                     "type": "integer",
                     "example": 10
+                },
+                "reviewerRole": {
+                    "$ref": "#/definitions/respond.Role"
                 }
             }
         },

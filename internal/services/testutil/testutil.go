@@ -161,7 +161,7 @@ func CreateTestAchievementTemplate(
 	ctx context.Context,
 	t *testing.T,
 	client *ent.Client,
-	kind achievement.Kind,
+	reviewer sesc.Role,
 ) *ent.AchievementTemplate {
 	t.Helper()
 
@@ -174,7 +174,7 @@ func CreateTestAchievementTemplate(
 		SetName(templateName).
 		SetDescription("For testing").
 		SetPointsLimit(10).
-		SetKind(kind).
+		SetReviewerRole(reviewer).
 		SetGroupID(group.ID).
 		Save(ctx)
 	require.NoError(t, err)
@@ -262,7 +262,7 @@ func SetupTestContext(t *testing.T) *TestContext {
 	group := CreateTestAchievementGroup(ctx, t, client)
 
 	// Create achievement template
-	template := CreateTestAchievementTemplate(ctx, t, client, achievement.Kind("olympiad"))
+	template := CreateTestAchievementTemplate(ctx, t, client, sesc.OlympiadDeputy)
 
 	// Create file
 	file := CreateTestFile(ctx, t, client)

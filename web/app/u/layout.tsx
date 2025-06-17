@@ -60,7 +60,7 @@ export default function DashboardLayout({
         { name: "Мои Достижения", url: "/u/achievements/my", icon: FolderOpen },
       ],
     });
-  } else if (user?.role && user.role.id >= 2 && user.role.id <= 5) {
+  } else if (user?.role && user.role.id >= 2 && user.role.id <= 6) {
     groups.push({
       name: "Достижения",
       routes: [

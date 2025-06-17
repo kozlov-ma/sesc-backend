@@ -14,7 +14,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	uuid "github.com/gofrs/uuid/v5"
-	entachievement "github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievement"
+	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievement"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievementdocument"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievementreview"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievementtemplate"
@@ -26,7 +26,7 @@ import (
 type AchievementQuery struct {
 	config
 	ctx           *QueryContext
-	order         []entachievement.OrderOption
+	order         []achievement.OrderOption
 	inters        []Interceptor
 	predicates    []predicate.Achievement
 	withDocuments *AchievementDocumentQuery
@@ -65,7 +65,7 @@ func (aq *AchievementQuery) Unique(unique bool) *AchievementQuery {
 }
 
 // Order specifies how the records should be ordered.
-func (aq *AchievementQuery) Order(o ...entachievement.OrderOption) *AchievementQuery {
+func (aq *AchievementQuery) Order(o ...achievement.OrderOption) *AchievementQuery {
 	aq.order = append(aq.order, o...)
 	return aq
 }
@@ -82,9 +82,9 @@ func (aq *AchievementQuery) QueryDocuments() *AchievementDocumentQuery {
 			return nil, err
 		}
 		step := sqlgraph.NewStep(
-			sqlgraph.From(entachievement.Table, entachievement.FieldID, selector),
+			sqlgraph.From(achievement.Table, achievement.FieldID, selector),
 			sqlgraph.To(achievementdocument.Table, achievementdocument.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, entachievement.DocumentsTable, entachievement.DocumentsColumn),
+			sqlgraph.Edge(sqlgraph.O2M, false, achievement.DocumentsTable, achievement.DocumentsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(aq.driver.Dialect(), step)
 		return fromU, nil
@@ -104,9 +104,9 @@ func (aq *AchievementQuery) QueryReviews() *AchievementReviewQuery {
 			return nil, err
 		}
 		step := sqlgraph.NewStep(
-			sqlgraph.From(entachievement.Table, entachievement.FieldID, selector),
+			sqlgraph.From(achievement.Table, achievement.FieldID, selector),
 			sqlgraph.To(achievementreview.Table, achievementreview.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, entachievement.ReviewsTable, entachievement.ReviewsColumn),
+			sqlgraph.Edge(sqlgraph.O2M, false, achievement.ReviewsTable, achievement.ReviewsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(aq.driver.Dialect(), step)
 		return fromU, nil
@@ -126,9 +126,9 @@ func (aq *AchievementQuery) QueryOwner() *UserQuery {
 			return nil, err
 		}
 		step := sqlgraph.NewStep(
-			sqlgraph.From(entachievement.Table, entachievement.FieldID, selector),
+			sqlgraph.From(achievement.Table, achievement.FieldID, selector),
 			sqlgraph.To(user.Table, user.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, entachievement.OwnerTable, entachievement.OwnerColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, achievement.OwnerTable, achievement.OwnerColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(aq.driver.Dialect(), step)
 		return fromU, nil
@@ -148,9 +148,9 @@ func (aq *AchievementQuery) QueryTemplate() *AchievementTemplateQuery {
 			return nil, err
 		}
 		step := sqlgraph.NewStep(
-			sqlgraph.From(entachievement.Table, entachievement.FieldID, selector),
+			sqlgraph.From(achievement.Table, achievement.FieldID, selector),
 			sqlgraph.To(achievementtemplate.Table, achievementtemplate.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, entachievement.TemplateTable, entachievement.TemplateColumn),
+			sqlgraph.Edge(sqlgraph.M2O, true, achievement.TemplateTable, achievement.TemplateColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(aq.driver.Dialect(), step)
 		return fromU, nil
@@ -166,7 +166,7 @@ func (aq *AchievementQuery) First(ctx context.Context) (*Achievement, error) {
 		return nil, err
 	}
 	if len(nodes) == 0 {
-		return nil, &NotFoundError{entachievement.Label}
+		return nil, &NotFoundError{achievement.Label}
 	}
 	return nodes[0], nil
 }
@@ -188,7 +188,7 @@ func (aq *AchievementQuery) FirstID(ctx context.Context) (id uuid.UUID, err erro
 		return
 	}
 	if len(ids) == 0 {
-		err = &NotFoundError{entachievement.Label}
+		err = &NotFoundError{achievement.Label}
 		return
 	}
 	return ids[0], nil
@@ -215,9 +215,9 @@ func (aq *AchievementQuery) Only(ctx context.Context) (*Achievement, error) {
 	case 1:
 		return nodes[0], nil
 	case 0:
-		return nil, &NotFoundError{entachievement.Label}
+		return nil, &NotFoundError{achievement.Label}
 	default:
-		return nil, &NotSingularError{entachievement.Label}
+		return nil, &NotSingularError{achievement.Label}
 	}
 }
 
@@ -242,9 +242,9 @@ func (aq *AchievementQuery) OnlyID(ctx context.Context) (id uuid.UUID, err error
 	case 1:
 		id = ids[0]
 	case 0:
-		err = &NotFoundError{entachievement.Label}
+		err = &NotFoundError{achievement.Label}
 	default:
-		err = &NotSingularError{entachievement.Label}
+		err = &NotSingularError{achievement.Label}
 	}
 	return
 }
@@ -283,7 +283,7 @@ func (aq *AchievementQuery) IDs(ctx context.Context) (ids []uuid.UUID, err error
 		aq.Unique(true)
 	}
 	ctx = setContextOp(ctx, aq.ctx, ent.OpQueryIDs)
-	if err = aq.Select(entachievement.FieldID).Scan(ctx, &ids); err != nil {
+	if err = aq.Select(achievement.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
@@ -347,7 +347,7 @@ func (aq *AchievementQuery) Clone() *AchievementQuery {
 	return &AchievementQuery{
 		config:        aq.config,
 		ctx:           aq.ctx.Clone(),
-		order:         append([]entachievement.OrderOption{}, aq.order...),
+		order:         append([]achievement.OrderOption{}, aq.order...),
 		inters:        append([]Interceptor{}, aq.inters...),
 		predicates:    append([]predicate.Achievement{}, aq.predicates...),
 		withDocuments: aq.withDocuments.Clone(),
@@ -415,14 +415,14 @@ func (aq *AchievementQuery) WithTemplate(opts ...func(*AchievementTemplateQuery)
 //	}
 //
 //	client.Achievement.Query().
-//		GroupBy(entachievement.FieldOwnerID).
+//		GroupBy(achievement.FieldOwnerID).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 func (aq *AchievementQuery) GroupBy(field string, fields ...string) *AchievementGroupBy {
 	aq.ctx.Fields = append([]string{field}, fields...)
 	grbuild := &AchievementGroupBy{build: aq}
 	grbuild.flds = &aq.ctx.Fields
-	grbuild.label = entachievement.Label
+	grbuild.label = achievement.Label
 	grbuild.scan = grbuild.Scan
 	return grbuild
 }
@@ -437,12 +437,12 @@ func (aq *AchievementQuery) GroupBy(field string, fields ...string) *Achievement
 //	}
 //
 //	client.Achievement.Query().
-//		Select(entachievement.FieldOwnerID).
+//		Select(achievement.FieldOwnerID).
 //		Scan(ctx, &v)
 func (aq *AchievementQuery) Select(fields ...string) *AchievementSelect {
 	aq.ctx.Fields = append(aq.ctx.Fields, fields...)
 	sbuild := &AchievementSelect{AchievementQuery: aq}
-	sbuild.label = entachievement.Label
+	sbuild.label = achievement.Label
 	sbuild.flds, sbuild.scan = &aq.ctx.Fields, sbuild.Scan
 	return sbuild
 }
@@ -464,7 +464,7 @@ func (aq *AchievementQuery) prepareQuery(ctx context.Context) error {
 		}
 	}
 	for _, f := range aq.ctx.Fields {
-		if !entachievement.ValidColumn(f) {
+		if !achievement.ValidColumn(f) {
 			return &ValidationError{Name: f, err: fmt.Errorf("ent: invalid field %q for query", f)}
 		}
 	}
@@ -553,7 +553,7 @@ func (aq *AchievementQuery) loadDocuments(ctx context.Context, query *Achievemen
 		query.ctx.AppendFieldOnce(achievementdocument.FieldAchievementID)
 	}
 	query.Where(predicate.AchievementDocument(func(s *sql.Selector) {
-		s.Where(sql.InValues(s.C(entachievement.DocumentsColumn), fks...))
+		s.Where(sql.InValues(s.C(achievement.DocumentsColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {
@@ -583,7 +583,7 @@ func (aq *AchievementQuery) loadReviews(ctx context.Context, query *AchievementR
 		query.ctx.AppendFieldOnce(achievementreview.FieldAchievementID)
 	}
 	query.Where(predicate.AchievementReview(func(s *sql.Selector) {
-		s.Where(sql.InValues(s.C(entachievement.ReviewsColumn), fks...))
+		s.Where(sql.InValues(s.C(achievement.ReviewsColumn), fks...))
 	}))
 	neighbors, err := query.All(ctx)
 	if err != nil {
@@ -671,7 +671,7 @@ func (aq *AchievementQuery) sqlCount(ctx context.Context) (int, error) {
 }
 
 func (aq *AchievementQuery) querySpec() *sqlgraph.QuerySpec {
-	_spec := sqlgraph.NewQuerySpec(entachievement.Table, entachievement.Columns, sqlgraph.NewFieldSpec(entachievement.FieldID, field.TypeUUID))
+	_spec := sqlgraph.NewQuerySpec(achievement.Table, achievement.Columns, sqlgraph.NewFieldSpec(achievement.FieldID, field.TypeUUID))
 	_spec.From = aq.sql
 	if unique := aq.ctx.Unique; unique != nil {
 		_spec.Unique = *unique
@@ -680,17 +680,17 @@ func (aq *AchievementQuery) querySpec() *sqlgraph.QuerySpec {
 	}
 	if fields := aq.ctx.Fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
-		_spec.Node.Columns = append(_spec.Node.Columns, entachievement.FieldID)
+		_spec.Node.Columns = append(_spec.Node.Columns, achievement.FieldID)
 		for i := range fields {
-			if fields[i] != entachievement.FieldID {
+			if fields[i] != achievement.FieldID {
 				_spec.Node.Columns = append(_spec.Node.Columns, fields[i])
 			}
 		}
 		if aq.withOwner != nil {
-			_spec.Node.AddColumnOnce(entachievement.FieldOwnerID)
+			_spec.Node.AddColumnOnce(achievement.FieldOwnerID)
 		}
 		if aq.withTemplate != nil {
-			_spec.Node.AddColumnOnce(entachievement.FieldTemplateID)
+			_spec.Node.AddColumnOnce(achievement.FieldTemplateID)
 		}
 	}
 	if ps := aq.predicates; len(ps) > 0 {
@@ -718,10 +718,10 @@ func (aq *AchievementQuery) querySpec() *sqlgraph.QuerySpec {
 
 func (aq *AchievementQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	builder := sql.Dialect(aq.driver.Dialect())
-	t1 := builder.Table(entachievement.Table)
+	t1 := builder.Table(achievement.Table)
 	columns := aq.ctx.Fields
 	if len(columns) == 0 {
-		columns = entachievement.Columns
+		columns = achievement.Columns
 	}
 	selector := builder.Select(t1.Columns(columns...)...).From(t1)
 	if aq.sql != nil {
