@@ -103,7 +103,7 @@ func (a *API) RegisterRoutes(r chi.Router) {
 		r.Get("/roles", a.Roles)
 	})
 
-	r.Get("/files/{id}/download", a.DownloadFile)
+	r.With(a.FileAccessMiddleware).Get("/files/{id}/download", a.DownloadFile)
 	// Protected routes (auth required)
 	r.Group(func(r chi.Router) {
 		r.Use(a.RequireAuthMiddleware)

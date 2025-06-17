@@ -289,6 +289,15 @@ func buildFilePredicates(opts sesc.FileSearchOptions, rec *event.Record) []predi
 		buildRec.Set("common_filter", true)
 	}
 
+	// If Common is explicitly false (not nil), exclude common files
+	// This is determined by checking if the API received the common parameter
+	if !opts.Common && opts.OwnerID == nil {
+		// This means common=false was explicitly passed without owner_id
+		// We want to show only files with owners (exclude common files)
+		predicates = append(predicates, file.OwnerIDNotNil())
+		buildRec.Set("exclude_common_files", true)
+	}
+
 	buildRec.Set(
 		"predicates_count", len(predicates),
 		"end_time", time.Now(),
@@ -419,6 +428,31 @@ func (s *FileService) getFile(ctx context.Context, rec *event.Record, id UUID) (
 	return file, err
 }
 
-func (s *FileService) DownloadURL(context.Context, UUID) (string, error) {
-	return "https://arxiv.org/pdf/1805.06358v1", nil
+func (s *FileService) DownloadURL(ctx context.Context, id UUID) (string, error) {
+	rec := event.Get(ctx).Sub("file/download_url")
+
+	rec.Sub("params").Set(
+		"id", id.String(),
+		"start_time", time.Now(),
+	)
+
+	// Get file from database to obtain object key and filename
+	f, err := s.getFile(ctx, rec, id)
+	if err != nil {
+		rec.Add(events.Error, err)
+		return "", err
+	}
+
+	// Generate pre-signed URL with 1 hour expiration
+	expires := time.Hour
+	downloadURL, err := s.storage.GetObjectURL(ctx, f.S3ObjectKey, f.Name, expires)
+	if err != nil {
+		rec.Add(events.Error, err)
+		return "", err
+	}
+
+	rec.Set("success", true)
+	rec.Set("total_duration_ms", time.Since(rec.Sub("params").Value("start_time").(time.Time)).Milliseconds())
+
+	return downloadURL, nil
 }

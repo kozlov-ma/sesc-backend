@@ -56,12 +56,6 @@ func setupFileService(t *testing.T) (*FileService, *mocks.MockObjectStorage, *en
 
 	mockStorage := mocks.NewMockObjectStorage(ctrl)
 
-	// Setup default mock for GetObjectURL to allow file retrieval in tests
-	mockStorage.EXPECT().
-		GetObjectURL(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
-		Return("https://example.com/test-url", nil).
-		AnyTimes()
-
 	return New(client, mockStorage, "test-bucket"), mockStorage, client
 }
 
@@ -595,5 +589,68 @@ func TestByID(t *testing.T) {
 		nonExistentID := uuid.Must(uuid.NewV7())
 		_, err := svc.ByID(ctx, nonExistentID)
 		require.ErrorIs(t, err, sesc.ErrFileNotFound)
+	})
+}
+
+func TestDownloadURL(t *testing.T) {
+	setup := func(t *testing.T) (ctx context.Context, svc *FileService, storage *mocks.MockObjectStorage, fileID uuid.UUID, fileName string) {
+		ctx = t.Context()
+		ctx, _ = event.NewRecord(ctx, "test")
+		svc, storage, _ = setupFileService(t)
+
+		content := []byte("test file content")
+		reader := bytes.NewReader(content)
+		fileName = "test-download.txt"
+
+		opts := FileOpts{
+			FileName: fileName,
+			FileSize: len(content),
+		}
+
+		// Setup expectations for file creation
+		storage.EXPECT().PutObject(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Eq(int64(len(content)))).Return(nil)
+
+		file, err := svc.Create(ctx, reader, opts)
+		require.NoError(t, err)
+
+		return ctx, svc, storage, file.ID, fileName
+	}
+
+	t.Run("success", func(t *testing.T) {
+		ctx, svc, storage, fileID, fileName := setup(t)
+
+		expectedURL := "https://example.com/presigned-url"
+
+		// Setup expectation for GetObjectURL
+		storage.EXPECT().
+			GetObjectURL(gomock.Any(), gomock.Any(), gomock.Eq(fileName), gomock.Eq(time.Hour)).
+			Return(expectedURL, nil)
+
+		url, err := svc.DownloadURL(ctx, fileID)
+		require.NoError(t, err)
+		require.Equal(t, expectedURL, url)
+	})
+
+	t.Run("non_existent_file", func(t *testing.T) {
+		ctx, svc, _, _, _ := setup(t)
+
+		nonExistentID := uuid.Must(uuid.NewV7())
+		_, err := svc.DownloadURL(ctx, nonExistentID)
+		require.ErrorIs(t, err, sesc.ErrFileNotFound)
+	})
+
+	t.Run("storage_error", func(t *testing.T) {
+		ctx, svc, storage, fileID, fileName := setup(t)
+
+		storageError := errors.New("storage service unavailable")
+
+		// Setup expectation for GetObjectURL to return error
+		storage.EXPECT().
+			GetObjectURL(gomock.Any(), gomock.Any(), gomock.Eq(fileName), gomock.Eq(time.Hour)).
+			Return("", storageError)
+
+		_, err := svc.DownloadURL(ctx, fileID)
+		require.Error(t, err)
+		require.ErrorIs(t, err, storageError)
 	})
 }

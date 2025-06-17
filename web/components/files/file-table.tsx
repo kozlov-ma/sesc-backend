@@ -38,6 +38,7 @@ import {
   postFilesMutation,
   deleteFilesByIdMutation,
 } from "@/lib/api/@tanstack/react-query.gen";
+import { useAuth } from "@/hooks/use-auth";
 
 interface FileTableProps {
   showOwner?: boolean;
@@ -63,12 +64,13 @@ export function FileTable({
   const [searchQuery, setSearchQuery] = useState(initialFilters.name || "");
   const [fileToDelete, setFileToDelete] = useState<RespondFile | null>(null);
   const queryClient = useQueryClient();
+  const { token } = useAuth();
 
   const fileOpt = getFilesInfiniteOptions({
     query: {
       name: searchQuery || undefined,
       owner_id: initialFilters.ownerId,
-      common: initialFilters.common || undefined,
+      common: initialFilters.common,
       limit: 20,
     },
   });
@@ -151,17 +153,68 @@ export function FileTable({
   };
 
   const handleDownload = (file: RespondFile) => {
-    const link = document.createElement("a");
-    link.href =
-      process.env.NEXT_PUBLIC_API_URL + "/files/" + file.id + "/download";
-    link.download = file.fileName || "download";
-    link.target = "_blank";
-    link.rel = "noopener noreferrer";
+    if (!file.id || !token) return;
 
-    // Append to body, click, and remove
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    // Create a temporary form to download the file with authorization
+    const form = document.createElement("form");
+    form.method = "GET";
+    form.action = `${process.env.NEXT_PUBLIC_API_URL}/files/${file.id}/download`;
+    form.target = "_blank";
+    form.style.display = "none";
+
+    // Add authorization header as a hidden input (though this won't work for headers)
+    // Better approach: use a temporary iframe with custom headers
+    const iframe = document.createElement("iframe");
+    iframe.style.display = "none";
+    document.body.appendChild(iframe);
+
+    // Create a blob URL with the authorization
+    const downloadUrl = `${process.env.NEXT_PUBLIC_API_URL}/files/${file.id}/download`;
+
+    // Use fetch to get the file with proper headers
+    fetch(downloadUrl, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then((response) => {
+        if (response.status === 307 || response.status === 302) {
+          const redirectUrl = response.headers.get("location");
+          if (redirectUrl) {
+            // Create a link and click it
+            const link = document.createElement("a");
+            link.href = redirectUrl;
+            link.download = file.fileName || "download";
+            link.style.display = "none";
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+          }
+        } else if (response.ok) {
+          return response.blob();
+        } else {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+      })
+      .then((blob) => {
+        if (blob) {
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement("a");
+          link.href = url;
+          link.download = file.fileName || "download";
+          link.style.display = "none";
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          URL.revokeObjectURL(url);
+        }
+      })
+      .catch((error) => {
+        console.error("Error downloading file:", error);
+      })
+      .finally(() => {
+        document.body.removeChild(iframe);
+      });
   };
 
   if (error) return <span className="text-destructive">Ошибка</span>;
@@ -237,7 +290,9 @@ export function FileTable({
                   <TableHead className="pl-[25px]">Имя файла</TableHead>
                   {showOwner && <TableHead>Владелец</TableHead>}
                   <TableHead>Размер</TableHead>
-                  <TableHead className="text-center w-[150px]">Действия</TableHead>
+                  <TableHead className="text-center w-[150px]">
+                    Действия
+                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -255,22 +310,22 @@ export function FileTable({
                     )}
                     <TableCell>{formatFileSize(file.fileSize || 0)}</TableCell>
                     <TableCell className="text-center">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleDownload(file)}
+                      >
+                        <Download className="h-4 w-4" />
+                      </Button>
+                      {(allowDeleteCommon || file.ownerId) && (
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={() => handleDownload(file)}
+                          onClick={() => handleDelete(file)}
                         >
-                          <Download className="h-4 w-4" />
+                          <Trash2 className="h-4 w-4" />
                         </Button>
-                        {(allowDeleteCommon || file.ownerId) && (
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleDelete(file)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        )}
+                      )}
                     </TableCell>
                   </TableRow>
                 ))}

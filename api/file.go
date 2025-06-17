@@ -165,6 +165,9 @@ func (a *API) SearchFiles(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		opts.Common = common
+		rec.Add("common_param", common)
+	} else {
+		rec.Add("common_param", "not_provided")
 	}
 
 	if offsetStr := query.Get("offset"); offsetStr != "" {
