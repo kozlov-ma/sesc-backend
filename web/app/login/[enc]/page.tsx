@@ -1,19 +1,19 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { useMutation } from "@tanstack/react-query";
-import { postAuthLoginMutation } from "@/lib/api/@tanstack/react-query.gen";
-import { useAuth } from "@/hooks/use-auth";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useAuth } from "@/hooks/use-auth";
+import { postAuthLoginMutation } from "@/lib/api/@tanstack/react-query.gen";
+import { useMutation } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { use, useEffect, useState } from "react";
 import { toast } from "sonner";
 
 export default function QuickLoginPage({
   params,
 }: {
-  params: { enc: string };
+  params: Promise<{ enc: string }>;
 }) {
   const { push } = useRouter();
   const { setAuth } = useAuth();
@@ -23,11 +23,16 @@ export default function QuickLoginPage({
     password: string;
   } | null>(null);
 
+  // Unwrap the params Promise using React.use()
+  const resolvedParams = use(params);
+
   // Decode the credentials from the URL parameter
   useEffect(() => {
     try {
       // Base64url decode
-      const decoded = atob(params.enc.replace(/-/g, "+").replace(/_/g, "/"));
+      const decoded = atob(
+        resolvedParams.enc.replace(/-/g, "+").replace(/_/g, "/"),
+      );
       const parsed = JSON.parse(decoded);
 
       if (
@@ -45,7 +50,7 @@ export default function QuickLoginPage({
       console.error("Failed to decode credentials:", err);
       setError("Неверный формат ссылки для быстрого входа");
     }
-  }, [params.enc]);
+  }, [resolvedParams.enc]);
 
   const loginMutation = useMutation({
     ...postAuthLoginMutation(),
@@ -62,7 +67,7 @@ export default function QuickLoginPage({
 
   // Auto-login when credentials are available
   useEffect(() => {
-    if (credentials && !loginMutation.isPending && !loginMutation.isSuccess) {
+    if (credentials && !loginMutation.isPending) {
       loginMutation.mutate({
         body: credentials,
       });

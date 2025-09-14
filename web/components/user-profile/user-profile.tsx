@@ -1,6 +1,30 @@
 "use client";
 
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
+import { getDepartmentsByIdOptions } from "@/lib/api/@tanstack/react-query.gen";
 import { RespondUser } from "@/lib/api/types.gen";
+import { useQuery } from "@tanstack/react-query";
+import { format } from "date-fns";
+import {
+  Award,
+  Briefcase,
+  Building,
+  Building2,
+  CalendarPlus,
+  CalendarX,
+  Clock,
+  GraduationCap,
+  Medal,
+  Percent,
+  Shield,
+  Star,
+  User,
+  Users,
+} from "lucide-react";
 
 // Extended user type with optional statistics
 interface UserWithStats extends RespondUser {
@@ -10,30 +34,6 @@ interface UserWithStats extends RespondUser {
     totalPoints?: number;
   };
 }
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { format } from "date-fns";
-import {
-  User,
-  Building,
-  Building2,
-  Shield,
-  Briefcase,
-  Percent,
-  Users,
-  Clock,
-  GraduationCap,
-  Award,
-  Medal,
-  Star,
-  CalendarPlus,
-  CalendarX,
-} from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Separator } from "@/components/ui/separator";
-import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
-import { useQuery } from "@tanstack/react-query";
-import { getDepartmentsByIdOptions } from "@/lib/api/@tanstack/react-query.gen";
 
 interface UserProfileProps {
   user: UserWithStats | null;
@@ -106,13 +106,11 @@ export function UserProfile({ user, isLoading, error }: UserProfileProps) {
                     <Building className="mr-2 h-4 w-4" />
                     <span className="text-sm">Кафедра</span>
                   </div>
-                  <p className="font-medium">
-                    {isDepLoading ? (
-                      <Skeleton className="w-20"></Skeleton>
-                    ) : (
-                      department?.name || "—"
-                    )}
-                  </p>
+                  {isDepLoading ? (
+                    <Skeleton className="w-20 h-5" />
+                  ) : (
+                    <p className="font-medium">{department?.name || "—"}</p>
+                  )}
                 </div>
 
                 <div className="space-y-2">

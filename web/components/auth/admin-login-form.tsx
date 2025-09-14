@@ -1,16 +1,7 @@
 "use client";
 
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { motion } from "framer-motion";
-import { useMutation } from "@tanstack/react-query";
-import { postAuthAdminLoginMutation } from "@/lib/api/@tanstack/react-query.gen";
-import { useAuth } from "@/hooks/use-auth";
-import { ErrorMessage } from "@/components/ui/error-message";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { useFormError } from "@/hooks/use-error-handler";
+import { ErrorMessage } from "@/components/ui/error-message";
 import {
   Form,
   FormControl,
@@ -19,15 +10,31 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { useAuth } from "@/hooks/use-auth";
+import { useFormError } from "@/hooks/use-error-handler";
+import { postAuthAdminLoginMutation } from "@/lib/api/@tanstack/react-query.gen";
+import { getErrorMessage } from "@/lib/error-handler";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation } from "@tanstack/react-query";
+import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import { z } from "zod";
 
 // Схема валидации для формы входа администратора
 const adminLoginSchema = z.object({
-  username: z.string().min(1, {
-    message: "Имя пользователя обязательно",
-  }),
-  password: z.string().min(1, {
-    message: "Пароль обязателен",
+  username: z
+    .string()
+    .min(3, {
+      message: "Имя администратора должно содержать минимум 3 символа",
+    })
+    .max(50, {
+      message: "Имя администратора не должно превышать 50 символов",
+    }),
+  password: z.string().min(5, {
+    message: "Пароль должен содержать минимум 5 символов",
   }),
 });
 
@@ -49,11 +56,34 @@ export function AdminLoginForm() {
   const loginMutation = useMutation({
     ...postAuthAdminLoginMutation(),
     onSuccess: (response) => {
+      toast.success("Добро пожаловать, администратор!", {
+        description: "Вы успешно вошли в панель администратора",
+      });
       setAuth(response.token, "admin");
       push("/admin");
     },
     onError: (error) => {
       handleFormError(error);
+
+      // Показываем специфичные сообщения об ошибках
+      const errorMessage = getErrorMessage(error);
+      if (errorMessage.includes("401")) {
+        toast.error("Ошибка входа администратора", {
+          description: "Неверное имя администратора или пароль",
+        });
+      } else if (errorMessage.includes("403")) {
+        toast.error("Доступ запрещен", {
+          description: "У вас нет прав администратора",
+        });
+      } else if (errorMessage.includes("network")) {
+        toast.error("Ошибка подключения", {
+          description: "Проверьте подключение к интернету и попробуйте снова",
+        });
+      } else {
+        toast.error("Ошибка входа", {
+          description: errorMessage,
+        });
+      }
     },
   });
 

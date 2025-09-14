@@ -1,16 +1,7 @@
 "use client";
 
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { motion } from "framer-motion";
-import { useMutation } from "@tanstack/react-query";
-import { postAuthLoginMutation } from "@/lib/api/@tanstack/react-query.gen";
-import { useAuth } from "@/hooks/use-auth";
-import { ErrorMessage } from "@/components/ui/error-message";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { useFormError } from "@/hooks/use-error-handler";
+import { ErrorMessage } from "@/components/ui/error-message";
 import {
   Form,
   FormControl,
@@ -19,7 +10,16 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { useAuth } from "@/hooks/use-auth";
+import { useFormError } from "@/hooks/use-error-handler";
+import { postAuthLoginMutation } from "@/lib/api/@tanstack/react-query.gen";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation } from "@tanstack/react-query";
+import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 
 // Схема валидации для формы входа пользователя
 const userLoginSchema = z.object({

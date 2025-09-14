@@ -1,24 +1,26 @@
-import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useErrorHandler } from "@/hooks/use-error-handler";
+import {
+  getAchievementsOptions,
+  getFilesInfiniteOptions,
+  postFilesMutation,
+} from "@/lib/api/@tanstack/react-query.gen";
+import { postAchievementsByIdDocuments } from "@/lib/api/sdk.gen";
+import type { RespondFile } from "@/lib/api/types.gen";
+import { getErrorMessage } from "@/lib/error-handler";
 import {
   useInfiniteQuery,
   useMutation,
   useQueryClient,
 } from "@tanstack/react-query";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { Card } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { toast } from "sonner";
-import { postAchievementsByIdDocuments } from "@/lib/api/sdk.gen";
-import {
-  getFilesInfiniteOptions,
-  getAchievementsOptions,
-} from "@/lib/api/@tanstack/react-query.gen";
-import { postFilesMutation } from "@/lib/api/@tanstack/react-query.gen";
-import type { RespondFile } from "@/lib/api/types.gen";
 import { Upload } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
 
 interface AddDocumentFormProps {
   achievementId: string;
@@ -35,6 +37,7 @@ export function AddDocumentForm({
   const [selectedFile, setSelectedFile] = useState<RespondFile | null>(null);
   const [documentName, setDocumentName] = useState("");
   const queryClient = useQueryClient();
+  const { handleError, clearError } = useErrorHandler();
 
   const filesOpt = getFilesInfiniteOptions({
     query: {
@@ -70,25 +73,43 @@ export function AddDocumentForm({
   const uploadFileMutation = useMutation({
     ...postFilesMutation(),
     onSuccess: (data) => {
-      toast.success("Файл загружен");
+      toast.success("Файл загружен", {
+        description: "Файл успешно загружен и готов к прикреплению",
+      });
       queryClient.invalidateQueries({ queryKey: filesOpt.queryKey });
+      clearError();
       // Automatically select the uploaded file
       setSelectedFile(data);
       if (!documentName) {
         setDocumentName(data.fileName || "");
       }
     },
-    onError: () => {
-      toast.error("Не удалось загрузить файл");
+    onError: (error) => {
+      handleError(error);
+      const errorMessage = getErrorMessage(error);
+
+      if (errorMessage.includes("413")) {
+        toast.error("Файл слишком большой", {
+          description: "Размер файла превышает допустимый лимит",
+        });
+      } else if (errorMessage.includes("415")) {
+        toast.error("Неподдерживаемый тип файла", {
+          description: "Выберите файл другого типа",
+        });
+      } else {
+        toast.error("Ошибка загрузки файла", {
+          description: errorMessage,
+        });
+      }
     },
   });
 
   // Mutation for adding document
   const addDocumentMutation = useMutation({
     mutationFn: async () => {
-      if (!selectedFile || !selectedFile.id)
-        throw new Error("No file selected");
-      if (!documentName.trim()) throw new Error("Document name is required");
+      if (!selectedFile || !selectedFile.id) throw new Error("Файл не выбран");
+      if (!documentName.trim())
+        throw new Error("Название документа обязательно");
 
       return postAchievementsByIdDocuments({
         path: {
@@ -105,13 +126,31 @@ export function AddDocumentForm({
         description: "Документ успешно прикреплен к достижению",
       });
       queryClient.invalidateQueries({ queryKey: listsOpt.queryKey });
+      clearError();
       onSuccess?.();
     },
     onError: (error) => {
-      toast.error("Ошибка", {
-        description: "Не удалось добавить документ",
-      });
-      console.error("Error adding document:", error);
+      handleError(error);
+      const errorMessage = getErrorMessage(error);
+
+      if (errorMessage.includes("400")) {
+        toast.error("Некорректные данные", {
+          description: "Проверьте правильность заполнения полей",
+        });
+      } else if (errorMessage.includes("404")) {
+        toast.error("Достижение не найдено", {
+          description: "Достижение могло быть удалено",
+        });
+      } else if (errorMessage.includes("403")) {
+        toast.error("Доступ запрещен", {
+          description:
+            "У вас нет прав для добавления документов к этому достижению",
+        });
+      } else {
+        toast.error("Ошибка добавления документа", {
+          description: errorMessage,
+        });
+      }
     },
   });
 
@@ -248,11 +287,7 @@ export function AddDocumentForm({
         </Button>
         <Button
           type="submit"
-          disabled={
-            !selectedFile ||
-            !documentName.trim() ||
-            addDocumentMutation.isPending
-          }
+          disabled={!selectedFile || addDocumentMutation.isPending}
         >
           {addDocumentMutation.isPending ? "Добавление..." : "Добавить"}
         </Button>

@@ -1,6 +1,7 @@
-import { useState, useCallback } from "react";
-import { ApiError, parseApiError, getErrorMessage } from "@/lib/error-handler";
 import { useErrorContext } from "@/context/error-context";
+import { ApiError, getErrorMessage, parseApiError } from "@/lib/error-handler";
+import { showErrorToast } from "@/lib/error-messages";
+import { useCallback, useState } from "react";
 
 interface UseErrorHandlerOptions {
   clearOnUnmount?: boolean;
@@ -32,6 +33,18 @@ export function useErrorHandler(options: UseErrorHandlerOptions = {}) {
     [globalErrorContext],
   );
 
+  // Handle error with context and show toast
+  const handleErrorWithContext = useCallback(
+    (err: unknown, context: { component: string; action: string }) => {
+      const parsedError = handleError(err);
+
+      showErrorToast(err, context);
+
+      return parsedError;
+    },
+    [handleError],
+  );
+
   // Clear the error
   const clearError = useCallback(() => {
     setErrorState(null);
@@ -51,6 +64,7 @@ export function useErrorHandler(options: UseErrorHandlerOptions = {}) {
   return {
     error,
     handleError,
+    handleErrorWithContext,
     clearError,
     hasError,
     errorMessage,
