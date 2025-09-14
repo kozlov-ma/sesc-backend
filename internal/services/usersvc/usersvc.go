@@ -3,7 +3,6 @@ package usersvc
 import (
 	"context"
 	"database/sql"
-	"errors"
 	"fmt"
 	"time"
 
@@ -12,7 +11,7 @@ import (
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/department"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/user"
-	"github.com/kozlov-ma/sesc-backend/internal/services/txhelper"
+	"github.com/kozlov-ma/sesc-backend/internal/services/txwrapper"
 	"github.com/kozlov-ma/sesc-backend/pkg/event"
 	"github.com/kozlov-ma/sesc-backend/pkg/event/events"
 	"github.com/kozlov-ma/sesc-backend/sesc"
@@ -83,7 +82,7 @@ func (s *USS) UpdateUser(ctx context.Context, id UUID, upd UserUpdateOptions) (*
 	var us *ent.User
 	txStart := time.Now()
 
-	err := txhelper.WithTx(ctx, s.client, sql.LevelRepeatableRead, rec, func(tx *ent.Tx) error {
+	err := txwrapper.WithTx(ctx, s.client, sql.LevelSerializable, rec, func(tx *ent.Tx) error {
 		// Stage 4: Check and get department if needed
 		ctx := rec.Sub("check_department").Wrap(ctx)
 		dept, err := s.checkAndGetDepartment(ctx, statrec, tx, upd.DepartmentID)
@@ -203,19 +202,6 @@ func (s *USS) updateUserRecord(
 	rec := event.Get(ctx)
 	rec.Set("user_id", id)
 
-	_, err := tx.User.Query().
-		Where(user.ID(id)).
-		ForUpdate().
-		Only(ctx)
-	if err != nil {
-		if ent.IsNotFound(err) {
-			rec.Add(events.Error, errors.New("user not found"))
-			rec.Set("success", false)
-			return errors.New("user not found")
-		}
-		return fmt.Errorf("could not lock user: %w", err)
-	}
-
 	statrec.Add(events.PostgresQueries, 1)
 	updater := tx.User.UpdateOneID(id).
 		SetFirstName(upd.FirstName).
@@ -243,7 +229,7 @@ func (s *USS) updateUserRecord(
 		updater = updater.ClearDepartment()
 	}
 
-	_, err = updater.Save(ctx)
+	_, err := updater.Save(ctx)
 	if err != nil {
 		err := fmt.Errorf("couldn't update user: %w", err)
 		rec.Add(events.Error, err)
@@ -305,7 +291,7 @@ func (s *USS) CreateUser(ctx context.Context, opt UserUpdateOptions) (*ent.User,
 	var us *ent.User
 
 	txStart := time.Now()
-	err := txhelper.WithTx(ctx, s.client, sql.LevelReadCommitted, rec, func(tx *ent.Tx) error {
+	err := txwrapper.WithTx(ctx, s.client, sql.LevelReadCommitted, rec, func(tx *ent.Tx) error {
 		// Stage 2: Check and get department if needed
 		ctx := rec.Sub("check_department").Wrap(ctx)
 		dept, err := s.checkAndGetDepartment(ctx, statrec, tx, opt.DepartmentID)

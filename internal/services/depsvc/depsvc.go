@@ -2,13 +2,11 @@ package depsvc
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 	"time"
 
 	"github.com/gofrs/uuid/v5"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent"
-	"github.com/kozlov-ma/sesc-backend/internal/services/txhelper"
 	"github.com/kozlov-ma/sesc-backend/pkg/event"
 	"github.com/kozlov-ma/sesc-backend/pkg/event/events"
 	"github.com/kozlov-ma/sesc-backend/sesc"
@@ -131,40 +129,20 @@ func (s *DES) UpdateDepartment(
 	var dep *ent.Department
 
 	startTime := time.Now()
-	// TODO prefer RepeatableRead with ForUpdate
-	err := txhelper.WithTx(ctx, s.client, sql.LevelSerializable, rec, func(tx *ent.Tx) error {
-		// statrec.Add(events.PostgresQueries, 1)
-		// _, err := s.client.Department.Query().
-		// 	Where(department.ID(id)).
-		// 	ForUpdate().
-		// 	Only(ctx)
-
-		// if ent.IsNotFound(err) {
-		// 	return sesc.ErrDepartmentNotFound
-		// }
-
-		// if err != nil {
-		// 	return fmt.Errorf("couldn't query department for update: %w", err)
-		// }
-		statrec.Add(events.PostgresQueries, 1)
-		_, err := tx.Department.UpdateOneID(id).SetName(name).SetDescription(description).Save(ctx)
-		if ent.IsNotFound(err) {
-			return fmt.Errorf("couldn't save department: %w", sesc.ErrDepartmentNotFound)
-		}
-		if err != nil {
-			return fmt.Errorf("couldn't save department: %w", err)
-		}
-
-		return nil
-	})
-
-	statrec.Add(events.PostgresTime, time.Since(startTime))
-	if err != nil {
-		rec.Add(events.Error, err)
+	statrec.Add(events.PostgresQueries, 1)
+	_, err := s.client.Department.UpdateOneID(id).SetName(name).SetDescription(description).Save(ctx)
+	if ent.IsNotFound(err) {
 		rec.Set("success", false)
-		return nil, err
+		rec.Add(events.Error, err)
+		return nil, fmt.Errorf("couldn't save department: %w", sesc.ErrDepartmentNotFound)
+	}
+	if err != nil {
+		rec.Set("success", false)
+		rec.Add(events.Error, err)
+		return nil, fmt.Errorf("couldn't save department: %w", err)
 	}
 
+	statrec.Add(events.PostgresTime, time.Since(startTime))
 	rec.Set("success", true)
 	return dep, nil
 }
@@ -181,46 +159,22 @@ func (s *DES) DeleteDepartment(ctx context.Context, id uuid.UUID) error {
 
 	startTime := time.Now()
 
-	var rerr error
-	// TODO prefer RepeatableRead with ForUpdate
-	err := txhelper.WithTx(ctx, s.client, sql.LevelSerializable, rec, func(tx *ent.Tx) error {
-		// statsRec.Add(events.PostgresQueries, 1)
-		// _, lock_err := tx.Department.Query().
-		// 	Where(department.ID(id)).
-		// 	ForUpdate().
-		// 	Only(ctx)
+	statsRec.Add(events.PostgresQueries, 1)
+	err := s.client.Department.DeleteOneID(id).Exec(ctx)
 
-		// if ent.IsNotFound(lock_err) {
-		// 	return sesc.ErrDepartmentNotFound
-		// }
-		// if lock_err != nil {
-		// 	return fmt.Errorf("couldn't query department for deletion: %w", lock_err)
-		// }
-
-		statsRec.Add(events.PostgresQueries, 1)
-		rerr = tx.Department.DeleteOneID(id).Exec(ctx)
-
-		return nil
-	})
 	statsRec.Add(events.PostgresTime, time.Since(startTime))
 
-	if err != nil {
-		rec.Add(events.Error, err)
-		rec.Set("success", false)
-		return err
-	}
-
 	switch {
-	case ent.IsConstraintError(rerr):
+	case ent.IsConstraintError(err):
 		rec.Add(events.Error, sesc.ErrCannotRemoveDepartment)
 		rec.Set("success", false)
 		return sesc.ErrCannotRemoveDepartment
-	case ent.IsNotFound(rerr):
+	case ent.IsNotFound(err):
 		rec.Add(events.Error, sesc.ErrDepartmentNotFound)
 		rec.Set("success", false)
 		return sesc.ErrDepartmentNotFound
-	case rerr != nil:
-		err := fmt.Errorf("couldn't delete department: %w", rerr)
+	case err != nil:
+		err := fmt.Errorf("couldn't delete department: %w", err)
 		rec.Add(events.Error, err)
 		rec.Set("success", false)
 		return err

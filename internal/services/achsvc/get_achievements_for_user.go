@@ -9,7 +9,7 @@ import (
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent"
 	entAchievement "github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievement"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/user"
-	"github.com/kozlov-ma/sesc-backend/internal/services/txhelper"
+	"github.com/kozlov-ma/sesc-backend/internal/services/txwrapper"
 	"github.com/kozlov-ma/sesc-backend/pkg/event"
 	"github.com/kozlov-ma/sesc-backend/pkg/event/events"
 	"github.com/kozlov-ma/sesc-backend/sesc"
@@ -17,7 +17,6 @@ import (
 
 // GetUserAchievements retrieves all achievements for the current user with pagination.
 // Results are ordered based on the asking user's role and review responsibilities.
-// todo limit pagination discuss tx
 func (s *ACS) GetUserAchievements(
 	ctx context.Context,
 	userID UUID,
@@ -38,7 +37,7 @@ func (s *ACS) GetUserAchievements(
 	var totalAchievements int
 	var achievementEntities []*ent.Achievement
 
-	err := txhelper.WithTx(ctx, s.client, sql.LevelReadCommitted, rec, func(tx *ent.Tx) error {
+	err := txwrapper.WithTx(ctx, s.client, sql.LevelReadCommitted, rec, func(tx *ent.Tx) error {
 		var askingUser *ent.User
 		err := rec.Operation("query_asking_user", func(rec *event.Record) (err error) {
 			rec.Sub("params").Set(

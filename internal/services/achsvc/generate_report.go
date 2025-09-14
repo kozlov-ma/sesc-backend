@@ -12,7 +12,7 @@ import (
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent"
 	entAchievement "github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievement"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/user"
-	"github.com/kozlov-ma/sesc-backend/internal/services/txhelper"
+	"github.com/kozlov-ma/sesc-backend/internal/services/txwrapper"
 	"github.com/kozlov-ma/sesc-backend/pkg/event"
 	"github.com/kozlov-ma/sesc-backend/pkg/event/events"
 	"github.com/xuri/excelize/v2"
@@ -34,7 +34,7 @@ func (s *ACS) GenerateUserPointsReport(ctx context.Context) (*bytes.Buffer, erro
 	startTime := time.Now()
 	var excelBuffer *bytes.Buffer
 
-	err := txhelper.WithTx(ctx, s.client, sql.LevelRepeatableRead, rec, func(tx *ent.Tx) error {
+	err := txwrapper.WithTx(ctx, s.client, sql.LevelRepeatableRead, rec, func(tx *ent.Tx) error {
 		users, err := s.queryAllUsersForReport(ctx, tx, rec, &queryCount)
 		if err != nil {
 			return err

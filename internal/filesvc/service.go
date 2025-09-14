@@ -5,6 +5,7 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"io"
 	"time"
@@ -44,7 +45,6 @@ func getStatsRecord(ctx context.Context) *event.Record {
 	return event.Root(ctx).Sub("stats")
 }
 
-// TODO remove
 // recordDBOperation executes a database operation and records stats and timing
 func recordDBOperation(ctx context.Context, rec *event.Record, name string, operation func() error) error {
 	statsRec := getStatsRecord(ctx)
@@ -159,7 +159,10 @@ func (s *FileService) Create(ctx context.Context, reader io.Reader, opts FileOpt
 
 	if dbErr != nil {
 		// try to rollback
-		_ = s.storage.RemoveObject(ctx, objectKey)
+		err := s.storage.RemoveObject(ctx, objectKey)
+		if err != nil {
+			dbErr = errors.Join(dbErr, fmt.Errorf("error when rollback minio file creation: %w", err))
+		}
 
 		rec.Add(events.Error, dbErr)
 		return nil, dbErr
@@ -262,7 +265,6 @@ func buildFilePredicates(opts sesc.FileSearchOptions, rec *event.Record) []predi
 }
 
 // Search returns a paginated list of files filtered by the given options.
-// todo pagination
 func (s *FileService) Search(ctx context.Context, opts sesc.FileSearchOptions) (ent.Files, int, error) {
 	rec := event.Get(ctx).Sub("file/search")
 

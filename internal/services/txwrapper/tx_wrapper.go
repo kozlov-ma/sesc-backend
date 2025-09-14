@@ -1,4 +1,4 @@
-package txhelper
+package txwrapper
 
 import (
 	"context"
@@ -16,7 +16,8 @@ func WithTx(
 	client *ent.Client,
 	isolation sql.IsolationLevel,
 	rec *event.Record,
-	fn func(tx *ent.Tx) error) error {
+	fn func(tx *ent.Tx) error,
+) error {
 	txrec := rec.Sub("pg_transaction")
 	txrec.Set("rollback", false)
 	txrec.Set("isolation", isolation.String())

@@ -13,13 +13,11 @@ import (
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/department"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/predicate"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/user"
-	"github.com/kozlov-ma/sesc-backend/internal/services/txhelper"
+	"github.com/kozlov-ma/sesc-backend/internal/services/txwrapper"
 	"github.com/kozlov-ma/sesc-backend/pkg/event"
 	"github.com/kozlov-ma/sesc-backend/pkg/event/events"
 	"github.com/kozlov-ma/sesc-backend/sesc"
 )
-
-// todo limit pagination and discuss tx
 
 // GetUsersWithAchievements retrieves users that have achievements with pagination.
 func (s *ACS) GetUsersWithAchievements(
@@ -42,7 +40,7 @@ func (s *ACS) GetUsersWithAchievements(
 	var totalUsers int
 	var users []*ent.User
 
-	err := txhelper.WithTx(ctx, s.client, sql.LevelReadCommitted, rec, func(tx *ent.Tx) error {
+	err := txwrapper.WithTx(ctx, s.client, sql.LevelReadCommitted, rec, func(tx *ent.Tx) error {
 		err := rec.Operation("count_users", func(_ *event.Record) error {
 			// Get asking user for role-based filtering
 			start := time.Now()

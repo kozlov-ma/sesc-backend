@@ -10,7 +10,7 @@ import (
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent"
 	entAchievement "github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievement"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievementdocument"
-	"github.com/kozlov-ma/sesc-backend/internal/services/txhelper"
+	"github.com/kozlov-ma/sesc-backend/internal/services/txwrapper"
 	"github.com/kozlov-ma/sesc-backend/pkg/event"
 	"github.com/kozlov-ma/sesc-backend/pkg/event/events"
 )
@@ -33,7 +33,7 @@ func (s *ACS) RemoveDocument(
 		"document_id", opt.DocumentID,
 	)
 
-	err := txhelper.WithTx(ctx, s.client, sql.LevelReadCommitted, rec, func(tx *ent.Tx) error {
+	err := txwrapper.WithTx(ctx, s.client, sql.LevelReadCommitted, rec, func(tx *ent.Tx) error {
 		var ach *ent.Achievement
 		err := rec.Operation("query_achievement", func(_ *event.Record) error {
 			start := time.Now()

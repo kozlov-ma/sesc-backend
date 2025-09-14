@@ -14,7 +14,7 @@ import (
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/authuser"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/user"
 	"github.com/kozlov-ma/sesc-backend/iam"
-	"github.com/kozlov-ma/sesc-backend/internal/services/txhelper"
+	"github.com/kozlov-ma/sesc-backend/internal/services/txwrapper"
 	"github.com/kozlov-ma/sesc-backend/pkg/event"
 	"github.com/kozlov-ma/sesc-backend/pkg/event/events"
 )
@@ -79,7 +79,7 @@ func (i *IAM) RegisterCredentials(
 	txStart := time.Now()
 
 	var authID UUID
-	err := txhelper.WithTx(ctx, i.client, sql.LevelSerializable, rec, func(tx *ent.Tx) error {
+	err := txwrapper.WithTx(ctx, i.client, sql.LevelSerializable, rec, func(tx *ent.Tx) error {
 		// Stage 2: Check if user exists
 		ctx := rec.Sub("check_user_exists").Wrap(ctx)
 		if err := i.checkUserExists(ctx, tx, userID); err != nil {
@@ -630,7 +630,7 @@ func (i *IAM) DropCredentials(ctx context.Context, userID UUID) error {
 	txStart := time.Now()
 
 	// Start a transaction with serializable isolation
-	err := txhelper.WithTx(ctx, i.client, sql.LevelSerializable, rec, func(tx *ent.Tx) error {
+	err := txwrapper.WithTx(ctx, i.client, sql.LevelSerializable, rec, func(tx *ent.Tx) error {
 		// Stage 1: Check if user exists
 		if err := i.checkUserExistsForDrop(ctx, tx, userID); err != nil {
 			return err
