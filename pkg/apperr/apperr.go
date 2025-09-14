@@ -21,6 +21,6 @@ func New(msg string, kind ErrorKind) *AppError {
 	return &AppError{msg, int(kind)}
 }
 
-func (de *AppError) Error() string {
-	return de.Message
+func (ae *AppError) Error() string {
+	return ae.Message
 }

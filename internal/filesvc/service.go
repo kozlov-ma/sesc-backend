@@ -39,36 +39,12 @@ func New(client *ent.Client, storage ObjectStorage, bucketName string) *FileServ
 	}
 }
 
-// withTransaction executes the given operation within a transaction and handles commit/rollback.
-func (s *FileService) withTransaction(ctx context.Context, rec *event.Record, operation func(tx *ent.Tx) error) error {
-	var tx *ent.Tx
-
-	err := rec.Operation("start_transaction", func(*event.Record) error {
-		var err error
-		tx, err = s.client.Tx(ctx)
-		return err
-	})
-
-	if err != nil {
-		return err
-	}
-
-	// Execute the operation within the transaction
-	if err := operation(tx); err != nil {
-		return rollback(tx, err)
-	}
-
-	// Commit the transaction
-	return rec.Operation("commit_transaction", func(*event.Record) error {
-		return tx.Commit()
-	})
-}
-
 // getStatsRecord retrieves the stats record from the root event record
 func getStatsRecord(ctx context.Context) *event.Record {
 	return event.Root(ctx).Sub("stats")
 }
 
+// TODO remove
 // recordDBOperation executes a database operation and records stats and timing
 func recordDBOperation(ctx context.Context, rec *event.Record, name string, operation func() error) error {
 	statsRec := getStatsRecord(ctx)
@@ -82,15 +58,6 @@ func recordDBOperation(ctx context.Context, rec *event.Record, name string, oper
 		statsRec.Add(events.PostgresTime, time.Since(startTime))
 		return err
 	})
-}
-
-// rollback calls to tx.Rollback and wraps the given error
-// with the rollback error if occurred.
-func rollback(tx *ent.Tx, err error) error {
-	if rerr := tx.Rollback(); rerr != nil {
-		err = fmt.Errorf("%w: %w", err, rerr)
-	}
-	return err
 }
 
 const objectKeyLengthBytes = 16
@@ -158,50 +125,44 @@ func (s *FileService) Create(ctx context.Context, reader io.Reader, opts FileOpt
 		rec.Add(events.Error, err)
 		return nil, err
 	}
-
-	var f *ent.File
-
-	err = s.withTransaction(ctx, rec, func(tx *ent.Tx) error {
-		dbErr := recordDBOperation(ctx, rec, "db_create_file", func() error {
-			f, err = tx.File.Create().
-				SetID(id).
-				SetS3ObjectKey(objectKey).
-				SetName(opts.FileName).
-				SetSize(opts.FileSize).
-				SetNillableOwnerID(opts.OwnerID).
-				Save(ctx)
-
-			if err == nil {
-				rec.Sub("db_create_file").Set("file_id", f.ID.String())
-			}
-
-			return err
-		})
-
-		if dbErr != nil {
-			rec.Add(events.Error, dbErr)
-			return dbErr
-		}
-
-		uploadErr := rec.Operation("storage_upload", func(rec *event.Record) error {
-			rec.Set(
-				"object_key", objectKey,
-				"file_size", opts.FileSize,
-			)
-			return s.storage.PutObject(ctx, objectKey, reader, int64(opts.FileSize))
-		})
-
-		if uploadErr != nil {
-			rec.Add(events.Error, uploadErr)
-			return uploadErr
-		}
-
-		return nil
+	// STEP 1: insert into storage
+	uploadErr := rec.Operation("storage_upload", func(rec *event.Record) error {
+		rec.Set(
+			"object_key", objectKey,
+			"file_size", opts.FileSize,
+		)
+		return s.storage.PutObject(ctx, objectKey, reader, int64(opts.FileSize))
 	})
 
-	if err != nil {
+	if uploadErr != nil {
+		rec.Add(events.Error, uploadErr)
+		return nil, uploadErr
+	}
+
+	// Step 2: insert into DB
+	var f *ent.File
+	dbErr := recordDBOperation(ctx, rec, "db_create_file", func() error {
+		f, err = s.client.File.Create().
+			SetID(id).
+			SetS3ObjectKey(objectKey).
+			SetName(opts.FileName).
+			SetSize(opts.FileSize).
+			SetNillableOwnerID(opts.OwnerID).
+			Save(ctx)
+
+		if err == nil {
+			rec.Sub("db_create_file").Set("file_id", f.ID.String())
+		}
+
+		return err
+	})
+
+	if dbErr != nil {
+		// try to rollback
 		_ = s.storage.RemoveObject(ctx, objectKey)
-		return nil, err
+
+		rec.Add(events.Error, dbErr)
+		return nil, dbErr
 	}
 
 	rec.Set("success", true)
@@ -229,35 +190,29 @@ func (s *FileService) Delete(ctx context.Context, id UUID) error {
 
 	objectKey := f.S3ObjectKey
 
-	// Execute database and storage operations in a transaction
-	err = s.withTransaction(ctx, rec, func(tx *ent.Tx) error {
-		// Delete from database
-		dbErr := recordDBOperation(ctx, rec, "db_delete_file", func() error {
-			_, err := tx.File.Delete().Where(file.ID(id)).Exec(ctx)
-			return err
-		})
-
-		if dbErr != nil {
-			rec.Add(events.Error, dbErr)
-			return dbErr
-		}
-
-		// Delete from storage
-		storageErr := rec.Operation("storage_delete", func(rec *event.Record) error {
-			rec.Set("object_key", objectKey)
-			return s.storage.RemoveObject(ctx, objectKey)
-		})
-
-		if storageErr != nil {
-			rec.Add(events.Error, storageErr)
-			return storageErr
-		}
-
-		return nil
+	// Delete from storage
+	storageErr := rec.Operation("storage_delete", func(rec *event.Record) error {
+		rec.Set("object_key", objectKey)
+		return s.storage.RemoveObject(ctx, objectKey)
 	})
 
-	if err != nil {
+	if storageErr != nil {
+		rec.Add(events.Error, storageErr)
+		rec.Set("success", false)
+
+		return storageErr
+	}
+	// Delete from database
+	dbErr := recordDBOperation(ctx, rec, "db_delete_file", func() error {
+		_, err := s.client.File.Delete().Where(file.ID(id)).Exec(ctx)
 		return err
+	})
+
+	if dbErr != nil {
+		rec.Add(events.Error, dbErr)
+		rec.Set("success", false)
+
+		return dbErr
 	}
 
 	rec.Set("success", true)
@@ -307,6 +262,7 @@ func buildFilePredicates(opts sesc.FileSearchOptions, rec *event.Record) []predi
 }
 
 // Search returns a paginated list of files filtered by the given options.
+// todo pagination
 func (s *FileService) Search(ctx context.Context, opts sesc.FileSearchOptions) (ent.Files, int, error) {
 	rec := event.Get(ctx).Sub("file/search")
 
@@ -331,53 +287,46 @@ func (s *FileService) Search(ctx context.Context, opts sesc.FileSearchOptions) (
 		files      ent.Files
 		totalCount int
 	)
-	err := withTx(ctx, s.client, func(tx *ent.Tx) error {
-		err := rec.Operation("count_total", func(rec *event.Record) error {
-			var err error
-			totalCount, err = tx.File.Query().
-				Where(predicates...).
-				Count(ctx)
 
-			if err == nil {
-				rec.Sub("count_total").Set("total_count", totalCount)
-			} else {
-				return fmt.Errorf("couldn't count total: %w", err)
-			}
+	err := rec.Operation("count_total", func(rec *event.Record) error {
+		var err error
+		totalCount, err = s.client.File.Query().
+			Where(predicates...).
+			Count(ctx)
 
-			return nil
-		})
-		if err != nil {
-			return err
-		}
-
-		err = rec.Operation("query_files", func(rec *event.Record) error {
-			var err error
-			files, err = tx.File.Query().
-				Where(predicates...).
-				Order(ent.Desc(file.FieldID)).
-				Offset(opts.Offset).
-				Limit(opts.Limit).
-				All(ctx)
-
-			if err == nil {
-				rec.Sub("query_files").Set(
-					"result_count", len(files),
-				)
-			} else {
-				return fmt.Errorf("couldn't query files: %w", err)
-			}
-
-			return nil
-		})
-		if err != nil {
-			return err
+		if err == nil {
+			rec.Sub("count_total").Set("total_count", totalCount)
+		} else {
+			return fmt.Errorf("couldn't count total: %w", err)
 		}
 
 		return nil
 	})
-
 	if err != nil {
-		return nil, 0, err
+		return nil, -1, err
+	}
+
+	err = rec.Operation("query_files", func(rec *event.Record) error {
+		var err error
+		files, err = s.client.File.Query().
+			Where(predicates...).
+			Order(ent.Desc(file.FieldID)).
+			Offset(opts.Offset).
+			Limit(opts.Limit).
+			All(ctx)
+
+		if err == nil {
+			rec.Sub("query_files").Set(
+				"result_count", len(files),
+			)
+		} else {
+			return fmt.Errorf("couldn't query files: %w", err)
+		}
+
+		return nil
+	})
+	if err != nil {
+		return nil, -1, err
 	}
 
 	rec.Set("success", true)

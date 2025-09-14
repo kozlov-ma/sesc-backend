@@ -14,6 +14,7 @@ import (
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/authuser"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/user"
 	"github.com/kozlov-ma/sesc-backend/iam"
+	"github.com/kozlov-ma/sesc-backend/internal/services/txhelper"
 	"github.com/kozlov-ma/sesc-backend/pkg/event"
 	"github.com/kozlov-ma/sesc-backend/pkg/event/events"
 )
@@ -75,61 +76,43 @@ func (i *IAM) RegisterCredentials(
 	if err := i.validateCredentials(ctx, creds); err != nil {
 		return UUID{}, err
 	}
-
-	txrec := rec.Sub("pg_transaction")
-	txrec.Set("rollback", false)
-
 	txStart := time.Now()
 
-	tx, err := i.client.BeginTx(ctx, &sql.TxOptions{
-		Isolation: sql.LevelSerializable,
+	var authID UUID
+	err := txhelper.WithTx(ctx, i.client, sql.LevelSerializable, rec, func(tx *ent.Tx) error {
+		// Stage 2: Check if user exists
+		ctx := rec.Sub("check_user_exists").Wrap(ctx)
+		if err := i.checkUserExists(ctx, tx, userID); err != nil {
+			return err
+		}
+
+		// Stage 3: Check if username is free
+		ctx = rec.Sub("check_username_free").Wrap(ctx)
+		if err := i.checkUsernameFree(ctx, tx, creds.Username, userID); err != nil {
+			return err
+		}
+
+		// Stage 4: Delete old credentials
+		ctx = rec.Sub("delete_old_credentials").Wrap(ctx)
+		if err := i.deleteOldCredentials(ctx, tx, userID); err != nil {
+			return err
+		}
+
+		// Stage 5: Create auth record
+		ctx = rec.Sub("create_auth_record").Wrap(ctx)
+		id, err := i.createAuthRecord(ctx, tx, userID, creds)
+		if err != nil {
+			return err
+		}
+		authID = id
+
+		return nil
 	})
 
 	if err != nil {
-		txrec.Add(events.Error, err)
-		return UUID{}, fmt.Errorf("couldn't start transaction: %w", err)
-	}
-
-	rollback := func(err error) (UUID, error) {
-		txrec.Set("rollback", true)
-		if rbErr := tx.Rollback(); rbErr != nil {
-			txrec.Add(events.Error, err)
-			txrec.Set("rollback_failed", true)
-			return UUID{}, fmt.Errorf("%w: rollback failed: %w", err, rbErr)
-		}
+		rec.Set("success", false)
+		rec.Add(events.Error, err)
 		return UUID{}, err
-	}
-
-	// Stage 2: Check if user exists
-	ctx = rec.Sub("check_user_exists").Wrap(ctx)
-	if err := i.checkUserExists(ctx, tx, userID); err != nil {
-		return rollback(err)
-	}
-
-	// Stage 3: Check if username is free
-	ctx = rec.Sub("check_username_free").Wrap(ctx)
-	if err := i.checkUsernameFree(ctx, tx, creds.Username, userID); err != nil {
-		return rollback(err)
-	}
-
-	// Stage 4: Delete old credentials
-	ctx = rec.Sub("delete_old_credentials").Wrap(ctx)
-	if err := i.deleteOldCredentials(ctx, tx, userID); err != nil {
-		return rollback(err)
-	}
-
-	// Stage 5: Create auth record
-	ctx = rec.Sub("create_auth_record").Wrap(ctx)
-	authID, err := i.createAuthRecord(ctx, tx, userID, creds)
-	if err != nil {
-		return rollback(err)
-	}
-
-	err = tx.Commit()
-	if err != nil {
-		err := fmt.Errorf("couldn't commit transaction: %w", err)
-		txrec.Add(events.Error, err)
-		return rollback(err)
 	}
 
 	statrec.Add(events.PostgresTime, time.Since(txStart))
@@ -645,52 +628,36 @@ func (i *IAM) DropCredentials(ctx context.Context, userID UUID) error {
 	)
 
 	txStart := time.Now()
-	txrec := rec.Sub("pg_transaction")
 
 	// Start a transaction with serializable isolation
-	tx, err := i.client.BeginTx(ctx, &sql.TxOptions{
-		Isolation: sql.LevelSerializable,
-	})
-	if err != nil {
-		err := fmt.Errorf("couldn't start transaction: %w", err)
-		txrec.Add(events.Error, err)
-		return err
-	}
-
-	rollback := func(err error) error {
-		txrec.Set("rollback", true)
-		if rbErr := tx.Rollback(); rbErr != nil {
-			txrec.Add(events.Error, err)
-			txrec.Set("rollback_failed", true)
-			return fmt.Errorf("%w: rollback failed: %w", err, rbErr)
+	err := txhelper.WithTx(ctx, i.client, sql.LevelSerializable, rec, func(tx *ent.Tx) error {
+		// Stage 1: Check if user exists
+		if err := i.checkUserExistsForDrop(ctx, tx, userID); err != nil {
+			return err
 		}
+
+		// Stage 2: Check if credentials exist
+		_, err := i.checkCredentialsExist(ctx, tx, userID)
+		if err != nil {
+			return err
+		}
+
+		// Stage 3: Delete credentials
+		if err := i.deleteCredentials(ctx, tx, userID); err != nil {
+			return err
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		rec.Add(events.Error, err)
+		rec.Add("success", false)
 		return err
-	}
-
-	// Stage 1: Check if user exists
-	if err := i.checkUserExistsForDrop(ctx, tx, userID); err != nil {
-		return rollback(err)
-	}
-
-	// Stage 2: Check if credentials exist
-	_, err = i.checkCredentialsExist(ctx, tx, userID)
-	if err != nil {
-		return rollback(err)
-	}
-
-	// Stage 3: Delete credentials
-	if err := i.deleteCredentials(ctx, tx, userID); err != nil {
-		return rollback(err)
-	}
-
-	err = tx.Commit()
-	if err != nil {
-		err := fmt.Errorf("couldn't commit transaction: %w", err)
-		txrec.Add(events.Error, err)
-		return rollback(err)
 	}
 
 	statrec.Add(events.PostgresTime, time.Since(txStart))
+	rec.Add("success", true)
 
 	return nil
 }

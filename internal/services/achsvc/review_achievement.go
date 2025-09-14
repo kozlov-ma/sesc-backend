@@ -2,6 +2,7 @@ package achsvc
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"time"
 
@@ -9,6 +10,7 @@ import (
 	"github.com/kozlov-ma/sesc-backend/achievement"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent"
 	entAchievement "github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievement"
+	"github.com/kozlov-ma/sesc-backend/internal/services/txhelper"
 	"github.com/kozlov-ma/sesc-backend/pkg/event"
 	"github.com/kozlov-ma/sesc-backend/pkg/event/events"
 	"github.com/kozlov-ma/sesc-backend/sesc"
@@ -34,7 +36,7 @@ func (s *ACS) ReviewAchievement(
 	)
 
 	var updatedAch *ent.Achievement
-	err := withTx(ctx, s.client, func(tx *ent.Tx) error {
+	err := txhelper.WithTx(ctx, s.client, sql.LevelReadCommitted, rec, func(tx *ent.Tx) error {
 		var ach *ent.Achievement
 		err := rec.Operation("query_achievement", func(_ *event.Record) error {
 			start := time.Now()
