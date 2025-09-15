@@ -9,7 +9,9 @@ import (
 	"github.com/gofrs/uuid/v5"
 	"github.com/kozlov-ma/sesc-backend/achievement"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent"
+	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/department"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/user"
+	"github.com/kozlov-ma/sesc-backend/internal/services/txwrapper"
 	"github.com/kozlov-ma/sesc-backend/pkg/event"
 	"github.com/kozlov-ma/sesc-backend/pkg/event/events"
 	"github.com/kozlov-ma/sesc-backend/sesc"
@@ -35,15 +37,6 @@ func New(client *ent.Client) *USS {
 	return &USS{
 		client: client,
 	}
-}
-
-// rollback calls to tx.Rollback and wraps the given error
-// with the rollback error if occurred.
-func rollback(tx *ent.Tx, err error) error {
-	if rerr := tx.Rollback(); rerr != nil {
-		err = fmt.Errorf("%w: %w", err, rerr)
-	}
-	return err
 }
 
 // UpdateUser updates user with the new fields.
@@ -86,48 +79,36 @@ func (s *USS) UpdateUser(ctx context.Context, id UUID, upd UserUpdateOptions) (*
 		return nil, err
 	}
 
-	txrec := rec.Sub("pg_transaction")
-	txrec.Set("rollback", false)
-
+	var us *ent.User
 	txStart := time.Now()
-	tx, err := s.client.BeginTx(ctx, &sql.TxOptions{
-		Isolation: sql.LevelSerializable,
+
+	err := txwrapper.WithTx(ctx, s.client, sql.LevelSerializable, rec, func(tx *ent.Tx) error {
+		// Stage 4: Check and get department if needed
+		ctx := rec.Sub("check_department").Wrap(ctx)
+		dept, err := s.checkAndGetDepartment(ctx, statrec, tx, upd.DepartmentID)
+		if err != nil {
+			return err
+		}
+		// Stage 5: Update user
+		ctx = rec.Sub("update_user_record").Wrap(ctx)
+		if err := s.updateUserRecord(ctx, statrec, tx, id, upd, dept); err != nil {
+			return err
+		}
+
+		// Stage 6: Query updated user
+		ctx = rec.Sub("query_updated_user").Wrap(ctx)
+		us, err = s.queryUpdatedUser(ctx, statrec, tx, id)
+		if err != nil {
+			return err
+		}
+		return nil
 	})
-	if err != nil {
-		err := fmt.Errorf("couldn't start transaction: %w", err)
-		txrec.Add(events.Error, err)
-		return nil, err
-	}
 
-	// Stage 4: Check and get department if needed
-	ctx = rec.Sub("check_department").Wrap(ctx)
-	dept, err := s.checkAndGetDepartment(ctx, statrec, tx, upd.DepartmentID)
 	if err != nil {
-		return nil, rollback(tx, err)
-	}
-
-	// Stage 5: Update user
-	ctx = rec.Sub("update_user_record").Wrap(ctx)
-	if err := s.updateUserRecord(ctx, statrec, tx, id, upd, dept); err != nil {
-		return nil, rollback(tx, err)
-	}
-
-	// Stage 6: Query updated user
-	ctx = rec.Sub("query_updated_user").Wrap(ctx)
-	us, err := s.queryUpdatedUser(ctx, statrec, tx, id)
-	if err != nil {
-		return nil, rollback(tx, err)
-	}
-
-	err = tx.Commit()
-	if err != nil {
-		err := fmt.Errorf("couldn't commit transaction: %w", err)
-		txrec.Add(events.Error, err)
 		return nil, err
 	}
 
 	statrec.Add(events.PostgresTime, time.Since(txStart))
-
 	rec.Set("success", true)
 	rec.Set("user", us)
 	return us, nil
@@ -184,8 +165,11 @@ func (s *USS) checkAndGetDepartment(
 
 	rec.Set("required", true)
 	statrec.Add(events.PostgresQueries, 1)
-
-	dept, err := tx.Department.Get(ctx, *departmentID)
+	// todo uncomment if replace sqlite with postgres(linked with locks in department service)
+	dept, err := tx.Department.Query().
+		Where(department.ID(*departmentID)).
+		// ForShare().
+		Only(ctx)
 	switch {
 	case ent.IsNotFound(err):
 		rec.Set("exists", false)
@@ -304,43 +288,35 @@ func (s *USS) CreateUser(ctx context.Context, opt UserUpdateOptions) (*ent.User,
 	if err := s.validateCreateInput(ctx, opt); err != nil {
 		return nil, err
 	}
-
-	txrec := rec.Sub("pg_transaction")
-	txrec.Set("rollback", false)
+	var us *ent.User
 
 	txStart := time.Now()
-	tx, err := s.client.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelSerializable})
-	if err != nil {
-		err := fmt.Errorf("couldn't begin transaction: %w", err)
-		txrec.Add(events.Error, err)
-		return nil, err
-	}
+	err := txwrapper.WithTx(ctx, s.client, sql.LevelReadCommitted, rec, func(tx *ent.Tx) error {
+		// Stage 2: Check and get department if needed
+		ctx := rec.Sub("check_department").Wrap(ctx)
+		dept, err := s.checkAndGetDepartment(ctx, statrec, tx, opt.DepartmentID)
+		if err != nil {
+			return err
+		}
 
-	// Stage 2: Check and get department if needed
-	ctx = rec.Sub("check_department").Wrap(ctx)
-	dept, err := s.checkAndGetDepartment(ctx, statrec, tx, opt.DepartmentID)
-	if err != nil {
-		return nil, rollback(tx, err)
-	}
+		// Stage 3: Create user record
+		ctx = rec.Sub("create_user_record").Wrap(ctx)
+		userID, err := s.createUserRecord(ctx, statrec, tx, opt, dept)
+		if err != nil {
+			return err
+		}
 
-	// Stage 3: Create user record
-	ctx = rec.Sub("create_user_record").Wrap(ctx)
-	userID, err := s.createUserRecord(ctx, statrec, tx, opt, dept)
+		// Stage 4: Query created user
+		ctx = rec.Sub("query_created_user").Wrap(ctx)
+		us, err = s.queryCreatedUser(ctx, statrec, tx, userID)
+		if err != nil {
+			return err
+		}
+		return nil
+	})
 	if err != nil {
-		return nil, rollback(tx, err)
-	}
-
-	// Stage 4: Query created user
-	ctx = rec.Sub("query_created_user").Wrap(ctx)
-	us, err := s.queryCreatedUser(ctx, statrec, tx, userID)
-	if err != nil {
-		return nil, rollback(tx, err)
-	}
-
-	err = tx.Commit()
-	if err != nil {
-		err := fmt.Errorf("couldn't commit transaction: %w", err)
-		txrec.Add(events.Error, err)
+		rec.Add(events.Error, err)
+		rec.Set("success", false)
 		return nil, err
 	}
 

@@ -2,11 +2,13 @@ package achsvc
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"time"
 
 	"github.com/kozlov-ma/sesc-backend/achievement"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent"
+	"github.com/kozlov-ma/sesc-backend/internal/services/txwrapper"
 	"github.com/kozlov-ma/sesc-backend/pkg/event"
 	"github.com/kozlov-ma/sesc-backend/pkg/event/events"
 	"github.com/kozlov-ma/sesc-backend/sesc"
@@ -31,7 +33,7 @@ func (s *ACS) AddDocument(
 	)
 
 	var doc *ent.AchievementDocument
-	err := withTx(ctx, s.client, func(tx *ent.Tx) error {
+	err := txwrapper.WithTx(ctx, s.client, sql.LevelReadCommitted, rec, func(tx *ent.Tx) error {
 		var ach *ent.Achievement
 		err := rec.Operation("query_achievement", func(rec *event.Record) (err error) {
 			rec.Sub("params").Set(

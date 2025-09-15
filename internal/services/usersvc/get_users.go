@@ -2,6 +2,7 @@ package usersvc
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"slices"
 	"strings"
@@ -11,6 +12,7 @@ import (
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/department"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/predicate"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/user"
+	"github.com/kozlov-ma/sesc-backend/internal/services/txwrapper"
 	"github.com/kozlov-ma/sesc-backend/pkg/event"
 	"github.com/kozlov-ma/sesc-backend/pkg/event/events"
 	"github.com/kozlov-ma/sesc-backend/sesc"
@@ -36,7 +38,7 @@ func (s *USS) Users(
 		users ent.Users
 		total int
 	)
-	err := withTx(ctx, s.client, func(tx *ent.Tx) error {
+	err := txwrapper.WithTx(ctx, s.client, sql.LevelRepeatableRead, rec, func(tx *ent.Tx) error {
 		err := rec.Operation("query_users", func(_ *event.Record) error {
 			filters := userFilters(search)
 			uq := tx.User.Query().WithDepartment()
@@ -83,6 +85,14 @@ func (s *USS) Users(
 
 		return nil
 	})
+
+	if err != nil {
+		rec.Add(events.Error, err)
+		rec.Set("success", false)
+		return nil, -1, err
+	}
+
+	rec.Set("success", true)
 
 	return users, total, err
 }

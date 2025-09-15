@@ -126,19 +126,24 @@ func (s *DES) UpdateDepartment(
 		"description", description,
 	)
 
+	var dep *ent.Department
+
 	startTime := time.Now()
 	statrec.Add(events.PostgresQueries, 1)
-	dep, err := s.client.Department.UpdateOneID(id).SetName(name).SetDescription(description).Save(ctx)
-	statrec.Add(events.PostgresTime, time.Since(startTime))
-
+	_, err := s.client.Department.UpdateOneID(id).SetName(name).SetDescription(description).Save(ctx)
 	if ent.IsNotFound(err) {
-		return nil, sesc.ErrDepartmentNotFound
+		rec.Set("success", false)
+		rec.Add(events.Error, err)
+		return nil, fmt.Errorf("couldn't save department: %w", sesc.ErrDepartmentNotFound)
 	}
-
 	if err != nil {
+		rec.Set("success", false)
+		rec.Add(events.Error, err)
 		return nil, fmt.Errorf("couldn't save department: %w", err)
 	}
 
+	statrec.Add(events.PostgresTime, time.Since(startTime))
+	rec.Set("success", true)
 	return dep, nil
 }
 
@@ -150,12 +155,14 @@ func (s *DES) DeleteDepartment(ctx context.Context, id uuid.UUID) error {
 	rec := event.Get(ctx).Sub("sesc/delete_department")
 
 	rec.Sub("params").Set("id", id)
-	statrec := event.Root(ctx).Sub("stats")
+	statsRec := event.Root(ctx).Sub("stats")
 
 	startTime := time.Now()
-	statrec.Add(events.PostgresQueries, 1)
+
+	statsRec.Add(events.PostgresQueries, 1)
 	err := s.client.Department.DeleteOneID(id).Exec(ctx)
-	statrec.Add(events.PostgresTime, time.Since(startTime))
+
+	statsRec.Add(events.PostgresTime, time.Since(startTime))
 
 	switch {
 	case ent.IsConstraintError(err):
@@ -173,5 +180,6 @@ func (s *DES) DeleteDepartment(ctx context.Context, id uuid.UUID) error {
 		return err
 	}
 
+	rec.Set("success", true)
 	return nil
 }

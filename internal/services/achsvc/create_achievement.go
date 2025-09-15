@@ -2,11 +2,13 @@ package achsvc
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"time"
 
 	"github.com/kozlov-ma/sesc-backend/achievement"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent"
+	"github.com/kozlov-ma/sesc-backend/internal/services/txwrapper"
 	"github.com/kozlov-ma/sesc-backend/pkg/event"
 	"github.com/kozlov-ma/sesc-backend/pkg/event/events"
 )
@@ -26,7 +28,7 @@ func (s *ACS) CreateAchievement(
 	statsRec := event.Root(ctx).Sub("stats")
 
 	var ach *ent.Achievement
-	err := withTx(ctx, s.client, func(tx *ent.Tx) error {
+	err := txwrapper.WithTx(ctx, s.client, sql.LevelReadCommitted, rec, func(tx *ent.Tx) error {
 		var template *ent.AchievementTemplate
 		err := rec.Operation("get_template", func(rec *event.Record) error {
 			rec.Sub("params").Set("template_id", opt.TemplateID)

@@ -2,6 +2,7 @@ package achsvc
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"slices"
 	"strings"
@@ -12,6 +13,7 @@ import (
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/department"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/predicate"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/user"
+	"github.com/kozlov-ma/sesc-backend/internal/services/txwrapper"
 	"github.com/kozlov-ma/sesc-backend/pkg/event"
 	"github.com/kozlov-ma/sesc-backend/pkg/event/events"
 	"github.com/kozlov-ma/sesc-backend/sesc"
@@ -38,7 +40,7 @@ func (s *ACS) GetUsersWithAchievements(
 	var totalUsers int
 	var users []*ent.User
 
-	err := withTx(ctx, s.client, func(tx *ent.Tx) error {
+	err := txwrapper.WithTx(ctx, s.client, sql.LevelReadCommitted, rec, func(tx *ent.Tx) error {
 		err := rec.Operation("count_users", func(_ *event.Record) error {
 			// Get asking user for role-based filtering
 			start := time.Now()

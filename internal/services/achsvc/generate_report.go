@@ -3,6 +3,7 @@ package achsvc
 import (
 	"bytes"
 	"context"
+	"database/sql"
 	"fmt"
 	"time"
 
@@ -11,6 +12,7 @@ import (
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent"
 	entAchievement "github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievement"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/user"
+	"github.com/kozlov-ma/sesc-backend/internal/services/txwrapper"
 	"github.com/kozlov-ma/sesc-backend/pkg/event"
 	"github.com/kozlov-ma/sesc-backend/pkg/event/events"
 	"github.com/xuri/excelize/v2"
@@ -27,42 +29,54 @@ func (s *ACS) GenerateUserPointsReport(ctx context.Context) (*bytes.Buffer, erro
 	rec := event.Get(ctx).Sub("sesc/generate_user_points_report")
 
 	statsRec := event.Get(ctx).Sub("stats")
+
 	queryCount := 0
 	startTime := time.Now()
-	defer func() {
-		statsRec.Add("postgres_queries", queryCount)
-		statsRec.Add("total_time_ms", time.Since(startTime).Milliseconds())
-	}()
+	var excelBuffer *bytes.Buffer
 
-	users, err := s.queryAllUsersForReport(ctx, rec, &queryCount)
+	err := txwrapper.WithTx(ctx, s.client, sql.LevelRepeatableRead, rec, func(tx *ent.Tx) error {
+		users, err := s.queryAllUsersForReport(ctx, tx, rec, &queryCount)
+		if err != nil {
+			return err
+		}
+
+		reportData, err := s.calculateUserPointsData(ctx, tx, rec, users, &queryCount)
+		if err != nil {
+			return err
+		}
+
+		excelBuffer, err = s.createExcelReport(ctx, rec, reportData)
+		if err != nil {
+			return err
+		}
+
+		rec.Sub("result").Set(
+			"users_count", len(users),
+			"report_rows", len(reportData),
+			"excel_size_bytes", excelBuffer.Len(),
+		)
+		return nil
+	})
+
+	statsRec.Add("postgres_queries", queryCount)
+	statsRec.Add("total_time_ms", time.Since(startTime).Milliseconds())
+
 	if err != nil {
 		return nil, err
 	}
-
-	reportData, err := s.calculateUserPointsData(ctx, rec, users, &queryCount)
-	if err != nil {
-		return nil, err
-	}
-
-	excelBuffer, err := s.createExcelReport(ctx, rec, reportData)
-	if err != nil {
-		return nil, err
-	}
-
-	rec.Sub("result").Set(
-		"users_count", len(users),
-		"report_rows", len(reportData),
-		"excel_size_bytes", excelBuffer.Len(),
-	)
-
 	return excelBuffer, nil
 }
 
-func (s *ACS) queryAllUsersForReport(ctx context.Context, rec *event.Record, queryCount *int) ([]*ent.User, error) {
+func (s *ACS) queryAllUsersForReport(
+	ctx context.Context,
+	tx *ent.Tx,
+	rec *event.Record,
+	queryCount *int,
+) ([]*ent.User, error) {
 	var users []*ent.User
 	err := rec.Operation("query_all_users", func(opRec *event.Record) error {
 		queryStart := time.Now()
-		userList, err := s.client.User.Query().
+		userList, err := tx.User.Query().
 			WithDepartment().
 			Order(ent.Asc(user.FieldLastName), ent.Asc(user.FieldFirstName)).
 			All(ctx)
@@ -83,6 +97,7 @@ func (s *ACS) queryAllUsersForReport(ctx context.Context, rec *event.Record, que
 
 func (s *ACS) calculateUserPointsData(
 	ctx context.Context,
+	tx *ent.Tx,
 	rec *event.Record,
 	users []*ent.User,
 	queryCount *int,
@@ -94,7 +109,7 @@ func (s *ACS) calculateUserPointsData(
 			userRec := opRec.Sub(fmt.Sprintf("user_%d", i))
 			userRec.Set("user_id", usr.ID)
 
-			pointsSum, err := s.getUserTotalPoints(ctx, usr.ID, userRec, queryCount)
+			pointsSum, err := s.getUserTotalPoints(ctx, usr.ID, tx, userRec, queryCount)
 			if err != nil {
 				return err
 			}
@@ -119,6 +134,7 @@ func (s *ACS) calculateUserPointsData(
 func (s *ACS) getUserTotalPoints(
 	ctx context.Context,
 	userID uuid.UUID,
+	tx *ent.Tx,
 	userRec *event.Record,
 	queryCount *int,
 ) (int, error) {
@@ -126,7 +142,7 @@ func (s *ACS) getUserTotalPoints(
 	pointsSum := 0
 
 	// First check if user has any done achievements
-	count, err := s.client.Achievement.Query().
+	count, err := tx.Achievement.Query().
 		Where(
 			entAchievement.OwnerID(userID),
 			entAchievement.StatusEQ(string(achievement.StatusDone)),
@@ -142,7 +158,7 @@ func (s *ACS) getUserTotalPoints(
 
 	// Only sum points if there are achievements
 	if count > 0 {
-		sumResult, err := s.client.Achievement.Query().
+		sumResult, err := tx.Achievement.Query().
 			Where(
 				entAchievement.OwnerID(userID),
 				entAchievement.StatusEQ(string(achievement.StatusDone)),

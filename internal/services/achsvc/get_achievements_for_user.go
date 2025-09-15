@@ -2,12 +2,14 @@ package achsvc
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"time"
 
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent"
 	entAchievement "github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievement"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/user"
+	"github.com/kozlov-ma/sesc-backend/internal/services/txwrapper"
 	"github.com/kozlov-ma/sesc-backend/pkg/event"
 	"github.com/kozlov-ma/sesc-backend/pkg/event/events"
 	"github.com/kozlov-ma/sesc-backend/sesc"
@@ -35,7 +37,7 @@ func (s *ACS) GetUserAchievements(
 	var totalAchievements int
 	var achievementEntities []*ent.Achievement
 
-	err := withTx(ctx, s.client, func(tx *ent.Tx) error {
+	err := txwrapper.WithTx(ctx, s.client, sql.LevelReadCommitted, rec, func(tx *ent.Tx) error {
 		var askingUser *ent.User
 		err := rec.Operation("query_asking_user", func(rec *event.Record) (err error) {
 			rec.Sub("params").Set(
