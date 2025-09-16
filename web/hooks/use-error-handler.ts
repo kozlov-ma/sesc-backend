@@ -1,6 +1,6 @@
-import { useState, useCallback } from "react";
-import { ApiError, parseApiError, getErrorMessage } from "@/lib/error-handler";
 import { useErrorContext } from "@/context/error-context";
+import { ApiError, getErrorMessage, parseApiError } from "@/lib/error-handler";
+import { useCallback, useState } from "react";
 
 interface UseErrorHandlerOptions {
   clearOnUnmount?: boolean;

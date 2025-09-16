@@ -1,9 +1,16 @@
 "use client";
 
-import { useState } from "react";
-import type { RespondFile } from "@/lib/api/types.gen";
-import { formatFileSize } from "@/lib/utils";
-import { Download, FileText, Search, Trash2, Upload, X } from "lucide-react";
+import { FileNameDisplay } from "@/components/files/file-name-display";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -15,30 +22,25 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { UserAvatar } from "@/components/ui/user-avatar";
-import { cn } from "@/lib/utils";
+import { useAuth } from "@/hooks/use-auth";
+import { useErrorHandler } from "@/hooks/use-error-handler";
+import { useInfiniteScroll } from "@/hooks/use-infinite-scroll";
+import {
+  deleteFilesByIdMutation,
+  getFilesInfiniteOptions,
+  postFilesMutation,
+} from "@/lib/api/@tanstack/react-query.gen";
+import type { RespondFile } from "@/lib/api/types.gen";
+import { getErrorMessage } from "@/lib/error-handler";
+import { cn, formatFileSize } from "@/lib/utils";
 import {
   useInfiniteQuery,
   useMutation,
   useQueryClient,
 } from "@tanstack/react-query";
-import { useInfiniteScroll } from "@/hooks/use-infinite-scroll";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { FileNameDisplay } from "@/components/files/file-name-display";
-import {
-  getFilesInfiniteOptions,
-  postFilesMutation,
-  deleteFilesByIdMutation,
-} from "@/lib/api/@tanstack/react-query.gen";
-import { useAuth } from "@/hooks/use-auth";
+import { Download, FileText, Search, Trash2, Upload, X } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
 
 interface FileTableProps {
   showOwner?: boolean;
@@ -65,6 +67,7 @@ export function FileTable({
   const [fileToDelete, setFileToDelete] = useState<RespondFile | null>(null);
   const queryClient = useQueryClient();
   const { token } = useAuth();
+  const { handleError, clearError } = useErrorHandler();
 
   const fileOpt = getFilesInfiniteOptions({
     query: {
@@ -91,14 +94,36 @@ export function FileTable({
   const uploadFileMutation = useMutation({
     ...postFilesMutation(),
     onSuccess: () => {
+      toast.success("Файл загружен", {
+        description: "Файл успешно загружен в систему",
+      });
       queryClient.invalidateQueries({ queryKey: fileOpt.queryKey });
+      clearError();
+    },
+    onError: (error) => {
+      handleError(error);
+      const errorMessage = getErrorMessage(error);
+      toast.error("Ошибка загрузки файла", {
+        description: errorMessage,
+      });
     },
   });
 
   const deleteFileMutation = useMutation({
     ...deleteFilesByIdMutation(),
     onSuccess: () => {
+      toast.success("Файл удален", {
+        description: "Файл успешно удален из системы",
+      });
       queryClient.invalidateQueries({ queryKey: fileOpt.queryKey });
+      clearError();
+    },
+    onError: (error) => {
+      handleError(error);
+      const errorMessage = getErrorMessage(error);
+      toast.error("Ошибка удаления файла", {
+        description: errorMessage,
+      });
     },
   });
 
@@ -128,7 +153,7 @@ export function FileTable({
         body: { file },
       });
     } catch (error) {
-      console.error("Error uploading file:", error);
+      // Ошибка уже обработана в onError мутации
     }
   };
 

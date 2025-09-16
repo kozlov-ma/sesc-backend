@@ -1,24 +1,25 @@
-import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useErrorHandler } from "@/hooks/use-error-handler";
+import {
+  getAchievementsOptions,
+  getFilesInfiniteOptions,
+  postFilesMutation,
+} from "@/lib/api/@tanstack/react-query.gen";
+import { postAchievementsByIdDocuments } from "@/lib/api/sdk.gen";
+import type { RespondFile } from "@/lib/api/types.gen";
 import {
   useInfiniteQuery,
   useMutation,
   useQueryClient,
 } from "@tanstack/react-query";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { Card } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { toast } from "sonner";
-import { postAchievementsByIdDocuments } from "@/lib/api/sdk.gen";
-import {
-  getFilesInfiniteOptions,
-  getAchievementsOptions,
-} from "@/lib/api/@tanstack/react-query.gen";
-import { postFilesMutation } from "@/lib/api/@tanstack/react-query.gen";
-import type { RespondFile } from "@/lib/api/types.gen";
 import { Upload } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
 
 interface AddDocumentFormProps {
   achievementId: string;
@@ -35,6 +36,7 @@ export function AddDocumentForm({
   const [selectedFile, setSelectedFile] = useState<RespondFile | null>(null);
   const [documentName, setDocumentName] = useState("");
   const queryClient = useQueryClient();
+  const { handleError, clearError } = useErrorHandler();
 
   const filesOpt = getFilesInfiniteOptions({
     query: {
@@ -70,8 +72,11 @@ export function AddDocumentForm({
   const uploadFileMutation = useMutation({
     ...postFilesMutation(),
     onSuccess: (data) => {
-      toast.success("Файл загружен");
+      toast.success("Файл загружен", {
+        description: "Файл успешно загружен и готов к прикреплению",
+      });
       queryClient.invalidateQueries({ queryKey: filesOpt.queryKey });
+      clearError();
       // Automatically select the uploaded file
       setSelectedFile(data);
       if (!documentName) {
@@ -86,9 +91,7 @@ export function AddDocumentForm({
   // Mutation for adding document
   const addDocumentMutation = useMutation({
     mutationFn: async () => {
-      if (!selectedFile || !selectedFile.id)
-        throw new Error("No file selected");
-      if (!documentName.trim()) throw new Error("Document name is required");
+      if (!selectedFile || !selectedFile.id) throw new Error("Файл не выбран");
 
       return postAchievementsByIdDocuments({
         path: {
@@ -105,6 +108,7 @@ export function AddDocumentForm({
         description: "Документ успешно прикреплен к достижению",
       });
       queryClient.invalidateQueries({ queryKey: listsOpt.queryKey });
+      clearError();
       onSuccess?.();
     },
     onError: (error) => {
@@ -248,11 +252,7 @@ export function AddDocumentForm({
         </Button>
         <Button
           type="submit"
-          disabled={
-            !selectedFile ||
-            !documentName.trim() ||
-            addDocumentMutation.isPending
-          }
+          disabled={!selectedFile || addDocumentMutation.isPending}
         >
           {addDocumentMutation.isPending ? "Добавление..." : "Добавить"}
         </Button>

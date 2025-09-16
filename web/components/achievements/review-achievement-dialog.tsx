@@ -1,43 +1,6 @@
 "use client";
 
-import { useState } from "react";
-import { useQueryClient, useMutation } from "@tanstack/react-query";
-import { toast } from "sonner";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { FileNameByIdDisplay } from "@/components/files/file-name-display";
-import { RespondAchievement } from "@/lib/api/types.gen";
-
-type ApiAchievement = RespondAchievement;
-import { UserAvatar } from "@/components/ui/user-avatar";
-import {
-  getStatusLabel,
-  getStatusBadgeVariant,
-} from "@/lib/utils/achievements";
-import {
-  getAchievementsUsersOptions,
-  getAchievementsOptions,
-  postAchievementsByIdReviewMutation,
-} from "@/lib/api/@tanstack/react-query.gen";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -48,7 +11,46 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Textarea } from "@/components/ui/textarea";
+import { UserAvatar } from "@/components/ui/user-avatar";
+import { useErrorHandler } from "@/hooks/use-error-handler";
+import {
+  getAchievementsOptions,
+  getAchievementsUsersOptions,
+  postAchievementsByIdReviewMutation,
+} from "@/lib/api/@tanstack/react-query.gen";
+import { RespondAchievement } from "@/lib/api/types.gen";
+import { getErrorMessage } from "@/lib/error-handler";
+import {
+  getStatusBadgeVariant,
+  getStatusLabel,
+} from "@/lib/utils/achievements";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
+import { useState } from "react";
+import { toast } from "sonner";
+
+type ApiAchievement = RespondAchievement;
 
 interface ReviewAchievementDialogProps {
   achievement: ApiAchievement;
@@ -65,13 +67,14 @@ export function ReviewAchievementDialog({
   const [comment, setComment] = useState<string>("");
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const queryClient = useQueryClient();
+  const { handleError, clearError } = useErrorHandler();
 
   // Review achievement mutation
   const reviewMutation = useMutation({
     ...postAchievementsByIdReviewMutation(),
     onSuccess: () => {
       toast.success("Достижение проверено", {
-        description: "Достижение успешно проверено",
+        description: "Достижение успешно проверено и оценено",
       });
       // Invalidate both users and achievements queries
       queryClient.invalidateQueries({
@@ -80,13 +83,15 @@ export function ReviewAchievementDialog({
       queryClient.invalidateQueries({
         queryKey: getAchievementsOptions().queryKey,
       });
+      clearError();
       onOpenChange(false);
     },
     onError: (error) => {
-      toast.error("Ошибка", {
-        description: "Не удалось проверить достижение",
+      handleError(error);
+      const errorMessage = getErrorMessage(error);
+      toast.error("Ошибка проверки достижения", {
+        description: errorMessage,
       });
-      console.error("Error reviewing achievement:", error);
     },
   });
 
@@ -193,9 +198,21 @@ export function ReviewAchievementDialog({
                 id="points"
                 type="number"
                 min="0"
+                max={achievement.points}
                 value={points}
                 onChange={(e) => setPoints(parseInt(e.target.value) || 0)}
+                className={
+                  points > achievement.points ? "border-destructive" : ""
+                }
               />
+              <p className="text-xs text-muted-foreground">
+                Максимальное количество баллов: {achievement.points}
+                {points > achievement.points && (
+                  <span className="text-destructive ml-2">
+                    (превышен лимит)
+                  </span>
+                )}
+              </p>
             </div>
 
             <div className="space-y-2">
@@ -213,7 +230,10 @@ export function ReviewAchievementDialog({
             <Button variant="outline" onClick={() => onOpenChange(false)}>
               Отмена
             </Button>
-            <Button onClick={handleReview} disabled={reviewMutation.isPending}>
+            <Button
+              onClick={handleReview}
+              disabled={reviewMutation.isPending || points > achievement.points}
+            >
               {reviewMutation.isPending ? "Проверка..." : "Проверить"}
             </Button>
           </div>

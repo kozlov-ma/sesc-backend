@@ -1,0 +1,5 @@
+{
+  "importOrder": ["^react$", "^next", "^@/", "^[a-z]"],
+  "importOrderSeparation": true,
+  "importOrderSortSpecifiers": true
+}
