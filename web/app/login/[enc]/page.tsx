@@ -5,7 +5,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/hooks/use-auth";
 import { postAuthLoginMutation } from "@/lib/api/@tanstack/react-query.gen";
 import { useMutation } from "@tanstack/react-query";
-import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { use, useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -67,12 +66,22 @@ export default function QuickLoginPage({
 
   // Auto-login when credentials are available
   useEffect(() => {
-    if (credentials && !loginMutation.isPending) {
+    if (
+      credentials &&
+      !loginMutation.isPending &&
+      !loginMutation.isSuccess &&
+      !loginMutation.isError
+    ) {
       loginMutation.mutate({
         body: credentials,
       });
     }
-  }, [credentials, loginMutation]);
+  }, [
+    credentials,
+    loginMutation.isPending,
+    loginMutation.isSuccess,
+    loginMutation.isError,
+  ]);
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-background">
@@ -86,11 +95,6 @@ export default function QuickLoginPage({
               <p className="text-destructive">{error}</p>
               <Button onClick={() => push("/")}>Вернуться на главную</Button>
             </>
-          ) : loginMutation.isPending ? (
-            <div className="flex flex-col items-center justify-center space-y-4">
-              <Loader2 className="h-8 w-8 animate-spin text-primary" />
-              <p>Выполняется вход в систему...</p>
-            </div>
           ) : (
             <div className="flex flex-col items-center justify-center space-y-4">
               <p>Перенаправление...</p>

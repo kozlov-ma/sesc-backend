@@ -12,7 +12,6 @@ import {
 } from "@/lib/api/@tanstack/react-query.gen";
 import { postAchievementsByIdDocuments } from "@/lib/api/sdk.gen";
 import type { RespondFile } from "@/lib/api/types.gen";
-import { getErrorMessage } from "@/lib/error-handler";
 import {
   useInfiniteQuery,
   useMutation,
@@ -84,23 +83,8 @@ export function AddDocumentForm({
         setDocumentName(data.fileName || "");
       }
     },
-    onError: (error) => {
-      handleError(error);
-      const errorMessage = getErrorMessage(error);
-
-      if (errorMessage.includes("413")) {
-        toast.error("Файл слишком большой", {
-          description: "Размер файла превышает допустимый лимит",
-        });
-      } else if (errorMessage.includes("415")) {
-        toast.error("Неподдерживаемый тип файла", {
-          description: "Выберите файл другого типа",
-        });
-      } else {
-        toast.error("Ошибка загрузки файла", {
-          description: errorMessage,
-        });
-      }
+    onError: () => {
+      toast.error("Не удалось загрузить файл");
     },
   });
 
@@ -108,8 +92,6 @@ export function AddDocumentForm({
   const addDocumentMutation = useMutation({
     mutationFn: async () => {
       if (!selectedFile || !selectedFile.id) throw new Error("Файл не выбран");
-      if (!documentName.trim())
-        throw new Error("Название документа обязательно");
 
       return postAchievementsByIdDocuments({
         path: {
@@ -130,27 +112,10 @@ export function AddDocumentForm({
       onSuccess?.();
     },
     onError: (error) => {
-      handleError(error);
-      const errorMessage = getErrorMessage(error);
-
-      if (errorMessage.includes("400")) {
-        toast.error("Некорректные данные", {
-          description: "Проверьте правильность заполнения полей",
-        });
-      } else if (errorMessage.includes("404")) {
-        toast.error("Достижение не найдено", {
-          description: "Достижение могло быть удалено",
-        });
-      } else if (errorMessage.includes("403")) {
-        toast.error("Доступ запрещен", {
-          description:
-            "У вас нет прав для добавления документов к этому достижению",
-        });
-      } else {
-        toast.error("Ошибка добавления документа", {
-          description: errorMessage,
-        });
-      }
+      toast.error("Ошибка", {
+        description: "Не удалось добавить документ",
+      });
+      console.error("Error adding document:", error);
     },
   });
 

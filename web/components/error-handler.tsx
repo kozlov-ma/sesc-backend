@@ -1,17 +1,22 @@
 "use client";
 
-import { useErrorContext } from "@/context/error-context";
 import { ErrorMessage } from "@/components/ui/error-message";
-import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useErrorContext } from "@/context/error-context";
+import { AnimatePresence, motion } from "framer-motion";
 import { X } from "lucide-react";
+import { useEffect, useState } from "react";
 
-export function GlobalErrorHandler({ children }: { children: React.ReactNode }) {
+export function GlobalErrorHandler({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const { error, clearError } = useErrorContext();
   const [visible, setVisible] = useState(false);
 
   // Only show errors that are severe enough to be global (typically 5xx errors)
-  const shouldShowError = error && (error.statusCode === undefined || error.statusCode >= 500);
+  const shouldShowError =
+    error && (error.statusCode === undefined || error.statusCode >= 500);
 
   useEffect(() => {
     if (shouldShowError) {
@@ -29,7 +34,7 @@ export function GlobalErrorHandler({ children }: { children: React.ReactNode }) 
   return (
     <>
       {children}
-      
+
       <AnimatePresence>
         {visible && shouldShowError && (
           <motion.div
@@ -54,4 +59,4 @@ export function GlobalErrorHandler({ children }: { children: React.ReactNode }) 
       </AnimatePresence>
     </>
   );
-} 
+}

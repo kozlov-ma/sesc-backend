@@ -89,22 +89,9 @@ export function ReviewAchievementDialog({
     onError: (error) => {
       handleError(error);
       const errorMessage = getErrorMessage(error);
-
-      if (errorMessage.includes("404")) {
-        toast.error("Достижение не найдено", {
-          description: "Достижение могло быть удалено или изменено",
-        });
-      } else if (errorMessage.includes("409")) {
-        toast.error("Достижение уже проверено", {
-          description: "Это достижение уже было проверено ранее",
-        });
-      } else {
-        toast.error("Ошибка проверки достижения", {
-          description:
-            errorMessage ||
-            "Произошла непредвиденная ошибка. Попробуйте еще раз или обратитесь к администратору",
-        });
-      }
+      toast.error("Ошибка проверки достижения", {
+        description: errorMessage,
+      });
     },
   });
 

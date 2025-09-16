@@ -64,26 +64,10 @@ export function AdminLoginForm() {
     },
     onError: (error) => {
       handleFormError(error);
-
-      // Показываем специфичные сообщения об ошибках
       const errorMessage = getErrorMessage(error);
-      if (errorMessage.includes("401")) {
-        toast.error("Ошибка входа администратора", {
-          description: "Неверное имя администратора или пароль",
-        });
-      } else if (errorMessage.includes("403")) {
-        toast.error("Доступ запрещен", {
-          description: "У вас нет прав администратора",
-        });
-      } else if (errorMessage.includes("network")) {
-        toast.error("Ошибка подключения", {
-          description: "Проверьте подключение к интернету и попробуйте снова",
-        });
-      } else {
-        toast.error("Ошибка входа", {
-          description: errorMessage,
-        });
-      }
+      toast.error("Ошибка входа", {
+        description: errorMessage,
+      });
     },
   });
 

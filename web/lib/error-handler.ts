@@ -103,18 +103,3 @@ export function getErrorMessage(error: unknown): string {
   const apiError = parseApiError(error);
   return apiError.ruMessage || apiError.message;
 }
-
-// Enhanced error message with context
-export function getErrorMessageWithContext(
-  error: unknown,
-  context?: { component?: string; action?: string },
-): string {
-  const apiError = parseApiError(error);
-  let message = apiError.ruMessage || apiError.message;
-
-  if (context?.component && context?.action) {
-    message = `${message} (${context.component}: ${context.action})`;
-  }
-
-  return message;
-}

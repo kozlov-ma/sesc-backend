@@ -103,24 +103,9 @@ export function FileTable({
     onError: (error) => {
       handleError(error);
       const errorMessage = getErrorMessage(error);
-
-      if (errorMessage.includes("413")) {
-        toast.error("Файл слишком большой", {
-          description: "Размер файла превышает допустимый лимит",
-        });
-      } else if (errorMessage.includes("415")) {
-        toast.error("Неподдерживаемый тип файла", {
-          description: "Выберите файл другого типа",
-        });
-      } else if (errorMessage.includes("network")) {
-        toast.error("Ошибка подключения", {
-          description: "Проверьте подключение к интернету и попробуйте снова",
-        });
-      } else {
-        toast.error("Ошибка загрузки файла", {
-          description: errorMessage,
-        });
-      }
+      toast.error("Ошибка загрузки файла", {
+        description: errorMessage,
+      });
     },
   });
 
@@ -136,20 +121,9 @@ export function FileTable({
     onError: (error) => {
       handleError(error);
       const errorMessage = getErrorMessage(error);
-
-      if (errorMessage.includes("404")) {
-        toast.error("Файл не найден", {
-          description: "Файл мог быть уже удален",
-        });
-      } else if (errorMessage.includes("403")) {
-        toast.error("Доступ запрещен", {
-          description: "У вас нет прав для удаления этого файла",
-        });
-      } else {
-        toast.error("Ошибка удаления файла", {
-          description: errorMessage,
-        });
-      }
+      toast.error("Ошибка удаления файла", {
+        description: errorMessage,
+      });
     },
   });
 
