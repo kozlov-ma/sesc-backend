@@ -93,7 +93,6 @@ func NewWithDBOptions(ctx context.Context, cfg *config.Config, log *slog.Logger,
 
 	// Initialize services
 	iamService := iamsvc.New(client, 7*24*time.Hour, adminCredentials, []byte(cfg.JWTSecret))
-	sescService := sescsvc.New(client)
 
 	// Initialize S3 storage
 	s3Storage, err := s3svc.NewStorage(
@@ -114,6 +113,8 @@ func NewWithDBOptions(ctx context.Context, cfg *config.Config, log *slog.Logger,
 		s3Storage,
 		cfg.MinIO.BucketName,
 	)
+
+	sescService := sescsvc.New(client, fileService, cfg)
 
 	apiService := api.New(sescService, iamService, fileService, slogsink.New(log))
 

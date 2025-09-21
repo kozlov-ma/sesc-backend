@@ -9,6 +9,7 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	uuid "github.com/gofrs/uuid/v5"
+	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/accountingperiod"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/file"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/user"
 )
@@ -26,6 +27,8 @@ type File struct {
 	Name string `json:"name,omitempty"`
 	// Size holds the value of the "size" field.
 	Size int `json:"size,omitempty"`
+	// AccountingPeriodID holds the value of the "accounting_period_id" field.
+	AccountingPeriodID *int `json:"accounting_period_id,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the FileQuery when eager-loading is set.
 	Edges        FileEdges `json:"edges"`
@@ -38,9 +41,11 @@ type FileEdges struct {
 	Owner *User `json:"owner,omitempty"`
 	// AchievementDocuments holds the value of the achievement_documents edge.
 	AchievementDocuments []*AchievementDocument `json:"achievement_documents,omitempty"`
+	// AccountingPeriod holds the value of the accounting_period edge.
+	AccountingPeriod *AccountingPeriod `json:"accounting_period,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [3]bool
 }
 
 // OwnerOrErr returns the Owner value or an error if the edge
@@ -63,6 +68,17 @@ func (e FileEdges) AchievementDocumentsOrErr() ([]*AchievementDocument, error) {
 	return nil, &NotLoadedError{edge: "achievement_documents"}
 }
 
+// AccountingPeriodOrErr returns the AccountingPeriod value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e FileEdges) AccountingPeriodOrErr() (*AccountingPeriod, error) {
+	if e.AccountingPeriod != nil {
+		return e.AccountingPeriod, nil
+	} else if e.loadedTypes[2] {
+		return nil, &NotFoundError{label: accountingperiod.Label}
+	}
+	return nil, &NotLoadedError{edge: "accounting_period"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*File) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
@@ -70,7 +86,7 @@ func (*File) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case file.FieldOwnerID:
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
-		case file.FieldSize:
+		case file.FieldSize, file.FieldAccountingPeriodID:
 			values[i] = new(sql.NullInt64)
 		case file.FieldS3ObjectKey, file.FieldName:
 			values[i] = new(sql.NullString)
@@ -122,6 +138,13 @@ func (f *File) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				f.Size = int(value.Int64)
 			}
+		case file.FieldAccountingPeriodID:
+			if value, ok := values[i].(*sql.NullInt64); !ok {
+				return fmt.Errorf("unexpected type %T for field accounting_period_id", values[i])
+			} else if value.Valid {
+				f.AccountingPeriodID = new(int)
+				*f.AccountingPeriodID = int(value.Int64)
+			}
 		default:
 			f.selectValues.Set(columns[i], values[i])
 		}
@@ -143,6 +166,11 @@ func (f *File) QueryOwner() *UserQuery {
 // QueryAchievementDocuments queries the "achievement_documents" edge of the File entity.
 func (f *File) QueryAchievementDocuments() *AchievementDocumentQuery {
 	return NewFileClient(f.config).QueryAchievementDocuments(f)
+}
+
+// QueryAccountingPeriod queries the "accounting_period" edge of the File entity.
+func (f *File) QueryAccountingPeriod() *AccountingPeriodQuery {
+	return NewFileClient(f.config).QueryAccountingPeriod(f)
 }
 
 // Update returns a builder for updating this File.
@@ -181,6 +209,11 @@ func (f *File) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("size=")
 	builder.WriteString(fmt.Sprintf("%v", f.Size))
+	builder.WriteString(", ")
+	if v := f.AccountingPeriodID; v != nil {
+		builder.WriteString("accounting_period_id=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
 	builder.WriteByte(')')
 	return builder.String()
 }

@@ -6,6 +6,7 @@ import (
 	"io"
 
 	"github.com/gofrs/uuid/v5"
+	accountingperiod "github.com/kozlov-ma/sesc-backend/accounting_period"
 	"github.com/kozlov-ma/sesc-backend/achievement"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent"
 	"github.com/kozlov-ma/sesc-backend/iam"
@@ -119,6 +120,24 @@ type (
 
 		// MarkAllDoneAchievementsAsAccounted marks all achievements with "done" status as "accounted"
 		MarkAllDoneAchievementsAsAccounted(ctx context.Context) (int, error)
+
+		// Accounting Period operations
+		CreateAccountingPeriod(ctx context.Context, opt accountingperiod.CreateOptions) (*ent.AccountingPeriod, error)
+		GetAccountingPeriodByID(ctx context.Context, id int) (*ent.AccountingPeriod, error)
+		GetAccountingPeriods(ctx context.Context) ([]*ent.AccountingPeriod, error)
+		GetCurrentAccountingPeriod(ctx context.Context) (*ent.AccountingPeriod, error)
+		GetPlanningAccountingPeriod(ctx context.Context) (*ent.AccountingPeriod, error)
+		UpdateAccountingPeriod(
+			ctx context.Context,
+			id int,
+			opt accountingperiod.UpdateOptions,
+		) (*ent.AccountingPeriod, error)
+
+		// Accounting Period status transitions
+		BeginCollection(ctx context.Context, id int) (*ent.AccountingPeriod, error)
+		FinishPeriod(ctx context.Context, id int) (*ent.AccountingPeriod, error)
+		CancelPeriod(ctx context.Context, id int) (*ent.AccountingPeriod, error)
+		MarkAsNonExecuted(ctx context.Context, id int) (*ent.AccountingPeriod, error)
 	}
 
 	// FileService defines the file operations interface required by the API

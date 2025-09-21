@@ -7,12 +7,14 @@ import (
 	"math/rand/v2"
 	"net/url"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/go-openapi/runtime"
 	httptransport "github.com/go-openapi/runtime/client"
 	"github.com/go-openapi/strfmt"
 	"github.com/kozlov-ma/sesc-backend/apiclient/client"
+	"github.com/kozlov-ma/sesc-backend/apiclient/client/accounting_periods"
 	"github.com/kozlov-ma/sesc-backend/apiclient/client/achievement_groups"
 	"github.com/kozlov-ma/sesc-backend/apiclient/client/achievement_templates"
 	"github.com/kozlov-ma/sesc-backend/apiclient/client/achievements"
@@ -90,6 +92,16 @@ type FileInfo struct {
 	Filename string
 }
 
+type AccountingPeriodInfo struct {
+	ID                     int64
+	Name                   string
+	Description            string
+	Status                 string
+	StartPlanningDate      string
+	StartAchCollectionDate string
+	FinishDate             string
+}
+
 // NewTestClient creates a new test client
 func NewTestClient(host string) *TestClient {
 	// If host is empty, try to get from environment
@@ -127,6 +139,7 @@ func (c *TestClient) LoginAdmin(username, password string) error {
 		return fmt.Errorf("admin login failed: %w", err)
 	}
 
+	c.userToken = *authResp.Payload.Token
 	c.authInfo = httptransport.BearerToken(*authResp.Payload.Token)
 	return nil
 }
@@ -507,6 +520,154 @@ func transliterate(text string) string {
 	}
 
 	return result.String()
+}
+
+func (c *TestClient) CreateAccountingPeriod(name, description string) (*AccountingPeriodInfo, error) {
+	req := &models.APICreateAccountingPeriodRequest{
+		Name:                   name,
+		Description:            description,
+		StartPlanningDate:      "2025-01-01",
+		StartAchCollectionDate: "2025-02-01",
+		FinishDate:             "2025-03-01",
+	}
+
+	params := accounting_periods.NewPostAccountingPeriodsParams()
+	params.Request = req
+	params.Authorization = &c.userToken
+
+	resp, err := c.apiClient.AccountingPeriods.PostAccountingPeriods(params, c.authInfo)
+	if err != nil {
+		return nil, err
+	}
+
+	period := resp.GetPayload()
+	return &AccountingPeriodInfo{
+		ID:                     *period.ID,
+		Name:                   *period.Name,
+		Description:            *period.Description,
+		Status:                 *period.Status,
+		StartPlanningDate:      period.StartPlanningDate,
+		StartAchCollectionDate: period.StartAchCollectionDate,
+		FinishDate:             period.FinishDate,
+	}, nil
+}
+
+func (c *TestClient) BeginCollection(periodID int64) (*AccountingPeriodInfo, error) {
+	params := accounting_periods.NewPostAccountingPeriodsPeriodIDBeginCollectionParams()
+	params.PeriodID = strconv.FormatInt(periodID, 10)
+	params.Authorization = &c.userToken
+
+	resp, err := c.apiClient.AccountingPeriods.PostAccountingPeriodsPeriodIDBeginCollection(params, c.authInfo)
+	if err != nil {
+		return nil, err
+	}
+
+	period := resp.GetPayload()
+	return &AccountingPeriodInfo{
+		ID:                     *period.ID,
+		Name:                   *period.Name,
+		Description:            *period.Description,
+		Status:                 *period.Status,
+		StartPlanningDate:      period.StartPlanningDate,
+		StartAchCollectionDate: period.StartAchCollectionDate,
+		FinishDate:             period.FinishDate,
+	}, nil
+}
+
+func (c *TestClient) FinishPeriod(periodID int64) (*AccountingPeriodInfo, error) {
+	params := accounting_periods.NewPostAccountingPeriodsPeriodIDFinishParams()
+	params.PeriodID = strconv.FormatInt(periodID, 10)
+	params.Authorization = &c.userToken
+
+	resp, err := c.apiClient.AccountingPeriods.PostAccountingPeriodsPeriodIDFinish(params, c.authInfo)
+	if err != nil {
+		return nil, err
+	}
+
+	period := resp.GetPayload()
+	return &AccountingPeriodInfo{
+		ID:                     *period.ID,
+		Name:                   *period.Name,
+		Description:            *period.Description,
+		Status:                 *period.Status,
+		StartPlanningDate:      period.StartPlanningDate,
+		StartAchCollectionDate: period.StartAchCollectionDate,
+		FinishDate:             period.FinishDate,
+	}, nil
+}
+
+func (c *TestClient) GetAccountingPeriods() (*models.RespondAccountingPeriods, error) {
+	params := accounting_periods.NewGetAccountingPeriodsParams()
+	params.Authorization = &c.userToken
+
+	resp, err := c.apiClient.AccountingPeriods.GetAccountingPeriods(params, c.authInfo)
+	if err != nil {
+		return nil, err
+	}
+
+	return resp.GetPayload(), nil
+}
+
+func (c *TestClient) CancelPeriod(periodID int64) (*AccountingPeriodInfo, error) {
+	params := accounting_periods.NewPostAccountingPeriodsPeriodIDCancelParams()
+	params.PeriodID = strconv.FormatInt(periodID, 10)
+	params.Authorization = &c.userToken
+
+	resp, err := c.apiClient.AccountingPeriods.PostAccountingPeriodsPeriodIDCancel(params, c.authInfo)
+	if err != nil {
+		return nil, err
+	}
+
+	period := resp.GetPayload()
+	return &AccountingPeriodInfo{
+		ID:                     *period.ID,
+		Name:                   *period.Name,
+		Description:            *period.Description,
+		Status:                 *period.Status,
+		StartPlanningDate:      period.StartPlanningDate,
+		StartAchCollectionDate: period.StartAchCollectionDate,
+		FinishDate:             period.FinishDate,
+	}, nil
+}
+
+func (c *TestClient) cleanupExistingPeriods(t interface{ Logf(string, ...interface{}) }) {
+	existingPeriods, err := c.GetAccountingPeriods()
+	if err != nil || existingPeriods == nil {
+		return
+	}
+
+	for _, period := range existingPeriods.AccountingPeriods {
+		if period.Status == nil {
+			continue
+		}
+
+		switch *period.Status {
+		case "planning":
+			t.Logf("Canceling existing planning period: %s (ID: %d)", *period.Name, *period.ID)
+			_, err := c.CancelPeriod(*period.ID)
+			if err != nil {
+				t.Logf("Warning: Could not cancel existing period %s: %v", *period.Name, err)
+			}
+		case "achcollect":
+			t.Logf("Finishing existing active period: %s (ID: %d)", *period.Name, *period.ID)
+			_, err := c.FinishPeriod(*period.ID)
+			if err != nil {
+				t.Logf("Warning: Could not finish existing period %s: %v", *period.Name, err)
+			}
+		}
+	}
+}
+
+func (c *TestClient) GetFile(fileID string) (*models.RespondFile, error) {
+	params := files.NewGetFilesIDParams()
+	params.ID = fileID
+
+	resp, err := c.apiClient.Files.GetFilesID(params, c.authInfo)
+	if err != nil {
+		return nil, err
+	}
+
+	return resp.Payload, nil
 }
 
 // GetRoleID returns the role ID for common roles

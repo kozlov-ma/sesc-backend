@@ -10,6 +10,7 @@ import (
 	httptransport "github.com/go-openapi/runtime/client"
 	"github.com/go-openapi/strfmt"
 
+	"github.com/kozlov-ma/sesc-backend/apiclient/client/accounting_periods"
 	"github.com/kozlov-ma/sesc-backend/apiclient/client/achievement_groups"
 	"github.com/kozlov-ma/sesc-backend/apiclient/client/achievement_templates"
 	"github.com/kozlov-ma/sesc-backend/apiclient/client/achievements"
@@ -63,6 +64,7 @@ func New(transport runtime.ClientTransport, formats strfmt.Registry) *Apiclient 
 
 	cli := new(Apiclient)
 	cli.Transport = transport
+	cli.AccountingPeriods = accounting_periods.New(transport, formats)
 	cli.AchievementGroups = achievement_groups.New(transport, formats)
 	cli.AchievementTemplates = achievement_templates.New(transport, formats)
 	cli.Achievements = achievements.New(transport, formats)
@@ -116,6 +118,8 @@ func (cfg *TransportConfig) WithSchemes(schemes []string) *TransportConfig {
 
 // Apiclient is a client for apiclient
 type Apiclient struct {
+	AccountingPeriods accounting_periods.ClientService
+
 	AchievementGroups achievement_groups.ClientService
 
 	AchievementTemplates achievement_templates.ClientService
@@ -140,6 +144,7 @@ type Apiclient struct {
 // SetTransport changes the transport on the client and all its subresources
 func (c *Apiclient) SetTransport(transport runtime.ClientTransport) {
 	c.Transport = transport
+	c.AccountingPeriods.SetTransport(transport)
 	c.AchievementGroups.SetTransport(transport)
 	c.AchievementTemplates.SetTransport(transport)
 	c.Achievements.SetTransport(transport)

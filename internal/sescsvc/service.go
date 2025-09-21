@@ -3,8 +3,12 @@ package sescsvc
 
 import (
 	"github.com/gofrs/uuid/v5"
+	accountingperiod "github.com/kozlov-ma/sesc-backend/accounting_period"
 	"github.com/kozlov-ma/sesc-backend/achievement"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent"
+	"github.com/kozlov-ma/sesc-backend/internal/config"
+	"github.com/kozlov-ma/sesc-backend/internal/filesvc"
+	"github.com/kozlov-ma/sesc-backend/internal/services/accpsvc"
 	"github.com/kozlov-ma/sesc-backend/internal/services/achsvc"
 	"github.com/kozlov-ma/sesc-backend/internal/services/atsvc"
 	"github.com/kozlov-ma/sesc-backend/internal/services/depsvc"
@@ -17,14 +21,16 @@ type SESC struct {
 	*atsvc.ATS
 	*depsvc.DES
 	*usersvc.USS
+	*accpsvc.ACCPS
 }
 
-func New(client *ent.Client) *SESC {
+func New(client *ent.Client, fileService *filesvc.FileService, cfg *config.Config) *SESC {
 	return &SESC{
-		ACS: achsvc.New(client),
-		ATS: atsvc.New(client),
-		DES: depsvc.New(client),
-		USS: usersvc.New(client),
+		ACS:   achsvc.New(client),
+		ATS:   atsvc.New(client),
+		DES:   depsvc.New(client),
+		USS:   usersvc.New(client),
+		ACCPS: accpsvc.New(client, fileService, &cfg.AccountingPeriod),
 	}
 }
 
@@ -38,4 +44,6 @@ type (
 	AchievementTemplateCreateOptions = achievement.TemplateCreateOptions
 	AchievementTemplateUpdateOptions = achievement.TemplateUpdateOptions
 	AchievementTemplateSearchOptions = achievement.TemplateSearchOptions
+	AccountingPeriodCreateOptions    = accountingperiod.CreateOptions
+	AccountingPeriodUpdateOptions    = accountingperiod.UpdateOptions
 )

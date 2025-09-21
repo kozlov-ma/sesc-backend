@@ -122,6 +122,9 @@ func (a *API) RegisterRoutes(r chi.Router) {
 		r.Get("/achievement-groups", a.GetAchievementGroups)
 		r.Get("/achievement-templates", a.GetAchievementTemplates)
 
+		// Accounting periods (read-only for regular users)
+		r.Get("/accounting_periods", a.GetAccountingPeriods)
+
 		// Achievement routes
 		r.Route("/achievements", func(r chi.Router) {
 			r.Use(a.CurrentUserMiddleware)
@@ -162,6 +165,15 @@ func (a *API) RegisterRoutes(r chi.Router) {
 	r.Group(func(r chi.Router) {
 		r.Use(a.RequireAuthMiddleware)
 		r.Use(a.RoleMiddleware("admin"))
+
+		// Accounting periods (admin)
+		r.Put("/accounting_periods/{periodID}", a.UpdateAccountingPeriodInfo)
+		r.Post("/accounting_periods", a.CreateAccountingPeriod)
+		// Status transitions
+		r.Post("/accounting_periods/{periodID}/beginCollection", a.BeginCollection)
+		r.Post("/accounting_periods/{periodID}/finish", a.FinishPeriod)
+		r.Post("/accounting_periods/{periodID}/cancel", a.CancelPeriod)
+		r.Post("/accounting_periods/{periodID}/markAsNonExecuted", a.MarkAsNonExecuted)
 
 		// Setting credentials for a user
 		r.Put("/users/{id}/credentials", a.RegisterUser)

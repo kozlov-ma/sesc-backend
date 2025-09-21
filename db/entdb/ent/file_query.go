@@ -14,6 +14,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	uuid "github.com/gofrs/uuid/v5"
+	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/accountingperiod"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievementdocument"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/file"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/predicate"
@@ -29,6 +30,7 @@ type FileQuery struct {
 	predicates               []predicate.File
 	withOwner                *UserQuery
 	withAchievementDocuments *AchievementDocumentQuery
+	withAccountingPeriod     *AccountingPeriodQuery
 	modifiers                []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -103,6 +105,28 @@ func (fq *FileQuery) QueryAchievementDocuments() *AchievementDocumentQuery {
 			sqlgraph.From(file.Table, file.FieldID, selector),
 			sqlgraph.To(achievementdocument.Table, achievementdocument.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, file.AchievementDocumentsTable, file.AchievementDocumentsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(fq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryAccountingPeriod chains the current query on the "accounting_period" edge.
+func (fq *FileQuery) QueryAccountingPeriod() *AccountingPeriodQuery {
+	query := (&AccountingPeriodClient{config: fq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := fq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := fq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(file.Table, file.FieldID, selector),
+			sqlgraph.To(accountingperiod.Table, accountingperiod.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, file.AccountingPeriodTable, file.AccountingPeriodColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(fq.driver.Dialect(), step)
 		return fromU, nil
@@ -304,6 +328,7 @@ func (fq *FileQuery) Clone() *FileQuery {
 		predicates:               append([]predicate.File{}, fq.predicates...),
 		withOwner:                fq.withOwner.Clone(),
 		withAchievementDocuments: fq.withAchievementDocuments.Clone(),
+		withAccountingPeriod:     fq.withAccountingPeriod.Clone(),
 		// clone intermediate query.
 		sql:  fq.sql.Clone(),
 		path: fq.path,
@@ -329,6 +354,17 @@ func (fq *FileQuery) WithAchievementDocuments(opts ...func(*AchievementDocumentQ
 		opt(query)
 	}
 	fq.withAchievementDocuments = query
+	return fq
+}
+
+// WithAccountingPeriod tells the query-builder to eager-load the nodes that are connected to
+// the "accounting_period" edge. The optional arguments are used to configure the query builder of the edge.
+func (fq *FileQuery) WithAccountingPeriod(opts ...func(*AccountingPeriodQuery)) *FileQuery {
+	query := (&AccountingPeriodClient{config: fq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	fq.withAccountingPeriod = query
 	return fq
 }
 
@@ -410,9 +446,10 @@ func (fq *FileQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*File, e
 	var (
 		nodes       = []*File{}
 		_spec       = fq.querySpec()
-		loadedTypes = [2]bool{
+		loadedTypes = [3]bool{
 			fq.withOwner != nil,
 			fq.withAchievementDocuments != nil,
+			fq.withAccountingPeriod != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -448,6 +485,12 @@ func (fq *FileQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*File, e
 			func(n *File, e *AchievementDocument) {
 				n.Edges.AchievementDocuments = append(n.Edges.AchievementDocuments, e)
 			}); err != nil {
+			return nil, err
+		}
+	}
+	if query := fq.withAccountingPeriod; query != nil {
+		if err := fq.loadAccountingPeriod(ctx, query, nodes, nil,
+			func(n *File, e *AccountingPeriod) { n.Edges.AccountingPeriod = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -516,6 +559,38 @@ func (fq *FileQuery) loadAchievementDocuments(ctx context.Context, query *Achiev
 	}
 	return nil
 }
+func (fq *FileQuery) loadAccountingPeriod(ctx context.Context, query *AccountingPeriodQuery, nodes []*File, init func(*File), assign func(*File, *AccountingPeriod)) error {
+	ids := make([]int, 0, len(nodes))
+	nodeids := make(map[int][]*File)
+	for i := range nodes {
+		if nodes[i].AccountingPeriodID == nil {
+			continue
+		}
+		fk := *nodes[i].AccountingPeriodID
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(accountingperiod.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "accounting_period_id" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
 
 func (fq *FileQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := fq.querySpec()
@@ -547,6 +622,9 @@ func (fq *FileQuery) querySpec() *sqlgraph.QuerySpec {
 		}
 		if fq.withOwner != nil {
 			_spec.Node.AddColumnOnce(file.FieldOwnerID)
+		}
+		if fq.withAccountingPeriod != nil {
+			_spec.Node.AddColumnOnce(file.FieldAccountingPeriodID)
 		}
 	}
 	if ps := fq.predicates; len(ps) > 0 {

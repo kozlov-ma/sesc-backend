@@ -15,6 +15,396 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/accounting_periods": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Получить список всех учетных периодов",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "accounting_periods"
+                ],
+                "summary": "Get all accounting periods",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer JWT token",
+                        "name": "Authorization",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/respond.AccountingPeriods"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/respond.Error"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Создать новый учетный период (всегда создается со статусом \"planning\")",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "accounting_periods"
+                ],
+                "summary": "Create new accounting period",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer JWT token",
+                        "name": "Authorization",
+                        "in": "header"
+                    },
+                    {
+                        "description": "New period",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/api.CreateAccountingPeriodRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/respond.AccountingPeriod"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid data",
+                        "schema": {
+                            "$ref": "#/definitions/respond.Error"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/respond.Error"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/respond.Error"
+                        }
+                    },
+                    "409": {
+                        "description": "Planning period already exists",
+                        "schema": {
+                            "$ref": "#/definitions/respond.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/accounting_periods/{periodID}": {
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Редактировать учетный период",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "accounting_periods"
+                ],
+                "summary": "Update accounting period",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer JWT token",
+                        "name": "Authorization",
+                        "in": "header"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Period ID",
+                        "name": "periodID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Update period",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/api.UpdateAccountingPeriodRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/respond.AccountingPeriod"
+                        }
+                    },
+                    "400": {
+                        "description": "Validation failed",
+                        "schema": {
+                            "$ref": "#/definitions/respond.Error"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/respond.Error"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/respond.Error"
+                        }
+                    },
+                    "404": {
+                        "description": "Not found",
+                        "schema": {
+                            "$ref": "#/definitions/respond.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/accounting_periods/{periodID}/beginCollection": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Перевести период в статус \"achcollect\"",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "accounting_periods"
+                ],
+                "summary": "Begin achievement collection",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer JWT token",
+                        "name": "Authorization",
+                        "in": "header"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Period ID",
+                        "name": "periodID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/respond.AccountingPeriod"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/respond.Error"
+                        }
+                    },
+                    "404": {
+                        "description": "Not found",
+                        "schema": {
+                            "$ref": "#/definitions/respond.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/accounting_periods/{periodID}/cancel": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Отменить учетный период",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "accounting_periods"
+                ],
+                "summary": "Cancel accounting period",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer JWT token",
+                        "name": "Authorization",
+                        "in": "header"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Period ID",
+                        "name": "periodID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/respond.AccountingPeriod"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/respond.Error"
+                        }
+                    },
+                    "404": {
+                        "description": "Not found",
+                        "schema": {
+                            "$ref": "#/definitions/respond.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/accounting_periods/{periodID}/finish": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Перевести период в статус \"finished\"",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "accounting_periods"
+                ],
+                "summary": "Finish accounting period",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer JWT token",
+                        "name": "Authorization",
+                        "in": "header"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Period ID",
+                        "name": "periodID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/respond.AccountingPeriod"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/respond.Error"
+                        }
+                    },
+                    "404": {
+                        "description": "Not found",
+                        "schema": {
+                            "$ref": "#/definitions/respond.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/accounting_periods/{periodID}/markAsNonExecuted": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Перевести период в статус \"nonexecuted\"",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "accounting_periods"
+                ],
+                "summary": "Mark accounting period as not executed",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer JWT token",
+                        "name": "Authorization",
+                        "in": "header"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Period ID",
+                        "name": "periodID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/respond.AccountingPeriod"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/respond.Error"
+                        }
+                    },
+                    "404": {
+                        "description": "Not found",
+                        "schema": {
+                            "$ref": "#/definitions/respond.Error"
+                        }
+                    }
+                }
+            }
+        },
         "/achievement-groups": {
             "get": {
                 "security": [
@@ -2596,6 +2986,31 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "api.CreateAccountingPeriodRequest": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string",
+                    "example": "First quarter of 2025"
+                },
+                "finish_date": {
+                    "type": "string",
+                    "example": "2025-03-01"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "Q1 2025"
+                },
+                "start_ach_collection_date": {
+                    "type": "string",
+                    "example": "2025-02-01"
+                },
+                "start_planning_date": {
+                    "type": "string",
+                    "example": "2025-01-01"
+                }
+            }
+        },
         "api.CreateDepartmentRequest": {
             "type": "object",
             "required": [
@@ -2858,6 +3273,31 @@ const docTemplate = `{
                 }
             }
         },
+        "api.UpdateAccountingPeriodRequest": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string",
+                    "example": "Updated first quarter of 2025"
+                },
+                "finish_date": {
+                    "type": "string",
+                    "example": "2025-03-01"
+                },
+                "name": {
+                    "type": "string",
+                    "example": "Q1 2025 Updated"
+                },
+                "start_ach_collection_date": {
+                    "type": "string",
+                    "example": "2025-02-01"
+                },
+                "start_planning_date": {
+                    "type": "string",
+                    "example": "2025-01-01"
+                }
+            }
+        },
         "api.UpdateDepartmentRequest": {
             "type": "object",
             "required": [
@@ -3008,6 +3448,71 @@ const docTemplate = `{
                 "pointsAssigned": {
                     "type": "integer",
                     "example": 8
+                }
+            }
+        },
+        "respond.AccountingPeriod": {
+            "type": "object",
+            "required": [
+                "description",
+                "id",
+                "name",
+                "status"
+            ],
+            "properties": {
+                "became_non_executed_date": {
+                    "type": "string",
+                    "example": "2025-12-15T00:00:00Z"
+                },
+                "cancel_date": {
+                    "type": "string",
+                    "example": "2025-12-11T00:00:00Z"
+                },
+                "description": {
+                    "type": "string",
+                    "example": "Second quarter"
+                },
+                "finish_date": {
+                    "type": "string",
+                    "example": "2026-01-08T00:00:00Z"
+                },
+                "id": {
+                    "type": "integer",
+                    "example": 2599
+                },
+                "name": {
+                    "type": "string",
+                    "example": "Q2 2025"
+                },
+                "start_ach_collection_date": {
+                    "type": "string",
+                    "example": "2025-11-12T00:00:00Z"
+                },
+                "start_planning_date": {
+                    "type": "string",
+                    "example": "2025-08-01T00:00:00Z"
+                },
+                "status": {
+                    "type": "string",
+                    "example": "planning"
+                }
+            }
+        },
+        "respond.AccountingPeriods": {
+            "type": "object",
+            "required": [
+                "accounting_periods",
+                "total"
+            ],
+            "properties": {
+                "accounting_periods": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/respond.AccountingPeriod"
+                    }
+                },
+                "total": {
+                    "type": "integer"
                 }
             }
         },

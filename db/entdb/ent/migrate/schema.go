@@ -8,6 +8,24 @@ import (
 )
 
 var (
+	// AccountingPeriodsColumns holds the columns for the "accounting_periods" table.
+	AccountingPeriodsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "name", Type: field.TypeString, Unique: true},
+		{Name: "description", Type: field.TypeString, Nullable: true},
+		{Name: "start_planning_date", Type: field.TypeTime, Nullable: true},
+		{Name: "start_achievement_collection_date", Type: field.TypeTime, Nullable: true},
+		{Name: "finish_date", Type: field.TypeTime, Nullable: true},
+		{Name: "cancel_date", Type: field.TypeTime, Nullable: true},
+		{Name: "became_non_executed_date", Type: field.TypeTime, Nullable: true},
+		{Name: "status", Type: field.TypeString, Default: "planning"},
+	}
+	// AccountingPeriodsTable holds the schema information for the "accounting_periods" table.
+	AccountingPeriodsTable = &schema.Table{
+		Name:       "accounting_periods",
+		Columns:    AccountingPeriodsColumns,
+		PrimaryKey: []*schema.Column{AccountingPeriodsColumns[0]},
+	}
 	// AchievementsColumns holds the columns for the "achievements" table.
 	AchievementsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID, Unique: true},
@@ -192,6 +210,7 @@ var (
 		{Name: "s3_object_key", Type: field.TypeString, Unique: true},
 		{Name: "name", Type: field.TypeString},
 		{Name: "size", Type: field.TypeInt},
+		{Name: "accounting_period_id", Type: field.TypeInt, Nullable: true},
 		{Name: "owner_id", Type: field.TypeUUID, Nullable: true},
 	}
 	// FilesTable holds the schema information for the "files" table.
@@ -201,8 +220,14 @@ var (
 		PrimaryKey: []*schema.Column{FilesColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{
 			{
-				Symbol:     "files_users_files",
+				Symbol:     "files_accounting_periods_files",
 				Columns:    []*schema.Column{FilesColumns[4]},
+				RefColumns: []*schema.Column{AccountingPeriodsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "files_users_files",
+				Columns:    []*schema.Column{FilesColumns[5]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -211,7 +236,7 @@ var (
 			{
 				Name:    "file_owner_id",
 				Unique:  false,
-				Columns: []*schema.Column{FilesColumns[4]},
+				Columns: []*schema.Column{FilesColumns[5]},
 			},
 			{
 				Name:    "file_name",
@@ -292,6 +317,7 @@ var (
 	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
+		AccountingPeriodsTable,
 		AchievementsTable,
 		AchievementDocumentsTable,
 		AchievementGroupsTable,
@@ -313,6 +339,7 @@ func init() {
 	AchievementReviewsTable.ForeignKeys[1].RefTable = UsersTable
 	AchievementTemplatesTable.ForeignKeys[0].RefTable = AchievementGroupsTable
 	AuthUsersTable.ForeignKeys[0].RefTable = UsersTable
-	FilesTable.ForeignKeys[0].RefTable = UsersTable
+	FilesTable.ForeignKeys[0].RefTable = AccountingPeriodsTable
+	FilesTable.ForeignKeys[1].RefTable = UsersTable
 	UsersTable.ForeignKeys[0].RefTable = DepartmentsTable
 }

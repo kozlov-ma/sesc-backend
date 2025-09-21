@@ -31,6 +31,11 @@ type Config struct {
 	HTTP             HTTPConfig              `mapstructure:"http"`
 	JWTSecret        string                  `mapstructure:"jwt_secret"`
 	MinIO            MinIOConfig             `mapstructure:"minio"`
+	AccountingPeriod AccountingPeriodConfig  `mapstructure:"accounting_period"`
+}
+
+type AccountingPeriodConfig struct {
+	PeriodsToDeleteDocuments int `mapstructure:"periods_to_delete_documents"`
 }
 
 type DatabaseConfig struct {
@@ -117,6 +122,9 @@ func setDefaults(v *viper.Viper) {
 			Password: "admin",
 		},
 	})
+
+	// Default accounting period configuration
+	v.SetDefault("accounting_period.periods_to_delete_documents", 2)
 }
 
 func (c *Config) ToIAMAdminCredentials() ([]iam.AdminCredentials, error) {

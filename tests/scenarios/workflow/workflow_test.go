@@ -6,6 +6,7 @@ import (
 	"os"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/kozlov-ma/sesc-backend/apiclient/models"
 	"github.com/stretchr/testify/assert"
@@ -22,6 +23,12 @@ const (
 	AchievementsPerUser = 10
 )
 
+// PeriodTestData holds test data for accounting period testing
+type PeriodTestData struct {
+	Period *AccountingPeriodInfo
+	Files  []*FileInfo
+}
+
 // getTestAPIHost returns the API host for testing, using environment variable if available
 func getTestAPIHost() string {
 	if testURL := os.Getenv("TEST_API_URL"); testURL != "" {
@@ -35,6 +42,7 @@ func getTestAPIHost() string {
 // TestData holds all test data created during the scenario
 type TestData struct {
 	Client               *TestClient
+	AccountingPeriod     *AccountingPeriodInfo
 	Departments          []*DepartmentInfo
 	AchievementGroups    []*AchievementGroupInfo
 	AchievementTemplates []*AchievementTemplateInfo
@@ -69,6 +77,7 @@ func TestScenarioFullWorkflow(t *testing.T) {
 	// Define all workflow steps in order
 	steps := []WorkflowStep{
 		{"AdminAuthentication", stepAdminAuthentication},
+		{"CreateAccountingPeriod", stepCreateAccountingPeriod},
 		{"CreateDepartments", stepCreateDepartments},
 		{"CreateAchievementGroups", stepCreateAchievementGroups},
 		{"CreateAchievementTemplates", stepCreateAchievementTemplates},
@@ -83,6 +92,7 @@ func TestScenarioFullWorkflow(t *testing.T) {
 		{"UserVerificationDone", stepUserVerificationDone},
 		{"EconomistMarkAccounted", stepEconomistMarkAccounted},
 		{"UserVerificationAccounted", stepUserVerificationAccounted},
+		{"FinishAccountingPeriod", stepFinishAccountingPeriod},
 	}
 
 	// Execute all workflow steps in sequence with programmatic numbering
@@ -106,20 +116,85 @@ func stepAdminAuthentication(t *testing.T, data *TestData) {
 	t.Log("✅ Admin successfully authenticated")
 }
 
+func stepCreateAccountingPeriod(t *testing.T, data *TestData) {
+	t.Log("Creating Accounting Period")
+
+	// Use a unique name with timestamp to avoid conflicts
+	periodName := fmt.Sprintf("Q1 2025 %d", time.Now().Unix())
+	period, err := data.Client.CreateAccountingPeriod(periodName, "First quarter test period")
+	require.NoError(t, err, "Should be able to create accounting period")
+	require.Equal(t, "planning", period.Status, "Period should start in planning status")
+
+	period, err = data.Client.BeginCollection(period.ID)
+	require.NoError(t, err, "Should be able to begin collection")
+	require.Equal(t, "achcollect", period.Status, "Period should be in achievement collection status")
+
+	data.AccountingPeriod = period
+	t.Logf("✅ Accounting period created: %s (ID: %d, Status: %s)", period.Name, period.ID, period.Status)
+}
+
+func stepFinishAccountingPeriod(t *testing.T, data *TestData) {
+	t.Log("Finishing Accounting Period and Verifying File Retention")
+
+	require.NotNil(t, data.AccountingPeriod, "Accounting period should exist")
+
+	// Re-authenticate as admin since finishing period requires admin privileges
+	err := data.Client.LoginAdmin(AdminUsername, AdminPassword)
+	require.NoError(t, err, "Admin should be able to re-authenticate")
+
+	totalFilesBefore := 0
+	for _, files := range data.Files {
+		totalFilesBefore += len(files)
+	}
+	t.Logf("Total files before period finish: %d", totalFilesBefore)
+
+	period, err := data.Client.FinishPeriod(data.AccountingPeriod.ID)
+	require.NoError(t, err, "Should be able to finish accounting period")
+	require.Equal(t, "finished", period.Status, "Period should be finished")
+
+	// With only one period, files should NOT be deleted due to retention policy
+	// The system keeps files from the 2 most recent periods by default
+	filesKept := 0
+	for userID, files := range data.Files {
+		for _, file := range files {
+			_, err := data.Client.GetFile(file.ID)
+			if err != nil {
+				t.Logf("❌ File %s deleted for user %s (unexpected)", file.Filename, userID)
+			} else {
+				filesKept++
+				t.Logf("✅ File %s still exists for user %s (expected)", file.Filename, userID)
+			}
+		}
+	}
+
+	t.Logf("✅ Accounting period finished: %s (ID: %d, Status: %s)", period.Name, period.ID, period.Status)
+	t.Logf("✅ Files kept: %d out of %d (expected due to retention policy)", filesKept, totalFilesBefore)
+
+	// Verify that all files are kept (no files should be deleted with only one period)
+	require.Equal(
+		t,
+		totalFilesBefore,
+		filesKept,
+		"All files should be kept with only one period due to retention policy",
+	)
+}
+
 // stepCreateDepartments creates the required departments
 func stepCreateDepartments(t *testing.T, data *TestData) {
 	t.Log("Create Departments")
 
+	// Use unique names with timestamp to avoid conflicts
+	timestamp := time.Now().Unix()
 	departments := []struct {
 		name        string
 		description string
 	}{
 		{
-			name:        "Кафедра математики и информатики",
+			name:        fmt.Sprintf("Кафедра математики и информатики %d", timestamp),
 			description: "Кафедра математики и информатики для тестирования",
 		},
 		{
-			name:        "Кафедра гуманитарных наук",
+			name:        fmt.Sprintf("Кафедра гуманитарных наук %d", timestamp),
 			description: "Кафедра гуманитарных наук для тестирования",
 		},
 	}
@@ -664,4 +739,161 @@ func stepUserVerificationAccounted(t *testing.T, data *TestData) {
 
 	t.Log("✅ All users verified their achievements have 'accounted' status")
 	t.Log("🎉 Full workflow scenario completed successfully!")
+}
+
+func setupTestClient(t *testing.T) *TestClient {
+	client := NewTestClient(getTestAPIHost())
+	err := client.LoginAdmin(AdminUsername, AdminPassword)
+	require.NoError(t, err, "Should be able to login as admin")
+	return client
+}
+
+func createTestPeriodsWithFiles(t *testing.T, client *TestClient) []PeriodTestData {
+	var periods []PeriodTestData
+	timestamp := time.Now().Unix()
+	// Create 4 periods to exceed the default retention threshold of 2
+	periodNames := []string{
+		fmt.Sprintf("Q1 2025 %d", timestamp),
+		fmt.Sprintf("Q2 2025 %d", timestamp+1),
+		fmt.Sprintf("Q3 2025 %d", timestamp+2),
+		fmt.Sprintf("Q4 2025 %d", timestamp+3),
+	}
+
+	for i, name := range periodNames {
+		t.Logf("Creating period %d: %s", i+1, name)
+
+		// Create and activate period
+		period := createAndActivatePeriod(t, client, name)
+
+		// Upload files for this period
+		files := uploadTestFiles(t, client, i+1, name)
+
+		// Store period data
+		periods = append(periods, PeriodTestData{
+			Period: period,
+			Files:  files,
+		})
+
+		t.Logf("✅ Period %s created with %d files", name, len(files))
+
+		// Finish period if not the last one (only one can be active at a time)
+		if i < len(periodNames)-1 {
+			periods[i].Period = finishPeriod(t, client, period, name)
+		}
+	}
+
+	return periods
+}
+
+func createAndActivatePeriod(t *testing.T, client *TestClient, name string) *AccountingPeriodInfo {
+	// Create accounting period
+	period, err := client.CreateAccountingPeriod(name, fmt.Sprintf("%s test period", name))
+	require.NoError(t, err, "Should be able to create accounting period %s", name)
+	require.Equal(t, "planning", period.Status, "Period should start in planning status")
+
+	// Begin collection
+	period, err = client.BeginCollection(period.ID)
+	require.NoError(t, err, "Should be able to begin collection for period %s", name)
+	require.Equal(t, "achcollect", period.Status, "Period should be in achievement collection status")
+
+	return period
+}
+
+func uploadTestFiles(t *testing.T, client *TestClient, periodNum int, periodName string) []*FileInfo {
+	var files []*FileInfo
+	for j := range 3 { // 3 files per period
+		filename := fmt.Sprintf("period_%d_file_%d.txt", periodNum, j+1)
+		content := fmt.Sprintf("Content for %s in period %s", filename, periodName)
+
+		file, err := client.UploadFile(filename, []byte(content))
+		require.NoError(t, err, "Should be able to upload file %s", filename)
+
+		files = append(files, file)
+		t.Logf("✅ Uploaded file: %s (ID: %s)", filename, file.ID)
+	}
+	return files
+}
+
+func finishPeriod(t *testing.T, client *TestClient, period *AccountingPeriodInfo, name string) *AccountingPeriodInfo {
+	t.Logf("Finishing period %s to make room for next period", name)
+	finishedPeriod, err := client.FinishPeriod(period.ID)
+	require.NoError(t, err, "Should be able to finish period %s", name)
+	require.Equal(t, "finished", finishedPeriod.Status, "Period should be finished")
+	return finishedPeriod
+}
+
+func verifyFileDeletion(t *testing.T, client *TestClient, periods []PeriodTestData) {
+	// Finish the last period to trigger file deletion
+	lastPeriodIndex := len(periods) - 1
+	lastPeriodData := periods[lastPeriodIndex]
+
+	if lastPeriodData.Period.Status == "achcollect" {
+		t.Logf("Finishing last period: %s", lastPeriodData.Period.Name)
+		finishedPeriod, err := client.FinishPeriod(lastPeriodData.Period.ID)
+		require.NoError(t, err, "Should be able to finish period %s", lastPeriodData.Period.Name)
+		require.Equal(t, "finished", finishedPeriod.Status, "Period should be finished")
+	}
+
+	// With default retention of 2, only the 2 most recent periods (by ID) should keep their files
+	// The older periods (beyond the retention threshold) should have their files deleted
+	// We have 4 periods total, so the 2 oldest by ID should have files deleted
+	t.Log("Verifying file deletion for periods beyond retention threshold...")
+
+	// Period 1 (oldest) should have files deleted
+	verifyPeriodFileDeletion(t, client, 1, periods[0])
+
+	// Period 2 (second oldest) should have files deleted
+	verifyPeriodFileDeletion(t, client, 2, periods[1])
+
+	// Period 3 (second most recent) should keep files
+	verifyPeriodFilesKept(t, client, 3, periods[2])
+
+	// Period 4 (most recent) should keep files
+	verifyPeriodFilesKept(t, client, 4, periods[3])
+}
+
+func verifyPeriodFileDeletion(t *testing.T, client *TestClient, periodNum int, periodData struct {
+	Period *AccountingPeriodInfo
+	Files  []*FileInfo
+}) {
+	t.Logf("Checking files for period %d: %s", periodNum, periodData.Period.Name)
+
+	filesDeleted := 0
+	for _, file := range periodData.Files {
+		_, err := client.GetFile(file.ID)
+		if err != nil {
+			filesDeleted++
+			t.Logf("✅ File %s deleted (expected)", file.Filename)
+		} else {
+			t.Logf("❌ File %s still exists (unexpected)", file.Filename)
+		}
+	}
+
+	require.Equal(t, len(periodData.Files), filesDeleted,
+		"All files from period %s should be deleted", periodData.Period.Name)
+
+	t.Logf("✅ Period %s verification: %d files deleted", periodData.Period.Name, filesDeleted)
+}
+
+func verifyPeriodFilesKept(t *testing.T, client *TestClient, periodNum int, periodData struct {
+	Period *AccountingPeriodInfo
+	Files  []*FileInfo
+}) {
+	t.Logf("Checking files for period %d: %s (should be kept)", periodNum, periodData.Period.Name)
+
+	filesKept := 0
+	for _, file := range periodData.Files {
+		_, err := client.GetFile(file.ID)
+		if err != nil {
+			t.Logf("❌ File %s deleted (unexpected)", file.Filename)
+		} else {
+			filesKept++
+			t.Logf("✅ File %s still exists (expected)", file.Filename)
+		}
+	}
+
+	require.Equal(t, len(periodData.Files), filesKept,
+		"All files from period %s should be kept", periodData.Period.Name)
+
+	t.Logf("✅ Period %s verification: %d files kept", periodData.Period.Name, filesKept)
 }

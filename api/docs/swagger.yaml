@@ -1,4 +1,22 @@
 definitions:
+  api.CreateAccountingPeriodRequest:
+    properties:
+      description:
+        example: First quarter of 2025
+        type: string
+      finish_date:
+        example: "2025-03-01"
+        type: string
+      name:
+        example: Q1 2025
+        type: string
+      start_ach_collection_date:
+        example: "2025-02-01"
+        type: string
+      start_planning_date:
+        example: "2025-01-01"
+        type: string
+    type: object
   api.CreateDepartmentRequest:
     properties:
       description:
@@ -191,6 +209,24 @@ definitions:
     required:
     - token
     type: object
+  api.UpdateAccountingPeriodRequest:
+    properties:
+      description:
+        example: Updated first quarter of 2025
+        type: string
+      finish_date:
+        example: "2025-03-01"
+        type: string
+      name:
+        example: Q1 2025 Updated
+        type: string
+      start_ach_collection_date:
+        example: "2025-02-01"
+        type: string
+      start_planning_date:
+        example: "2025-01-01"
+        type: string
+    type: object
   api.UpdateDepartmentRequest:
     properties:
       description:
@@ -299,6 +335,53 @@ definitions:
         type: integer
     required:
     - pointsAssigned
+    type: object
+  respond.AccountingPeriod:
+    properties:
+      became_non_executed_date:
+        example: "2025-12-15T00:00:00Z"
+        type: string
+      cancel_date:
+        example: "2025-12-11T00:00:00Z"
+        type: string
+      description:
+        example: Second quarter
+        type: string
+      finish_date:
+        example: "2026-01-08T00:00:00Z"
+        type: string
+      id:
+        example: 2599
+        type: integer
+      name:
+        example: Q2 2025
+        type: string
+      start_ach_collection_date:
+        example: "2025-11-12T00:00:00Z"
+        type: string
+      start_planning_date:
+        example: "2025-08-01T00:00:00Z"
+        type: string
+      status:
+        example: planning
+        type: string
+    required:
+    - description
+    - id
+    - name
+    - status
+    type: object
+  respond.AccountingPeriods:
+    properties:
+      accounting_periods:
+        items:
+          $ref: '#/definitions/respond.AccountingPeriod'
+        type: array
+      total:
+        type: integer
+    required:
+    - accounting_periods
+    - total
     type: object
   respond.Achievement:
     properties:
@@ -598,6 +681,254 @@ info:
   title: SESC Management API
   version: "1.0"
 paths:
+  /accounting_periods:
+    get:
+      description: Получить список всех учетных периодов
+      parameters:
+      - description: Bearer JWT token
+        in: header
+        name: Authorization
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/respond.AccountingPeriods'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/respond.Error'
+      security:
+      - BearerAuth: []
+      summary: Get all accounting periods
+      tags:
+      - accounting_periods
+    post:
+      consumes:
+      - application/json
+      description: Создать новый учетный период (всегда создается со статусом "planning")
+      parameters:
+      - description: Bearer JWT token
+        in: header
+        name: Authorization
+        type: string
+      - description: New period
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/api.CreateAccountingPeriodRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/respond.AccountingPeriod'
+        "400":
+          description: Invalid data
+          schema:
+            $ref: '#/definitions/respond.Error'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/respond.Error'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/respond.Error'
+        "409":
+          description: Planning period already exists
+          schema:
+            $ref: '#/definitions/respond.Error'
+      security:
+      - BearerAuth: []
+      summary: Create new accounting period
+      tags:
+      - accounting_periods
+  /accounting_periods/{periodID}:
+    put:
+      consumes:
+      - application/json
+      description: Редактировать учетный период
+      parameters:
+      - description: Bearer JWT token
+        in: header
+        name: Authorization
+        type: string
+      - description: Period ID
+        in: path
+        name: periodID
+        required: true
+        type: string
+      - description: Update period
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/api.UpdateAccountingPeriodRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/respond.AccountingPeriod'
+        "400":
+          description: Validation failed
+          schema:
+            $ref: '#/definitions/respond.Error'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/respond.Error'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/respond.Error'
+        "404":
+          description: Not found
+          schema:
+            $ref: '#/definitions/respond.Error'
+      security:
+      - BearerAuth: []
+      summary: Update accounting period
+      tags:
+      - accounting_periods
+  /accounting_periods/{periodID}/beginCollection:
+    post:
+      description: Перевести период в статус "achcollect"
+      parameters:
+      - description: Bearer JWT token
+        in: header
+        name: Authorization
+        type: string
+      - description: Period ID
+        in: path
+        name: periodID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/respond.AccountingPeriod'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/respond.Error'
+        "404":
+          description: Not found
+          schema:
+            $ref: '#/definitions/respond.Error'
+      security:
+      - BearerAuth: []
+      summary: Begin achievement collection
+      tags:
+      - accounting_periods
+  /accounting_periods/{periodID}/cancel:
+    post:
+      description: Отменить учетный период
+      parameters:
+      - description: Bearer JWT token
+        in: header
+        name: Authorization
+        type: string
+      - description: Period ID
+        in: path
+        name: periodID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/respond.AccountingPeriod'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/respond.Error'
+        "404":
+          description: Not found
+          schema:
+            $ref: '#/definitions/respond.Error'
+      security:
+      - BearerAuth: []
+      summary: Cancel accounting period
+      tags:
+      - accounting_periods
+  /accounting_periods/{periodID}/finish:
+    post:
+      description: Перевести период в статус "finished"
+      parameters:
+      - description: Bearer JWT token
+        in: header
+        name: Authorization
+        type: string
+      - description: Period ID
+        in: path
+        name: periodID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/respond.AccountingPeriod'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/respond.Error'
+        "404":
+          description: Not found
+          schema:
+            $ref: '#/definitions/respond.Error'
+      security:
+      - BearerAuth: []
+      summary: Finish accounting period
+      tags:
+      - accounting_periods
+  /accounting_periods/{periodID}/markAsNonExecuted:
+    post:
+      description: Перевести период в статус "nonexecuted"
+      parameters:
+      - description: Bearer JWT token
+        in: header
+        name: Authorization
+        type: string
+      - description: Period ID
+        in: path
+        name: periodID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/respond.AccountingPeriod'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/respond.Error'
+        "404":
+          description: Not found
+          schema:
+            $ref: '#/definitions/respond.Error'
+      security:
+      - BearerAuth: []
+      summary: Mark accounting period as not executed
+      tags:
+      - accounting_periods
   /achievement-groups:
     get:
       description: Retrieves all achievement groups with filtering options

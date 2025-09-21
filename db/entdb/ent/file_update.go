@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	uuid "github.com/gofrs/uuid/v5"
+	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/accountingperiod"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievementdocument"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/file"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/predicate"
@@ -99,6 +100,26 @@ func (fu *FileUpdate) AddSize(i int) *FileUpdate {
 	return fu
 }
 
+// SetAccountingPeriodID sets the "accounting_period_id" field.
+func (fu *FileUpdate) SetAccountingPeriodID(i int) *FileUpdate {
+	fu.mutation.SetAccountingPeriodID(i)
+	return fu
+}
+
+// SetNillableAccountingPeriodID sets the "accounting_period_id" field if the given value is not nil.
+func (fu *FileUpdate) SetNillableAccountingPeriodID(i *int) *FileUpdate {
+	if i != nil {
+		fu.SetAccountingPeriodID(*i)
+	}
+	return fu
+}
+
+// ClearAccountingPeriodID clears the value of the "accounting_period_id" field.
+func (fu *FileUpdate) ClearAccountingPeriodID() *FileUpdate {
+	fu.mutation.ClearAccountingPeriodID()
+	return fu
+}
+
 // SetOwner sets the "owner" edge to the User entity.
 func (fu *FileUpdate) SetOwner(u *User) *FileUpdate {
 	return fu.SetOwnerID(u.ID)
@@ -117,6 +138,11 @@ func (fu *FileUpdate) AddAchievementDocuments(a ...*AchievementDocument) *FileUp
 		ids[i] = a[i].ID
 	}
 	return fu.AddAchievementDocumentIDs(ids...)
+}
+
+// SetAccountingPeriod sets the "accounting_period" edge to the AccountingPeriod entity.
+func (fu *FileUpdate) SetAccountingPeriod(a *AccountingPeriod) *FileUpdate {
+	return fu.SetAccountingPeriodID(a.ID)
 }
 
 // Mutation returns the FileMutation object of the builder.
@@ -149,6 +175,12 @@ func (fu *FileUpdate) RemoveAchievementDocuments(a ...*AchievementDocument) *Fil
 		ids[i] = a[i].ID
 	}
 	return fu.RemoveAchievementDocumentIDs(ids...)
+}
+
+// ClearAccountingPeriod clears the "accounting_period" edge to the AccountingPeriod entity.
+func (fu *FileUpdate) ClearAccountingPeriod() *FileUpdate {
+	fu.mutation.ClearAccountingPeriod()
+	return fu
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -273,6 +305,35 @@ func (fu *FileUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if fu.mutation.AccountingPeriodCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   file.AccountingPeriodTable,
+			Columns: []string{file.AccountingPeriodColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(accountingperiod.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := fu.mutation.AccountingPeriodIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   file.AccountingPeriodTable,
+			Columns: []string{file.AccountingPeriodColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(accountingperiod.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, fu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{file.Label}
@@ -362,6 +423,26 @@ func (fuo *FileUpdateOne) AddSize(i int) *FileUpdateOne {
 	return fuo
 }
 
+// SetAccountingPeriodID sets the "accounting_period_id" field.
+func (fuo *FileUpdateOne) SetAccountingPeriodID(i int) *FileUpdateOne {
+	fuo.mutation.SetAccountingPeriodID(i)
+	return fuo
+}
+
+// SetNillableAccountingPeriodID sets the "accounting_period_id" field if the given value is not nil.
+func (fuo *FileUpdateOne) SetNillableAccountingPeriodID(i *int) *FileUpdateOne {
+	if i != nil {
+		fuo.SetAccountingPeriodID(*i)
+	}
+	return fuo
+}
+
+// ClearAccountingPeriodID clears the value of the "accounting_period_id" field.
+func (fuo *FileUpdateOne) ClearAccountingPeriodID() *FileUpdateOne {
+	fuo.mutation.ClearAccountingPeriodID()
+	return fuo
+}
+
 // SetOwner sets the "owner" edge to the User entity.
 func (fuo *FileUpdateOne) SetOwner(u *User) *FileUpdateOne {
 	return fuo.SetOwnerID(u.ID)
@@ -380,6 +461,11 @@ func (fuo *FileUpdateOne) AddAchievementDocuments(a ...*AchievementDocument) *Fi
 		ids[i] = a[i].ID
 	}
 	return fuo.AddAchievementDocumentIDs(ids...)
+}
+
+// SetAccountingPeriod sets the "accounting_period" edge to the AccountingPeriod entity.
+func (fuo *FileUpdateOne) SetAccountingPeriod(a *AccountingPeriod) *FileUpdateOne {
+	return fuo.SetAccountingPeriodID(a.ID)
 }
 
 // Mutation returns the FileMutation object of the builder.
@@ -412,6 +498,12 @@ func (fuo *FileUpdateOne) RemoveAchievementDocuments(a ...*AchievementDocument) 
 		ids[i] = a[i].ID
 	}
 	return fuo.RemoveAchievementDocumentIDs(ids...)
+}
+
+// ClearAccountingPeriod clears the "accounting_period" edge to the AccountingPeriod entity.
+func (fuo *FileUpdateOne) ClearAccountingPeriod() *FileUpdateOne {
+	fuo.mutation.ClearAccountingPeriod()
+	return fuo
 }
 
 // Where appends a list predicates to the FileUpdate builder.
@@ -559,6 +651,35 @@ func (fuo *FileUpdateOne) sqlSave(ctx context.Context) (_node *File, err error) 
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(achievementdocument.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if fuo.mutation.AccountingPeriodCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   file.AccountingPeriodTable,
+			Columns: []string{file.AccountingPeriodColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(accountingperiod.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := fuo.mutation.AccountingPeriodIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   file.AccountingPeriodTable,
+			Columns: []string{file.AccountingPeriodColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(accountingperiod.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

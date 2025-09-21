@@ -10,6 +10,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	uuid "github.com/gofrs/uuid/v5"
+	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/accountingperiod"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievementdocument"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/file"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/user"
@@ -54,6 +55,20 @@ func (fc *FileCreate) SetSize(i int) *FileCreate {
 	return fc
 }
 
+// SetAccountingPeriodID sets the "accounting_period_id" field.
+func (fc *FileCreate) SetAccountingPeriodID(i int) *FileCreate {
+	fc.mutation.SetAccountingPeriodID(i)
+	return fc
+}
+
+// SetNillableAccountingPeriodID sets the "accounting_period_id" field if the given value is not nil.
+func (fc *FileCreate) SetNillableAccountingPeriodID(i *int) *FileCreate {
+	if i != nil {
+		fc.SetAccountingPeriodID(*i)
+	}
+	return fc
+}
+
 // SetID sets the "id" field.
 func (fc *FileCreate) SetID(u uuid.UUID) *FileCreate {
 	fc.mutation.SetID(u)
@@ -86,6 +101,11 @@ func (fc *FileCreate) AddAchievementDocuments(a ...*AchievementDocument) *FileCr
 		ids[i] = a[i].ID
 	}
 	return fc.AddAchievementDocumentIDs(ids...)
+}
+
+// SetAccountingPeriod sets the "accounting_period" edge to the AccountingPeriod entity.
+func (fc *FileCreate) SetAccountingPeriod(a *AccountingPeriod) *FileCreate {
+	return fc.SetAccountingPeriodID(a.ID)
 }
 
 // Mutation returns the FileMutation object of the builder.
@@ -218,6 +238,23 @@ func (fc *FileCreate) createSpec() (*File, *sqlgraph.CreateSpec) {
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := fc.mutation.AccountingPeriodIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   file.AccountingPeriodTable,
+			Columns: []string{file.AccountingPeriodColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(accountingperiod.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.AccountingPeriodID = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

@@ -21,10 +21,14 @@ const (
 	FieldName = "name"
 	// FieldSize holds the string denoting the size field in the database.
 	FieldSize = "size"
+	// FieldAccountingPeriodID holds the string denoting the accounting_period_id field in the database.
+	FieldAccountingPeriodID = "accounting_period_id"
 	// EdgeOwner holds the string denoting the owner edge name in mutations.
 	EdgeOwner = "owner"
 	// EdgeAchievementDocuments holds the string denoting the achievement_documents edge name in mutations.
 	EdgeAchievementDocuments = "achievement_documents"
+	// EdgeAccountingPeriod holds the string denoting the accounting_period edge name in mutations.
+	EdgeAccountingPeriod = "accounting_period"
 	// Table holds the table name of the file in the database.
 	Table = "files"
 	// OwnerTable is the table that holds the owner relation/edge.
@@ -41,6 +45,13 @@ const (
 	AchievementDocumentsInverseTable = "achievement_documents"
 	// AchievementDocumentsColumn is the table column denoting the achievement_documents relation/edge.
 	AchievementDocumentsColumn = "file_id"
+	// AccountingPeriodTable is the table that holds the accounting_period relation/edge.
+	AccountingPeriodTable = "files"
+	// AccountingPeriodInverseTable is the table name for the AccountingPeriod entity.
+	// It exists in this package in order to avoid circular dependency with the "accountingperiod" package.
+	AccountingPeriodInverseTable = "accounting_periods"
+	// AccountingPeriodColumn is the table column denoting the accounting_period relation/edge.
+	AccountingPeriodColumn = "accounting_period_id"
 )
 
 // Columns holds all SQL columns for file fields.
@@ -50,6 +61,7 @@ var Columns = []string{
 	FieldS3ObjectKey,
 	FieldName,
 	FieldSize,
+	FieldAccountingPeriodID,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -95,6 +107,11 @@ func BySize(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldSize, opts...).ToFunc()
 }
 
+// ByAccountingPeriodID orders the results by the accounting_period_id field.
+func ByAccountingPeriodID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldAccountingPeriodID, opts...).ToFunc()
+}
+
 // ByOwnerField orders the results by owner field.
 func ByOwnerField(field string, opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -115,6 +132,13 @@ func ByAchievementDocuments(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOpt
 		sqlgraph.OrderByNeighborTerms(s, newAchievementDocumentsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByAccountingPeriodField orders the results by accounting_period field.
+func ByAccountingPeriodField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newAccountingPeriodStep(), sql.OrderByField(field, opts...))
+	}
+}
 func newOwnerStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -127,5 +151,12 @@ func newAchievementDocumentsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(AchievementDocumentsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, AchievementDocumentsTable, AchievementDocumentsColumn),
+	)
+}
+func newAccountingPeriodStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(AccountingPeriodInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, AccountingPeriodTable, AccountingPeriodColumn),
 	)
 }

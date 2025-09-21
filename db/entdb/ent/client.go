@@ -16,6 +16,7 @@ import (
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/accountingperiod"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievement"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievementdocument"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievementgroup"
@@ -32,6 +33,8 @@ type Client struct {
 	config
 	// Schema is the client for creating, migrating and dropping schema.
 	Schema *migrate.Schema
+	// AccountingPeriod is the client for interacting with the AccountingPeriod builders.
+	AccountingPeriod *AccountingPeriodClient
 	// Achievement is the client for interacting with the Achievement builders.
 	Achievement *AchievementClient
 	// AchievementDocument is the client for interacting with the AchievementDocument builders.
@@ -61,6 +64,7 @@ func NewClient(opts ...Option) *Client {
 
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
+	c.AccountingPeriod = NewAccountingPeriodClient(c.config)
 	c.Achievement = NewAchievementClient(c.config)
 	c.AchievementDocument = NewAchievementDocumentClient(c.config)
 	c.AchievementGroup = NewAchievementGroupClient(c.config)
@@ -162,6 +166,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	return &Tx{
 		ctx:                 ctx,
 		config:              cfg,
+		AccountingPeriod:    NewAccountingPeriodClient(cfg),
 		Achievement:         NewAchievementClient(cfg),
 		AchievementDocument: NewAchievementDocumentClient(cfg),
 		AchievementGroup:    NewAchievementGroupClient(cfg),
@@ -190,6 +195,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	return &Tx{
 		ctx:                 ctx,
 		config:              cfg,
+		AccountingPeriod:    NewAccountingPeriodClient(cfg),
 		Achievement:         NewAchievementClient(cfg),
 		AchievementDocument: NewAchievementDocumentClient(cfg),
 		AchievementGroup:    NewAchievementGroupClient(cfg),
@@ -205,7 +211,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 // Debug returns a new debug-client. It's used to get verbose logging on specific operations.
 //
 //	client.Debug().
-//		Achievement.
+//		AccountingPeriod.
 //		Query().
 //		Count(ctx)
 func (c *Client) Debug() *Client {
@@ -228,8 +234,9 @@ func (c *Client) Close() error {
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
-		c.Achievement, c.AchievementDocument, c.AchievementGroup, c.AchievementReview,
-		c.AchievementTemplate, c.AuthUser, c.Department, c.File, c.User,
+		c.AccountingPeriod, c.Achievement, c.AchievementDocument, c.AchievementGroup,
+		c.AchievementReview, c.AchievementTemplate, c.AuthUser, c.Department, c.File,
+		c.User,
 	} {
 		n.Use(hooks...)
 	}
@@ -239,8 +246,9 @@ func (c *Client) Use(hooks ...Hook) {
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
-		c.Achievement, c.AchievementDocument, c.AchievementGroup, c.AchievementReview,
-		c.AchievementTemplate, c.AuthUser, c.Department, c.File, c.User,
+		c.AccountingPeriod, c.Achievement, c.AchievementDocument, c.AchievementGroup,
+		c.AchievementReview, c.AchievementTemplate, c.AuthUser, c.Department, c.File,
+		c.User,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -249,6 +257,8 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 // Mutate implements the ent.Mutator interface.
 func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 	switch m := m.(type) {
+	case *AccountingPeriodMutation:
+		return c.AccountingPeriod.mutate(ctx, m)
 	case *AchievementMutation:
 		return c.Achievement.mutate(ctx, m)
 	case *AchievementDocumentMutation:
@@ -269,6 +279,155 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.User.mutate(ctx, m)
 	default:
 		return nil, fmt.Errorf("ent: unknown mutation type %T", m)
+	}
+}
+
+// AccountingPeriodClient is a client for the AccountingPeriod schema.
+type AccountingPeriodClient struct {
+	config
+}
+
+// NewAccountingPeriodClient returns a client for the AccountingPeriod from the given config.
+func NewAccountingPeriodClient(c config) *AccountingPeriodClient {
+	return &AccountingPeriodClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `accountingperiod.Hooks(f(g(h())))`.
+func (c *AccountingPeriodClient) Use(hooks ...Hook) {
+	c.hooks.AccountingPeriod = append(c.hooks.AccountingPeriod, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `accountingperiod.Intercept(f(g(h())))`.
+func (c *AccountingPeriodClient) Intercept(interceptors ...Interceptor) {
+	c.inters.AccountingPeriod = append(c.inters.AccountingPeriod, interceptors...)
+}
+
+// Create returns a builder for creating a AccountingPeriod entity.
+func (c *AccountingPeriodClient) Create() *AccountingPeriodCreate {
+	mutation := newAccountingPeriodMutation(c.config, OpCreate)
+	return &AccountingPeriodCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of AccountingPeriod entities.
+func (c *AccountingPeriodClient) CreateBulk(builders ...*AccountingPeriodCreate) *AccountingPeriodCreateBulk {
+	return &AccountingPeriodCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *AccountingPeriodClient) MapCreateBulk(slice any, setFunc func(*AccountingPeriodCreate, int)) *AccountingPeriodCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &AccountingPeriodCreateBulk{err: fmt.Errorf("calling to AccountingPeriodClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*AccountingPeriodCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &AccountingPeriodCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for AccountingPeriod.
+func (c *AccountingPeriodClient) Update() *AccountingPeriodUpdate {
+	mutation := newAccountingPeriodMutation(c.config, OpUpdate)
+	return &AccountingPeriodUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *AccountingPeriodClient) UpdateOne(ap *AccountingPeriod) *AccountingPeriodUpdateOne {
+	mutation := newAccountingPeriodMutation(c.config, OpUpdateOne, withAccountingPeriod(ap))
+	return &AccountingPeriodUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *AccountingPeriodClient) UpdateOneID(id int) *AccountingPeriodUpdateOne {
+	mutation := newAccountingPeriodMutation(c.config, OpUpdateOne, withAccountingPeriodID(id))
+	return &AccountingPeriodUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for AccountingPeriod.
+func (c *AccountingPeriodClient) Delete() *AccountingPeriodDelete {
+	mutation := newAccountingPeriodMutation(c.config, OpDelete)
+	return &AccountingPeriodDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *AccountingPeriodClient) DeleteOne(ap *AccountingPeriod) *AccountingPeriodDeleteOne {
+	return c.DeleteOneID(ap.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *AccountingPeriodClient) DeleteOneID(id int) *AccountingPeriodDeleteOne {
+	builder := c.Delete().Where(accountingperiod.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &AccountingPeriodDeleteOne{builder}
+}
+
+// Query returns a query builder for AccountingPeriod.
+func (c *AccountingPeriodClient) Query() *AccountingPeriodQuery {
+	return &AccountingPeriodQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeAccountingPeriod},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a AccountingPeriod entity by its id.
+func (c *AccountingPeriodClient) Get(ctx context.Context, id int) (*AccountingPeriod, error) {
+	return c.Query().Where(accountingperiod.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *AccountingPeriodClient) GetX(ctx context.Context, id int) *AccountingPeriod {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryFiles queries the files edge of a AccountingPeriod.
+func (c *AccountingPeriodClient) QueryFiles(ap *AccountingPeriod) *FileQuery {
+	query := (&FileClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := ap.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(accountingperiod.Table, accountingperiod.FieldID, id),
+			sqlgraph.To(file.Table, file.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, accountingperiod.FilesTable, accountingperiod.FilesColumn),
+		)
+		fromV = sqlgraph.Neighbors(ap.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *AccountingPeriodClient) Hooks() []Hook {
+	return c.hooks.AccountingPeriod
+}
+
+// Interceptors returns the client interceptors.
+func (c *AccountingPeriodClient) Interceptors() []Interceptor {
+	return c.inters.AccountingPeriod
+}
+
+func (c *AccountingPeriodClient) mutate(ctx context.Context, m *AccountingPeriodMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&AccountingPeriodCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&AccountingPeriodUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&AccountingPeriodUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&AccountingPeriodDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown AccountingPeriod mutation op: %q", m.Op())
 	}
 }
 
@@ -1551,6 +1710,22 @@ func (c *FileClient) QueryAchievementDocuments(f *File) *AchievementDocumentQuer
 	return query
 }
 
+// QueryAccountingPeriod queries the accounting_period edge of a File.
+func (c *FileClient) QueryAccountingPeriod(f *File) *AccountingPeriodQuery {
+	query := (&AccountingPeriodClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := f.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(file.Table, file.FieldID, id),
+			sqlgraph.To(accountingperiod.Table, accountingperiod.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, file.AccountingPeriodTable, file.AccountingPeriodColumn),
+		)
+		fromV = sqlgraph.Neighbors(f.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *FileClient) Hooks() []Hook {
 	return c.hooks.File
@@ -1792,11 +1967,13 @@ func (c *UserClient) mutate(ctx context.Context, m *UserMutation) (Value, error)
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		Achievement, AchievementDocument, AchievementGroup, AchievementReview,
-		AchievementTemplate, AuthUser, Department, File, User []ent.Hook
+		AccountingPeriod, Achievement, AchievementDocument, AchievementGroup,
+		AchievementReview, AchievementTemplate, AuthUser, Department, File,
+		User []ent.Hook
 	}
 	inters struct {
-		Achievement, AchievementDocument, AchievementGroup, AchievementReview,
-		AchievementTemplate, AuthUser, Department, File, User []ent.Interceptor
+		AccountingPeriod, Achievement, AchievementDocument, AchievementGroup,
+		AchievementReview, AchievementTemplate, AuthUser, Department, File,
+		User []ent.Interceptor
 	}
 )

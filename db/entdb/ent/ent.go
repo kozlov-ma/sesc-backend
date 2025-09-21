@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/accountingperiod"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievement"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievementdocument"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievementgroup"
@@ -81,6 +82,7 @@ var (
 func checkColumn(table, column string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
+			accountingperiod.Table:    accountingperiod.ValidColumn,
 			achievement.Table:         achievement.ValidColumn,
 			achievementdocument.Table: achievementdocument.ValidColumn,
 			achievementgroup.Table:    achievementgroup.ValidColumn,

@@ -9,6 +9,18 @@ import (
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent"
 )
 
+// The AccountingPeriodFunc type is an adapter to allow the use of ordinary
+// function as AccountingPeriod mutator.
+type AccountingPeriodFunc func(context.Context, *ent.AccountingPeriodMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f AccountingPeriodFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.AccountingPeriodMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AccountingPeriodMutation", m)
+}
+
 // The AchievementFunc type is an adapter to allow the use of ordinary
 // function as Achievement mutator.
 type AchievementFunc func(context.Context, *ent.AchievementMutation) (ent.Value, error)

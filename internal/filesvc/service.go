@@ -11,7 +11,9 @@ import (
 	"time"
 
 	"github.com/gofrs/uuid/v5"
+	accountingperiod "github.com/kozlov-ma/sesc-backend/accounting_period"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent"
+	accountingperiodEnt "github.com/kozlov-ma/sesc-backend/db/entdb/ent/accountingperiod"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/file"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/predicate"
 	"github.com/kozlov-ma/sesc-backend/pkg/event"
@@ -38,6 +40,20 @@ func New(client *ent.Client, storage ObjectStorage, bucketName string) *FileServ
 		storage:    storage,
 		bucketName: bucketName,
 	}
+}
+
+func (s *FileService) getCurrentAccountingPeriod(ctx context.Context) (*ent.AccountingPeriod, error) {
+	period, err := s.client.AccountingPeriod.Query().
+		Where(accountingperiodEnt.StatusEQ(accountingperiod.StatusAchievementCollection)).
+		Only(ctx)
+	if err != nil {
+		if ent.IsNotFound(err) {
+			//nolint:nilnil // this is ok, we return nil if no period is found
+			return nil, nil
+		}
+		return nil, err
+	}
+	return period, nil
 }
 
 // getStatsRecord retrieves the stats record from the root event record
@@ -139,16 +155,32 @@ func (s *FileService) Create(ctx context.Context, reader io.Reader, opts FileOpt
 		return nil, uploadErr
 	}
 
-	// Step 2: insert into DB
+	currentPeriod, err := s.getCurrentAccountingPeriod(ctx)
+	if err != nil {
+		rec.Add(events.Error, fmt.Errorf("failed to get current accounting period: %w", err))
+		return nil, err
+	}
+
+	accountingPeriodID := opts.AccountingPeriodID
+	if accountingPeriodID == 0 && currentPeriod != nil {
+		accountingPeriodID = currentPeriod.ID
+		rec.Set("auto_assigned_period_id", currentPeriod.ID)
+	}
+
 	var f *ent.File
 	dbErr := recordDBOperation(ctx, rec, "db_create_file", func() error {
-		f, err = s.client.File.Create().
+		createQuery := s.client.File.Create().
 			SetID(id).
 			SetS3ObjectKey(objectKey).
 			SetName(opts.FileName).
 			SetSize(opts.FileSize).
-			SetNillableOwnerID(opts.OwnerID).
-			Save(ctx)
+			SetNillableOwnerID(opts.OwnerID)
+
+		if accountingPeriodID != 0 {
+			createQuery = createQuery.SetAccountingPeriodID(accountingPeriodID)
+		}
+
+		f, err = createQuery.Save(ctx)
 
 		if err == nil {
 			rec.Sub("db_create_file").Set("file_id", f.ID.String())

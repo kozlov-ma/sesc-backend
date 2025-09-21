@@ -165,10 +165,8 @@ func (s *USS) checkAndGetDepartment(
 
 	rec.Set("required", true)
 	statrec.Add(events.PostgresQueries, 1)
-	// todo uncomment if replace sqlite with postgres(linked with locks in department service)
 	dept, err := tx.Department.Query().
 		Where(department.ID(*departmentID)).
-		// ForShare().
 		Only(ctx)
 	switch {
 	case ent.IsNotFound(err):

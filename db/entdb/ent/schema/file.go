@@ -21,6 +21,7 @@ func (File) Fields() []ent.Field {
 		field.String("s3_object_key").Unique(),
 		field.String("name"),
 		field.Int("size"),
+		field.Int("accounting_period_id").Optional().Nillable(),
 	}
 }
 
@@ -32,6 +33,10 @@ func (File) Edges() []ent.Edge {
 			Field("owner_id").
 			Unique(),
 		edge.To("achievement_documents", AchievementDocument.Type),
+		edge.From("accounting_period", AccountingPeriod.Type).
+			Ref("files").
+			Field("accounting_period_id").
+			Unique(),
 	}
 }
 

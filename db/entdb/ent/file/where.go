@@ -74,6 +74,11 @@ func Size(v int) predicate.File {
 	return predicate.File(sql.FieldEQ(FieldSize, v))
 }
 
+// AccountingPeriodID applies equality check predicate on the "accounting_period_id" field. It's identical to AccountingPeriodIDEQ.
+func AccountingPeriodID(v int) predicate.File {
+	return predicate.File(sql.FieldEQ(FieldAccountingPeriodID, v))
+}
+
 // OwnerIDEQ applies the EQ predicate on the "owner_id" field.
 func OwnerIDEQ(v uuid.UUID) predicate.File {
 	return predicate.File(sql.FieldEQ(FieldOwnerID, v))
@@ -274,6 +279,36 @@ func SizeLTE(v int) predicate.File {
 	return predicate.File(sql.FieldLTE(FieldSize, v))
 }
 
+// AccountingPeriodIDEQ applies the EQ predicate on the "accounting_period_id" field.
+func AccountingPeriodIDEQ(v int) predicate.File {
+	return predicate.File(sql.FieldEQ(FieldAccountingPeriodID, v))
+}
+
+// AccountingPeriodIDNEQ applies the NEQ predicate on the "accounting_period_id" field.
+func AccountingPeriodIDNEQ(v int) predicate.File {
+	return predicate.File(sql.FieldNEQ(FieldAccountingPeriodID, v))
+}
+
+// AccountingPeriodIDIn applies the In predicate on the "accounting_period_id" field.
+func AccountingPeriodIDIn(vs ...int) predicate.File {
+	return predicate.File(sql.FieldIn(FieldAccountingPeriodID, vs...))
+}
+
+// AccountingPeriodIDNotIn applies the NotIn predicate on the "accounting_period_id" field.
+func AccountingPeriodIDNotIn(vs ...int) predicate.File {
+	return predicate.File(sql.FieldNotIn(FieldAccountingPeriodID, vs...))
+}
+
+// AccountingPeriodIDIsNil applies the IsNil predicate on the "accounting_period_id" field.
+func AccountingPeriodIDIsNil() predicate.File {
+	return predicate.File(sql.FieldIsNull(FieldAccountingPeriodID))
+}
+
+// AccountingPeriodIDNotNil applies the NotNil predicate on the "accounting_period_id" field.
+func AccountingPeriodIDNotNil() predicate.File {
+	return predicate.File(sql.FieldNotNull(FieldAccountingPeriodID))
+}
+
 // HasOwner applies the HasEdge predicate on the "owner" edge.
 func HasOwner() predicate.File {
 	return predicate.File(func(s *sql.Selector) {
@@ -312,6 +347,29 @@ func HasAchievementDocuments() predicate.File {
 func HasAchievementDocumentsWith(preds ...predicate.AchievementDocument) predicate.File {
 	return predicate.File(func(s *sql.Selector) {
 		step := newAchievementDocumentsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasAccountingPeriod applies the HasEdge predicate on the "accounting_period" edge.
+func HasAccountingPeriod() predicate.File {
+	return predicate.File(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, AccountingPeriodTable, AccountingPeriodColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasAccountingPeriodWith applies the HasEdge predicate on the "accounting_period" edge with a given conditions (other predicates).
+func HasAccountingPeriodWith(preds ...predicate.AccountingPeriod) predicate.File {
+	return predicate.File(func(s *sql.Selector) {
+		step := newAccountingPeriodStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

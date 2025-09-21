@@ -6,6 +6,7 @@ import (
 	"time"
 
 	uuid "github.com/gofrs/uuid/v5"
+	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/accountingperiod"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievement"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievementdocument"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievementgroup"
@@ -23,6 +24,18 @@ import (
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
+	accountingperiodFields := schema.AccountingPeriod{}.Fields()
+	_ = accountingperiodFields
+	// accountingperiodDescName is the schema descriptor for name field.
+	accountingperiodDescName := accountingperiodFields[0].Descriptor()
+	// accountingperiod.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	accountingperiod.NameValidator = accountingperiodDescName.Validators[0].(func(string) error)
+	// accountingperiodDescStatus is the schema descriptor for status field.
+	accountingperiodDescStatus := accountingperiodFields[7].Descriptor()
+	// accountingperiod.DefaultStatus holds the default value on creation for the status field.
+	accountingperiod.DefaultStatus = accountingperiodDescStatus.Default.(string)
+	// accountingperiod.StatusValidator is a validator for the "status" field. It is called by the builders before save.
+	accountingperiod.StatusValidator = accountingperiodDescStatus.Validators[0].(func(string) error)
 	achievementFields := schema.Achievement{}.Fields()
 	_ = achievementFields
 	// achievementDescStatus is the schema descriptor for status field.

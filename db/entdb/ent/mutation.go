@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	uuid "github.com/gofrs/uuid/v5"
+	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/accountingperiod"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievement"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievementdocument"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievementgroup"
@@ -34,6 +35,7 @@ const (
 	OpUpdateOne = ent.OpUpdateOne
 
 	// Node types.
+	TypeAccountingPeriod    = "AccountingPeriod"
 	TypeAchievement         = "Achievement"
 	TypeAchievementDocument = "AchievementDocument"
 	TypeAchievementGroup    = "AchievementGroup"
@@ -44,6 +46,920 @@ const (
 	TypeFile                = "File"
 	TypeUser                = "User"
 )
+
+// AccountingPeriodMutation represents an operation that mutates the AccountingPeriod nodes in the graph.
+type AccountingPeriodMutation struct {
+	config
+	op                                Op
+	typ                               string
+	id                                *int
+	name                              *string
+	description                       *string
+	start_planning_date               *time.Time
+	start_achievement_collection_date *time.Time
+	finish_date                       *time.Time
+	cancel_date                       *time.Time
+	became_non_executed_date          *time.Time
+	status                            *string
+	clearedFields                     map[string]struct{}
+	files                             map[uuid.UUID]struct{}
+	removedfiles                      map[uuid.UUID]struct{}
+	clearedfiles                      bool
+	done                              bool
+	oldValue                          func(context.Context) (*AccountingPeriod, error)
+	predicates                        []predicate.AccountingPeriod
+}
+
+var _ ent.Mutation = (*AccountingPeriodMutation)(nil)
+
+// accountingperiodOption allows management of the mutation configuration using functional options.
+type accountingperiodOption func(*AccountingPeriodMutation)
+
+// newAccountingPeriodMutation creates new mutation for the AccountingPeriod entity.
+func newAccountingPeriodMutation(c config, op Op, opts ...accountingperiodOption) *AccountingPeriodMutation {
+	m := &AccountingPeriodMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeAccountingPeriod,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withAccountingPeriodID sets the ID field of the mutation.
+func withAccountingPeriodID(id int) accountingperiodOption {
+	return func(m *AccountingPeriodMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *AccountingPeriod
+		)
+		m.oldValue = func(ctx context.Context) (*AccountingPeriod, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().AccountingPeriod.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withAccountingPeriod sets the old AccountingPeriod of the mutation.
+func withAccountingPeriod(node *AccountingPeriod) accountingperiodOption {
+	return func(m *AccountingPeriodMutation) {
+		m.oldValue = func(context.Context) (*AccountingPeriod, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m AccountingPeriodMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m AccountingPeriodMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *AccountingPeriodMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *AccountingPeriodMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().AccountingPeriod.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetName sets the "name" field.
+func (m *AccountingPeriodMutation) SetName(s string) {
+	m.name = &s
+}
+
+// Name returns the value of the "name" field in the mutation.
+func (m *AccountingPeriodMutation) Name() (r string, exists bool) {
+	v := m.name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldName returns the old "name" field's value of the AccountingPeriod entity.
+// If the AccountingPeriod object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AccountingPeriodMutation) OldName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldName: %w", err)
+	}
+	return oldValue.Name, nil
+}
+
+// ResetName resets all changes to the "name" field.
+func (m *AccountingPeriodMutation) ResetName() {
+	m.name = nil
+}
+
+// SetDescription sets the "description" field.
+func (m *AccountingPeriodMutation) SetDescription(s string) {
+	m.description = &s
+}
+
+// Description returns the value of the "description" field in the mutation.
+func (m *AccountingPeriodMutation) Description() (r string, exists bool) {
+	v := m.description
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDescription returns the old "description" field's value of the AccountingPeriod entity.
+// If the AccountingPeriod object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AccountingPeriodMutation) OldDescription(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDescription is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDescription requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDescription: %w", err)
+	}
+	return oldValue.Description, nil
+}
+
+// ClearDescription clears the value of the "description" field.
+func (m *AccountingPeriodMutation) ClearDescription() {
+	m.description = nil
+	m.clearedFields[accountingperiod.FieldDescription] = struct{}{}
+}
+
+// DescriptionCleared returns if the "description" field was cleared in this mutation.
+func (m *AccountingPeriodMutation) DescriptionCleared() bool {
+	_, ok := m.clearedFields[accountingperiod.FieldDescription]
+	return ok
+}
+
+// ResetDescription resets all changes to the "description" field.
+func (m *AccountingPeriodMutation) ResetDescription() {
+	m.description = nil
+	delete(m.clearedFields, accountingperiod.FieldDescription)
+}
+
+// SetStartPlanningDate sets the "start_planning_date" field.
+func (m *AccountingPeriodMutation) SetStartPlanningDate(t time.Time) {
+	m.start_planning_date = &t
+}
+
+// StartPlanningDate returns the value of the "start_planning_date" field in the mutation.
+func (m *AccountingPeriodMutation) StartPlanningDate() (r time.Time, exists bool) {
+	v := m.start_planning_date
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStartPlanningDate returns the old "start_planning_date" field's value of the AccountingPeriod entity.
+// If the AccountingPeriod object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AccountingPeriodMutation) OldStartPlanningDate(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStartPlanningDate is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStartPlanningDate requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStartPlanningDate: %w", err)
+	}
+	return oldValue.StartPlanningDate, nil
+}
+
+// ClearStartPlanningDate clears the value of the "start_planning_date" field.
+func (m *AccountingPeriodMutation) ClearStartPlanningDate() {
+	m.start_planning_date = nil
+	m.clearedFields[accountingperiod.FieldStartPlanningDate] = struct{}{}
+}
+
+// StartPlanningDateCleared returns if the "start_planning_date" field was cleared in this mutation.
+func (m *AccountingPeriodMutation) StartPlanningDateCleared() bool {
+	_, ok := m.clearedFields[accountingperiod.FieldStartPlanningDate]
+	return ok
+}
+
+// ResetStartPlanningDate resets all changes to the "start_planning_date" field.
+func (m *AccountingPeriodMutation) ResetStartPlanningDate() {
+	m.start_planning_date = nil
+	delete(m.clearedFields, accountingperiod.FieldStartPlanningDate)
+}
+
+// SetStartAchievementCollectionDate sets the "start_achievement_collection_date" field.
+func (m *AccountingPeriodMutation) SetStartAchievementCollectionDate(t time.Time) {
+	m.start_achievement_collection_date = &t
+}
+
+// StartAchievementCollectionDate returns the value of the "start_achievement_collection_date" field in the mutation.
+func (m *AccountingPeriodMutation) StartAchievementCollectionDate() (r time.Time, exists bool) {
+	v := m.start_achievement_collection_date
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStartAchievementCollectionDate returns the old "start_achievement_collection_date" field's value of the AccountingPeriod entity.
+// If the AccountingPeriod object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AccountingPeriodMutation) OldStartAchievementCollectionDate(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStartAchievementCollectionDate is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStartAchievementCollectionDate requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStartAchievementCollectionDate: %w", err)
+	}
+	return oldValue.StartAchievementCollectionDate, nil
+}
+
+// ClearStartAchievementCollectionDate clears the value of the "start_achievement_collection_date" field.
+func (m *AccountingPeriodMutation) ClearStartAchievementCollectionDate() {
+	m.start_achievement_collection_date = nil
+	m.clearedFields[accountingperiod.FieldStartAchievementCollectionDate] = struct{}{}
+}
+
+// StartAchievementCollectionDateCleared returns if the "start_achievement_collection_date" field was cleared in this mutation.
+func (m *AccountingPeriodMutation) StartAchievementCollectionDateCleared() bool {
+	_, ok := m.clearedFields[accountingperiod.FieldStartAchievementCollectionDate]
+	return ok
+}
+
+// ResetStartAchievementCollectionDate resets all changes to the "start_achievement_collection_date" field.
+func (m *AccountingPeriodMutation) ResetStartAchievementCollectionDate() {
+	m.start_achievement_collection_date = nil
+	delete(m.clearedFields, accountingperiod.FieldStartAchievementCollectionDate)
+}
+
+// SetFinishDate sets the "finish_date" field.
+func (m *AccountingPeriodMutation) SetFinishDate(t time.Time) {
+	m.finish_date = &t
+}
+
+// FinishDate returns the value of the "finish_date" field in the mutation.
+func (m *AccountingPeriodMutation) FinishDate() (r time.Time, exists bool) {
+	v := m.finish_date
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFinishDate returns the old "finish_date" field's value of the AccountingPeriod entity.
+// If the AccountingPeriod object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AccountingPeriodMutation) OldFinishDate(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFinishDate is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFinishDate requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFinishDate: %w", err)
+	}
+	return oldValue.FinishDate, nil
+}
+
+// ClearFinishDate clears the value of the "finish_date" field.
+func (m *AccountingPeriodMutation) ClearFinishDate() {
+	m.finish_date = nil
+	m.clearedFields[accountingperiod.FieldFinishDate] = struct{}{}
+}
+
+// FinishDateCleared returns if the "finish_date" field was cleared in this mutation.
+func (m *AccountingPeriodMutation) FinishDateCleared() bool {
+	_, ok := m.clearedFields[accountingperiod.FieldFinishDate]
+	return ok
+}
+
+// ResetFinishDate resets all changes to the "finish_date" field.
+func (m *AccountingPeriodMutation) ResetFinishDate() {
+	m.finish_date = nil
+	delete(m.clearedFields, accountingperiod.FieldFinishDate)
+}
+
+// SetCancelDate sets the "cancel_date" field.
+func (m *AccountingPeriodMutation) SetCancelDate(t time.Time) {
+	m.cancel_date = &t
+}
+
+// CancelDate returns the value of the "cancel_date" field in the mutation.
+func (m *AccountingPeriodMutation) CancelDate() (r time.Time, exists bool) {
+	v := m.cancel_date
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCancelDate returns the old "cancel_date" field's value of the AccountingPeriod entity.
+// If the AccountingPeriod object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AccountingPeriodMutation) OldCancelDate(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCancelDate is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCancelDate requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCancelDate: %w", err)
+	}
+	return oldValue.CancelDate, nil
+}
+
+// ClearCancelDate clears the value of the "cancel_date" field.
+func (m *AccountingPeriodMutation) ClearCancelDate() {
+	m.cancel_date = nil
+	m.clearedFields[accountingperiod.FieldCancelDate] = struct{}{}
+}
+
+// CancelDateCleared returns if the "cancel_date" field was cleared in this mutation.
+func (m *AccountingPeriodMutation) CancelDateCleared() bool {
+	_, ok := m.clearedFields[accountingperiod.FieldCancelDate]
+	return ok
+}
+
+// ResetCancelDate resets all changes to the "cancel_date" field.
+func (m *AccountingPeriodMutation) ResetCancelDate() {
+	m.cancel_date = nil
+	delete(m.clearedFields, accountingperiod.FieldCancelDate)
+}
+
+// SetBecameNonExecutedDate sets the "became_non_executed_date" field.
+func (m *AccountingPeriodMutation) SetBecameNonExecutedDate(t time.Time) {
+	m.became_non_executed_date = &t
+}
+
+// BecameNonExecutedDate returns the value of the "became_non_executed_date" field in the mutation.
+func (m *AccountingPeriodMutation) BecameNonExecutedDate() (r time.Time, exists bool) {
+	v := m.became_non_executed_date
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldBecameNonExecutedDate returns the old "became_non_executed_date" field's value of the AccountingPeriod entity.
+// If the AccountingPeriod object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AccountingPeriodMutation) OldBecameNonExecutedDate(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldBecameNonExecutedDate is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldBecameNonExecutedDate requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldBecameNonExecutedDate: %w", err)
+	}
+	return oldValue.BecameNonExecutedDate, nil
+}
+
+// ClearBecameNonExecutedDate clears the value of the "became_non_executed_date" field.
+func (m *AccountingPeriodMutation) ClearBecameNonExecutedDate() {
+	m.became_non_executed_date = nil
+	m.clearedFields[accountingperiod.FieldBecameNonExecutedDate] = struct{}{}
+}
+
+// BecameNonExecutedDateCleared returns if the "became_non_executed_date" field was cleared in this mutation.
+func (m *AccountingPeriodMutation) BecameNonExecutedDateCleared() bool {
+	_, ok := m.clearedFields[accountingperiod.FieldBecameNonExecutedDate]
+	return ok
+}
+
+// ResetBecameNonExecutedDate resets all changes to the "became_non_executed_date" field.
+func (m *AccountingPeriodMutation) ResetBecameNonExecutedDate() {
+	m.became_non_executed_date = nil
+	delete(m.clearedFields, accountingperiod.FieldBecameNonExecutedDate)
+}
+
+// SetStatus sets the "status" field.
+func (m *AccountingPeriodMutation) SetStatus(s string) {
+	m.status = &s
+}
+
+// Status returns the value of the "status" field in the mutation.
+func (m *AccountingPeriodMutation) Status() (r string, exists bool) {
+	v := m.status
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStatus returns the old "status" field's value of the AccountingPeriod entity.
+// If the AccountingPeriod object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AccountingPeriodMutation) OldStatus(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStatus is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStatus requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStatus: %w", err)
+	}
+	return oldValue.Status, nil
+}
+
+// ResetStatus resets all changes to the "status" field.
+func (m *AccountingPeriodMutation) ResetStatus() {
+	m.status = nil
+}
+
+// AddFileIDs adds the "files" edge to the File entity by ids.
+func (m *AccountingPeriodMutation) AddFileIDs(ids ...uuid.UUID) {
+	if m.files == nil {
+		m.files = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.files[ids[i]] = struct{}{}
+	}
+}
+
+// ClearFiles clears the "files" edge to the File entity.
+func (m *AccountingPeriodMutation) ClearFiles() {
+	m.clearedfiles = true
+}
+
+// FilesCleared reports if the "files" edge to the File entity was cleared.
+func (m *AccountingPeriodMutation) FilesCleared() bool {
+	return m.clearedfiles
+}
+
+// RemoveFileIDs removes the "files" edge to the File entity by IDs.
+func (m *AccountingPeriodMutation) RemoveFileIDs(ids ...uuid.UUID) {
+	if m.removedfiles == nil {
+		m.removedfiles = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.files, ids[i])
+		m.removedfiles[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedFiles returns the removed IDs of the "files" edge to the File entity.
+func (m *AccountingPeriodMutation) RemovedFilesIDs() (ids []uuid.UUID) {
+	for id := range m.removedfiles {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// FilesIDs returns the "files" edge IDs in the mutation.
+func (m *AccountingPeriodMutation) FilesIDs() (ids []uuid.UUID) {
+	for id := range m.files {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetFiles resets all changes to the "files" edge.
+func (m *AccountingPeriodMutation) ResetFiles() {
+	m.files = nil
+	m.clearedfiles = false
+	m.removedfiles = nil
+}
+
+// Where appends a list predicates to the AccountingPeriodMutation builder.
+func (m *AccountingPeriodMutation) Where(ps ...predicate.AccountingPeriod) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the AccountingPeriodMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *AccountingPeriodMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.AccountingPeriod, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *AccountingPeriodMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *AccountingPeriodMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (AccountingPeriod).
+func (m *AccountingPeriodMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *AccountingPeriodMutation) Fields() []string {
+	fields := make([]string, 0, 8)
+	if m.name != nil {
+		fields = append(fields, accountingperiod.FieldName)
+	}
+	if m.description != nil {
+		fields = append(fields, accountingperiod.FieldDescription)
+	}
+	if m.start_planning_date != nil {
+		fields = append(fields, accountingperiod.FieldStartPlanningDate)
+	}
+	if m.start_achievement_collection_date != nil {
+		fields = append(fields, accountingperiod.FieldStartAchievementCollectionDate)
+	}
+	if m.finish_date != nil {
+		fields = append(fields, accountingperiod.FieldFinishDate)
+	}
+	if m.cancel_date != nil {
+		fields = append(fields, accountingperiod.FieldCancelDate)
+	}
+	if m.became_non_executed_date != nil {
+		fields = append(fields, accountingperiod.FieldBecameNonExecutedDate)
+	}
+	if m.status != nil {
+		fields = append(fields, accountingperiod.FieldStatus)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *AccountingPeriodMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case accountingperiod.FieldName:
+		return m.Name()
+	case accountingperiod.FieldDescription:
+		return m.Description()
+	case accountingperiod.FieldStartPlanningDate:
+		return m.StartPlanningDate()
+	case accountingperiod.FieldStartAchievementCollectionDate:
+		return m.StartAchievementCollectionDate()
+	case accountingperiod.FieldFinishDate:
+		return m.FinishDate()
+	case accountingperiod.FieldCancelDate:
+		return m.CancelDate()
+	case accountingperiod.FieldBecameNonExecutedDate:
+		return m.BecameNonExecutedDate()
+	case accountingperiod.FieldStatus:
+		return m.Status()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *AccountingPeriodMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case accountingperiod.FieldName:
+		return m.OldName(ctx)
+	case accountingperiod.FieldDescription:
+		return m.OldDescription(ctx)
+	case accountingperiod.FieldStartPlanningDate:
+		return m.OldStartPlanningDate(ctx)
+	case accountingperiod.FieldStartAchievementCollectionDate:
+		return m.OldStartAchievementCollectionDate(ctx)
+	case accountingperiod.FieldFinishDate:
+		return m.OldFinishDate(ctx)
+	case accountingperiod.FieldCancelDate:
+		return m.OldCancelDate(ctx)
+	case accountingperiod.FieldBecameNonExecutedDate:
+		return m.OldBecameNonExecutedDate(ctx)
+	case accountingperiod.FieldStatus:
+		return m.OldStatus(ctx)
+	}
+	return nil, fmt.Errorf("unknown AccountingPeriod field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *AccountingPeriodMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case accountingperiod.FieldName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetName(v)
+		return nil
+	case accountingperiod.FieldDescription:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDescription(v)
+		return nil
+	case accountingperiod.FieldStartPlanningDate:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStartPlanningDate(v)
+		return nil
+	case accountingperiod.FieldStartAchievementCollectionDate:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStartAchievementCollectionDate(v)
+		return nil
+	case accountingperiod.FieldFinishDate:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFinishDate(v)
+		return nil
+	case accountingperiod.FieldCancelDate:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCancelDate(v)
+		return nil
+	case accountingperiod.FieldBecameNonExecutedDate:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetBecameNonExecutedDate(v)
+		return nil
+	case accountingperiod.FieldStatus:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStatus(v)
+		return nil
+	}
+	return fmt.Errorf("unknown AccountingPeriod field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *AccountingPeriodMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *AccountingPeriodMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *AccountingPeriodMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown AccountingPeriod numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *AccountingPeriodMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(accountingperiod.FieldDescription) {
+		fields = append(fields, accountingperiod.FieldDescription)
+	}
+	if m.FieldCleared(accountingperiod.FieldStartPlanningDate) {
+		fields = append(fields, accountingperiod.FieldStartPlanningDate)
+	}
+	if m.FieldCleared(accountingperiod.FieldStartAchievementCollectionDate) {
+		fields = append(fields, accountingperiod.FieldStartAchievementCollectionDate)
+	}
+	if m.FieldCleared(accountingperiod.FieldFinishDate) {
+		fields = append(fields, accountingperiod.FieldFinishDate)
+	}
+	if m.FieldCleared(accountingperiod.FieldCancelDate) {
+		fields = append(fields, accountingperiod.FieldCancelDate)
+	}
+	if m.FieldCleared(accountingperiod.FieldBecameNonExecutedDate) {
+		fields = append(fields, accountingperiod.FieldBecameNonExecutedDate)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *AccountingPeriodMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *AccountingPeriodMutation) ClearField(name string) error {
+	switch name {
+	case accountingperiod.FieldDescription:
+		m.ClearDescription()
+		return nil
+	case accountingperiod.FieldStartPlanningDate:
+		m.ClearStartPlanningDate()
+		return nil
+	case accountingperiod.FieldStartAchievementCollectionDate:
+		m.ClearStartAchievementCollectionDate()
+		return nil
+	case accountingperiod.FieldFinishDate:
+		m.ClearFinishDate()
+		return nil
+	case accountingperiod.FieldCancelDate:
+		m.ClearCancelDate()
+		return nil
+	case accountingperiod.FieldBecameNonExecutedDate:
+		m.ClearBecameNonExecutedDate()
+		return nil
+	}
+	return fmt.Errorf("unknown AccountingPeriod nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *AccountingPeriodMutation) ResetField(name string) error {
+	switch name {
+	case accountingperiod.FieldName:
+		m.ResetName()
+		return nil
+	case accountingperiod.FieldDescription:
+		m.ResetDescription()
+		return nil
+	case accountingperiod.FieldStartPlanningDate:
+		m.ResetStartPlanningDate()
+		return nil
+	case accountingperiod.FieldStartAchievementCollectionDate:
+		m.ResetStartAchievementCollectionDate()
+		return nil
+	case accountingperiod.FieldFinishDate:
+		m.ResetFinishDate()
+		return nil
+	case accountingperiod.FieldCancelDate:
+		m.ResetCancelDate()
+		return nil
+	case accountingperiod.FieldBecameNonExecutedDate:
+		m.ResetBecameNonExecutedDate()
+		return nil
+	case accountingperiod.FieldStatus:
+		m.ResetStatus()
+		return nil
+	}
+	return fmt.Errorf("unknown AccountingPeriod field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *AccountingPeriodMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.files != nil {
+		edges = append(edges, accountingperiod.EdgeFiles)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *AccountingPeriodMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case accountingperiod.EdgeFiles:
+		ids := make([]ent.Value, 0, len(m.files))
+		for id := range m.files {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *AccountingPeriodMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.removedfiles != nil {
+		edges = append(edges, accountingperiod.EdgeFiles)
+	}
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *AccountingPeriodMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case accountingperiod.EdgeFiles:
+		ids := make([]ent.Value, 0, len(m.removedfiles))
+		for id := range m.removedfiles {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *AccountingPeriodMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.clearedfiles {
+		edges = append(edges, accountingperiod.EdgeFiles)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *AccountingPeriodMutation) EdgeCleared(name string) bool {
+	switch name {
+	case accountingperiod.EdgeFiles:
+		return m.clearedfiles
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *AccountingPeriodMutation) ClearEdge(name string) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown AccountingPeriod unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *AccountingPeriodMutation) ResetEdge(name string) error {
+	switch name {
+	case accountingperiod.EdgeFiles:
+		m.ResetFiles()
+		return nil
+	}
+	return fmt.Errorf("unknown AccountingPeriod edge %s", name)
+}
 
 // AchievementMutation represents an operation that mutates the Achievement nodes in the graph.
 type AchievementMutation struct {
@@ -4481,6 +5397,8 @@ type FileMutation struct {
 	achievement_documents        map[uuid.UUID]struct{}
 	removedachievement_documents map[uuid.UUID]struct{}
 	clearedachievement_documents bool
+	accounting_period            *int
+	clearedaccounting_period     bool
 	done                         bool
 	oldValue                     func(context.Context) (*File, error)
 	predicates                   []predicate.File
@@ -4767,6 +5685,55 @@ func (m *FileMutation) ResetSize() {
 	m.addsize = nil
 }
 
+// SetAccountingPeriodID sets the "accounting_period_id" field.
+func (m *FileMutation) SetAccountingPeriodID(i int) {
+	m.accounting_period = &i
+}
+
+// AccountingPeriodID returns the value of the "accounting_period_id" field in the mutation.
+func (m *FileMutation) AccountingPeriodID() (r int, exists bool) {
+	v := m.accounting_period
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldAccountingPeriodID returns the old "accounting_period_id" field's value of the File entity.
+// If the File object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FileMutation) OldAccountingPeriodID(ctx context.Context) (v *int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldAccountingPeriodID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldAccountingPeriodID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldAccountingPeriodID: %w", err)
+	}
+	return oldValue.AccountingPeriodID, nil
+}
+
+// ClearAccountingPeriodID clears the value of the "accounting_period_id" field.
+func (m *FileMutation) ClearAccountingPeriodID() {
+	m.accounting_period = nil
+	m.clearedFields[file.FieldAccountingPeriodID] = struct{}{}
+}
+
+// AccountingPeriodIDCleared returns if the "accounting_period_id" field was cleared in this mutation.
+func (m *FileMutation) AccountingPeriodIDCleared() bool {
+	_, ok := m.clearedFields[file.FieldAccountingPeriodID]
+	return ok
+}
+
+// ResetAccountingPeriodID resets all changes to the "accounting_period_id" field.
+func (m *FileMutation) ResetAccountingPeriodID() {
+	m.accounting_period = nil
+	delete(m.clearedFields, file.FieldAccountingPeriodID)
+}
+
 // ClearOwner clears the "owner" edge to the User entity.
 func (m *FileMutation) ClearOwner() {
 	m.clearedowner = true
@@ -4848,6 +5815,33 @@ func (m *FileMutation) ResetAchievementDocuments() {
 	m.removedachievement_documents = nil
 }
 
+// ClearAccountingPeriod clears the "accounting_period" edge to the AccountingPeriod entity.
+func (m *FileMutation) ClearAccountingPeriod() {
+	m.clearedaccounting_period = true
+	m.clearedFields[file.FieldAccountingPeriodID] = struct{}{}
+}
+
+// AccountingPeriodCleared reports if the "accounting_period" edge to the AccountingPeriod entity was cleared.
+func (m *FileMutation) AccountingPeriodCleared() bool {
+	return m.AccountingPeriodIDCleared() || m.clearedaccounting_period
+}
+
+// AccountingPeriodIDs returns the "accounting_period" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// AccountingPeriodID instead. It exists only for internal usage by the builders.
+func (m *FileMutation) AccountingPeriodIDs() (ids []int) {
+	if id := m.accounting_period; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetAccountingPeriod resets all changes to the "accounting_period" edge.
+func (m *FileMutation) ResetAccountingPeriod() {
+	m.accounting_period = nil
+	m.clearedaccounting_period = false
+}
+
 // Where appends a list predicates to the FileMutation builder.
 func (m *FileMutation) Where(ps ...predicate.File) {
 	m.predicates = append(m.predicates, ps...)
@@ -4882,7 +5876,7 @@ func (m *FileMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *FileMutation) Fields() []string {
-	fields := make([]string, 0, 4)
+	fields := make([]string, 0, 5)
 	if m.owner != nil {
 		fields = append(fields, file.FieldOwnerID)
 	}
@@ -4894,6 +5888,9 @@ func (m *FileMutation) Fields() []string {
 	}
 	if m.size != nil {
 		fields = append(fields, file.FieldSize)
+	}
+	if m.accounting_period != nil {
+		fields = append(fields, file.FieldAccountingPeriodID)
 	}
 	return fields
 }
@@ -4911,6 +5908,8 @@ func (m *FileMutation) Field(name string) (ent.Value, bool) {
 		return m.Name()
 	case file.FieldSize:
 		return m.Size()
+	case file.FieldAccountingPeriodID:
+		return m.AccountingPeriodID()
 	}
 	return nil, false
 }
@@ -4928,6 +5927,8 @@ func (m *FileMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldName(ctx)
 	case file.FieldSize:
 		return m.OldSize(ctx)
+	case file.FieldAccountingPeriodID:
+		return m.OldAccountingPeriodID(ctx)
 	}
 	return nil, fmt.Errorf("unknown File field %s", name)
 }
@@ -4964,6 +5965,13 @@ func (m *FileMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetSize(v)
+		return nil
+	case file.FieldAccountingPeriodID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetAccountingPeriodID(v)
 		return nil
 	}
 	return fmt.Errorf("unknown File field %s", name)
@@ -5013,6 +6021,9 @@ func (m *FileMutation) ClearedFields() []string {
 	if m.FieldCleared(file.FieldOwnerID) {
 		fields = append(fields, file.FieldOwnerID)
 	}
+	if m.FieldCleared(file.FieldAccountingPeriodID) {
+		fields = append(fields, file.FieldAccountingPeriodID)
+	}
 	return fields
 }
 
@@ -5029,6 +6040,9 @@ func (m *FileMutation) ClearField(name string) error {
 	switch name {
 	case file.FieldOwnerID:
 		m.ClearOwnerID()
+		return nil
+	case file.FieldAccountingPeriodID:
+		m.ClearAccountingPeriodID()
 		return nil
 	}
 	return fmt.Errorf("unknown File nullable field %s", name)
@@ -5050,18 +6064,24 @@ func (m *FileMutation) ResetField(name string) error {
 	case file.FieldSize:
 		m.ResetSize()
 		return nil
+	case file.FieldAccountingPeriodID:
+		m.ResetAccountingPeriodID()
+		return nil
 	}
 	return fmt.Errorf("unknown File field %s", name)
 }
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *FileMutation) AddedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
 	if m.owner != nil {
 		edges = append(edges, file.EdgeOwner)
 	}
 	if m.achievement_documents != nil {
 		edges = append(edges, file.EdgeAchievementDocuments)
+	}
+	if m.accounting_period != nil {
+		edges = append(edges, file.EdgeAccountingPeriod)
 	}
 	return edges
 }
@@ -5080,13 +6100,17 @@ func (m *FileMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case file.EdgeAccountingPeriod:
+		if id := m.accounting_period; id != nil {
+			return []ent.Value{*id}
+		}
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *FileMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
 	if m.removedachievement_documents != nil {
 		edges = append(edges, file.EdgeAchievementDocuments)
 	}
@@ -5109,12 +6133,15 @@ func (m *FileMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *FileMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 2)
+	edges := make([]string, 0, 3)
 	if m.clearedowner {
 		edges = append(edges, file.EdgeOwner)
 	}
 	if m.clearedachievement_documents {
 		edges = append(edges, file.EdgeAchievementDocuments)
+	}
+	if m.clearedaccounting_period {
+		edges = append(edges, file.EdgeAccountingPeriod)
 	}
 	return edges
 }
@@ -5127,6 +6154,8 @@ func (m *FileMutation) EdgeCleared(name string) bool {
 		return m.clearedowner
 	case file.EdgeAchievementDocuments:
 		return m.clearedachievement_documents
+	case file.EdgeAccountingPeriod:
+		return m.clearedaccounting_period
 	}
 	return false
 }
@@ -5137,6 +6166,9 @@ func (m *FileMutation) ClearEdge(name string) error {
 	switch name {
 	case file.EdgeOwner:
 		m.ClearOwner()
+		return nil
+	case file.EdgeAccountingPeriod:
+		m.ClearAccountingPeriod()
 		return nil
 	}
 	return fmt.Errorf("unknown File unique edge %s", name)
@@ -5151,6 +6183,9 @@ func (m *FileMutation) ResetEdge(name string) error {
 		return nil
 	case file.EdgeAchievementDocuments:
 		m.ResetAchievementDocuments()
+		return nil
+	case file.EdgeAccountingPeriod:
+		m.ResetAccountingPeriod()
 		return nil
 	}
 	return fmt.Errorf("unknown File edge %s", name)

@@ -6,6 +6,9 @@ import (
 	"entgo.io/ent/dialect/sql"
 )
 
+// AccountingPeriod is the predicate function for accountingperiod builders.
+type AccountingPeriod func(*sql.Selector)
+
 // Achievement is the predicate function for achievement builders.
 type Achievement func(*sql.Selector)
 
