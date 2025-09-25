@@ -114,6 +114,11 @@ type (
 			opt achievement.ReviewOptions,
 		) (*ent.Achievement, error)
 
+		UpdateAchievementPoints(
+			ctx context.Context,
+			opt achievement.UpdatePointsOptions,
+		) (*ent.Achievement, error)
+
 		// GenerateUserPointsReport generates an Excel report with user achievement points
 		GenerateUserPointsReport(ctx context.Context) (*bytes.Buffer, error)
 

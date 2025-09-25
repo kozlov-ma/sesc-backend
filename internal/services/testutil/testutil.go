@@ -197,7 +197,7 @@ func CreateTestAchievement(
 	ach, err := client.Achievement.Create().
 		SetID(achievementID).
 		SetStatus(string(status)).
-		SetPoints(0).
+		SetPoints(template.PointsLimit). // Use template points limit as user points
 		SetOwnerID(user.ID).
 		SetTemplateID(template.ID).
 		Save(ctx)

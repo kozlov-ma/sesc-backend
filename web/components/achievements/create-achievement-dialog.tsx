@@ -17,6 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import { toast } from "sonner";
 import { postAchievements } from "@/lib/api/sdk.gen";
@@ -40,16 +41,26 @@ export function CreateAchievementDialog({
   onSuccess,
 }: CreateAchievementDialogProps) {
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>("");
+  const [points, setPoints] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleCreateAchievement = async () => {
-    if (!selectedTemplateId) return;
+    if (!selectedTemplateId || !points) return;
+
+    const pointsNum = parseInt(points);
+    if (isNaN(pointsNum) || pointsNum < 0) {
+      toast.error("Ошибка", {
+        description: "Введите корректное количество баллов",
+      });
+      return;
+    }
 
     setIsSubmitting(true);
     try {
       await postAchievements({
         body: {
           templateId: selectedTemplateId,
+          points: pointsNum,
         },
       });
 
@@ -59,6 +70,7 @@ export function CreateAchievementDialog({
 
       onOpenChange(false);
       setSelectedTemplateId("");
+      setPoints("");
       onSuccess();
     } catch {
       toast.error("Ошибка", {
@@ -111,6 +123,24 @@ export function CreateAchievementDialog({
               </SelectContent>
             </Select>
           </div>
+          <div className="grid gap-2">
+            <Label htmlFor="points">Количество баллов</Label>
+            <Input
+              id="points"
+              type="number"
+              min="0"
+              placeholder="Введите количество баллов"
+              value={points}
+              onChange={(e) => setPoints(e.target.value)}
+            />
+            {selectedTemplateId && templates && (
+              <p className="text-sm text-muted-foreground">
+                Максимальное количество баллов: {
+                  templates.find(t => t.id === selectedTemplateId)?.pointsLimit || 0
+                }
+              </p>
+            )}
+          </div>
         </div>
         <DialogFooter>
           <Button
@@ -118,6 +148,7 @@ export function CreateAchievementDialog({
             onClick={() => {
               onOpenChange(false);
               setSelectedTemplateId("");
+              setPoints("");
             }}
             disabled={isSubmitting}
           >
@@ -128,6 +159,7 @@ export function CreateAchievementDialog({
             disabled={
               isSubmitting ||
               !selectedTemplateId ||
+              !points ||
               selectedTemplateId === "loading" ||
               selectedTemplateId === "error" ||
               selectedTemplateId === "empty"

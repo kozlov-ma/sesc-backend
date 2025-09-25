@@ -198,18 +198,14 @@ export function ReviewAchievementDialog({
                 id="points"
                 type="number"
                 min="0"
-                max={achievement.points}
                 value={points}
                 onChange={(e) => setPoints(parseInt(e.target.value) || 0)}
-                className={
-                  points > achievement.points ? "border-destructive" : ""
-                }
               />
               <p className="text-xs text-muted-foreground">
-                Максимальное количество баллов: {achievement.points}
-                {points > achievement.points && (
-                  <span className="text-destructive ml-2">
-                    (превышен лимит)
+                Текущие баллы: {achievement.points}
+                {points < achievement.points && (
+                  <span className="text-orange-600 ml-2">
+                    (требуется изменение баллов)
                   </span>
                 )}
               </p>
@@ -232,7 +228,7 @@ export function ReviewAchievementDialog({
             </Button>
             <Button
               onClick={handleReview}
-              disabled={reviewMutation.isPending || points > achievement.points}
+              disabled={reviewMutation.isPending}
             >
               {reviewMutation.isPending ? "Проверка..." : "Проверить"}
             </Button>

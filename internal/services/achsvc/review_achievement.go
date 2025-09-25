@@ -152,16 +152,7 @@ func (s *ACS) ReviewAchievement(
 
 		err = rec.Operation("update_achievement", func(_ *event.Record) error {
 			currentStatus := achievement.Status(ach.Status)
-
-			var newStatus achievement.Status
-			switch {
-			case opt.PointsAssigned == 0:
-				newStatus = achievement.StatusDone
-			case currentStatus == achievement.StatusDepheadReview:
-				newStatus = achievement.StatusInspectorReview
-			case currentStatus == achievement.StatusInspectorReview:
-				newStatus = achievement.StatusDone
-			}
+			newStatus := determineNewStatus(currentStatus, opt.PointsAssigned, ach.Points)
 
 			start := time.Now()
 			_, err := tx.Achievement.UpdateOne(ach).
@@ -202,4 +193,39 @@ func (s *ACS) ReviewAchievement(
 	})
 
 	return updatedAch, err
+}
+
+// determineNewStatus determines the new status based on current status and points assigned
+func determineNewStatus(currentStatus achievement.Status, pointsAssigned, currentPoints int) achievement.Status {
+	switch {
+	case pointsAssigned == 0:
+		return achievement.StatusDone
+	case pointsAssigned < currentPoints:
+		// Reviewer requests points change
+		switch currentStatus {
+		case achievement.StatusDepheadReview:
+			return achievement.StatusDepheadPointsChange
+		case achievement.StatusInspectorReview:
+			return achievement.StatusInspectorPointsChange
+		}
+	case pointsAssigned == currentPoints:
+		// Reviewer approves with same points
+		switch currentStatus {
+		case achievement.StatusDepheadReview:
+			return achievement.StatusInspectorReview
+		case achievement.StatusInspectorReview:
+			return achievement.StatusDone
+		}
+	case pointsAssigned > currentPoints:
+		// Reviewer approves with higher points (shouldn't happen in normal flow)
+		switch currentStatus {
+		case achievement.StatusDepheadReview:
+			return achievement.StatusInspectorReview
+		case achievement.StatusInspectorReview:
+			return achievement.StatusDone
+		}
+	}
+
+	// Default fallback - should not happen in normal flow
+	return currentStatus
 }

@@ -264,10 +264,11 @@ func (c *TestClient) UploadFile(filename string, fileContent []byte) (*FileInfo,
 }
 
 // CreateAchievement creates a new achievement
-func (c *TestClient) CreateAchievement(templateID string) (*AchievementInfo, error) {
+func (c *TestClient) CreateAchievement(templateID string, points int64) (*AchievementInfo, error) {
 	createParams := achievements.NewPostAchievementsParams()
 	createParams.SetRequest(&models.ParamCreateAchievementRequest{
 		TemplateID: &templateID,
+		Points:     &points,
 	})
 
 	createResp, err := c.apiClient.Achievements.PostAchievements(createParams, c.authInfo)
@@ -330,6 +331,22 @@ func (c *TestClient) ReviewAchievement(achievementID string, points int64, comme
 	_, err := c.apiClient.Achievements.PostAchievementsIDReview(reviewParams, c.authInfo)
 	if err != nil {
 		return fmt.Errorf("failed to review achievement: %w", err)
+	}
+
+	return nil
+}
+
+// UpdateAchievementPoints updates the points for an achievement
+func (c *TestClient) UpdateAchievementPoints(achievementID string, points int64) error {
+	updateParams := achievements.NewPatchAchievementsIDPointsParams()
+	updateParams.SetID(achievementID)
+	updateParams.SetRequest(&models.ParamUpdateAchievementPointsRequest{
+		Points: &points,
+	})
+
+	_, err := c.apiClient.Achievements.PatchAchievementsIDPoints(updateParams, c.authInfo)
+	if err != nil {
+		return fmt.Errorf("failed to update achievement points: %w", err)
 	}
 
 	return nil

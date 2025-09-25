@@ -229,10 +229,15 @@ definitions:
     type: object
   param.CreateAchievementRequest:
     properties:
+      points:
+        example: 8
+        minimum: 0
+        type: integer
       templateId:
         example: 550e8400-e29b-41d4-a716-446655440000
         type: string
     required:
+    - points
     - templateId
     type: object
   param.CreateAchievementTemplateRequest:
@@ -299,6 +304,15 @@ definitions:
         type: integer
     required:
     - pointsAssigned
+    type: object
+  param.UpdateAchievementPointsRequest:
+    properties:
+      points:
+        example: 8
+        minimum: 0
+        type: integer
+    required:
+    - points
     type: object
   respond.Achievement:
     properties:
@@ -1146,6 +1160,59 @@ paths:
       security:
       - BearerAuth: []
       summary: Remove a document from an achievement
+      tags:
+      - achievements
+  /achievements/{id}/points:
+    patch:
+      consumes:
+      - application/json
+      description: Updates the points for an achievement when requested by reviewer
+      parameters:
+      - description: Bearer JWT token
+        in: header
+        name: Authorization
+        type: string
+      - description: Achievement UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Points update data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/param.UpdateAchievementPointsRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/respond.Achievement'
+        "400":
+          description: Invalid request format
+          schema:
+            $ref: '#/definitions/respond.Error'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/respond.Error'
+        "404":
+          description: Achievement not found
+          schema:
+            $ref: '#/definitions/respond.Error'
+        "409":
+          description: Wrong achievement status
+          schema:
+            $ref: '#/definitions/respond.Error'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/respond.Error'
+      security:
+      - BearerAuth: []
+      summary: Update achievement points
       tags:
       - achievements
   /achievements/{id}/review:

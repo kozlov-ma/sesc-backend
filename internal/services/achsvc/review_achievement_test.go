@@ -31,7 +31,7 @@ func TestReviewAchievement(t *testing.T) {
 			AchievementID:      ach.ID,
 			AchievementOwnerID: user.ID,
 			ReviewerID:         reviewer.ID,
-			PointsAssigned:     1,
+			PointsAssigned:     ach.Points, // Same as current points to approve
 			Comment:            "Good work!",
 		})
 
@@ -39,7 +39,7 @@ func TestReviewAchievement(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, result)
 		require.Equal(t, ach.ID, result.ID)
-		require.Equal(t, 1, result.Points)
+		require.Equal(t, ach.Points, result.Points) // Same as original points
 		require.Equal(t, string(achievement.StatusInspectorReview), result.Status)
 	})
 
@@ -131,5 +131,133 @@ func TestReviewAchievement(t *testing.T) {
 
 		// Verify the error
 		require.ErrorIs(t, err, sesc.ErrInvalidRole)
+	})
+
+	t.Run("success_dephead_request_points_change", func(t *testing.T) {
+		// Setup test context with database
+		ctx := t.Context()
+		ctx, _ = event.NewRecord(ctx, "test")
+		client := testutil.SetupDatabase(t)
+
+		// Create the service
+		svc := New(client)
+
+		// Create test user, reviewer, template, and achievement
+		user := testutil.CreateTestUser(ctx, t, client, "Test", "User", sesc.Role(1))
+		reviewer := testutil.CreateTestUser(ctx, t, client, "Test", "Reviewer", sesc.Dephead)
+		template := testutil.CreateTestAchievementTemplate(ctx, t, client, sesc.OlympiadDeputy)
+		ach := testutil.CreateTestAchievement(ctx, t, client, user, template, achievement.StatusDepheadReview)
+
+		// Call the method being tested with points less than current
+		result, err := svc.ReviewAchievement(ctx, achievement.ReviewOptions{
+			AchievementID:      ach.ID,
+			AchievementOwnerID: user.ID,
+			ReviewerID:         reviewer.ID,
+			PointsAssigned:     1, // Less than current points (template.PointsLimit)
+			Comment:            "Please adjust points",
+		})
+
+		// Verify the results
+		require.NoError(t, err)
+		require.NotNil(t, result)
+		require.Equal(t, ach.ID, result.ID)
+		require.Equal(t, 1, result.Points)
+		require.Equal(t, string(achievement.StatusDepheadPointsChange), result.Status)
+	})
+
+	t.Run("success_inspector_request_points_change", func(t *testing.T) {
+		// Setup test context with database
+		ctx := t.Context()
+		ctx, _ = event.NewRecord(ctx, "test")
+		client := testutil.SetupDatabase(t)
+
+		// Create the service
+		svc := New(client)
+
+		// Create test user, reviewer, template, and achievement
+		user := testutil.CreateTestUser(ctx, t, client, "Test", "User", sesc.Role(1))
+		reviewer := testutil.CreateTestUser(ctx, t, client, "Test", "Reviewer", sesc.ScientificDeputy)
+		template := testutil.CreateTestAchievementTemplate(ctx, t, client, sesc.ScientificDeputy)
+		ach := testutil.CreateTestAchievement(ctx, t, client, user, template, achievement.StatusInspectorReview)
+
+		// Call the method being tested with points less than current
+		result, err := svc.ReviewAchievement(ctx, achievement.ReviewOptions{
+			AchievementID:      ach.ID,
+			AchievementOwnerID: user.ID,
+			ReviewerID:         reviewer.ID,
+			PointsAssigned:     1, // Less than current points (template.PointsLimit)
+			Comment:            "Please adjust points",
+		})
+
+		// Verify the results
+		require.NoError(t, err)
+		require.NotNil(t, result)
+		require.Equal(t, ach.ID, result.ID)
+		require.Equal(t, 1, result.Points)
+		require.Equal(t, string(achievement.StatusInspectorPointsChange), result.Status)
+	})
+
+	t.Run("success_dephead_approve_same_points", func(t *testing.T) {
+		// Setup test context with database
+		ctx := t.Context()
+		ctx, _ = event.NewRecord(ctx, "test")
+		client := testutil.SetupDatabase(t)
+
+		// Create the service
+		svc := New(client)
+
+		// Create test user, reviewer, template, and achievement
+		user := testutil.CreateTestUser(ctx, t, client, "Test", "User", sesc.Role(1))
+		reviewer := testutil.CreateTestUser(ctx, t, client, "Test", "Reviewer", sesc.Dephead)
+		template := testutil.CreateTestAchievementTemplate(ctx, t, client, sesc.OlympiadDeputy)
+		ach := testutil.CreateTestAchievement(ctx, t, client, user, template, achievement.StatusDepheadReview)
+
+		// Call the method being tested with same points as current
+		result, err := svc.ReviewAchievement(ctx, achievement.ReviewOptions{
+			AchievementID:      ach.ID,
+			AchievementOwnerID: user.ID,
+			ReviewerID:         reviewer.ID,
+			PointsAssigned:     ach.Points, // Same as current points
+			Comment:            "Approved",
+		})
+
+		// Verify the results
+		require.NoError(t, err)
+		require.NotNil(t, result)
+		require.Equal(t, ach.ID, result.ID)
+		require.Equal(t, ach.Points, result.Points)
+		require.Equal(t, string(achievement.StatusInspectorReview), result.Status)
+	})
+
+	t.Run("success_inspector_approve_same_points", func(t *testing.T) {
+		// Setup test context with database
+		ctx := t.Context()
+		ctx, _ = event.NewRecord(ctx, "test")
+		client := testutil.SetupDatabase(t)
+
+		// Create the service
+		svc := New(client)
+
+		// Create test user, reviewer, template, and achievement
+		user := testutil.CreateTestUser(ctx, t, client, "Test", "User", sesc.Role(1))
+		reviewer := testutil.CreateTestUser(ctx, t, client, "Test", "Reviewer", sesc.ScientificDeputy)
+		template := testutil.CreateTestAchievementTemplate(ctx, t, client, sesc.ScientificDeputy)
+		ach := testutil.CreateTestAchievement(ctx, t, client, user, template, achievement.StatusInspectorReview)
+
+		// Call the method being tested with same points as current
+		result, err := svc.ReviewAchievement(ctx, achievement.ReviewOptions{
+			AchievementID:      ach.ID,
+			AchievementOwnerID: user.ID,
+			ReviewerID:         reviewer.ID,
+			PointsAssigned:     ach.Points, // Same as current points
+			Comment:            "Approved",
+		})
+
+		// Verify the results
+		require.NoError(t, err)
+		require.NotNil(t, result)
+		require.Equal(t, ach.ID, result.ID)
+		require.Equal(t, ach.Points, result.Points)
+		require.Equal(t, string(achievement.StatusDone), result.Status)
 	})
 }

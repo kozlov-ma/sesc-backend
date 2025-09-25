@@ -23,6 +23,12 @@ var (
 		"текущий статус достижения не позволяет работать с ним таким образом",
 		domerr.KindConflict,
 	)
+
+	ErrNegativePoints = domerr.New(
+		"количество баллов не может быть отрицательным",
+		domerr.KindValidation,
+	)
+
 	ErrPointsLimitExceeded = domerr.New(
 		"нельзя оценить достижение выше, чем оно оценено сейчас",
 		domerr.KindConflict,

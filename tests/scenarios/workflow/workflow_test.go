@@ -79,7 +79,9 @@ func TestScenarioFullWorkflow(t *testing.T) {
 		{"UserAchievementCreation", stepUserAchievementCreation},
 		{"UserAchievementSubmission", stepUserAchievementSubmission},
 		{"DepartmentHeadReview", stepDepartmentHeadReview},
+		{"UserUpdatePointsAfterDephead", stepUserUpdatePointsAfterDephead},
 		{"SecondaryReview", stepSecondaryReview},
+		{"UserUpdatePointsAfterInspector", stepUserUpdatePointsAfterInspector},
 		{"UserVerificationDone", stepUserVerificationDone},
 		{"EconomistMarkAccounted", stepEconomistMarkAccounted},
 		{"UserVerificationAccounted", stepUserVerificationAccounted},
@@ -464,7 +466,9 @@ func stepUserAchievementCreation(t *testing.T, data *TestData) {
 			// Select a template (cycle through available templates)
 			template := data.AchievementTemplates[i%len(data.AchievementTemplates)]
 
-			achievementInfo, err := data.Client.CreateAchievement(template.ID)
+			// User sets their own points (random between 1 and template limit)
+			userPoints := int64((i % int(template.PointsLimit)) + 1)
+			achievementInfo, err := data.Client.CreateAchievement(template.ID, userPoints)
 			require.NoError(t, err, "User %s should be able to create achievement", user.Username)
 
 			achievementInfo.UserID = user.ID
@@ -532,8 +536,26 @@ func stepDepartmentHeadReview(t *testing.T, data *TestData) {
 
 		reviewedCount := 0
 		for achievement := range aa {
-			// Review the achievement with assigned points
-			err := data.Client.ReviewAchievement(*achievement.ID, 3, "Approved by department head")
+			// Only review achievements that are in dephead_review status
+			if *achievement.Status != "dephead_review" {
+				continue
+			}
+
+			// Review the achievement - sometimes approve, sometimes request points change
+			var pointsToAssign int64
+			var comment string
+
+			if reviewedCount%3 == 0 {
+				// Request points change (assign lower points)
+				pointsToAssign = *achievement.Points / 2
+				comment = "Please adjust points - too high"
+			} else {
+				// Approve with same points
+				pointsToAssign = *achievement.Points
+				comment = "Approved by department head"
+			}
+
+			err := data.Client.ReviewAchievement(*achievement.ID, pointsToAssign, comment)
 			require.NoError(t, err, "Department head should be able to review achievement %s", *achievement.ID)
 			reviewedCount++
 		}
@@ -575,8 +597,26 @@ func stepSecondaryReview(t *testing.T, data *TestData) {
 
 		reviewedCount := 0
 		for achievement := range aa {
-			// Provide final approval
-			err := data.Client.ReviewAchievement(*achievement.ID, 2, "Final approval by secondary reviewer")
+			// Only review achievements that are in inspector_review status
+			if *achievement.Status != "inspector_review" {
+				continue
+			}
+
+			// Provide final approval - sometimes approve, sometimes request points change
+			var pointsToAssign int64
+			var comment string
+
+			if reviewedCount%4 == 0 {
+				// Request points change (assign lower points)
+				pointsToAssign = *achievement.Points / 2
+				comment = "Please adjust points - needs improvement"
+			} else {
+				// Approve with same points
+				pointsToAssign = *achievement.Points
+				comment = "Final approval by secondary reviewer"
+			}
+
+			err := data.Client.ReviewAchievement(*achievement.ID, pointsToAssign, comment)
 			require.NoError(t, err, "Secondary reviewer should be able to review achievement %s", *achievement.ID)
 			reviewedCount++
 		}
@@ -601,12 +641,13 @@ func stepUserVerificationDone(t *testing.T, data *TestData) {
 
 		doneCount := 0
 		for _, achievement := range achievements {
-			// Verify achievement status is "done"
+			// Verify achievement status is valid (including new statuses)
 			assert.Contains(
 				t,
-				[]string{"done", "dephead_review", "accounted", "inspector_review", "draft"},
+				[]string{"done", "dephead_review", "accounted", "inspector_review", "draft",
+					"dephead_points_change", "inspector_points_change"},
 				*achievement.Status,
-				"Achievement %s should have 'done' status",
+				"Achievement %s should have valid status",
 				*achievement.ID,
 			)
 			doneCount++
@@ -647,12 +688,13 @@ func stepUserVerificationAccounted(t *testing.T, data *TestData) {
 
 		accountedCount := 0
 		for _, achievement := range achievements {
-			// Verify achievement status is "accounted"
+			// Verify achievement status is valid (including new statuses)
 			assert.Contains(
 				t,
-				[]string{"accounted", "dephead_review", "inspector_review", "draft"},
+				[]string{"accounted", "dephead_review", "inspector_review", "draft",
+					"dephead_points_change", "inspector_points_change"},
 				*achievement.Status,
-				"Achievement %s should have 'accounted' status",
+				"Achievement %s should have valid status",
 				*achievement.ID,
 			)
 			accountedCount++
@@ -664,4 +706,64 @@ func stepUserVerificationAccounted(t *testing.T, data *TestData) {
 
 	t.Log("✅ All users verified their achievements have 'accounted' status")
 	t.Log("🎉 Full workflow scenario completed successfully!")
+}
+
+// stepUserUpdatePointsAfterDephead has users update points after department head requests changes
+func stepUserUpdatePointsAfterDephead(t *testing.T, data *TestData) {
+	t.Log("User Update Points After Department Head Review")
+
+	for _, user := range data.RegularUsers {
+		data.Client.SetUserAuth(user.Token)
+
+		// Get user's achievements
+		achievements, err := data.Client.GetUserAchievements(nil)
+		require.NoError(t, err, "User %s should be able to get their achievements", user.Username)
+
+		updatedCount := 0
+		for _, achievement := range achievements {
+			// Check if achievement needs points update (dephead_points_change status)
+			if *achievement.Status == "dephead_points_change" {
+				// User updates points to a new value
+				newPoints := *achievement.Points + 5 // Add some points
+				err := data.Client.UpdateAchievementPoints(*achievement.ID, newPoints)
+				require.NoError(t, err, "User %s should be able to update achievement points", user.Username)
+				updatedCount++
+			}
+		}
+
+		t.Logf("✅ User %s %s updated %d achievements after department head review",
+			user.LastName, user.FirstName, updatedCount)
+	}
+
+	t.Log("✅ All users completed points updates after department head review")
+}
+
+// stepUserUpdatePointsAfterInspector has users update points after inspector requests changes
+func stepUserUpdatePointsAfterInspector(t *testing.T, data *TestData) {
+	t.Log("User Update Points After Inspector Review")
+
+	for _, user := range data.RegularUsers {
+		data.Client.SetUserAuth(user.Token)
+
+		// Get user's achievements
+		achievements, err := data.Client.GetUserAchievements(nil)
+		require.NoError(t, err, "User %s should be able to get their achievements", user.Username)
+
+		updatedCount := 0
+		for _, achievement := range achievements {
+			// Check if achievement needs points update (inspector_points_change status)
+			if *achievement.Status == "inspector_points_change" {
+				// User updates points to a new value
+				newPoints := *achievement.Points + 3 // Add some points
+				err := data.Client.UpdateAchievementPoints(*achievement.ID, newPoints)
+				require.NoError(t, err, "User %s should be able to update achievement points", user.Username)
+				updatedCount++
+			}
+		}
+
+		t.Logf("✅ User %s %s updated %d achievements after inspector review",
+			user.LastName, user.FirstName, updatedCount)
+	}
+
+	t.Log("✅ All users completed points updates after inspector review")
 }

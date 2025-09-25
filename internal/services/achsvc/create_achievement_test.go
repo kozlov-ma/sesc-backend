@@ -44,6 +44,7 @@ func TestCreateAchievement(t *testing.T) {
 		opt := achievement.CreateOptions{
 			ForUserID:  tc.User.ID,
 			TemplateID: tc.Template.ID,
+			Points:     8, // User sets their own points
 		}
 
 		ach, err := svc.CreateAchievement(ctx, opt)
@@ -54,7 +55,23 @@ func TestCreateAchievement(t *testing.T) {
 		require.Equal(t, tc.User.ID, ach.OwnerID, "Achievement owner should match")
 		require.Equal(t, tc.Template.ID, ach.TemplateID, "Achievement template should match")
 		require.Equal(t, achievement.StatusDraft, ach.Status, "Achievement should be in draft status")
-		require.Equal(t, tc.Template.PointsLimit, ach.Points, "Achievement should have template points limit")
+		require.Equal(t, 8, ach.Points, "Achievement should have user-specified points")
+	})
+
+	t.Run("points exceed limit", func(t *testing.T) {
+		// Setup test
+		ctx, tc, svc := setup(t)
+
+		// Create achievement with points exceeding template limit
+		opt := achievement.CreateOptions{
+			ForUserID:  tc.User.ID,
+			TemplateID: tc.Template.ID,
+			Points:     tc.Template.PointsLimit + 1, // Exceed limit
+		}
+
+		_, err := svc.CreateAchievement(ctx, opt)
+		require.Error(t, err, "CreateAchievement should fail with points exceeding limit")
+		require.Equal(t, achievement.ErrPointsLimitExceeded, err, "Should return points limit exceeded error")
 	})
 
 	t.Run("template not found", func(t *testing.T) {

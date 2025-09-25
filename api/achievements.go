@@ -177,6 +177,7 @@ func (a *API) CreateAchievement(w http.ResponseWriter, r *http.Request) {
 	opt := achievement.CreateOptions{
 		ForUserID:  user.ID,
 		TemplateID: req.TemplateID,
+		Points:     req.Points,
 	}
 	ach, err := a.sesc.CreateAchievement(ctx, opt)
 	if err != nil {
@@ -381,6 +382,74 @@ func (a *API) SubmitAchievement(w http.ResponseWriter, r *http.Request) {
 		AchievementID: ach.ID,
 	}
 	updatedAch, err := a.sesc.SubmitAchievement(ctx, opt)
+	if err != nil {
+		rec.Add(events.Error, err)
+		a.writeJSON(ctx, w, respond.WithError(ctx, err))
+		return
+	}
+
+	updatedAch, err = a.sesc.GetAchievement(ctx, updatedAch.ID)
+	if err != nil {
+		rec.Add(events.Error, err)
+		a.writeJSON(ctx, w, respond.WithError(ctx, err))
+		return
+	}
+
+	// Convert to response format
+	response := respond.WithAchievement(updatedAch)
+	a.writeJSON(ctx, w, response)
+}
+
+// UpdateAchievementPoints godoc
+// @Summary Update achievement points
+// @Description Updates the points for an achievement when requested by reviewer
+// @Tags achievements
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param Authorization header string false "Bearer JWT token"
+// @Param id path string true "Achievement UUID"
+// @Param request body param.UpdateAchievementPointsRequest true "Points update data"
+// @Success 200 {object} respond.Achievement
+// @Failure 400 {object} respond.Error "Invalid request format"
+// @Failure 401 {object} respond.Error "Unauthorized"
+// @Failure 404 {object} respond.Error "Achievement not found"
+// @Failure 409 {object} respond.Error "Wrong achievement status"
+// @Failure 500 {object} respond.Error "Internal server error"
+// @Router /achievements/{id}/points [patch]
+func (a *API) UpdateAchievementPoints(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	rec := event.Get(ctx)
+
+	// Get user from context
+	user, ok := GetUserFromContext(ctx)
+	if !ok {
+		a.writeJSON(ctx, w, respond.WithError(ctx, sesc.ErrUserNotFound))
+		return
+	}
+
+	// Get achievement from context (added by AchievementMiddleware)
+	ach, ok := GetAchievementFromContext(ctx)
+	if !ok {
+		a.writeJSON(ctx, w, respond.WithError(ctx, achievement.ErrAchievementNotFound))
+		return
+	}
+
+	// Parse request
+	var req param.UpdateAchievementPointsRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		rec.Add(events.Error, "invalid request body")
+		a.writeJSON(ctx, w, respond.WithError(ctx, err))
+		return
+	}
+
+	// Update achievement points
+	opt := achievement.UpdatePointsOptions{
+		OwnerID:       user.ID,
+		AchievementID: ach.ID,
+		Points:        req.Points,
+	}
+	updatedAch, err := a.sesc.UpdateAchievementPoints(ctx, opt)
 	if err != nil {
 		rec.Add(events.Error, err)
 		a.writeJSON(ctx, w, respond.WithError(ctx, err))

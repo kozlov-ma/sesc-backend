@@ -53,12 +53,20 @@ func (s *ACS) CreateAchievement(
 		}
 
 		err = rec.Operation("create_achievement", func(_ *event.Record) error {
+			// Validate points against template limit
+			if opt.Points > template.PointsLimit {
+				return achievement.ErrPointsLimitExceeded
+			}
+			if opt.Points < 0 {
+				return achievement.ErrNegativePoints
+			}
+
 			start := time.Now()
 			achievement, err := tx.Achievement.Create().
 				SetOwnerID(opt.ForUserID).
 				SetTemplateID(opt.TemplateID).
 				SetStatus(string(achievement.StatusDraft)).
-				SetPoints(template.PointsLimit).
+				SetPoints(opt.Points).
 				Save(ctx)
 			statsRec.Add(events.PostgresQueries, 1)
 			statsRec.Add(events.PostgresTime, time.Since(start))

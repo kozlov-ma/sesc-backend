@@ -145,6 +145,7 @@ func (a *API) RegisterRoutes(r chi.Router) {
 				// Achievement status management
 				r.Post("/submit", a.SubmitAchievement)
 				r.Post("/review", a.ReviewAchievement)
+				r.Patch("/points", a.UpdateAchievementPoints)
 			})
 		})
 

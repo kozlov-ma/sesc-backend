@@ -7,6 +7,7 @@ import (
 // CreateAchievementRequest represents the request to create a new achievement
 type CreateAchievementRequest struct {
 	TemplateID uuid.UUID `json:"templateId" example:"550e8400-e29b-41d4-a716-446655440000" validate:"required"`
+	Points     int       `json:"points"     example:"8"                                    validate:"required,min=0"`
 }
 
 // AddDocumentRequest represents the request to add a document to an achievement
@@ -19,6 +20,11 @@ type AddDocumentRequest struct {
 type ReviewAchievementRequest struct {
 	PointsAssigned int    `json:"pointsAssigned" example:"8"                             validate:"required"`
 	Comment        string `json:"comment"        example:"Good job, but could be better" validate:"omitempty"`
+}
+
+// UpdateAchievementPointsRequest represents the request to update achievement points
+type UpdateAchievementPointsRequest struct {
+	Points int `json:"points" example:"8" validate:"required,min=0"`
 }
 
 // CreateAchievementGroupRequest represents the request to create an achievement group
