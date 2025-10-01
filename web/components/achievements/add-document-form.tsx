@@ -147,7 +147,10 @@ export function AddDocumentForm({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form
+      onSubmit={handleSubmit}
+      className="space-y-4 w-full overflow-hidden box-border"
+    >
       <div className="space-y-2">
         <Label htmlFor="documentName">Название документа</Label>
         <Input
@@ -159,7 +162,7 @@ export function AddDocumentForm({
         />
       </div>
 
-      <div className="space-y-2">
+      <div className="space-y-2 w-full overflow-hidden">
         <Label>Поиск файлов</Label>
         <Input
           value={searchQuery}
@@ -168,7 +171,7 @@ export function AddDocumentForm({
           className="mb-4"
         />
 
-        <Tabs defaultValue="personal" className="w-full">
+        <Tabs defaultValue="personal" className="w-full overflow-hidden">
           <TabsList className="w-full">
             <TabsTrigger value="personal" className="flex-1">
               Личные файлы
@@ -178,9 +181,9 @@ export function AddDocumentForm({
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="personal">
-            <div className="mb-4">
-              <div className="relative">
+          <TabsContent value="personal" className="w-full overflow-hidden">
+            <div className="mb-4 w-full overflow-hidden">
+              <div className="relative w-full overflow-hidden">
                 <input
                   type="file"
                   id="fileUpload"
@@ -194,27 +197,34 @@ export function AddDocumentForm({
                   className="w-full"
                   disabled={uploadFileMutation.isPending}
                 >
-                  <Upload className="mr-2 h-4 w-4" />
-                  {uploadFileMutation.isPending
-                    ? "Загрузка..."
-                    : "Загрузить файл"}
+                  <Upload className="mr-2 h-4 w-4 shrink-0" />
+                  <span className="truncate">
+                    {uploadFileMutation.isPending
+                      ? "Загрузка..."
+                      : "Загрузить файл"}
+                  </span>
                 </Button>
               </div>
             </div>
-            <ScrollArea className="h-[200px]">
-              <div className="space-y-2">
+            <ScrollArea className="h-[200px] w-full box-border">
+              <div className="space-y-2 min-w-0 w-full box-border">
                 {personalFilesQuery.data?.pages.map((page) =>
                   page.files?.map((file) => (
                     <Card
                       key={file.id}
-                      className={`p-3 cursor-pointer transition-colors ${
+                      className={`p-3 cursor-pointer transition-colors min-w-0 w-full overflow-hidden box-border ${
                         selectedFile?.id === file.id
                           ? "bg-primary/10"
                           : "hover:bg-muted"
                       }`}
                       onClick={() => handleFileSelect(file)}
                     >
-                      <div className="text-sm font-medium">{file.fileName}</div>
+                      <div
+                        className="text-sm font-medium truncate min-w-0"
+                        title={file.fileName}
+                      >
+                        {file.fileName}
+                      </div>
                     </Card>
                   )),
                 )}
@@ -222,21 +232,26 @@ export function AddDocumentForm({
             </ScrollArea>
           </TabsContent>
 
-          <TabsContent value="common">
-            <ScrollArea className="h-[200px]">
-              <div className="space-y-2">
+          <TabsContent value="common" className="w-full ">
+            <ScrollArea className="h-[200px] box-border">
+              <div className="space-y-2 min-w-0 w-full box-border">
                 {commonFilesQuery.data?.pages.map((page) =>
                   page.files?.map((file) => (
                     <Card
                       key={file.id}
-                      className={`p-3 cursor-pointer transition-colors ${
+                      className={`p-3 cursor-pointer transition-colors min-w-0 w-full overflow-hidden box-border ${
                         selectedFile?.id === file.id
                           ? "bg-primary/10"
                           : "hover:bg-muted"
                       }`}
                       onClick={() => handleFileSelect(file)}
                     >
-                      <div className="text-sm font-medium">{file.fileName}</div>
+                      <div
+                        className="text-sm font-medium truncate min-w-0"
+                        title={file.fileName}
+                      >
+                        {file.fileName}
+                      </div>
                     </Card>
                   )),
                 )}
@@ -246,13 +261,19 @@ export function AddDocumentForm({
         </Tabs>
       </div>
 
-      <div className="flex justify-end space-x-2">
-        <Button type="button" variant="outline" onClick={onCancel}>
+      <div className="flex justify-end space-x-2 w-full overflow-hidden">
+        <Button
+          type="button"
+          variant="outline"
+          onClick={onCancel}
+          className="shrink-0"
+        >
           Отмена
         </Button>
         <Button
           type="submit"
           disabled={!selectedFile || addDocumentMutation.isPending}
+          className="shrink-0"
         >
           {addDocumentMutation.isPending ? "Добавление..." : "Добавить"}
         </Button>

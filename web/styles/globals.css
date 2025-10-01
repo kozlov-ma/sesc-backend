@@ -18,6 +18,31 @@ body {
     hyphens: auto;
     white-space: normal;
   }
+
+  /* Truncate with visual ellipsis indicator */
+  .truncate-with-ellipsis {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    position: relative;
+  }
+
+  .truncate-with-ellipsis::after {
+    content: "...";
+    position: absolute;
+    right: 0;
+    top: 0;
+    background: inherit;
+    padding-left: 4px;
+    color: hsl(var(--muted-foreground));
+    font-size: 0.875rem;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+
+  .truncate-with-ellipsis:hover::after {
+    opacity: 1;
+  }
 }
 
 @layer base {

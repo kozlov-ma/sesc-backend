@@ -104,13 +104,16 @@ export function AchievementDetailsDialog({
                   <TableBody>
                     {achievement.documents.map((document) => (
                       <TableRow key={document.id}>
-                        <TableCell className="max-w-[150px]">
-                          <div className="truncate" title={document.name}>
+                        <TableCell className="max-w-[150px] min-w-0">
+                          <div
+                            className="truncate-with-ellipsis"
+                            title={document.name}
+                          >
                             {document.name}
                           </div>
                         </TableCell>
-                        <TableCell className="max-w-[200px]">
-                          <div className="truncate">
+                        <TableCell className="max-w-[200px] min-w-0">
+                          <div className="truncate-with-ellipsis">
                             <FileNameByIdDisplay fileId={document.fileId} />
                           </div>
                         </TableCell>

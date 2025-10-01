@@ -21,7 +21,10 @@ export function AddDocumentDialog({
 }: AddDocumentDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px]">
+      <DialogContent
+        className="sm:max-w-[600px] max-w-[95vw] overflow-hidden"
+        style={{ maxWidth: "min(600px, 95vw)" }}
+      >
         <DialogHeader>
           <DialogTitle>Добавить документ</DialogTitle>
           <DialogDescription>
