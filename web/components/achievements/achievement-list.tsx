@@ -36,6 +36,9 @@ export function getStatusBadgeVariant(
       return "outline"; // Changed from warning to outline
     case "done":
       return "secondary"; // Changed from success to secondary
+    case "dephead_requested_changes":
+    case "inspector_requested_changes":
+      return "destructive";
     default:
       return "outline";
   }
@@ -53,6 +56,10 @@ export function getStatusLabel(status: string) {
       return "Проверка завершена";
     case "accounted":
       return "Начислены баллы";
+    case "dephead_requested_changes":
+      return "Требуются изменения (зав. кафедрой)";
+    case "inspector_requested_changes":
+      return "Требуются изменения (контролирующее лицо)";
     default:
       return status;
   }

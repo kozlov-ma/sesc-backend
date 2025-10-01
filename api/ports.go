@@ -42,15 +42,28 @@ type (
 		// Department operations
 		Departments(ctx context.Context) (ent.Departments, error)
 		DepartmentByID(ctx context.Context, id uuid.UUID) (*ent.Department, error)
-		CreateDepartment(ctx context.Context, name string, description string) (*ent.Department, error)
-		UpdateDepartment(ctx context.Context, id uuid.UUID, name string, description string) (*ent.Department, error)
+		CreateDepartment(
+			ctx context.Context,
+			name string,
+			description string,
+		) (*ent.Department, error)
+		UpdateDepartment(
+			ctx context.Context,
+			id uuid.UUID,
+			name string,
+			description string,
+		) (*ent.Department, error)
 		DeleteDepartment(ctx context.Context, id uuid.UUID) error
 
 		// User operations
 		Users(ctx context.Context, offset, limit int, search string) (ent.Users, int, error)
 		User(ctx context.Context, id uuid.UUID) (*ent.User, error)
 		CreateUser(ctx context.Context, options sesc.UserUpdateOptions) (*ent.User, error)
-		UpdateUser(ctx context.Context, id uuid.UUID, options sesc.UserUpdateOptions) (*ent.User, error)
+		UpdateUser(
+			ctx context.Context,
+			id uuid.UUID,
+			options sesc.UserUpdateOptions,
+		) (*ent.User, error)
 		UpdateProfilePicture(ctx context.Context, id uuid.UUID, pictureURL string) error
 
 		// Achievement group operations
@@ -91,6 +104,7 @@ type (
 			userID uuid.UUID,
 			whosAsking uuid.UUID,
 			offset, limit int,
+			requireChanges bool,
 		) (ent.Achievements, int, error)
 		GetUsersWithAchievements(
 			ctx context.Context,
@@ -99,9 +113,15 @@ type (
 			search string,
 		) (ent.Users, int, error)
 
-		CreateAchievement(ctx context.Context, opt achievement.CreateOptions) (*ent.Achievement, error)
+		CreateAchievement(
+			ctx context.Context,
+			opt achievement.CreateOptions,
+		) (*ent.Achievement, error)
 		DeleteAchievement(ctx context.Context, opt achievement.DeleteOptions) error
-		AddDocument(ctx context.Context, opt achievement.AddDocumentOptions) (*ent.AchievementDocument, error)
+		AddDocument(
+			ctx context.Context,
+			opt achievement.AddDocumentOptions,
+		) (*ent.AchievementDocument, error)
 		RemoveDocument(ctx context.Context, opt achievement.RemoveDocumentOptions) error
 
 		SubmitAchievement(
@@ -112,6 +132,11 @@ type (
 		ReviewAchievement(
 			ctx context.Context,
 			opt achievement.ReviewOptions,
+		) (*ent.Achievement, error)
+
+		UpdateAchievementPoints(
+			ctx context.Context,
+			opt achievement.UpdatePointsOptions,
 		) (*ent.Achievement, error)
 
 		// GenerateUserPointsReport generates an Excel report with user achievement points
@@ -126,7 +151,11 @@ type (
 		// Search searches for files with the given options
 		Search(ctx context.Context, opts sesc.FileSearchOptions) (ent.Files, int, error)
 		// Create uploads a new file
-		Create(ctx context.Context, reader io.Reader, opts sesc.FileCreateOptions) (*ent.File, error)
+		Create(
+			ctx context.Context,
+			reader io.Reader,
+			opts sesc.FileCreateOptions,
+		) (*ent.File, error)
 		// Delete deletes a file
 		Delete(ctx context.Context, id uuid.UUID) error
 		// ByID returns a file by its ID

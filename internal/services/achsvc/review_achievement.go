@@ -16,7 +16,82 @@ import (
 	"github.com/kozlov-ma/sesc-backend/sesc"
 )
 
-// ReviewAchievement reviews an achievement, setting points and optionally a comment.
+// validateReviewRequest validates that the review request is valid
+func (s *ACS) validateReviewRequest(
+	ach *ent.Achievement,
+	reviewer *ent.User,
+	action achievement.ReviewAction,
+) error {
+	currentStatus := achievement.Status(ach.Status)
+	if currentStatus != achievement.StatusDepheadReview &&
+		currentStatus != achievement.StatusInspectorReview {
+		return achievement.ErrWrongAchievementStatus
+	}
+
+	reviewerRole := reviewer.Role
+	needReviewerRole := ach.Edges.Template.ReviewerRole
+
+	var validReviewer bool
+	switch currentStatus {
+	case achievement.StatusDepheadReview:
+		validReviewer = reviewerRole == sesc.Dephead
+	case achievement.StatusInspectorReview:
+		validReviewer = reviewerRole == needReviewerRole
+	}
+
+	if !validReviewer {
+		return sesc.ErrInvalidRole
+	}
+
+	if action != achievement.ReviewActionApprove &&
+		action != achievement.ReviewActionDisapprove &&
+		action != achievement.ReviewActionRequestChanges {
+		return fmt.Errorf("invalid review action: %s", action)
+	}
+
+	return nil
+}
+
+// calculateReviewPoints calculates the points to assign in the review
+func calculateReviewPoints(action achievement.ReviewAction, currentPoints int) int {
+	switch action {
+	case achievement.ReviewActionApprove:
+		return currentPoints
+	case achievement.ReviewActionDisapprove, achievement.ReviewActionRequestChanges:
+		return 0
+	default:
+		return 0
+	}
+}
+
+// calculateNewStatusAndPoints calculates the new status and points after review
+func calculateNewStatusAndPoints(
+	action achievement.ReviewAction,
+	currentStatus achievement.Status,
+	currentPoints int,
+) (achievement.Status, int) {
+	switch action {
+	case achievement.ReviewActionApprove:
+		switch currentStatus {
+		case achievement.StatusDepheadReview:
+			return achievement.StatusInspectorReview, currentPoints
+		case achievement.StatusInspectorReview:
+			return achievement.StatusDone, currentPoints
+		}
+	case achievement.ReviewActionDisapprove:
+		return achievement.StatusDone, 0
+	case achievement.ReviewActionRequestChanges:
+		switch currentStatus {
+		case achievement.StatusDepheadReview:
+			return achievement.StatusDepheadRequestedChanges, currentPoints
+		case achievement.StatusInspectorReview:
+			return achievement.StatusInspectorRequestedChanges, currentPoints
+		}
+	}
+	return currentStatus, currentPoints
+}
+
+// ReviewAchievement reviews an achievement with approve, disapprove, or request changes action.
 // Returns achievement.ErrAchievementNotFound if the achievement does not exist.
 // Returns achievement.ErrWrongAchievementStatus if the achievement is not in the correct status for review.
 func (s *ACS) ReviewAchievement(
@@ -31,7 +106,7 @@ func (s *ACS) ReviewAchievement(
 		"achievement_id", opt.AchievementID,
 		"achievement_owner_id", opt.AchievementOwnerID,
 		"reviewer_id", opt.ReviewerID,
-		"points_assigned", opt.PointsAssigned,
+		"action", string(opt.Action),
 		"comment_length", len(opt.Comment),
 	)
 
@@ -91,32 +166,7 @@ func (s *ACS) ReviewAchievement(
 				"ach_status", ach.Status,
 			)
 
-			currentStatus := achievement.Status(ach.Status)
-			if currentStatus != achievement.StatusDepheadReview && currentStatus != achievement.StatusInspectorReview {
-				return achievement.ErrWrongAchievementStatus
-			}
-
-			reviewerRole := reviewer.Role
-			needReviewerRole := ach.Edges.Template.ReviewerRole
-
-			var validReviewer bool
-			switch currentStatus {
-			case achievement.StatusDepheadReview:
-				validReviewer = reviewerRole == sesc.Dephead
-			case achievement.StatusInspectorReview:
-				validReviewer = reviewerRole == needReviewerRole
-			}
-
-			if !validReviewer {
-				return sesc.ErrInvalidRole
-			}
-
-			pointsLimit := ach.Edges.Template.PointsLimit
-			if opt.PointsAssigned > pointsLimit {
-				return achievement.ErrPointsLimitExceeded
-			}
-
-			return nil
+			return s.validateReviewRequest(ach, reviewer, opt.Action)
 		})
 		if err != nil {
 			return err
@@ -129,12 +179,14 @@ func (s *ACS) ReviewAchievement(
 				return fmt.Errorf("failed to generate review ID: %w", err)
 			}
 
+			pointsForReview := calculateReviewPoints(opt.Action, ach.Points)
+
 			start := time.Now()
 			_, err = tx.AchievementReview.Create().
 				SetID(reviewID).
 				SetAchievementID(opt.AchievementID).
 				SetReviewerID(opt.ReviewerID).
-				SetPointsAssigned(opt.PointsAssigned).
+				SetPointsAssigned(pointsForReview).
 				SetComment(opt.Comment).
 				Save(ctx)
 			statsRec.Add(events.PostgresQueries, 1)
@@ -152,21 +204,16 @@ func (s *ACS) ReviewAchievement(
 
 		err = rec.Operation("update_achievement", func(_ *event.Record) error {
 			currentStatus := achievement.Status(ach.Status)
-
-			var newStatus achievement.Status
-			switch {
-			case opt.PointsAssigned == 0:
-				newStatus = achievement.StatusDone
-			case currentStatus == achievement.StatusDepheadReview:
-				newStatus = achievement.StatusInspectorReview
-			case currentStatus == achievement.StatusInspectorReview:
-				newStatus = achievement.StatusDone
-			}
+			newStatus, newPoints := calculateNewStatusAndPoints(
+				opt.Action,
+				currentStatus,
+				ach.Points,
+			)
 
 			start := time.Now()
 			_, err := tx.Achievement.UpdateOne(ach).
 				SetStatus(string(newStatus)).
-				SetPoints(opt.PointsAssigned).
+				SetPoints(newPoints).
 				Save(ctx)
 			statsRec.Add(events.PostgresQueries, 1)
 			statsRec.Add(events.PostgresTime, time.Since(start))

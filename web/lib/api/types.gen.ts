@@ -112,8 +112,13 @@ export type ParamPatchAchievementTemplateRequest = {
 };
 
 export type ParamReviewAchievementRequest = {
+  action: "approve" | "disapprove" | "request_changes";
   comment?: string;
-  pointsAssigned: number;
+};
+
+export type ParamUpdateAchievementPointsRequest = {
+  comment?: string;
+  points: number;
 };
 
 export type RespondAchievement = {
@@ -553,6 +558,10 @@ export type GetAchievementsData = {
      * User's ID
      */
     id?: string;
+    /**
+     * Filter achievements requiring changes
+     */
+    requiring_changes?: boolean;
   };
   url: "/achievements";
 };
@@ -927,7 +936,7 @@ export type PostAchievementsByIdReviewData = {
 
 export type PostAchievementsByIdReviewErrors = {
   /**
-   * Points assigned exceed the template's points limit
+   * Invalid review action
    */
   400: RespondError;
   /**
@@ -1018,6 +1027,67 @@ export type PostAchievementsByIdSubmitResponses = {
 
 export type PostAchievementsByIdSubmitResponse =
   PostAchievementsByIdSubmitResponses[keyof PostAchievementsByIdSubmitResponses];
+
+export type PostAchievementsByIdSubmitWithNewPointsData = {
+  /**
+   * Points update data
+   */
+  body: ParamUpdateAchievementPointsRequest;
+  headers?: {
+    /**
+     * Bearer JWT token
+     */
+    Authorization?: string;
+  };
+  path: {
+    /**
+     * Achievement UUID
+     */
+    id: string;
+  };
+  query?: never;
+  url: "/achievements/{id}/submit-with-new-points";
+};
+
+export type PostAchievementsByIdSubmitWithNewPointsErrors = {
+  /**
+   * Points exceed template limit
+   */
+  400: RespondError;
+  /**
+   * Unauthorized
+   */
+  401: RespondError;
+  /**
+   * Forbidden - only achievement owner can update points
+   */
+  403: RespondError;
+  /**
+   * Achievement not found
+   */
+  404: RespondError;
+  /**
+   * Wrong achievement status - changes not requested
+   */
+  409: RespondError;
+  /**
+   * Internal server error
+   */
+  500: RespondError;
+};
+
+export type PostAchievementsByIdSubmitWithNewPointsError =
+  PostAchievementsByIdSubmitWithNewPointsErrors[keyof PostAchievementsByIdSubmitWithNewPointsErrors];
+
+export type PostAchievementsByIdSubmitWithNewPointsResponses = {
+  /**
+   * OK
+   */
+  200: RespondAchievement;
+};
+
+export type PostAchievementsByIdSubmitWithNewPointsResponse =
+  PostAchievementsByIdSubmitWithNewPointsResponses[keyof PostAchievementsByIdSubmitWithNewPointsResponses];
 
 export type PostAuthAdminLoginData = {
   /**

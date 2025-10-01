@@ -68,6 +68,7 @@ func (a *API) AchievementMiddleware(next http.Handler) http.Handler {
 // @Param offset query int false "Pagination offset" default(0) minimum(0)
 // @Param limit query int false "Pagination limit" default(10) minimum(1) maximum(100)
 // @Param id query string false "User's ID"
+// @Param requiring_changes query bool false "Filter achievements requiring changes" default(false)
 // @Success 200 {object} respond.Achievements
 // @Failure 400 {object} respond.Error "Invalid request parameters"
 // @Failure 401 {object} respond.Error "Unauthorized"
@@ -97,8 +98,19 @@ func (a *API) GetUserAchievements(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Check if filtering for achievements requiring changes
+	requireChangesParam := r.URL.Query().Get("requiring_changes")
+	requireChanges := requireChangesParam == "true"
+
 	// Get achievements for user with pagination
-	achievements, total, err := a.sesc.GetUserAchievements(ctx, userID, viewer.ID, offset, limit)
+	achievements, total, err := a.sesc.GetUserAchievements(
+		ctx,
+		userID,
+		viewer.ID,
+		offset,
+		limit,
+		requireChanges,
+	)
 	if err != nil {
 		rec.Add(events.Error, err)
 		a.writeJSON(ctx, w, respond.WithError(ctx, err))
@@ -107,6 +119,67 @@ func (a *API) GetUserAchievements(w http.ResponseWriter, r *http.Request) {
 
 	// Convert to response format
 	response := respond.WithAchievements(achievements, total)
+	a.writeJSON(ctx, w, response)
+}
+
+// SubmitAchievementWithNewPoints godoc
+// @Summary Submit achievement with updated points
+// @Description Allows teachers to update achievement points and resubmit for review
+// @Tags achievements
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param Authorization header string false "Bearer JWT token"
+// @Param id path string true "Achievement UUID"
+// @Param request body param.UpdateAchievementPointsRequest true "Update points request"
+// @Success 200 {object} respond.Achievement
+// @Failure 400 {object} respond.Error "Invalid request or achievement status"
+// @Failure 401 {object} respond.Error "Unauthorized"
+// @Failure 403 {object} respond.Error "Forbidden - not the achievement owner"
+// @Failure 404 {object} respond.Error "Achievement not found"
+// @Failure 500 {object} respond.Error "Internal server error"
+// @Router /achievements/{id}/submit-with-new-points [post]
+func (a *API) SubmitAchievementWithNewPoints(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	rec := event.Get(ctx)
+
+	// Get achievement from context (added by AchievementMiddleware)
+	ach, ok := GetAchievementFromContext(ctx)
+	if !ok {
+		a.writeJSON(ctx, w, respond.WithError(ctx, sesc.ErrUserNotFound))
+		return
+	}
+
+	// Get current user from context
+	user, ok := GetUserFromContext(ctx)
+	if !ok {
+		a.writeJSON(ctx, w, respond.WithError(ctx, sesc.ErrUserNotFound))
+		return
+	}
+
+	// Parse request body
+	var req param.UpdateAchievementPointsRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		rec.Add(events.Error, err)
+		a.writeJSON(ctx, w, respond.WithError(ctx, err))
+		return
+	}
+
+	// Update achievement points and resubmit
+	updatedAch, err := a.sesc.UpdateAchievementPoints(ctx, achievement.UpdatePointsOptions{
+		AchievementID: ach.ID,
+		OwnerID:       user.ID,
+		Points:        req.Points,
+		Comment:       req.Comment,
+	})
+	if err != nil {
+		rec.Add(events.Error, err)
+		a.writeJSON(ctx, w, respond.WithError(ctx, err))
+		return
+	}
+
+	// Convert to response format
+	response := respond.WithAchievement(updatedAch)
 	a.writeJSON(ctx, w, response)
 }
 
@@ -401,7 +474,7 @@ func (a *API) SubmitAchievement(w http.ResponseWriter, r *http.Request) {
 
 // ReviewAchievement godoc
 // @Summary Review an achievement
-// @Description Reviews an achievement, setting points and optionally a comment
+// @Description Reviews an achievement with approve, disapprove, or request changes action
 // @Tags achievements
 // @Accept json
 // @Produce json
@@ -411,7 +484,7 @@ func (a *API) SubmitAchievement(w http.ResponseWriter, r *http.Request) {
 // @Param request body param.ReviewAchievementRequest true "Review data"
 // @Success 200 {object} respond.Achievement
 // @Failure 400 {object} respond.Error "Invalid request format"
-// @Failure 400 {object} respond.Error "Points assigned exceed the template's points limit"
+// @Failure 400 {object} respond.Error "Invalid review action"
 // @Failure 401 {object} respond.Error "Unauthorized"
 // @Failure 403 {object} respond.Error "Forbidden - reviewer role required"
 // @Failure 404 {object} respond.Error "Achievement not found"
@@ -449,10 +522,79 @@ func (a *API) ReviewAchievement(w http.ResponseWriter, r *http.Request) {
 		AchievementOwnerID: ach.OwnerID,
 		AchievementID:      ach.ID,
 		ReviewerID:         reviewer.ID,
-		PointsAssigned:     req.PointsAssigned,
+		Action:             achievement.ReviewAction(req.Action),
 		Comment:            req.Comment,
 	}
 	updatedAch, err := a.sesc.ReviewAchievement(ctx, opt)
+	if err != nil {
+		rec.Add(events.Error, err)
+		a.writeJSON(ctx, w, respond.WithError(ctx, err))
+		return
+	}
+
+	// Convert to response format
+	response := respond.WithAchievement(updatedAch)
+	a.writeJSON(ctx, w, response)
+}
+
+// SubmitWithNewPoints godoc
+// @Summary Submit achievement with updated points
+// @Description Allows teachers to submit achievement with updated points when changes are requested by reviewers
+// @Tags achievements
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param Authorization header string false "Bearer JWT token"
+// @Param id path string true "Achievement UUID"
+// @Param request body param.UpdateAchievementPointsRequest true "Points update data"
+// @Success 200 {object} respond.Achievement
+// @Failure 400 {object} respond.Error "Invalid request format"
+// @Failure 400 {object} respond.Error "Points exceed template limit"
+// @Failure 401 {object} respond.Error "Unauthorized"
+// @Failure 403 {object} respond.Error "Forbidden - only achievement owner can update points"
+// @Failure 404 {object} respond.Error "Achievement not found"
+// @Failure 409 {object} respond.Error "Wrong achievement status - changes not requested"
+// @Failure 500 {object} respond.Error "Internal server error"
+// @Router /achievements/{id}/submit-with-new-points [post]
+func (a *API) SubmitWithNewPoints(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	rec := event.Get(ctx)
+
+	// Get user from context
+	user, ok := GetUserFromContext(ctx)
+	if !ok {
+		a.writeJSON(ctx, w, respond.WithError(ctx, sesc.ErrUserNotFound))
+		return
+	}
+
+	// Get achievement from context (added by AchievementMiddleware)
+	ach, ok := GetAchievementFromContext(ctx)
+	if !ok {
+		a.writeJSON(ctx, w, respond.WithError(ctx, achievement.ErrAchievementNotFound))
+		return
+	}
+
+	// Verify user is the owner of the achievement
+	if ach.OwnerID != user.ID {
+		a.writeJSON(ctx, w, respond.WithError(ctx, sesc.ErrInvalidRole))
+		return
+	}
+
+	// Parse request
+	var req param.UpdateAchievementPointsRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		rec.Add(events.Error, "invalid request body")
+		a.writeJSON(ctx, w, respond.WithError(ctx, err))
+		return
+	}
+
+	// Submit achievement with updated points
+	opt := achievement.UpdatePointsOptions{
+		OwnerID:       user.ID,
+		AchievementID: ach.ID,
+		Points:        req.Points,
+	}
+	updatedAch, err := a.sesc.UpdateAchievementPoints(ctx, opt)
 	if err != nil {
 		rec.Add(events.Error, err)
 		a.writeJSON(ctx, w, respond.WithError(ctx, err))

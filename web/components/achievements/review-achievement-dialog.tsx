@@ -20,7 +20,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -49,8 +48,11 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { useState } from "react";
 import { toast } from "sonner";
+import { Check, X, MessageCircle } from "lucide-react";
 
 type ApiAchievement = RespondAchievement;
+
+type ReviewAction = "approve" | "disapprove" | "request_changes";
 
 interface ReviewAchievementDialogProps {
   achievement: ApiAchievement;
@@ -63,7 +65,7 @@ export function ReviewAchievementDialog({
   open,
   onOpenChange,
 }: ReviewAchievementDialogProps) {
-  const [points, setPoints] = useState<number>(achievement.points);
+  const [selectedAction, setSelectedAction] = useState<ReviewAction | null>(null);
   const [comment, setComment] = useState<string>("");
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const queryClient = useQueryClient();
@@ -73,17 +75,35 @@ export function ReviewAchievementDialog({
   const reviewMutation = useMutation({
     ...postAchievementsByIdReviewMutation(),
     onSuccess: () => {
+      const actionLabels = {
+        approve: "одобрено",
+        disapprove: "отклонено",
+        request_changes: "возвращено на доработку"
+      };
+
       toast.success("Достижение проверено", {
-        description: "Достижение успешно проверено и оценено",
+        description: `Достижение успешно ${selectedAction ? actionLabels[selectedAction] : "проверено"}`,
       });
-      // Invalidate both users and achievements queries
+
+      // Invalidate all relevant queries to ensure immediate UI updates
       queryClient.invalidateQueries({
         queryKey: getAchievementsUsersOptions().queryKey,
       });
       queryClient.invalidateQueries({
         queryKey: getAchievementsOptions().queryKey,
       });
+      // Also invalidate specific achievement queries
+      queryClient.invalidateQueries({
+        queryKey: ["achievements"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["achievementUsers"],
+      });
+
       clearError();
+      // Reset form state
+      setSelectedAction(null);
+      setComment("");
       onOpenChange(false);
     },
     onError: (error) => {
@@ -95,20 +115,55 @@ export function ReviewAchievementDialog({
     },
   });
 
-  const handleReview = () => {
+  const handleReview = (action: ReviewAction) => {
+    setSelectedAction(action);
     setShowConfirmDialog(true);
   };
 
   const confirmReview = () => {
+    if (!selectedAction) return;
+
     reviewMutation.mutate({
       path: {
         id: achievement.id,
       },
       body: {
-        pointsAssigned: points,
+        action: selectedAction,
         comment: comment,
       },
     });
+  };
+
+  const isCommentRequired = (action: ReviewAction | null) => {
+    return action === "request_changes";
+  };
+
+  const canSubmit = (action: ReviewAction | null) => {
+    if (!action) return false;
+    if (isCommentRequired(action) && comment.trim() === "") return false;
+    return true;
+  };
+
+  const getActionText = (action: ReviewAction) => {
+    switch (action) {
+      case "approve":
+        return "одобрить";
+      case "disapprove":
+        return "отклонить";
+      case "request_changes":
+        return "запросить изменения";
+    }
+  };
+
+  const getActionLabel = (action: ReviewAction) => {
+    switch (action) {
+      case "approve":
+        return "Одобрить";
+      case "disapprove":
+        return "Отклонить";
+      case "request_changes":
+        return "Запросить изменения";
+    }
   };
 
   return (
@@ -117,7 +172,7 @@ export function ReviewAchievementDialog({
         <DialogHeader>
           <DialogTitle>Проверка достижения</DialogTitle>
           <DialogDescription>
-            Проверьте достижение и назначьте баллы
+            Проверьте достижение и примите решение
           </DialogDescription>
         </DialogHeader>
 
@@ -136,6 +191,12 @@ export function ReviewAchievementDialog({
               <Badge variant={getStatusBadgeVariant(achievement.status)}>
                 {getStatusLabel(achievement.status)}
               </Badge>
+            </div>
+            <div>
+              <h3 className="text-sm font-medium text-muted-foreground">
+                Баллы
+              </h3>
+              <p className="text-base font-medium">{achievement.points}</p>
             </div>
             <div>
               <h3 className="text-sm font-medium text-muted-foreground">
@@ -193,49 +254,81 @@ export function ReviewAchievementDialog({
 
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="points">Баллы</Label>
-              <Input
-                id="points"
-                type="number"
-                min="0"
-                max={achievement.points}
-                value={points}
-                onChange={(e) => setPoints(parseInt(e.target.value) || 0)}
-                className={
-                  points > achievement.points ? "border-destructive" : ""
-                }
-              />
-              <p className="text-xs text-muted-foreground">
-                Максимальное количество баллов: {achievement.points}
-                {points > achievement.points && (
-                  <span className="text-destructive ml-2">
-                    (превышен лимит)
-                  </span>
-                )}
-              </p>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="comment">Комментарий</Label>
+              <Label htmlFor="comment">
+                Комментарий
+                <span className="text-muted-foreground text-sm ml-1">
+                  (обязательно при запросе изменений)
+                </span>
+              </Label>
               <Textarea
                 id="comment"
-                placeholder="Введите комментарий..."
+                placeholder={
+                  selectedAction === "request_changes"
+                    ? "Обязательно укажите, какие изменения требуются..."
+                    : "Введите комментарий..."
+                }
                 value={comment}
                 onChange={(e) => setComment(e.target.value)}
+                className={
+                  selectedAction === "request_changes" && comment.trim() === ""
+                    ? "border-destructive"
+                    : ""
+                }
               />
+              {selectedAction === "request_changes" && comment.trim() === "" && (
+                <p className="text-sm text-destructive">
+                  Комментарий обязателен при запросе изменений
+                </p>
+              )}
             </div>
           </div>
 
-          <div className="flex justify-end gap-2">
-            <Button variant="outline" onClick={() => onOpenChange(false)}>
-              Отмена
-            </Button>
-            <Button
-              onClick={handleReview}
-              disabled={reviewMutation.isPending || points > achievement.points}
-            >
-              {reviewMutation.isPending ? "Проверка..." : "Проверить"}
-            </Button>
+          <div className="flex flex-col gap-3">
+            <Label className="text-sm font-medium">Действие</Label>
+            <div className="flex flex-col gap-2">
+              <Button
+                variant="default"
+                className="justify-start"
+                onClick={() => handleReview("approve")}
+                disabled={reviewMutation.isPending || !canSubmit("approve")}
+              >
+                <Check className="h-4 w-4 mr-2" />
+                Одобрить
+                <span className="ml-auto text-xs opacity-75">
+                  Баллы: {achievement.points}
+                </span>
+              </Button>
+              <Button
+                variant="destructive"
+                className="justify-start"
+                onClick={() => handleReview("disapprove")}
+                disabled={reviewMutation.isPending || !canSubmit("disapprove")}
+              >
+                <X className="h-4 w-4 mr-2" />
+                Отклонить
+                <span className="ml-auto text-xs opacity-75">
+                  Баллы: 0
+                </span>
+              </Button>
+              <Button
+                variant="outline"
+                className="justify-start"
+                onClick={() => handleReview("request_changes")}
+                disabled={reviewMutation.isPending || !canSubmit("request_changes")}
+              >
+                <MessageCircle className="h-4 w-4 mr-2" />
+                Запросить изменения
+                <span className="ml-auto text-xs opacity-75">
+                  Вернуть на доработку
+                </span>
+              </Button>
+            </div>
+
+            <div className="flex justify-end">
+              <Button variant="outline" onClick={() => onOpenChange(false)}>
+                Отмена
+              </Button>
+            </div>
           </div>
         </div>
       </DialogContent>
@@ -243,15 +336,27 @@ export function ReviewAchievementDialog({
       <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Подтверждение проверки</AlertDialogTitle>
+            <AlertDialogTitle>Подтверждение действия</AlertDialogTitle>
             <AlertDialogDescription>
-              Вы уверены, что хотите проверить это достижение и назначить{" "}
-              {points} баллов? Это действие нельзя будет отменить.
+              Вы уверены, что хотите {selectedAction ? getActionText(selectedAction) : ""} это достижение?
+              {selectedAction === "approve" && ` Будет назначено ${achievement.points} баллов.`}
+              {selectedAction === "disapprove" && " Будет назначено 0 баллов."}
+              {selectedAction === "request_changes" && " Достижение будет возвращено автору на доработку."}
+              {comment.trim() && (
+                <>
+                  <br />
+                  <br />
+                  <strong>Комментарий:</strong> {comment}
+                </>
+              )}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Отмена</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmReview}>
+            <AlertDialogAction
+              onClick={confirmReview}
+              disabled={!canSubmit(selectedAction)}
+            >
               Подтвердить
             </AlertDialogAction>
           </AlertDialogFooter>

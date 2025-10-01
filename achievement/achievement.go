@@ -15,16 +15,24 @@ const (
 
 	// StatusDepheadReview is a status that is assigned to the Achievement when the teacher submits it.
 	// Now, the achievement should be reviewed by the department head.
-	// If the department head assigns >0 points to the achievement, it is then passed to the inspector.
+	// The department head can approve, disapprove, or request changes.
 	StatusDepheadReview = "dephead_review"
+
+	// StatusDepheadRequestedChanges is assigned when the department head requests changes to the achievement.
+	// The teacher must update the achievement points according to the review comment.
+	StatusDepheadRequestedChanges = "dephead_requested_changes"
 
 	// StatusInspectorReview is a status for an Achievement that now should be reviewed by a designated inspector.
 	// What inspector should review it is defined by the achievement template kind.
 	StatusInspectorReview = "inspector_review"
 
+	// StatusInspectorRequestedChanges is assigned when the inspector requests changes to the achievement.
+	// The teacher must update the achievement points according to the review comment.
+	StatusInspectorRequestedChanges = "inspector_requested_changes"
+
 	// StatusDone could be assigned to the achievement in these cases:
-	// 1) Achievement was assigned 0 points
-	// 2) Achievement passed the inspector review
+	// 1) Achievement was disapproved by reviewer
+	// 2) Achievement passed all reviews successfully
 	// Then, the Achievement can be used to calculate total points for the user.
 	StatusDone = "done"
 
@@ -66,6 +74,21 @@ type ReviewOptions struct {
 	AchievementID      UUID
 	ReviewerID         UUID
 
-	PointsAssigned int
-	Comment        string
+	Action  ReviewAction
+	Comment string
+}
+
+type ReviewAction string
+
+const (
+	ReviewActionApprove        ReviewAction = "approve"
+	ReviewActionDisapprove     ReviewAction = "disapprove"
+	ReviewActionRequestChanges ReviewAction = "request_changes"
+)
+
+type UpdatePointsOptions struct {
+	OwnerID       UUID
+	AchievementID UUID
+	Points        int
+	Comment       string
 }

@@ -74,6 +74,8 @@ type ClientService interface {
 
 	PostAchievementsIDSubmit(params *PostAchievementsIDSubmitParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostAchievementsIDSubmitOK, error)
 
+	PostAchievementsIDSubmitWithNewPoints(params *PostAchievementsIDSubmitWithNewPointsParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostAchievementsIDSubmitWithNewPointsOK, error)
+
 	SetTransport(transport runtime.ClientTransport)
 }
 
@@ -367,7 +369,7 @@ func (a *Client) PostAchievementsIDDocuments(params *PostAchievementsIDDocuments
 /*
 PostAchievementsIDReview reviews an achievement
 
-Reviews an achievement, setting points and optionally a comment
+Reviews an achievement with approve, disapprove, or request changes action
 */
 func (a *Client) PostAchievementsIDReview(params *PostAchievementsIDReviewParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostAchievementsIDReviewOK, error) {
 	// TODO: Validate the params before sending
@@ -443,6 +445,47 @@ func (a *Client) PostAchievementsIDSubmit(params *PostAchievementsIDSubmitParams
 	// unexpected success response
 	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
 	msg := fmt.Sprintf("unexpected success response for PostAchievementsIDSubmit: API contract not enforced by server. Client expected to get an error, but got: %T", result)
+	panic(msg)
+}
+
+/*
+PostAchievementsIDSubmitWithNewPoints submits achievement with updated points
+
+Allows teachers to submit achievement with updated points when changes are requested by reviewers
+*/
+func (a *Client) PostAchievementsIDSubmitWithNewPoints(params *PostAchievementsIDSubmitWithNewPointsParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostAchievementsIDSubmitWithNewPointsOK, error) {
+	// TODO: Validate the params before sending
+	if params == nil {
+		params = NewPostAchievementsIDSubmitWithNewPointsParams()
+	}
+	op := &runtime.ClientOperation{
+		ID:                 "PostAchievementsIDSubmitWithNewPoints",
+		Method:             "POST",
+		PathPattern:        "/achievements/{id}/submit-with-new-points",
+		ProducesMediaTypes: []string{"application/json"},
+		ConsumesMediaTypes: []string{"application/json"},
+		Schemes:            []string{"http"},
+		Params:             params,
+		Reader:             &PostAchievementsIDSubmitWithNewPointsReader{formats: a.formats},
+		AuthInfo:           authInfo,
+		Context:            params.Context,
+		Client:             params.HTTPClient,
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
+	if err != nil {
+		return nil, err
+	}
+	success, ok := result.(*PostAchievementsIDSubmitWithNewPointsOK)
+	if ok {
+		return success, nil
+	}
+	// unexpected success response
+	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
+	msg := fmt.Sprintf("unexpected success response for PostAchievementsIDSubmitWithNewPoints: API contract not enforced by server. Client expected to get an error, but got: %T", result)
 	panic(msg)
 }
 

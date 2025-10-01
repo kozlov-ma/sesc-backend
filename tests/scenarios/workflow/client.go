@@ -189,7 +189,10 @@ func (c *TestClient) GetRoles() (map[int64]*models.RespondRole, error) {
 }
 
 // CreateUser creates a new user
-func (c *TestClient) CreateUser(firstName, lastName, middleName, departmentID string, roleID int64) (*UserInfo, error) {
+func (c *TestClient) CreateUser(
+	firstName, lastName, middleName, departmentID string,
+	roleID int64,
+) (*UserInfo, error) {
 	pictureURL := ""
 
 	createParams := users.NewPostUsersParams()
@@ -318,18 +321,42 @@ func (c *TestClient) SubmitAchievement(achievementID string) error {
 	return nil
 }
 
-// ReviewAchievement reviews an achievement and assigns points
-func (c *TestClient) ReviewAchievement(achievementID string, points int64, comment string) error {
+// ReviewAchievement reviews an achievement with the specified action
+func (c *TestClient) ReviewAchievement(achievementID, action, comment string) error {
 	reviewParams := achievements.NewPostAchievementsIDReviewParams()
 	reviewParams.SetID(achievementID)
 	reviewParams.SetRequest(&models.ParamReviewAchievementRequest{
-		PointsAssigned: &points,
-		Comment:        comment,
+		Action:  &action,
+		Comment: comment,
 	})
 
 	_, err := c.apiClient.Achievements.PostAchievementsIDReview(reviewParams, c.authInfo)
 	if err != nil {
 		return fmt.Errorf("failed to review achievement: %w", err)
+	}
+
+	return nil
+}
+
+// SubmitAchievementWithNewPoints allows teacher to update points and resubmit
+func (c *TestClient) SubmitAchievementWithNewPoints(
+	achievementID string,
+	points int64,
+	comment string,
+) error {
+	submitParams := achievements.NewPostAchievementsIDSubmitWithNewPointsParams()
+	submitParams.SetID(achievementID)
+	submitParams.SetRequest(&models.ParamUpdateAchievementPointsRequest{
+		Points:  &points,
+		Comment: comment,
+	})
+
+	_, err := c.apiClient.Achievements.PostAchievementsIDSubmitWithNewPoints(
+		submitParams,
+		c.authInfo,
+	)
+	if err != nil {
+		return fmt.Errorf("failed to submit achievement with new points: %w", err)
 	}
 
 	return nil
@@ -348,7 +375,9 @@ func (c *TestClient) MarkAllAccounted() error {
 }
 
 // CreateAchievementGroup creates a new achievement group
-func (c *TestClient) CreateAchievementGroup(name, description string) (*AchievementGroupInfo, error) {
+func (c *TestClient) CreateAchievementGroup(
+	name, description string,
+) (*AchievementGroupInfo, error) {
 	createParams := achievement_groups.NewPostAchievementGroupsParams()
 	createParams.SetRequest(&models.ParamCreateAchievementGroupRequest{
 		Name:        &name,
@@ -408,7 +437,10 @@ func (c *TestClient) CreateAchievementTemplate(
 		ReviewerRole: &rr,
 	})
 
-	createResp, err := c.apiClient.AchievementTemplates.PostAchievementTemplates(createParams, c.authInfo)
+	createResp, err := c.apiClient.AchievementTemplates.PostAchievementTemplates(
+		createParams,
+		c.authInfo,
+	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create achievement template: %w", err)
 	}

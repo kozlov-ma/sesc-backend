@@ -17,6 +17,7 @@ import {
   deleteAchievementsByIdDocumentsByDocumentId,
   postAchievementsByIdReview,
   postAchievementsByIdSubmit,
+  postAchievementsByIdSubmitWithNewPoints,
   postAuthAdminLogin,
   deleteAuthCredentialsById,
   getAuthCredentialsById,
@@ -86,6 +87,9 @@ import type {
   PostAchievementsByIdSubmitData,
   PostAchievementsByIdSubmitError,
   PostAchievementsByIdSubmitResponse,
+  PostAchievementsByIdSubmitWithNewPointsData,
+  PostAchievementsByIdSubmitWithNewPointsError,
+  PostAchievementsByIdSubmitWithNewPointsResponse,
   PostAuthAdminLoginData,
   PostAuthAdminLoginError,
   PostAuthAdminLoginResponse,
@@ -766,7 +770,7 @@ export const postAchievementsByIdReviewQueryKey = (
 
 /**
  * Review an achievement
- * Reviews an achievement, setting points and optionally a comment
+ * Reviews an achievement with approve, disapprove, or request changes action
  */
 export const postAchievementsByIdReviewOptions = (
   options: Options<PostAchievementsByIdReviewData>,
@@ -787,7 +791,7 @@ export const postAchievementsByIdReviewOptions = (
 
 /**
  * Review an achievement
- * Reviews an achievement, setting points and optionally a comment
+ * Reviews an achievement with approve, disapprove, or request changes action
  */
 export const postAchievementsByIdReviewMutation = (
   options?: Partial<Options<PostAchievementsByIdReviewData>>,
@@ -856,6 +860,59 @@ export const postAchievementsByIdSubmitMutation = (
   > = {
     mutationFn: async (localOptions) => {
       const { data } = await postAchievementsByIdSubmit({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
+export const postAchievementsByIdSubmitWithNewPointsQueryKey = (
+  options: Options<PostAchievementsByIdSubmitWithNewPointsData>,
+) => createQueryKey("postAchievementsByIdSubmitWithNewPoints", options);
+
+/**
+ * Submit achievement with updated points
+ * Allows teachers to submit achievement with updated points when changes are requested by reviewers
+ */
+export const postAchievementsByIdSubmitWithNewPointsOptions = (
+  options: Options<PostAchievementsByIdSubmitWithNewPointsData>,
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await postAchievementsByIdSubmitWithNewPoints({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: postAchievementsByIdSubmitWithNewPointsQueryKey(options),
+  });
+};
+
+/**
+ * Submit achievement with updated points
+ * Allows teachers to submit achievement with updated points when changes are requested by reviewers
+ */
+export const postAchievementsByIdSubmitWithNewPointsMutation = (
+  options?: Partial<Options<PostAchievementsByIdSubmitWithNewPointsData>>,
+): UseMutationOptions<
+  PostAchievementsByIdSubmitWithNewPointsResponse,
+  AxiosError<PostAchievementsByIdSubmitWithNewPointsError>,
+  Options<PostAchievementsByIdSubmitWithNewPointsData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    PostAchievementsByIdSubmitWithNewPointsResponse,
+    AxiosError<PostAchievementsByIdSubmitWithNewPointsError>,
+    Options<PostAchievementsByIdSubmitWithNewPointsData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await postAchievementsByIdSubmitWithNewPoints({
         ...options,
         ...localOptions,
         throwOnError: true,

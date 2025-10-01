@@ -291,14 +291,30 @@ definitions:
     type: object
   param.ReviewAchievementRequest:
     properties:
+      action:
+        enum:
+        - approve
+        - disapprove
+        - request_changes
+        example: approve
+        type: string
       comment:
         example: Good job, but could be better
         type: string
-      pointsAssigned:
+    required:
+    - action
+    type: object
+  param.UpdateAchievementPointsRequest:
+    properties:
+      comment:
+        example: Updated based on feedback
+        type: string
+      points:
         example: 8
+        minimum: 0
         type: integer
     required:
-    - pointsAssigned
+    - points
     type: object
   respond.Achievement:
     properties:
@@ -897,6 +913,11 @@ paths:
         in: query
         name: id
         type: string
+      - default: false
+        description: Filter achievements requiring changes
+        in: query
+        name: requiring_changes
+        type: boolean
       produces:
       - application/json
       responses:
@@ -1152,7 +1173,8 @@ paths:
     post:
       consumes:
       - application/json
-      description: Reviews an achievement, setting points and optionally a comment
+      description: Reviews an achievement with approve, disapprove, or request changes
+        action
       parameters:
       - description: Bearer JWT token
         in: header
@@ -1177,7 +1199,7 @@ paths:
           schema:
             $ref: '#/definitions/respond.Achievement'
         "400":
-          description: Points assigned exceed the template's points limit
+          description: Invalid review action
           schema:
             $ref: '#/definitions/respond.Error'
         "401":
@@ -1248,6 +1270,64 @@ paths:
       security:
       - BearerAuth: []
       summary: Submit an achievement for review
+      tags:
+      - achievements
+  /achievements/{id}/submit-with-new-points:
+    post:
+      consumes:
+      - application/json
+      description: Allows teachers to submit achievement with updated points when
+        changes are requested by reviewers
+      parameters:
+      - description: Bearer JWT token
+        in: header
+        name: Authorization
+        type: string
+      - description: Achievement UUID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Points update data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/param.UpdateAchievementPointsRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/respond.Achievement'
+        "400":
+          description: Points exceed template limit
+          schema:
+            $ref: '#/definitions/respond.Error'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/respond.Error'
+        "403":
+          description: Forbidden - only achievement owner can update points
+          schema:
+            $ref: '#/definitions/respond.Error'
+        "404":
+          description: Achievement not found
+          schema:
+            $ref: '#/definitions/respond.Error'
+        "409":
+          description: Wrong achievement status - changes not requested
+          schema:
+            $ref: '#/definitions/respond.Error'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/respond.Error'
+      security:
+      - BearerAuth: []
+      summary: Submit achievement with updated points
       tags:
       - achievements
   /achievements/users:

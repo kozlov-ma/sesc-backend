@@ -379,14 +379,31 @@ export const param_PatchAchievementTemplateRequestSchema = {
 
 export const param_ReviewAchievementRequestSchema = {
   type: "object",
-  required: ["pointsAssigned"],
+  required: ["action"],
   properties: {
+    action: {
+      type: "string",
+      enum: ["approve", "disapprove", "request_changes"],
+      example: "approve",
+    },
     comment: {
       type: "string",
       example: "Good job, but could be better",
     },
-    pointsAssigned: {
+  },
+} as const;
+
+export const param_UpdateAchievementPointsRequestSchema = {
+  type: "object",
+  required: ["points"],
+  properties: {
+    comment: {
+      type: "string",
+      example: "Updated based on feedback",
+    },
+    points: {
       type: "integer",
+      minimum: 0,
       example: 8,
     },
   },

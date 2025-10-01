@@ -7,6 +7,7 @@ package models
 
 import (
 	"context"
+	"encoding/json"
 
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/strfmt"
@@ -19,21 +20,22 @@ import (
 // swagger:model param.ReviewAchievementRequest
 type ParamReviewAchievementRequest struct {
 
+	// action
+	// Example: approve
+	// Required: true
+	// Enum: ["approve","disapprove","request_changes"]
+	Action *string `json:"action"`
+
 	// comment
 	// Example: Good job, but could be better
 	Comment string `json:"comment,omitempty"`
-
-	// points assigned
-	// Example: 8
-	// Required: true
-	PointsAssigned *int64 `json:"pointsAssigned"`
 }
 
 // Validate validates this param review achievement request
 func (m *ParamReviewAchievementRequest) Validate(formats strfmt.Registry) error {
 	var res []error
 
-	if err := m.validatePointsAssigned(formats); err != nil {
+	if err := m.validateAction(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -43,9 +45,46 @@ func (m *ParamReviewAchievementRequest) Validate(formats strfmt.Registry) error 
 	return nil
 }
 
-func (m *ParamReviewAchievementRequest) validatePointsAssigned(formats strfmt.Registry) error {
+var paramReviewAchievementRequestTypeActionPropEnum []interface{}
 
-	if err := validate.Required("pointsAssigned", "body", m.PointsAssigned); err != nil {
+func init() {
+	var res []string
+	if err := json.Unmarshal([]byte(`["approve","disapprove","request_changes"]`), &res); err != nil {
+		panic(err)
+	}
+	for _, v := range res {
+		paramReviewAchievementRequestTypeActionPropEnum = append(paramReviewAchievementRequestTypeActionPropEnum, v)
+	}
+}
+
+const (
+
+	// ParamReviewAchievementRequestActionApprove captures enum value "approve"
+	ParamReviewAchievementRequestActionApprove string = "approve"
+
+	// ParamReviewAchievementRequestActionDisapprove captures enum value "disapprove"
+	ParamReviewAchievementRequestActionDisapprove string = "disapprove"
+
+	// ParamReviewAchievementRequestActionRequestChanges captures enum value "request_changes"
+	ParamReviewAchievementRequestActionRequestChanges string = "request_changes"
+)
+
+// prop value enum
+func (m *ParamReviewAchievementRequest) validateActionEnum(path, location string, value string) error {
+	if err := validate.EnumCase(path, location, value, paramReviewAchievementRequestTypeActionPropEnum, true); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (m *ParamReviewAchievementRequest) validateAction(formats strfmt.Registry) error {
+
+	if err := validate.Required("action", "body", m.Action); err != nil {
+		return err
+	}
+
+	// value enum
+	if err := m.validateActionEnum("action", "body", *m.Action); err != nil {
 		return err
 	}
 
