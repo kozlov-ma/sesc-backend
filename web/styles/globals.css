@@ -9,6 +9,15 @@ body {
   .text-balance {
     text-wrap: balance;
   }
+
+  /* Text wrapping fix for all browsers */
+  .text-wrap-fix {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    word-break: normal;
+    hyphens: auto;
+    white-space: normal;
+  }
 }
 
 @layer base {

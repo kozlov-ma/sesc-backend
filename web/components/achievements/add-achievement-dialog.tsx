@@ -1,14 +1,6 @@
 "use client";
 
-import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -16,15 +8,23 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Trophy, ChevronRight, Search } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { cn } from "@/lib/utils";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { RespondAchievementGroup, RespondAchievementTemplate } from "@/lib/api";
 import {
   getAchievementGroupsOptions,
   getAchievementTemplatesOptions,
 } from "@/lib/api/@tanstack/react-query.gen";
-import { RespondAchievementGroup, RespondAchievementTemplate } from "@/lib/api";
+import { cn } from "@/lib/utils";
+import { useQuery } from "@tanstack/react-query";
+import { ChevronRight, Search, Trophy } from "lucide-react";
+import { useState } from "react";
 
 interface AddAchievementDialogProps {
   open: boolean;
@@ -110,14 +110,14 @@ export function AddAchievementDialog({
                                 : "ghost"
                             }
                             className={cn(
-                              "w-full justify-start p-4 h-auto",
+                              "w-full justify-start p-4 h-auto overflow-hidden",
                               selectedGroup?.id === group.id && "bg-primary",
                             )}
                             onClick={() => setSelectedGroup(group)}
                           >
                             <div className="flex items-start justify-between w-full gap-2">
-                              <div className="space-y-1 text-left overflow-hidden text-pretty">
-                                <div className="font-medium leading-tight break-words">
+                              <div className="flex-1 min-w-0 pr-2 text-left">
+                                <div className="font-medium leading-tight break-words whitespace-normal text-left">
                                   {group.name}
                                 </div>
                               </div>
