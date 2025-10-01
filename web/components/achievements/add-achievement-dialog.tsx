@@ -11,6 +11,7 @@ import {
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -69,6 +70,9 @@ export function AddAchievementDialog({
       <DialogContent className="max-w-[1000px] h-[80vh] flex flex-col p-0">
         <DialogHeader className="p-6 pb-0">
           <DialogTitle className="text-2xl">Добавить достижение</DialogTitle>
+          <DialogDescription>
+            Выберите тип достижения и конкретное достижение для добавления
+          </DialogDescription>
         </DialogHeader>
 
         <div className="p-6 pb-0">

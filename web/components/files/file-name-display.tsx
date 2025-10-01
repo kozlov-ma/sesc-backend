@@ -7,11 +7,12 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Download, Sparkles, Loader2 } from "lucide-react";
+import { RespondFile } from "@/lib/api";
+import { getFilesByIdOptions } from "@/lib/api/@tanstack/react-query.gen";
 import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
-import { getFilesByIdOptions } from "@/lib/api/@tanstack/react-query.gen";
-import { RespondFile } from "@/lib/api";
+import { Download, Loader2, Sparkles } from "lucide-react";
+import Image from "next/image";
 
 interface FileNameDisplayProps {
   file: RespondFile;
@@ -105,7 +106,7 @@ export function FileNameDisplay({ file, className }: FileNameDisplayProps) {
       <DialogContent className="p-0 max-w-[80vw] max-h-[90vh] w-fit">
         <div className="flex flex-col">
           <div className="flex-1 flex items-center justify-center bg-muted">
-            <img
+            <Image
               src={
                 process.env.NEXT_PUBLIC_API_URL +
                 "/files/" +
@@ -113,7 +114,10 @@ export function FileNameDisplay({ file, className }: FileNameDisplayProps) {
                 "/download"
               }
               alt={file.fileName}
+              width={800}
+              height={600}
               className="max-h-full max-w-full object-contain"
+              unoptimized
             />
           </div>
           <div className="p-4 flex justify-between items-center border-t">

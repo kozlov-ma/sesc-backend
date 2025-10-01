@@ -1,21 +1,15 @@
 "use client";
 
-import { useEffect } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogDescription,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { toast } from "sonner";
-import { Loader2 } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -23,18 +17,24 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
-  postAchievementTemplatesMutation,
-  patchAchievementTemplatesByIdMutation,
   getAchievementTemplatesOptions,
+  patchAchievementTemplatesByIdMutation,
+  postAchievementTemplatesMutation,
 } from "@/lib/api/@tanstack/react-query.gen";
-import { AxiosError } from "axios";
 import type {
-  PostAchievementTemplatesError,
   PatchAchievementTemplatesByIdError,
+  PostAchievementTemplatesError,
   RespondAchievementTemplate,
 } from "@/lib/api/types.gen";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { AxiosError } from "axios";
+import { Loader2 } from "lucide-react";
+import { useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import * as z from "zod";
 
 const formSchema = z
   .object({
@@ -44,9 +44,11 @@ const formSchema = z
       .number()
       .min(0, "Количество баллов не может быть отрицательным"),
     isUnlimitedPoints: z.boolean(),
-    kind: z.enum(["olympiad", "development", "scientific", "academic"], {
-      required_error: "Выберите контролирующее лицо",
-    }),
+    kind: z
+      .enum(["olympiad", "development", "scientific", "academic"])
+      .refine((val) => val !== undefined, {
+        message: "Выберите контролирующее лицо",
+      }),
   })
   .refine(
     (data) => {

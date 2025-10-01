@@ -36,7 +36,7 @@ export function AddDocumentForm({
   const [selectedFile, setSelectedFile] = useState<RespondFile | null>(null);
   const [documentName, setDocumentName] = useState("");
   const queryClient = useQueryClient();
-  const { handleError, clearError } = useErrorHandler();
+  const { clearError } = useErrorHandler();
 
   const filesOpt = getFilesInfiniteOptions({
     query: {

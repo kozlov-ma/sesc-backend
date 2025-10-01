@@ -152,7 +152,7 @@ export function FileTable({
       await uploadFileMutation.mutateAsync({
         body: { file },
       });
-    } catch (error) {
+    } catch {
       // Ошибка уже обработана в onError мутации
     }
   };
