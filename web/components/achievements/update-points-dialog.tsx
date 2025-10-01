@@ -72,12 +72,13 @@ export function UpdatePointsDialog({
       onOpenChange(false);
       resetForm();
     },
-    onError: (error: unknown) => {
+    onError: (error) => {
+      const axiosError = error as {
+        response?: { data?: { message?: string } };
+      };
       const errorMessage =
-        error && typeof error === "object" && "response" in error
-          ? (error as { response?: { data?: { message?: string } } }).response
-              ?.data?.message
-          : "Ошибка при обновлении достижения";
+        axiosError.response?.data?.message ??
+        "Ошибка при обновлении достижения";
       toast.error(errorMessage);
     },
   });
@@ -168,7 +169,9 @@ export function UpdatePointsDialog({
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <Label htmlFor="points">Количество баллов *</Label>
+              <Label htmlFor="points" className="mb-2 block">
+                Количество баллов *
+              </Label>
               <Input
                 id="points"
                 type="number"
@@ -184,7 +187,9 @@ export function UpdatePointsDialog({
             </div>
 
             <div>
-              <Label htmlFor="comment">Комментарий (необязательно)</Label>
+              <Label htmlFor="comment" className="mb-2 block">
+                Комментарий (необязательно)
+              </Label>
               <Textarea
                 id="comment"
                 value={comment}
@@ -194,12 +199,13 @@ export function UpdatePointsDialog({
               />
             </div>
 
-            <DialogFooter>
+            <DialogFooter className="flex gap-2">
               <Button
                 type="button"
                 variant="outline"
                 onClick={() => onOpenChange(false)}
                 disabled={updatePointsMutation.isPending}
+                className="flex-1"
               >
                 Отмена
               </Button>
@@ -208,6 +214,7 @@ export function UpdatePointsDialog({
                 disabled={
                   updatePointsMutation.isPending || !isChangeRequestStatus
                 }
+                className="flex-1"
               >
                 {updatePointsMutation.isPending
                   ? "Обновление..."

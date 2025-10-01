@@ -94,7 +94,11 @@ export default function MyAchievementsPage() {
                 </TableHeader>
                 <TableBody>
                   {achievementsRequiringChanges.map((achievement) => (
-                    <TableRow key={achievement.id}>
+                    <TableRow
+                      key={achievement.id}
+                      className="cursor-pointer hover:bg-muted/50"
+                      onClick={() => handleViewAchievement(achievement)}
+                    >
                       <TableCell className="font-medium">
                         {achievement.templateName}
                       </TableCell>
@@ -109,23 +113,17 @@ export default function MyAchievementsPage() {
                       <TableCell>{achievement.documents.length}</TableCell>
                       <TableCell>{achievement.reviews.length}</TableCell>
                       <TableCell className="text-right">
-                        <div className="flex justify-end gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleUpdatePoints(achievement)}
-                          >
-                            <Edit className="h-4 w-4 mr-2" />
-                            Обновить
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleViewAchievement(achievement)}
-                          >
-                            Подробнее
-                          </Button>
-                        </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleUpdatePoints(achievement);
+                          }}
+                        >
+                          <Edit className="h-4 w-4 mr-2" />
+                          Обновить
+                        </Button>
                       </TableCell>
                     </TableRow>
                   ))}
