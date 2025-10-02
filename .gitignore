@@ -21,6 +21,8 @@
 go.work
 go.work.sum
 
+.kamal/secrets
+
 # env file
 .env
 
