@@ -85,10 +85,10 @@ func isOriginAllowed(origin string) bool {
 }
 
 // HealthCheck returns a simple OK response for health checking
-func (a *API) HealthCheck(w http.ResponseWriter, r *http.Request) {
+func (a *API) HealthCheck(w http.ResponseWriter, _ *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(`{"status":"ok"}`))
+	_, _ = w.Write([]byte(`{"status":"ok"}`))
 }
 
 func (a *API) RegisterRoutes(r chi.Router) {
