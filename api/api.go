@@ -84,12 +84,22 @@ func isOriginAllowed(origin string) bool {
 	return hostname == "localhost"
 }
 
+// HealthCheck returns a simple OK response for health checking
+func (a *API) HealthCheck(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(`{"status":"ok"}`))
+}
+
 func (a *API) RegisterRoutes(r chi.Router) {
 	r.Use(a.EventMiddleware)
 
 	// Apply global middlewares
 	r.Use(corsMiddleware)
 	r.Use(a.AuthMiddleware)
+
+	// Health check endpoint (no auth required)
+	r.Get("/up", a.HealthCheck)
 
 	// Public routes (no auth required)
 	r.Group(func(r chi.Router) {
