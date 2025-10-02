@@ -22,15 +22,37 @@ func TestGetUserAchievements(t *testing.T) {
 
 		// Create test users and department
 		dept := testutil.CreateTestDepartmentWithName(ctx, t, client, "Test Department")
-		owner := testutil.CreateTestUserWithDepartment(ctx, t, client, "Test", "Owner", sesc.Teacher, dept)
+		owner := testutil.CreateTestUserWithDepartment(
+			ctx,
+			t,
+			client,
+			"Test",
+			"Owner",
+			sesc.Teacher,
+			dept,
+		)
 
 		// Create template and achievements
 		template := testutil.CreateTestAchievementTemplate(ctx, t, client, sesc.OlympiadDeputy)
-		ach1 := testutil.CreateTestAchievement(ctx, t, client, owner, template, achievement.StatusDraft)
-		ach2 := testutil.CreateTestAchievement(ctx, t, client, owner, template, achievement.StatusDone)
+		ach1 := testutil.CreateTestAchievement(
+			ctx,
+			t,
+			client,
+			owner,
+			template,
+			achievement.StatusDraft,
+		)
+		ach2 := testutil.CreateTestAchievement(
+			ctx,
+			t,
+			client,
+			owner,
+			template,
+			achievement.StatusDone,
+		)
 
 		// Call the method being tested
-		achievements, total, err := svc.GetUserAchievements(ctx, owner.ID, owner.ID, 0, 10)
+		achievements, total, err := svc.GetUserAchievements(ctx, owner.ID, owner.ID, 0, 10, false)
 
 		// Verify the results
 		require.NoError(t, err)
@@ -60,8 +82,24 @@ func TestGetUserAchievements(t *testing.T) {
 		dept1 := testutil.CreateTestDepartmentWithName(ctx, t, client, "Department 1")
 		_ = testutil.CreateTestDepartmentWithName(ctx, t, client, "Department 2")
 
-		owner := testutil.CreateTestUserWithDepartment(ctx, t, client, "Test", "Owner", sesc.Teacher, dept1)
-		dephead := testutil.CreateTestUserWithDepartment(ctx, t, client, "Dep", "Head", sesc.Dephead, dept1)
+		owner := testutil.CreateTestUserWithDepartment(
+			ctx,
+			t,
+			client,
+			"Test",
+			"Owner",
+			sesc.Teacher,
+			dept1,
+		)
+		dephead := testutil.CreateTestUserWithDepartment(
+			ctx,
+			t,
+			client,
+			"Dep",
+			"Head",
+			sesc.Dephead,
+			dept1,
+		)
 
 		// Create template and achievements
 		template := testutil.CreateTestAchievementTemplate(ctx, t, client, sesc.OlympiadDeputy)
@@ -79,7 +117,7 @@ func TestGetUserAchievements(t *testing.T) {
 		testutil.CreateTestAchievement(ctx, t, client, owner, template, achievement.StatusDone)
 
 		// Call the method with department head asking
-		achievements, total, err := svc.GetUserAchievements(ctx, owner.ID, dephead.ID, 0, 1)
+		achievements, total, err := svc.GetUserAchievements(ctx, owner.ID, dephead.ID, 0, 1, false)
 
 		// Verify the results - should only see DepheadReview achievements from their department
 		require.NoError(t, err)
@@ -98,7 +136,15 @@ func TestGetUserAchievements(t *testing.T) {
 
 		// Create users and templates
 		dept := testutil.CreateTestDepartmentWithName(ctx, t, client, "Test Department")
-		owner := testutil.CreateTestUserWithDepartment(ctx, t, client, "Test", "Owner", sesc.Teacher, dept)
+		owner := testutil.CreateTestUserWithDepartment(
+			ctx,
+			t,
+			client,
+			"Test",
+			"Owner",
+			sesc.Teacher,
+			dept,
+		)
 		olympiadDeputy := testutil.CreateTestUserWithDepartment(
 			ctx,
 			t,
@@ -110,11 +156,28 @@ func TestGetUserAchievements(t *testing.T) {
 		)
 
 		// Create templates for different kinds
-		olympiadTemplate := testutil.CreateTestAchievementTemplate(ctx, t, client, sesc.OlympiadDeputy)
-		devTemplate := testutil.CreateTestAchievementTemplate(ctx, t, client, sesc.DevelopmentDeputy)
+		olympiadTemplate := testutil.CreateTestAchievementTemplate(
+			ctx,
+			t,
+			client,
+			sesc.OlympiadDeputy,
+		)
+		devTemplate := testutil.CreateTestAchievementTemplate(
+			ctx,
+			t,
+			client,
+			sesc.DevelopmentDeputy,
+		)
 
 		// Create achievements with different kinds and statuses
-		testutil.CreateTestAchievement(ctx, t, client, owner, olympiadTemplate, achievement.StatusDepheadReview)
+		testutil.CreateTestAchievement(
+			ctx,
+			t,
+			client,
+			owner,
+			olympiadTemplate,
+			achievement.StatusDepheadReview,
+		)
 		achOlympiadInspector := testutil.CreateTestAchievement(
 			ctx,
 			t,
@@ -123,10 +186,24 @@ func TestGetUserAchievements(t *testing.T) {
 			olympiadTemplate,
 			achievement.StatusInspectorReview,
 		)
-		testutil.CreateTestAchievement(ctx, t, client, owner, devTemplate, achievement.StatusInspectorReview)
+		testutil.CreateTestAchievement(
+			ctx,
+			t,
+			client,
+			owner,
+			devTemplate,
+			achievement.StatusInspectorReview,
+		)
 
 		// Call the method with olympiad deputy asking
-		achievements, total, err := svc.GetUserAchievements(ctx, owner.ID, olympiadDeputy.ID, 0, 10)
+		achievements, total, err := svc.GetUserAchievements(
+			ctx,
+			owner.ID,
+			olympiadDeputy.ID,
+			0,
+			10,
+			false,
+		)
 
 		// Verify the results - should only see InspectorReview achievements with Olympiad kind
 		require.NoError(t, err)
@@ -147,7 +224,15 @@ func TestGetUserAchievements(t *testing.T) {
 
 		// Create users and templates
 		dept := testutil.CreateTestDepartmentWithName(ctx, t, client, "Test Department")
-		owner := testutil.CreateTestUserWithDepartment(ctx, t, client, "Test", "Owner", sesc.Teacher, dept)
+		owner := testutil.CreateTestUserWithDepartment(
+			ctx,
+			t,
+			client,
+			"Test",
+			"Owner",
+			sesc.Teacher,
+			dept,
+		)
 		academicDirector := testutil.CreateTestUserWithDepartment(
 			ctx,
 			t,
@@ -159,11 +244,23 @@ func TestGetUserAchievements(t *testing.T) {
 		)
 
 		// Create templates for different kinds
-		olympiadTemplate := testutil.CreateTestAchievementTemplate(ctx, t, client, sesc.OlympiadDeputy)
+		olympiadTemplate := testutil.CreateTestAchievementTemplate(
+			ctx,
+			t,
+			client,
+			sesc.OlympiadDeputy,
+		)
 		devTemplate := testutil.CreateTestAchievementTemplate(ctx, t, client, sesc.AcademicDirector)
 
 		// Create achievements with different kinds and statuses
-		testutil.CreateTestAchievement(ctx, t, client, owner, olympiadTemplate, achievement.StatusInspectorReview)
+		testutil.CreateTestAchievement(
+			ctx,
+			t,
+			client,
+			owner,
+			olympiadTemplate,
+			achievement.StatusInspectorReview,
+		)
 		achDevInspector := testutil.CreateTestAchievement(
 			ctx,
 			t,
@@ -172,10 +269,24 @@ func TestGetUserAchievements(t *testing.T) {
 			devTemplate,
 			achievement.StatusInspectorReview,
 		)
-		testutil.CreateTestAchievement(ctx, t, client, owner, devTemplate, achievement.StatusDepheadReview)
+		testutil.CreateTestAchievement(
+			ctx,
+			t,
+			client,
+			owner,
+			devTemplate,
+			achievement.StatusDepheadReview,
+		)
 
 		// Call the method with academic director asking
-		achievements, total, err := svc.GetUserAchievements(ctx, owner.ID, academicDirector.ID, 0, 10)
+		achievements, total, err := svc.GetUserAchievements(
+			ctx,
+			owner.ID,
+			academicDirector.ID,
+			0,
+			10,
+			false,
+		)
 
 		// Verify the results - should only see InspectorReview achievements with Development kind
 		require.NoError(t, err)
@@ -196,11 +307,27 @@ func TestGetUserAchievements(t *testing.T) {
 
 		// Create test users but no achievements
 		dept := testutil.CreateTestDepartmentWithName(ctx, t, client, "Test Department")
-		owner := testutil.CreateTestUserWithDepartment(ctx, t, client, "Test", "Owner", sesc.Teacher, dept)
-		asker := testutil.CreateTestUserWithDepartment(ctx, t, client, "Asking", "User", sesc.Teacher, dept)
+		owner := testutil.CreateTestUserWithDepartment(
+			ctx,
+			t,
+			client,
+			"Test",
+			"Owner",
+			sesc.Teacher,
+			dept,
+		)
+		asker := testutil.CreateTestUserWithDepartment(
+			ctx,
+			t,
+			client,
+			"Asking",
+			"User",
+			sesc.Teacher,
+			dept,
+		)
 
 		// Call the method being tested
-		achievements, total, err := svc.GetUserAchievements(ctx, owner.ID, asker.ID, 0, 10)
+		achievements, total, err := svc.GetUserAchievements(ctx, owner.ID, asker.ID, 0, 10, false)
 
 		// Verify the results
 		require.NoError(t, err)
@@ -219,13 +346,36 @@ func TestGetUserAchievements(t *testing.T) {
 
 		// Create test users and template
 		dept := testutil.CreateTestDepartmentWithName(ctx, t, client, "Test Department")
-		owner := testutil.CreateTestUserWithDepartment(ctx, t, client, "Test", "Owner", sesc.Teacher, dept)
-		asker := testutil.CreateTestUserWithDepartment(ctx, t, client, "Asking", "User", sesc.Dephead, dept)
+		owner := testutil.CreateTestUserWithDepartment(
+			ctx,
+			t,
+			client,
+			"Test",
+			"Owner",
+			sesc.Teacher,
+			dept,
+		)
+		asker := testutil.CreateTestUserWithDepartment(
+			ctx,
+			t,
+			client,
+			"Asking",
+			"User",
+			sesc.Dephead,
+			dept,
+		)
 		template := testutil.CreateTestAchievementTemplate(ctx, t, client, sesc.OlympiadDeputy)
 
 		// Create multiple achievements
 		for range 5 {
-			ach := testutil.CreateTestAchievement(ctx, t, client, owner, template, achievement.StatusDraft)
+			ach := testutil.CreateTestAchievement(
+				ctx,
+				t,
+				client,
+				owner,
+				template,
+				achievement.StatusDraft,
+			)
 			_, err := svc.SubmitAchievement(ctx, achievement.SubmitOptions{
 				OwnerID:       ach.OwnerID,
 				AchievementID: ach.ID,
@@ -234,7 +384,7 @@ func TestGetUserAchievements(t *testing.T) {
 		}
 
 		// Call the method being tested with pagination
-		achievements, total, err := svc.GetUserAchievements(ctx, owner.ID, asker.ID, 0, 2)
+		achievements, total, err := svc.GetUserAchievements(ctx, owner.ID, asker.ID, 0, 2, false)
 
 		// Verify the results
 		require.NoError(t, err)
@@ -253,14 +403,30 @@ func TestGetUserAchievements(t *testing.T) {
 
 		// Create test users
 		dept := testutil.CreateTestDepartmentWithName(ctx, t, client, "Test Department")
-		owner := testutil.CreateTestUserWithDepartment(ctx, t, client, "Test", "Owner", sesc.Teacher, dept)
-		asker := testutil.CreateTestUserWithDepartment(ctx, t, client, "Asking", "User", sesc.Teacher, dept)
+		owner := testutil.CreateTestUserWithDepartment(
+			ctx,
+			t,
+			client,
+			"Test",
+			"Owner",
+			sesc.Teacher,
+			dept,
+		)
+		asker := testutil.CreateTestUserWithDepartment(
+			ctx,
+			t,
+			client,
+			"Asking",
+			"User",
+			sesc.Teacher,
+			dept,
+		)
 
 		// Close the database to force errors
 		client.Close()
 
 		// Call the method being tested
-		_, _, err := svc.GetUserAchievements(ctx, owner.ID, asker.ID, 0, 10)
+		_, _, err := svc.GetUserAchievements(ctx, owner.ID, asker.ID, 0, 10, false)
 
 		// Verify the results
 		require.Error(t, err)

@@ -34,7 +34,25 @@ func New(client *ent.Client) *ACS {
 }
 
 // buildRoleBasedFilters creates appropriate filters based on the asking user's role
-func (s *ACS) buildRoleBasedFilters(askingUser *ent.User) predicate.Achievement {
+func (s *ACS) buildRoleBasedFilters(
+	askingUser *ent.User,
+	requireChanges bool,
+) predicate.Achievement {
+	baseFilter := s.buildBaseRoleFilter(askingUser)
+
+	if requireChanges {
+		changesFilter := entAchievement.Or(
+			entAchievement.Status(achievement.StatusDepheadRequestedChanges),
+			entAchievement.Status(achievement.StatusInspectorRequestedChanges),
+		)
+		return entAchievement.And(baseFilter, changesFilter)
+	}
+
+	return baseFilter
+}
+
+// buildBaseRoleFilter creates base filters based on the asking user's role
+func (s *ACS) buildBaseRoleFilter(askingUser *ent.User) predicate.Achievement {
 	switch askingUser.Role {
 	case sesc.Teacher:
 		return entAchievement.OwnerID(askingUser.ID)

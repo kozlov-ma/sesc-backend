@@ -55,7 +55,7 @@ func (s *ACS) GetUsersWithAchievements(
 				return fmt.Errorf("failed to get asking user: %w", err)
 			}
 
-			roleFilter := s.buildRoleBasedFilters(askingUser)
+			roleFilter := s.buildRoleBasedFilters(askingUser, false)
 
 			filters := userFilters(search)
 			uq := tx.User.Query().WithDepartment()
@@ -96,7 +96,7 @@ func (s *ACS) GetUsersWithAchievements(
 			}
 
 			// Apply role-based filtering
-			roleFilter := s.buildRoleBasedFilters(askingUser)
+			roleFilter := s.buildRoleBasedFilters(askingUser, false)
 
 			filters := userFilters(search)
 			uq := tx.User.Query().WithDepartment()

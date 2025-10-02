@@ -132,7 +132,13 @@ func stepCreateDepartments(t *testing.T, data *TestData) {
 		t.Logf("✅ Created department: %s (ID: %s)", deptInfo.Name, deptInfo.ID)
 	}
 
-	assert.Len(t, data.Departments, DepartmentCount, "Should have created %d departments", DepartmentCount)
+	assert.Len(
+		t,
+		data.Departments,
+		DepartmentCount,
+		"Should have created %d departments",
+		DepartmentCount,
+	)
 }
 
 // stepCreateAchievementGroups creates the required achievement groups
@@ -257,10 +263,19 @@ func stepCreateAchievementTemplates(t *testing.T, data *TestData) {
 					group.ID, template.name, template.description,
 					template.pointsLimit, template.kind,
 				)
-				require.NoError(t, err, "Should be able to create achievement template: %s", template.name)
+				require.NoError(
+					t,
+					err,
+					"Should be able to create achievement template: %s",
+					template.name,
+				)
 
 				data.AchievementTemplates = append(data.AchievementTemplates, templateInfo)
-				t.Logf("✅ Created achievement template: %s (ID: %s)", templateInfo.Name, templateInfo.ID)
+				t.Logf(
+					"✅ Created achievement template: %s (ID: %s)",
+					templateInfo.Name,
+					templateInfo.ID,
+				)
 			}
 		}
 	}
@@ -290,7 +305,13 @@ func stepCreateUsers(t *testing.T, data *TestData) {
 				firstName, lastName, middleName,
 				dept.ID, GetRoleID("teacher"),
 			)
-			require.NoError(t, err, "Should be able to create user %d for department %s", i+1, dept.Name)
+			require.NoError(
+				t,
+				err,
+				"Should be able to create user %d for department %s",
+				i+1,
+				dept.Name,
+			)
 
 			userInfo.Department = dept.Name
 			userInfo.DepartmentID = dept.ID
@@ -437,7 +458,13 @@ func stepUserDocumentUpload(t *testing.T, data *TestData) {
 			filename := fmt.Sprintf("document_%s_%d.pdf", user.ID, i+1)
 
 			fileInfo, err := data.Client.UploadFile(filename, sampleContent)
-			require.NoError(t, err, "User %s should be able to upload file %s", user.Username, filename)
+			require.NoError(
+				t,
+				err,
+				"User %s should be able to upload file %s",
+				user.Username,
+				filename,
+			)
 
 			fileInfo.UserID = user.ID
 			data.Files[user.ID] = append(data.Files[user.ID], fileInfo)
@@ -512,7 +539,11 @@ func stepDepartmentHeadReview(t *testing.T, data *TestData) {
 		data.Client.SetUserAuth(depHead.Token)
 
 		users, err := data.Client.GetUsersWithAchievements()
-		require.NoError(t, err, "Department head should be able to get users to review their achievements")
+		require.NoError(
+			t,
+			err,
+			"Department head should be able to get users to review their achievements",
+		)
 
 		aa := make(chan *models.RespondAchievement, 999)
 
@@ -533,8 +564,17 @@ func stepDepartmentHeadReview(t *testing.T, data *TestData) {
 		reviewedCount := 0
 		for achievement := range aa {
 			// Review the achievement with assigned points
-			err := data.Client.ReviewAchievement(*achievement.ID, 3, "Approved by department head")
-			require.NoError(t, err, "Department head should be able to review achievement %s", *achievement.ID)
+			err := data.Client.ReviewAchievement(
+				*achievement.ID,
+				"approve",
+				"Approved by department head",
+			)
+			require.NoError(
+				t,
+				err,
+				"Department head should be able to review achievement %s",
+				*achievement.ID,
+			)
 			reviewedCount++
 		}
 
@@ -555,7 +595,11 @@ func stepSecondaryReview(t *testing.T, data *TestData) {
 		data.Client.SetUserAuth(reviewer.Token)
 
 		users, err := data.Client.GetUsersWithAchievements()
-		require.NoError(t, err, "Secondary reviewer head should be able to get users to review their achievements")
+		require.NoError(
+			t,
+			err,
+			"Secondary reviewer head should be able to get users to review their achievements",
+		)
 
 		aa := make(chan *models.RespondAchievement, 999)
 
@@ -571,13 +615,26 @@ func stepSecondaryReview(t *testing.T, data *TestData) {
 		}
 		err = eg.Wait()
 		close(aa)
-		require.NoError(t, err, "Secondary reviewer head should be able to get achievements to review")
+		require.NoError(
+			t,
+			err,
+			"Secondary reviewer head should be able to get achievements to review",
+		)
 
 		reviewedCount := 0
 		for achievement := range aa {
 			// Provide final approval
-			err := data.Client.ReviewAchievement(*achievement.ID, 2, "Final approval by secondary reviewer")
-			require.NoError(t, err, "Secondary reviewer should be able to review achievement %s", *achievement.ID)
+			err := data.Client.ReviewAchievement(
+				*achievement.ID,
+				"approve",
+				"Final approval by secondary reviewer",
+			)
+			require.NoError(
+				t,
+				err,
+				"Secondary reviewer should be able to review achievement %s",
+				*achievement.ID,
+			)
 			reviewedCount++
 		}
 

@@ -88,6 +88,12 @@ type GetAchievementsParams struct {
 	*/
 	Offset *int64
 
+	/* RequiringChanges.
+
+	   Filter achievements requiring changes
+	*/
+	RequiringChanges *bool
+
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
@@ -109,11 +115,14 @@ func (o *GetAchievementsParams) SetDefaults() {
 		limitDefault = int64(10)
 
 		offsetDefault = int64(0)
+
+		requiringChangesDefault = bool(false)
 	)
 
 	val := GetAchievementsParams{
-		Limit:  &limitDefault,
-		Offset: &offsetDefault,
+		Limit:            &limitDefault,
+		Offset:           &offsetDefault,
+		RequiringChanges: &requiringChangesDefault,
 	}
 
 	val.timeout = o.timeout
@@ -199,6 +208,17 @@ func (o *GetAchievementsParams) SetOffset(offset *int64) {
 	o.Offset = offset
 }
 
+// WithRequiringChanges adds the requiringChanges to the get achievements params
+func (o *GetAchievementsParams) WithRequiringChanges(requiringChanges *bool) *GetAchievementsParams {
+	o.SetRequiringChanges(requiringChanges)
+	return o
+}
+
+// SetRequiringChanges adds the requiringChanges to the get achievements params
+func (o *GetAchievementsParams) SetRequiringChanges(requiringChanges *bool) {
+	o.RequiringChanges = requiringChanges
+}
+
 // WriteToRequest writes these params to a swagger request
 func (o *GetAchievementsParams) WriteToRequest(r runtime.ClientRequest, reg strfmt.Registry) error {
 
@@ -261,6 +281,23 @@ func (o *GetAchievementsParams) WriteToRequest(r runtime.ClientRequest, reg strf
 		if qOffset != "" {
 
 			if err := r.SetQueryParam("offset", qOffset); err != nil {
+				return err
+			}
+		}
+	}
+
+	if o.RequiringChanges != nil {
+
+		// query param requiring_changes
+		var qrRequiringChanges bool
+
+		if o.RequiringChanges != nil {
+			qrRequiringChanges = *o.RequiringChanges
+		}
+		qRequiringChanges := swag.FormatBool(qrRequiringChanges)
+		if qRequiringChanges != "" {
+
+			if err := r.SetQueryParam("requiring_changes", qRequiringChanges); err != nil {
 				return err
 			}
 		}

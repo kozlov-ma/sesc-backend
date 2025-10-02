@@ -477,6 +477,13 @@
                         "description": "User's ID",
                         "name": "id",
                         "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "default": false,
+                        "description": "Filter achievements requiring changes",
+                        "name": "requiring_changes",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -946,7 +953,7 @@
                         "BearerAuth": []
                     }
                 ],
-                "description": "Reviews an achievement, setting points and optionally a comment",
+                "description": "Reviews an achievement with approve, disapprove, or request changes action",
                 "consumes": [
                     "application/json"
                 ],
@@ -989,7 +996,7 @@
                         }
                     },
                     "400": {
-                        "description": "Points assigned exceed the template's points limit",
+                        "description": "Invalid review action",
                         "schema": {
                             "$ref": "#/definitions/respond.Error"
                         }
@@ -1084,6 +1091,94 @@
                     },
                     "409": {
                         "description": "Wrong achievement status",
+                        "schema": {
+                            "$ref": "#/definitions/respond.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/respond.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/achievements/{id}/submit-with-new-points": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Allows teachers to submit achievement with updated points when changes are requested by reviewers",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "achievements"
+                ],
+                "summary": "Submit achievement with updated points",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer JWT token",
+                        "name": "Authorization",
+                        "in": "header"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Achievement UUID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Points update data",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/param.UpdateAchievementPointsRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/respond.Achievement"
+                        }
+                    },
+                    "400": {
+                        "description": "Points exceed template limit",
+                        "schema": {
+                            "$ref": "#/definitions/respond.Error"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/respond.Error"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden - only achievement owner can update points",
+                        "schema": {
+                            "$ref": "#/definitions/respond.Error"
+                        }
+                    },
+                    "404": {
+                        "description": "Achievement not found",
+                        "schema": {
+                            "$ref": "#/definitions/respond.Error"
+                        }
+                    },
+                    "409": {
+                        "description": "Wrong achievement status - changes not requested",
                         "schema": {
                             "$ref": "#/definitions/respond.Error"
                         }
@@ -2990,15 +3085,37 @@
         "param.ReviewAchievementRequest": {
             "type": "object",
             "required": [
-                "pointsAssigned"
+                "action"
+            ],
+            "properties": {
+                "action": {
+                    "type": "string",
+                    "enum": [
+                        "approve",
+                        "disapprove",
+                        "request_changes"
+                    ],
+                    "example": "approve"
+                },
+                "comment": {
+                    "type": "string",
+                    "example": "Good job, but could be better"
+                }
+            }
+        },
+        "param.UpdateAchievementPointsRequest": {
+            "type": "object",
+            "required": [
+                "points"
             ],
             "properties": {
                 "comment": {
                     "type": "string",
-                    "example": "Good job, but could be better"
+                    "example": "Updated based on feedback"
                 },
-                "pointsAssigned": {
+                "points": {
                     "type": "integer",
+                    "minimum": 0,
                     "example": 8
                 }
             }

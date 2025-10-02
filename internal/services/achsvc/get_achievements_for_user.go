@@ -22,6 +22,7 @@ func (s *ACS) GetUserAchievements(
 	userID UUID,
 	whosAsking UUID,
 	offset, limit int,
+	requireChanges bool,
 ) (ent.Achievements, int, error) {
 	rec := event.Get(ctx).Sub("sesc/get_user_achievements")
 	statsRec := event.Root(ctx).Sub("stats")
@@ -32,6 +33,7 @@ func (s *ACS) GetUserAchievements(
 		"whos_asking", whosAsking,
 		"offset", offset,
 		"limit", limit,
+		"require_changes", requireChanges,
 	)
 
 	var totalAchievements int
@@ -73,7 +75,7 @@ func (s *ACS) GetUserAchievements(
 				"asking_user_role", askingUser.Role.String(),
 				"owner_id", userID,
 			)
-			roleFilter := s.buildRoleBasedFilters(askingUser)
+			roleFilter := s.buildRoleBasedFilters(askingUser, requireChanges)
 
 			start := time.Now()
 			count, err := tx.Achievement.Query().
@@ -103,7 +105,7 @@ func (s *ACS) GetUserAchievements(
 				"offset", offset,
 				"owner_id", userID,
 			)
-			roleFilter := s.buildRoleBasedFilters(askingUser)
+			roleFilter := s.buildRoleBasedFilters(askingUser, requireChanges)
 
 			start := time.Now()
 			entities, err := tx.Achievement.Query().

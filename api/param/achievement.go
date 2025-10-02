@@ -17,8 +17,14 @@ type AddDocumentRequest struct {
 
 // ReviewAchievementRequest represents the request to review an achievement
 type ReviewAchievementRequest struct {
-	PointsAssigned int    `json:"pointsAssigned" example:"8"                             validate:"required"`
-	Comment        string `json:"comment"        example:"Good job, but could be better" validate:"omitempty"`
+	Action  string `json:"action"  example:"approve"                       validate:"required,oneof=approve disapprove request_changes"`
+	Comment string `json:"comment" example:"Good job, but could be better" validate:"omitempty"`
+}
+
+// UpdateAchievementPointsRequest represents the request to update achievement points
+type UpdateAchievementPointsRequest struct {
+	Points  int    `json:"points"  example:"8"                         validate:"required,min=0"`
+	Comment string `json:"comment" example:"Updated based on feedback" validate:"omitempty"`
 }
 
 // CreateAchievementGroupRequest represents the request to create an achievement group

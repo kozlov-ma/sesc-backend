@@ -50,6 +50,9 @@ import type {
   PostAchievementsByIdSubmitData,
   PostAchievementsByIdSubmitResponse,
   PostAchievementsByIdSubmitError,
+  PostAchievementsByIdSubmitWithNewPointsData,
+  PostAchievementsByIdSubmitWithNewPointsResponse,
+  PostAchievementsByIdSubmitWithNewPointsError,
   PostAuthAdminLoginData,
   PostAuthAdminLoginResponse,
   PostAuthAdminLoginError,
@@ -473,7 +476,7 @@ export const deleteAchievementsByIdDocumentsByDocumentId = <
 
 /**
  * Review an achievement
- * Reviews an achievement, setting points and optionally a comment
+ * Reviews an achievement with approve, disapprove, or request changes action
  */
 export const postAchievementsByIdReview = <
   ThrowOnError extends boolean = false,
@@ -522,6 +525,35 @@ export const postAchievementsByIdSubmit = <
     ],
     url: "/achievements/{id}/submit",
     ...options,
+  });
+};
+
+/**
+ * Submit achievement with updated points
+ * Allows teachers to submit achievement with updated points when changes are requested by reviewers
+ */
+export const postAchievementsByIdSubmitWithNewPoints = <
+  ThrowOnError extends boolean = false,
+>(
+  options: Options<PostAchievementsByIdSubmitWithNewPointsData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).post<
+    PostAchievementsByIdSubmitWithNewPointsResponse,
+    PostAchievementsByIdSubmitWithNewPointsError,
+    ThrowOnError
+  >({
+    security: [
+      {
+        name: "Authorization",
+        type: "apiKey",
+      },
+    ],
+    url: "/achievements/{id}/submit-with-new-points",
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...options?.headers,
+    },
   });
 };
 

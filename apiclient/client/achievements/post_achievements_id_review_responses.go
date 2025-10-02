@@ -149,7 +149,7 @@ func NewPostAchievementsIDReviewBadRequest() *PostAchievementsIDReviewBadRequest
 /*
 PostAchievementsIDReviewBadRequest describes a response with status code 400, with default header values.
 
-Points assigned exceed the template's points limit
+Invalid review action
 */
 type PostAchievementsIDReviewBadRequest struct {
 	Payload *models.RespondError

@@ -24,14 +24,21 @@ func TestReviewAchievement(t *testing.T) {
 		user := testutil.CreateTestUser(ctx, t, client, "Test", "User", sesc.Role(1))
 		reviewer := testutil.CreateTestUser(ctx, t, client, "Test", "Reviewer", sesc.Dephead)
 		template := testutil.CreateTestAchievementTemplate(ctx, t, client, sesc.OlympiadDeputy)
-		ach := testutil.CreateTestAchievement(ctx, t, client, user, template, achievement.StatusDepheadReview)
+		ach := testutil.CreateTestAchievement(
+			ctx,
+			t,
+			client,
+			user,
+			template,
+			achievement.StatusDepheadReview,
+		)
 
 		// Call the method being tested
 		result, err := svc.ReviewAchievement(ctx, achievement.ReviewOptions{
 			AchievementID:      ach.ID,
 			AchievementOwnerID: user.ID,
 			ReviewerID:         reviewer.ID,
-			PointsAssigned:     1,
+			Action:             achievement.ReviewActionApprove,
 			Comment:            "Good work!",
 		})
 
@@ -39,7 +46,6 @@ func TestReviewAchievement(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, result)
 		require.Equal(t, ach.ID, result.ID)
-		require.Equal(t, 1, result.Points)
 		require.Equal(t, string(achievement.StatusInspectorReview), result.Status)
 	})
 
@@ -62,7 +68,7 @@ func TestReviewAchievement(t *testing.T) {
 			AchievementID:      nonExistentID,
 			AchievementOwnerID: user.ID,
 			ReviewerID:         reviewer.ID,
-			PointsAssigned:     1,
+			Action:             achievement.ReviewActionApprove,
 			Comment:            "Good work!",
 		})
 
@@ -83,14 +89,21 @@ func TestReviewAchievement(t *testing.T) {
 		user := testutil.CreateTestUser(ctx, t, client, "Test", "User", sesc.Role(1))
 		reviewer := testutil.CreateTestUser(ctx, t, client, "Test", "Reviewer", sesc.Dephead)
 		template := testutil.CreateTestAchievementTemplate(ctx, t, client, sesc.OlympiadDeputy)
-		ach := testutil.CreateTestAchievement(ctx, t, client, user, template, achievement.StatusDraft)
+		ach := testutil.CreateTestAchievement(
+			ctx,
+			t,
+			client,
+			user,
+			template,
+			achievement.StatusDraft,
+		)
 
 		// Call the method being tested
 		_, err := svc.ReviewAchievement(ctx, achievement.ReviewOptions{
 			AchievementID:      ach.ID,
 			AchievementOwnerID: user.ID,
 			ReviewerID:         reviewer.ID,
-			PointsAssigned:     1,
+			Action:             achievement.ReviewActionApprove,
 			Comment:            "Good work!",
 		})
 
@@ -118,14 +131,21 @@ func TestReviewAchievement(t *testing.T) {
 			sesc.Role(1),
 		) // Not a dephead
 		template := testutil.CreateTestAchievementTemplate(ctx, t, client, sesc.OlympiadDeputy)
-		ach := testutil.CreateTestAchievement(ctx, t, client, user, template, achievement.StatusDepheadReview)
+		ach := testutil.CreateTestAchievement(
+			ctx,
+			t,
+			client,
+			user,
+			template,
+			achievement.StatusDepheadReview,
+		)
 
 		// Call the method being tested
 		_, err := svc.ReviewAchievement(ctx, achievement.ReviewOptions{
 			AchievementID:      ach.ID,
 			AchievementOwnerID: user.ID,
 			ReviewerID:         invalidReviewer.ID,
-			PointsAssigned:     1,
+			Action:             achievement.ReviewActionApprove,
 			Comment:            "Good work!",
 		})
 
