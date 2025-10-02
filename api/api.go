@@ -10,6 +10,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	_ "github.com/kozlov-ma/sesc-backend/api/docs" // This blank import is needed to serve the swagger scheme.
+	"github.com/kozlov-ma/sesc-backend/api/respond"
 	"github.com/kozlov-ma/sesc-backend/pkg/event"
 	"github.com/kozlov-ma/sesc-backend/pkg/event/events"
 	httpSwagger "github.com/swaggo/http-swagger"
@@ -85,10 +86,9 @@ func isOriginAllowed(origin string) bool {
 }
 
 // HealthCheck returns a simple OK response for health checking
-func (a *API) HealthCheck(w http.ResponseWriter, _ *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	_, _ = w.Write([]byte(`{"status":"ok"}`))
+func (a *API) HealthCheck(w http.ResponseWriter, r *http.Request) {
+	response := respond.NewHealthCheckOK()
+	a.writeJSON(r.Context(), w, response)
 }
 
 func (a *API) RegisterRoutes(r chi.Router) {
