@@ -70,11 +70,13 @@ func LoadConfig() (*Config, error) {
 	v.AddConfigPath(".")
 	v.AddConfigPath("./config")
 
-	v.AutomaticEnv()
-
 	v.SetEnvPrefix("SESC")
 	replacer := strings.NewReplacer(".", "_")
 	v.SetEnvKeyReplacer(replacer)
+	v.AutomaticEnv()
+
+	// Explicit bindings for MinIO config
+	v.BindEnv("minio.base_url", "SESC_MINIO_BASE_URL")
 
 	if err := v.ReadInConfig(); err != nil {
 		var configFileNotFoundError viper.ConfigFileNotFoundError
