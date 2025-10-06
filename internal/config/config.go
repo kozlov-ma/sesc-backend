@@ -75,14 +75,35 @@ func LoadConfig() (*Config, error) {
 	v.SetEnvKeyReplacer(replacer)
 	v.AutomaticEnv()
 
-	// Explicit bindings for MinIO config
-	v.BindEnv("minio.base_url", "SESC_MINIO_BASE_URL")
+	// Explicit bindings for all sensitive config fields
+	// This ensures env variables take precedence over config.yml
+	_ = v.BindEnv("database.address")
+	_ = v.BindEnv("jwt_secret")
+	_ = v.BindEnv("minio.endpoint")
+	_ = v.BindEnv("minio.access_key")
+	_ = v.BindEnv("minio.secret_key")
+	_ = v.BindEnv("minio.use_ssl")
+	_ = v.BindEnv("minio.bucket_name")
+	_ = v.BindEnv("minio.base_url")
+	_ = v.BindEnv("http.server_address")
+	_ = v.BindEnv("http.read_header_timeout")
+	_ = v.BindEnv("http.read_timeout")
+	_ = v.BindEnv("http.write_timeout")
 
+	// Admin credentials can be set via env variables
+	// Format: SESC_ADMIN_CREDENTIALS_0_ID, SESC_ADMIN_CREDENTIALS_0_USERNAME, etc.
+	_ = v.BindEnv("admin_credentials.0.id")
+	_ = v.BindEnv("admin_credentials.0.username")
+	_ = v.BindEnv("admin_credentials.0.password")
+
+	// Read config.yml if it exists (for local development only)
+	// If file doesn't exist, we'll use env variables and defaults
 	if err := v.ReadInConfig(); err != nil {
 		var configFileNotFoundError viper.ConfigFileNotFoundError
 		if !errors.As(err, &configFileNotFoundError) {
 			return nil, fmt.Errorf("error reading config file: %w", err)
 		}
+		// Config file not found is OK - we'll use env vars and defaults
 	}
 
 	var config Config

@@ -63,8 +63,8 @@ accessories:
         POSTGRES_USER: sesc
       secret:
         - POSTGRES_PASSWORD
-    directories:
-      - data:/var/lib/postgresql/data
+    volumes:
+      - sesc-postgres-data:/var/lib/postgresql/data
 
   minio:
     image: minio/minio:latest
@@ -75,8 +75,10 @@ accessories:
       secret:
         - MINIO_ROOT_USER
         - MINIO_ROOT_PASSWORD
-    directories:
-      - data:/data
+        - SESC_MINIO_ACCESS_KEY
+        - SESC_MINIO_SECRET_KEY
+    volumes:
+      - sesc-minio-data:/data
     cmd: server /data --console-address ":9001"
     options:
       publish:
