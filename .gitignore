@@ -21,10 +21,11 @@
 go.work
 go.work.sum
 
-.kamal/secrets
-
 # env file
 .env
+
+# Kamal secrets
+.kamal/secrets
 
 # MacOS files
 .DS_Store

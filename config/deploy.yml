@@ -1,0 +1,87 @@
+# Name of your application. Used to uniquely configure containers.
+service: sesc-backend
+
+# Name of the container image.
+image: kozlov-ma/sesc-backend/backend
+
+# Deploy to these servers.
+servers:
+  web:
+    - 158.160.165.141
+
+# Enable SSL auto certification via Let's Encrypt and allow for multiple apps on a single web server.
+proxy:
+  ssl: true
+  hosts: 
+    - api.sesc-fiit.ru
+  app_port: 8080
+# Registry configuration for GitHub Container Registry
+registry:
+  server: ghcr.io
+  username: kozlov-ma
+  password:
+    - GITHUB_TOKEN
+
+# Configure builder setup.
+builder:
+  arch: amd64
+
+# Inject ENV variables into containers (secrets come from .kamal/secrets).
+env:
+  clear:
+    SESC_MINIO_ENDPOINT: sesc-backend-minio:9000
+    SESC_MINIO_USE_SSL: "false"
+    SESC_MINIO_BUCKET_NAME: sesc-files
+    SESC_MINIO_BASE_URL: https://s3.sesc-fiit.ru/sesc-files
+  secret:
+    - POSTGRES_PASSWORD
+    - MINIO_ROOT_USER
+    - MINIO_ROOT_PASSWORD
+    - SESC_DATABASE_ADDRESS
+    - SESC_MINIO_ACCESS_KEY
+    - SESC_MINIO_SECRET_KEY
+    - SESC_JWT_SECRET
+    - SESC_ADMIN_CREDENTIALS_0_ID
+    - SESC_ADMIN_CREDENTIALS_0_USERNAME
+    - SESC_ADMIN_CREDENTIALS_0_PASSWORD
+    - SESC_HTTP_SERVER_ADDRESS
+    - SESC_HTTP_READ_HEADER_TIMEOUT
+    - SESC_HTTP_READ_TIMEOUT
+    - SESC_HTTP_WRITE_TIMEOUT
+
+ssh:
+  user: kanyewest
+  keys: ["~/.ssh/id_sesc"]
+
+accessories:
+  postgres:
+    image: postgres:15
+    host: 158.160.165.141
+    env:
+      clear:
+        POSTGRES_DB: sesc
+        POSTGRES_USER: sesc
+      secret:
+        - POSTGRES_PASSWORD
+    directories:
+      - data:/var/lib/postgresql/data
+
+  minio:
+    image: minio/minio:latest
+    host: 158.160.165.141
+    env:
+      clear:
+        MINIO_SERVER_URL: https://s3.sesc-fiit.ru
+      secret:
+        - MINIO_ROOT_USER
+        - MINIO_ROOT_PASSWORD
+    directories:
+      - data:/data
+    cmd: server /data --console-address ":9001"
+    options:
+      publish:
+        - "9000:9000"
+    proxy:
+      ssl: true
+      host: s3.sesc-fiit.ru
+      app_port: 9000

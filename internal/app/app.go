@@ -17,6 +17,7 @@ import (
 	"github.com/kozlov-ma/sesc-backend/internal/s3svc"
 	"github.com/kozlov-ma/sesc-backend/internal/sescsvc"
 	"github.com/kozlov-ma/sesc-backend/internal/slogsink"
+
 	// database driver
 	_ "github.com/lib/pq"
 	// database driver
@@ -102,6 +103,7 @@ func NewWithDBOptions(ctx context.Context, cfg *config.Config, log *slog.Logger,
 		cfg.MinIO.SecretKey,
 		cfg.MinIO.BucketName,
 		cfg.MinIO.UseSSL,
+		cfg.MinIO.BaseURL,
 	)
 	if err != nil {
 		cleanup()

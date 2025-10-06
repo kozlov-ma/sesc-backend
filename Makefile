@@ -2,8 +2,8 @@
 
 # Generate Go code and frontend API client
 generate:
-	go generate ./... && cd web && rm -r lib/api && pnpm openapi-ts
-	rm -r apiclient/*
+	go generate ./... && cd web && rm -rf lib/api && pnpm openapi-ts
+	rm -rf apiclient/*
 	go tool swagger generate client -f api/docs/swagger.yaml -A apiclient --target apiclient/
 
 # Spin up the development database
@@ -47,3 +47,16 @@ integration-tests:
 	docker compose -f docker-compose-test.yml down -v
 	docker compose -f docker-compose-test.yml up --build --abort-on-container-exit --exit-code-from integration-tests integration-tests
 	docker compose -f docker-compose-test.yml down -v
+
+# Deploy application with Kamal
+deploy:
+	kamal deploy
+
+# Fix MinIO proxy configuration (run after manual MinIO reboot)
+fix-minio:
+	./scripts/fix-minio-proxy.sh
+
+# Show deployment status
+status:
+	kamal app details
+	kamal accessory details all

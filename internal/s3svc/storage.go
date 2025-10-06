@@ -17,13 +17,15 @@ import (
 
 // Storage implements the filesvc.ObjectStorage interface using MinIO.
 type Storage struct {
-	client     *minio.Client
-	bucketName string
-	endpoint   string
+	client          *minio.Client
+	presignedClient *minio.Client
+	bucketName      string
+	endpoint        string
+	baseURL         string
 }
 
 // NewStorage creates a new S3 storage instance.
-func NewStorage(endpoint, accessKey, secretKey, bucketName string, useSSL bool) (*Storage, error) {
+func NewStorage(endpoint, accessKey, secretKey, bucketName string, useSSL bool, baseURL string) (*Storage, error) {
 	ctx := context.Background()
 	ctx, rec := event.NewRecord(ctx, "s3svc/new_storage")
 	defer rec.Finish()
@@ -32,9 +34,10 @@ func NewStorage(endpoint, accessKey, secretKey, bucketName string, useSSL bool) 
 		"endpoint", endpoint,
 		"bucket_name", bucketName,
 		"use_ssl", useSSL,
+		"base_url", baseURL,
 	)
 
-	// Initialize MinIO client
+	// Initialize MinIO client for operations (internal endpoint)
 	var minioClient *minio.Client
 	err := rec.Operation("init_client", func(*event.Record) error {
 		var err error
@@ -47,6 +50,35 @@ func NewStorage(endpoint, accessKey, secretKey, bucketName string, useSSL bool) 
 
 	if err != nil {
 		return nil, err
+	}
+
+	// Initialize presigned URL client with public endpoint if baseURL is provided
+	var presignedClient *minio.Client
+	if baseURL != "" {
+		// Parse baseURL to get the public endpoint
+		parsedURL, err := url.Parse(baseURL)
+		if err != nil {
+			return nil, fmt.Errorf("invalid base_url: %w", err)
+		}
+
+		publicEndpoint := parsedURL.Host
+		usePublicSSL := parsedURL.Scheme == "https"
+
+		rec.Set("public_endpoint", publicEndpoint, "public_ssl", usePublicSSL)
+
+		// Create a separate client for presigned URLs with public endpoint
+		// This client is ONLY used for generating presigned URLs, not for actual operations
+		// MinIO generates presigned URLs locally without connecting to the server
+		presignedClient, err = minio.New(publicEndpoint, &minio.Options{
+			Creds:  credentials.NewStaticV4(accessKey, secretKey, ""),
+			Secure: usePublicSSL,
+		})
+		if err != nil {
+			return nil, fmt.Errorf("failed to create presigned URL client: %w", err)
+		}
+	} else {
+		// Use the same client for both operations and presigned URLs
+		presignedClient = minioClient
 	}
 
 	// Check if bucket exists
@@ -80,9 +112,11 @@ func NewStorage(endpoint, accessKey, secretKey, bucketName string, useSSL bool) 
 	rec.Set("success", true)
 
 	return &Storage{
-		client:     minioClient,
-		bucketName: bucketName,
-		endpoint:   endpoint,
+		client:          minioClient,
+		presignedClient: presignedClient,
+		bucketName:      bucketName,
+		endpoint:        endpoint,
+		baseURL:         baseURL,
 	}, nil
 }
 
@@ -174,7 +208,8 @@ func (s *Storage) GetObjectURL(
 	var presignedURL string
 	err := rec.Operation("presign", func(rec *event.Record) error {
 		var err error
-		url, err := s.client.PresignedGetObject(ctx, s.bucketName, objectKey, expires, params)
+		// Use presignedClient which has the public endpoint configured
+		url, err := s.presignedClient.PresignedGetObject(ctx, s.bucketName, objectKey, expires, params)
 		if err == nil {
 			presignedURL = url.String()
 			rec.Set("url_generated", true)

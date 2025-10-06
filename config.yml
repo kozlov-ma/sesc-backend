@@ -1,6 +1,9 @@
+# This file is kept for local development only
+# In production, all configuration comes from environment variables (kamal/secrets)
+
 database:
   type: "postgres"
-  address: "postgres://postgres:password@localhost:5432/postgres?sslmode=disable"
+  address: "postgres://sesc:postgres@localhost:5432/sesc?sslmode=disable"
 
 http:
   server_address: ":8080"
@@ -13,11 +16,7 @@ jwt_secret: "your_secret_key_here"
 admin_credentials:
   - id: "f1157f63-65dc-4c3d-bcb2-4d6d55d2e3fd"
     username: "admin"
-    password: "admin"
-  # You can add more admin credentials here if needed:
-  # - id: "00000000-0000-0000-0000-000000000000"
-  #   username: "another_admin"
-  #   password: "secure_password"
+    password: "YUn4jX8/TpPRj0gfpqsP2g=="
 
 minio:
   endpoint: "localhost:9000"
