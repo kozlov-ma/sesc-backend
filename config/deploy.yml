@@ -80,9 +80,6 @@ accessories:
     volumes:
       - sesc-minio-data:/data
     cmd: server /data --console-address ":9001"
-    options:
-      publish:
-        - "9000:9000"
     proxy:
       ssl: true
       host: s3.sesc-fiit.ru
