@@ -1,6 +1,16 @@
+# This file is for LOCAL DEVELOPMENT ONLY
+# In production, ALL configuration comes from environment variables (see .kamal/secrets)
+#
+# To override any value locally, use environment variables with SESC_ prefix:
+#   export SESC_DATABASE_ADDRESS="postgres://user:pass@localhost:5432/dbname"
+#   export SESC_JWT_SECRET="your-secret"
+#   export SESC_MINIO_ACCESS_KEY="your-key"
+#   etc.
+
 database:
   type: "postgres"
-  address: "postgres://postgres:password@localhost:5432/postgres?sslmode=disable"
+  # Local dev database (use env var SESC_DATABASE_ADDRESS for custom)
+  address: "postgres://sesc:postgres@localhost:5432/sesc?sslmode=disable"
 
 http:
   server_address: ":8080"
@@ -8,17 +18,20 @@ http:
   read_timeout: 10s
   write_timeout: 10s
 
-jwt_secret: "your_secret_key_here"
+# For production, set via SESC_JWT_SECRET env variable
+jwt_secret: "local-dev-secret-change-in-production"
 
+# For production, use env variables:
+# SESC_ADMIN_CREDENTIALS_0_ID
+# SESC_ADMIN_CREDENTIALS_0_USERNAME  
+# SESC_ADMIN_CREDENTIALS_0_PASSWORD
 admin_credentials:
   - id: "f1157f63-65dc-4c3d-bcb2-4d6d55d2e3fd"
     username: "admin"
-    password: "admin"
-  # You can add more admin credentials here if needed:
-  # - id: "00000000-0000-0000-0000-000000000000"
-  #   username: "another_admin"
-  #   password: "secure_password"
+    password: "admin"  # Local dev only, change in production via env vars
 
+# For production, use env variables:
+# SESC_MINIO_ENDPOINT, SESC_MINIO_ACCESS_KEY, SESC_MINIO_SECRET_KEY, etc.
 minio:
   endpoint: "localhost:9000"
   access_key: "minioadmin"

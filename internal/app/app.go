@@ -102,6 +102,7 @@ func NewWithDBOptions(ctx context.Context, cfg *config.Config, log *slog.Logger,
 		cfg.MinIO.SecretKey,
 		cfg.MinIO.BucketName,
 		cfg.MinIO.UseSSL,
+		cfg.MinIO.BaseURL,
 	)
 	if err != nil {
 		cleanup()
