@@ -1,5 +1,7 @@
 "use client";
 
+import { FileNameByIdDisplay } from "@/components/files/file-name-display";
+import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
   DialogContent,
@@ -7,7 +9,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import {
   Table,
@@ -17,11 +18,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { getStatusBadgeVariant, getStatusLabel } from "./achievement-list";
-import { FileNameByIdDisplay } from "@/components/files/file-name-display";
 import { UserAvatar } from "@/components/ui/user-avatar";
-import Link from "next/link";
 import { RespondAchievement } from "@/lib/api";
+import Link from "next/link";
+import { getStatusBadgeVariant, getStatusLabel } from "./achievement-list";
 
 interface AchievementDetailsDialogProps {
   achievement: RespondAchievement | null;
@@ -73,6 +73,12 @@ export function AchievementDetailsDialog({
                 Баллы
               </h3>
               <p className="text-base">{achievement.points}</p>
+            </div>
+            <div>
+              <h3 className="text-sm font-medium text-muted-foreground">
+                Максимум баллов
+              </h3>
+              <p className="text-base">{achievement.maxPoints}</p>
             </div>
           </div>
 
@@ -142,7 +148,11 @@ export function AchievementDetailsDialog({
                             <UserAvatar userId={review.reviewerId} size="sm" />
                           </Link>
                         </TableCell>
-                        <TableCell>{review.pointsAssigned}</TableCell>
+                        <TableCell>
+                          {review.pointsAssigned === 0
+                            ? "-"
+                            : review.pointsAssigned}
+                        </TableCell>
                         <TableCell className="max-w-[200px]">
                           <div
                             className="truncate"
