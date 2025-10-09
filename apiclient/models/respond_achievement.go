@@ -29,13 +29,18 @@ type RespondAchievement struct {
 	// Required: true
 	ID *string `json:"id"`
 
+	// max points
+	// Example: 10
+	// Required: true
+	MaxPoints *int64 `json:"maxPoints"`
+
 	// owner Id
 	// Example: 550e8400-e29b-41d4-a716-446655440000
 	// Required: true
 	OwnerID *string `json:"ownerId"`
 
 	// points
-	// Example: 10
+	// Example: 7
 	// Required: true
 	Points *int64 `json:"points"`
 
@@ -68,6 +73,10 @@ func (m *RespondAchievement) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := m.validateID(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateMaxPoints(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -131,6 +140,15 @@ func (m *RespondAchievement) validateDocuments(formats strfmt.Registry) error {
 func (m *RespondAchievement) validateID(formats strfmt.Registry) error {
 
 	if err := validate.Required("id", "body", m.ID); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *RespondAchievement) validateMaxPoints(formats strfmt.Registry) error {
+
+	if err := validate.Required("maxPoints", "body", m.MaxPoints); err != nil {
 		return err
 	}
 

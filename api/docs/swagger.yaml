@@ -325,11 +325,14 @@ definitions:
       id:
         example: 550e8400-e29b-41d4-a716-446655440000
         type: string
+      maxPoints:
+        example: 10
+        type: integer
       ownerId:
         example: 550e8400-e29b-41d4-a716-446655440000
         type: string
       points:
-        example: 10
+        example: 7
         type: integer
       reviews:
         items:
@@ -347,6 +350,7 @@ definitions:
     required:
     - documents
     - id
+    - maxPoints
     - ownerId
     - points
     - reviews
