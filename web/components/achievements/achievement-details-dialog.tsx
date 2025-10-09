@@ -3,20 +3,20 @@
 import { FileNameByIdDisplay } from "@/components/files/file-name-display";
 import { Badge } from "@/components/ui/badge";
 import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogHeader,
-    DialogTitle,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
 } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
 } from "@/components/ui/table";
 import { UserAvatar } from "@/components/ui/user-avatar";
 import { RespondAchievement } from "@/lib/api";
@@ -76,7 +76,7 @@ export function AchievementDetailsDialog({
             </div>
             <div>
               <h3 className="text-sm font-medium text-muted-foreground">
-                Max. Баллы
+                Максимум баллов
               </h3>
               <p className="text-base">{achievement.maxPoints}</p>
             </div>
@@ -148,7 +148,11 @@ export function AchievementDetailsDialog({
                             <UserAvatar userId={review.reviewerId} size="sm" />
                           </Link>
                         </TableCell>
-                        <TableCell>{review.pointsAssigned}</TableCell>
+                        <TableCell>
+                          {review.pointsAssigned === 0
+                            ? "-"
+                            : review.pointsAssigned}
+                        </TableCell>
                         <TableCell className="max-w-[200px]">
                           <div
                             className="truncate"
