@@ -414,6 +414,7 @@ export const respond_AchievementSchema = {
   required: [
     "documents",
     "id",
+    "maxPoints",
     "ownerId",
     "points",
     "reviews",
@@ -432,13 +433,17 @@ export const respond_AchievementSchema = {
       type: "string",
       example: "550e8400-e29b-41d4-a716-446655440000",
     },
+    maxPoints: {
+      type: "integer",
+      example: 10,
+    },
     ownerId: {
       type: "string",
       example: "550e8400-e29b-41d4-a716-446655440000",
     },
     points: {
       type: "integer",
-      example: 10,
+      example: 7,
     },
     reviews: {
       type: "array",

@@ -124,6 +124,7 @@ export type ParamUpdateAchievementPointsRequest = {
 export type RespondAchievement = {
   documents: Array<RespondDocument>;
   id: string;
+  maxPoints: number;
   ownerId: string;
   points: number;
   reviews: Array<RespondReview>;
