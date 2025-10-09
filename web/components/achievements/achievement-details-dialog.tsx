@@ -1,27 +1,27 @@
 "use client";
 
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { FileNameByIdDisplay } from "@/components/files/file-name-display";
 import { Badge } from "@/components/ui/badge";
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
 } from "@/components/ui/table";
-import { getStatusBadgeVariant, getStatusLabel } from "./achievement-list";
-import { FileNameByIdDisplay } from "@/components/files/file-name-display";
 import { UserAvatar } from "@/components/ui/user-avatar";
-import Link from "next/link";
 import { RespondAchievement } from "@/lib/api";
+import Link from "next/link";
+import { getStatusBadgeVariant, getStatusLabel } from "./achievement-list";
 
 interface AchievementDetailsDialogProps {
   achievement: RespondAchievement | null;
@@ -73,6 +73,12 @@ export function AchievementDetailsDialog({
                 Баллы
               </h3>
               <p className="text-base">{achievement.points}</p>
+            </div>
+            <div>
+              <h3 className="text-sm font-medium text-muted-foreground">
+                Max. Баллы
+              </h3>
+              <p className="text-base">{achievement.maxPoints}</p>
             </div>
           </div>
 
