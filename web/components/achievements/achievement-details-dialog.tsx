@@ -3,20 +3,20 @@
 import { FileNameByIdDisplay } from "@/components/files/file-name-display";
 import { Badge } from "@/components/ui/badge";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
 } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
 } from "@/components/ui/table";
 import { UserAvatar } from "@/components/ui/user-avatar";
 import { RespondAchievement } from "@/lib/api";
@@ -104,18 +104,13 @@ export function AchievementDetailsDialog({
                   <TableBody>
                     {achievement.documents.map((document) => (
                       <TableRow key={document.id}>
-                        <TableCell className="max-w-[150px] min-w-0">
-                          <div
-                            className="truncate-with-ellipsis"
-                            title={document.name}
-                          >
+                        <TableCell className="max-w-[150px]">
+                          <div className="truncate" title={document.name}>
                             {document.name}
                           </div>
                         </TableCell>
-                        <TableCell className="max-w-[200px] min-w-0">
-                          <div className="truncate-with-ellipsis">
-                            <FileNameByIdDisplay fileId={document.fileId} />
-                          </div>
+                        <TableCell className="max-w-[200px]">
+                          <FileNameByIdDisplay fileId={document.fileId} />
                         </TableCell>
                       </TableRow>
                     ))}

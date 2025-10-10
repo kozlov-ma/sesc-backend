@@ -2,17 +2,16 @@
 
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogContent,
-  DialogTitle,
-  DialogTrigger,
+    Dialog,
+    DialogContent,
+    DialogTitle,
+    DialogTrigger,
 } from "@/components/ui/dialog";
 import { RespondFile } from "@/lib/api";
 import { getFilesByIdOptions } from "@/lib/api/@tanstack/react-query.gen";
 import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { Download, Loader2, Sparkles } from "lucide-react";
-import Image from "next/image";
 
 interface FileNameDisplayProps {
   file: RespondFile;
@@ -82,10 +81,11 @@ export function FileNameDisplay({ file, className }: FileNameDisplayProps) {
     return (
       <Button
         variant="link"
-        className={cn("flex items-center gap-2", className)}
+        className={cn("p-0 justify-start block w-full min-w-0", className)}
         onClick={handleDownload}
+        title={file.fileName || "Файл"}
       >
-        <span className="font-medium">{file.fileName || "Файл"}</span>
+        <span className="font-medium truncate block">{file.fileName || "Файл"}</span>
       </Button>
     );
   }
@@ -95,18 +95,19 @@ export function FileNameDisplay({ file, className }: FileNameDisplayProps) {
       <DialogTrigger asChild>
         <Button
           variant="ghost"
-          className={cn("group h-auto hover:bg-transparent", className)}
+          className={cn("group hover:bg-transparent p-0 justify-start w-full min-w-0 block", className)}
+          title={file.fileName}
         >
-          <div className="flex items-center gap-2">
-            <Sparkles className="h-4 w-4 text-muted-foreground" />
-            <span className="font-medium">{file.fileName}</span>
+          <div className="flex items-center gap-2 min-w-0 max-w-full">
+            <Sparkles className="h-4 w-4 text-muted-foreground shrink-0" />
+            <span className="font-medium truncate min-w-0">{file.fileName}</span>
           </div>
         </Button>
       </DialogTrigger>
       <DialogContent className="p-0 max-w-[80vw] max-h-[90vh] w-fit">
         <div className="flex flex-col">
           <div className="flex-1 flex items-center justify-center bg-muted">
-            <Image
+            <img
               src={
                 process.env.NEXT_PUBLIC_API_URL +
                 "/files/" +
@@ -114,10 +115,7 @@ export function FileNameDisplay({ file, className }: FileNameDisplayProps) {
                 "/download"
               }
               alt={file.fileName}
-              width={800}
-              height={600}
               className="max-h-full max-w-full object-contain"
-              unoptimized
             />
           </div>
           <div className="p-4 flex justify-between items-center border-t">

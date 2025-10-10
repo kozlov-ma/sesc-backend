@@ -1,9 +1,9 @@
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
 } from "@/components/ui/dialog";
 import { AddDocumentForm } from "./add-document-form";
 
@@ -21,10 +21,7 @@ export function AddDocumentDialog({
 }: AddDocumentDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent
-        className="sm:max-w-[600px] max-w-[95vw] overflow-hidden"
-        style={{ maxWidth: "min(600px, 95vw)" }}
-      >
+      <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
           <DialogTitle>Добавить документ</DialogTitle>
           <DialogDescription>

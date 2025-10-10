@@ -10,15 +10,6 @@ body {
     text-wrap: balance;
   }
 
-  /* Text wrapping fix for all browsers */
-  .text-wrap-fix {
-    word-wrap: break-word;
-    overflow-wrap: break-word;
-    word-break: normal;
-    hyphens: auto;
-    white-space: normal;
-  }
-
   /* Truncate with visual ellipsis indicator */
   .truncate-with-ellipsis {
     overflow: hidden;

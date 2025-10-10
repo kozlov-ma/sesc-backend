@@ -6,16 +6,16 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useErrorHandler } from "@/hooks/use-error-handler";
 import {
-  getAchievementsOptions,
-  getFilesInfiniteOptions,
-  postFilesMutation,
+    getAchievementsOptions,
+    getFilesInfiniteOptions,
+    postFilesMutation,
 } from "@/lib/api/@tanstack/react-query.gen";
 import { postAchievementsByIdDocuments } from "@/lib/api/sdk.gen";
 import type { RespondFile } from "@/lib/api/types.gen";
 import {
-  useInfiniteQuery,
-  useMutation,
-  useQueryClient,
+    useInfiniteQuery,
+    useMutation,
+    useQueryClient,
 } from "@tanstack/react-query";
 import { Upload } from "lucide-react";
 import { useState } from "react";
@@ -149,7 +149,7 @@ export function AddDocumentForm({
   return (
     <form
       onSubmit={handleSubmit}
-      className="space-y-4 w-full overflow-hidden box-border"
+      className="space-y-4"
     >
       <div className="space-y-2">
         <Label htmlFor="documentName">Название документа</Label>
@@ -162,7 +162,7 @@ export function AddDocumentForm({
         />
       </div>
 
-      <div className="space-y-2 w-full overflow-hidden">
+      <div className="space-y-2">
         <Label>Поиск файлов</Label>
         <Input
           value={searchQuery}
@@ -171,7 +171,7 @@ export function AddDocumentForm({
           className="mb-4"
         />
 
-        <Tabs defaultValue="personal" className="w-full overflow-hidden">
+        <Tabs defaultValue="personal" className="w-full">
           <TabsList className="w-full">
             <TabsTrigger value="personal" className="flex-1">
               Личные файлы
@@ -181,9 +181,9 @@ export function AddDocumentForm({
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="personal" className="w-full overflow-hidden">
-            <div className="mb-4 w-full overflow-hidden">
-              <div className="relative w-full overflow-hidden">
+          <TabsContent value="personal">
+            <div className="mb-4">
+              <div className="relative w-full">
                 <input
                   type="file"
                   id="fileUpload"
@@ -197,22 +197,20 @@ export function AddDocumentForm({
                   className="w-full"
                   disabled={uploadFileMutation.isPending}
                 >
-                  <Upload className="mr-2 h-4 w-4 shrink-0" />
-                  <span className="truncate">
-                    {uploadFileMutation.isPending
-                      ? "Загрузка..."
-                      : "Загрузить файл"}
-                  </span>
+                  <Upload className="mr-2 h-4 w-4" />
+                  {uploadFileMutation.isPending
+                    ? "Загрузка..."
+                    : "Загрузить файл"}
                 </Button>
               </div>
             </div>
-            <ScrollArea className="h-[200px] w-full box-border">
-              <div className="space-y-2 min-w-0 w-full box-border">
+            <ScrollArea className="h-[200px]">
+              <div className="space-y-2">
                 {personalFilesQuery.data?.pages.map((page) =>
                   page.files?.map((file) => (
                     <Card
                       key={file.id}
-                      className={`p-3 cursor-pointer transition-colors min-w-0 w-full overflow-hidden box-border ${
+                      className={`p-3 cursor-pointer transition-colors gap-0 ${
                         selectedFile?.id === file.id
                           ? "bg-primary/10"
                           : "hover:bg-muted"
@@ -220,7 +218,7 @@ export function AddDocumentForm({
                       onClick={() => handleFileSelect(file)}
                     >
                       <div
-                        className="text-sm font-medium truncate min-w-0"
+                        className="text-sm font-medium truncate"
                         title={file.fileName}
                       >
                         {file.fileName}
@@ -232,14 +230,14 @@ export function AddDocumentForm({
             </ScrollArea>
           </TabsContent>
 
-          <TabsContent value="common" className="w-full ">
-            <ScrollArea className="h-[200px] box-border">
-              <div className="space-y-2 min-w-0 w-full box-border">
+          <TabsContent value="common">
+            <ScrollArea className="h-[200px]">
+              <div className="space-y-2">
                 {commonFilesQuery.data?.pages.map((page) =>
                   page.files?.map((file) => (
                     <Card
                       key={file.id}
-                      className={`p-3 cursor-pointer transition-colors min-w-0 w-full overflow-hidden box-border ${
+                      className={`p-3 cursor-pointer transition-colors gap-0 ${
                         selectedFile?.id === file.id
                           ? "bg-primary/10"
                           : "hover:bg-muted"
@@ -247,7 +245,7 @@ export function AddDocumentForm({
                       onClick={() => handleFileSelect(file)}
                     >
                       <div
-                        className="text-sm font-medium truncate min-w-0"
+                        className="text-sm font-medium truncate"
                         title={file.fileName}
                       >
                         {file.fileName}
@@ -261,19 +259,17 @@ export function AddDocumentForm({
         </Tabs>
       </div>
 
-      <div className="flex justify-end space-x-2 w-full overflow-hidden">
+      <div className="flex justify-end space-x-2">
         <Button
           type="button"
           variant="outline"
           onClick={onCancel}
-          className="shrink-0"
         >
           Отмена
         </Button>
         <Button
           type="submit"
           disabled={!selectedFile || addDocumentMutation.isPending}
-          className="shrink-0"
         >
           {addDocumentMutation.isPending ? "Добавление..." : "Добавить"}
         </Button>
