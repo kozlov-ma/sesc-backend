@@ -6,7 +6,9 @@ services:
     ports:
       - "5432:5432"
     environment:
-      POSTGRES_PASSWORD: password
+      POSTGRES_USER: pguser
+      POSTGRES_PASSWORD: pgpassword
+      POSTGRES_DB: sesc
     volumes:
       - postgres:/var/lib/postgresql/data
     healthcheck:
@@ -50,7 +52,7 @@ services:
       minio:
         condition: service_healthy
     environment:
-      SESC_DATABASE_ADDRESS: postgres://postgres:password@postgres:5432/postgres?sslmode=disable
+      SESC_DATABASE_ADDRESS: postgres://pguser:pgpassword@postgres:5432/sesc?sslmode=disable
       SESC_MINIO_ENDPOINT: minio:9000
       SESC_MINIO_ACCESS_KEY: minioadmin
       SESC_MINIO_SECRET_KEY: minioadmin

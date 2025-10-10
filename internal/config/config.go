@@ -3,6 +3,7 @@ package config
 import (
 	"errors"
 	"fmt"
+	"os"
 	"strings"
 	"time"
 
@@ -92,9 +93,16 @@ func LoadConfig() (*Config, error) {
 
 	// Admin credentials can be set via env variables
 	// Format: SESC_ADMIN_CREDENTIALS_0_ID, SESC_ADMIN_CREDENTIALS_0_USERNAME, etc.
-	_ = v.BindEnv("admin_credentials.0.id")
-	_ = v.BindEnv("admin_credentials.0.username")
-	_ = v.BindEnv("admin_credentials.0.password")
+	// Only bind if the env vars are actually set to avoid overriding with empty values
+	if os.Getenv("SESC_ADMIN_CREDENTIALS_0_ID") != "" {
+		_ = v.BindEnv("admin_credentials.0.id")
+	}
+	if os.Getenv("SESC_ADMIN_CREDENTIALS_0_USERNAME") != "" {
+		_ = v.BindEnv("admin_credentials.0.username")
+	}
+	if os.Getenv("SESC_ADMIN_CREDENTIALS_0_PASSWORD") != "" {
+		_ = v.BindEnv("admin_credentials.0.password")
+	}
 
 	// Read config.yml if it exists (for local development only)
 	// If file doesn't exist, we'll use env variables and defaults
@@ -147,9 +155,13 @@ func (c *Config) ToIAMAdminCredentials() ([]iam.AdminCredentials, error) {
 	result := make([]iam.AdminCredentials, len(c.AdminCredentials))
 
 	for i, credential := range c.AdminCredentials {
+		if credential.ID == "" {
+			return nil, fmt.Errorf("empty UUID for admin credential at index %d", i)
+		}
+
 		id, err := uuid.FromString(credential.ID)
 		if err != nil {
-			return nil, fmt.Errorf("invalid UUID for admin credential: %w", err)
+			return nil, fmt.Errorf("invalid UUID for admin credential at index %d: %w", i, err)
 		}
 
 		result[i] = iam.AdminCredentials{
