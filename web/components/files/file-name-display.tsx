@@ -2,16 +2,16 @@
 
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogContent,
-  DialogTitle,
-  DialogTrigger,
+    Dialog,
+    DialogContent,
+    DialogTitle,
+    DialogTrigger,
 } from "@/components/ui/dialog";
-import { Download, Sparkles, Loader2 } from "lucide-react";
+import { RespondFile } from "@/lib/api";
+import { getFilesByIdOptions } from "@/lib/api/@tanstack/react-query.gen";
 import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
-import { getFilesByIdOptions } from "@/lib/api/@tanstack/react-query.gen";
-import { RespondFile } from "@/lib/api";
+import { Download, Loader2, Sparkles } from "lucide-react";
 
 interface FileNameDisplayProps {
   file: RespondFile;
@@ -81,10 +81,11 @@ export function FileNameDisplay({ file, className }: FileNameDisplayProps) {
     return (
       <Button
         variant="link"
-        className={cn("flex items-center gap-2", className)}
+        className={cn("p-0 justify-start block w-full min-w-0", className)}
         onClick={handleDownload}
+        title={file.fileName || "Файл"}
       >
-        <span className="font-medium">{file.fileName || "Файл"}</span>
+        <span className="font-medium truncate block">{file.fileName || "Файл"}</span>
       </Button>
     );
   }
@@ -94,11 +95,12 @@ export function FileNameDisplay({ file, className }: FileNameDisplayProps) {
       <DialogTrigger asChild>
         <Button
           variant="ghost"
-          className={cn("group h-auto hover:bg-transparent", className)}
+          className={cn("group hover:bg-transparent p-0 justify-start w-full min-w-0 block", className)}
+          title={file.fileName}
         >
-          <div className="flex items-center gap-2">
-            <Sparkles className="h-4 w-4 text-muted-foreground" />
-            <span className="font-medium">{file.fileName}</span>
+          <div className="flex items-center gap-2 min-w-0 max-w-full">
+            <Sparkles className="h-4 w-4 text-muted-foreground shrink-0" />
+            <span className="font-medium truncate min-w-0">{file.fileName}</span>
           </div>
         </Button>
       </DialogTrigger>

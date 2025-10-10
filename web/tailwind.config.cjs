@@ -80,6 +80,10 @@ module.exports = {
         "accordion-up": "accordion-up 0.2s ease-out",
         "caret-blink": "caret-blink 1.25s ease-out infinite",
       },
+      wordBreak: {
+        "break-word": "break-word",
+        "break-all": "break-all",
+      },
     },
   },
   plugins: [

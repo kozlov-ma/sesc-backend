@@ -6,16 +6,16 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useErrorHandler } from "@/hooks/use-error-handler";
 import {
-  getAchievementsOptions,
-  getFilesInfiniteOptions,
-  postFilesMutation,
+    getAchievementsOptions,
+    getFilesInfiniteOptions,
+    postFilesMutation,
 } from "@/lib/api/@tanstack/react-query.gen";
 import { postAchievementsByIdDocuments } from "@/lib/api/sdk.gen";
 import type { RespondFile } from "@/lib/api/types.gen";
 import {
-  useInfiniteQuery,
-  useMutation,
-  useQueryClient,
+    useInfiniteQuery,
+    useMutation,
+    useQueryClient,
 } from "@tanstack/react-query";
 import { Upload } from "lucide-react";
 import { useState } from "react";
@@ -36,7 +36,7 @@ export function AddDocumentForm({
   const [selectedFile, setSelectedFile] = useState<RespondFile | null>(null);
   const [documentName, setDocumentName] = useState("");
   const queryClient = useQueryClient();
-  const { handleError, clearError } = useErrorHandler();
+  const { clearError } = useErrorHandler();
 
   const filesOpt = getFilesInfiniteOptions({
     query: {
@@ -147,7 +147,10 @@ export function AddDocumentForm({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form
+      onSubmit={handleSubmit}
+      className="space-y-4"
+    >
       <div className="space-y-2">
         <Label htmlFor="documentName">Название документа</Label>
         <Input
@@ -180,7 +183,7 @@ export function AddDocumentForm({
 
           <TabsContent value="personal">
             <div className="mb-4">
-              <div className="relative">
+              <div className="relative w-full">
                 <input
                   type="file"
                   id="fileUpload"
@@ -207,14 +210,19 @@ export function AddDocumentForm({
                   page.files?.map((file) => (
                     <Card
                       key={file.id}
-                      className={`p-3 cursor-pointer transition-colors ${
+                      className={`p-3 cursor-pointer transition-colors gap-0 ${
                         selectedFile?.id === file.id
                           ? "bg-primary/10"
                           : "hover:bg-muted"
                       }`}
                       onClick={() => handleFileSelect(file)}
                     >
-                      <div className="text-sm font-medium">{file.fileName}</div>
+                      <div
+                        className="text-sm font-medium truncate"
+                        title={file.fileName}
+                      >
+                        {file.fileName}
+                      </div>
                     </Card>
                   )),
                 )}
@@ -229,14 +237,19 @@ export function AddDocumentForm({
                   page.files?.map((file) => (
                     <Card
                       key={file.id}
-                      className={`p-3 cursor-pointer transition-colors ${
+                      className={`p-3 cursor-pointer transition-colors gap-0 ${
                         selectedFile?.id === file.id
                           ? "bg-primary/10"
                           : "hover:bg-muted"
                       }`}
                       onClick={() => handleFileSelect(file)}
                     >
-                      <div className="text-sm font-medium">{file.fileName}</div>
+                      <div
+                        className="text-sm font-medium truncate"
+                        title={file.fileName}
+                      >
+                        {file.fileName}
+                      </div>
                     </Card>
                   )),
                 )}
@@ -247,7 +260,11 @@ export function AddDocumentForm({
       </div>
 
       <div className="flex justify-end space-x-2">
-        <Button type="button" variant="outline" onClick={onCancel}>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={onCancel}
+        >
           Отмена
         </Button>
         <Button

@@ -3,20 +3,20 @@
 import { FileNameByIdDisplay } from "@/components/files/file-name-display";
 import { Badge } from "@/components/ui/badge";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
 } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
 } from "@/components/ui/table";
 import { UserAvatar } from "@/components/ui/user-avatar";
 import { RespondAchievement } from "@/lib/api";
@@ -110,9 +110,7 @@ export function AchievementDetailsDialog({
                           </div>
                         </TableCell>
                         <TableCell className="max-w-[200px]">
-                          <div className="truncate">
-                            <FileNameByIdDisplay fileId={document.fileId} />
-                          </div>
+                          <FileNameByIdDisplay fileId={document.fileId} />
                         </TableCell>
                       </TableRow>
                     ))}

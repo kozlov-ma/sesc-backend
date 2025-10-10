@@ -1,15 +1,15 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { User } from "lucide-react";
-import { cn } from "@/lib/utils";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { getDepartmentsByIdOptions, getUsersByIdOptions } from "@/lib/api/@tanstack/react-query.gen";
+import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
-import { getUsersByIdOptions } from "@/lib/api/@tanstack/react-query.gen";
+import { User } from "lucide-react";
 
 interface UserAvatarProps {
   userId: string | null;
@@ -37,6 +37,18 @@ export function UserAvatar({
     enabled: !!userId,
   });
 
+  const {
+    data: department,
+    isLoading: isDepartmentLoading,
+  } = useQuery({
+    ...getDepartmentsByIdOptions({
+      path: {
+        id: user?.departmentId!,
+      },
+    }),
+    enabled: !!user?.departmentId,
+  });
+
   // Size classes mapping
   const sizeClasses = {
     sm: {
@@ -58,11 +70,14 @@ export function UserAvatar({
 
   const tooltipContent = user ? (
     <div className="flex flex-col space-y-1.5 p-1">
-      <p className="font-medium">{`${user.firstName} ${user.lastName}`} {user.middleName && ` ${user.middleName}`}</p>
+      <p className="font-medium">
+        {`${user.firstName} ${user.lastName}`}
+        {user.middleName && ` ${user.middleName}`}
+      </p>
       <p className="text-xs text-muted-foreground">{user.role.name}</p>
-      {user.department && (
+      {user.departmentId && (
         <p className="text-xs text-muted-foreground">
-          {user.department.name}
+          {isDepartmentLoading ? "Загрузка..." : department?.name || "—"}
         </p>
       )}
     </div>

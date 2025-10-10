@@ -45,10 +45,10 @@ import {
   getStatusLabel,
 } from "@/lib/utils/achievements";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { Check, MessageCircle, X } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { toast } from "sonner";
-import { Check, X, MessageCircle } from "lucide-react";
 
 type ApiAchievement = RespondAchievement;
 
@@ -65,7 +65,9 @@ export function ReviewAchievementDialog({
   open,
   onOpenChange,
 }: ReviewAchievementDialogProps) {
-  const [selectedAction, setSelectedAction] = useState<ReviewAction | null>(null);
+  const [selectedAction, setSelectedAction] = useState<ReviewAction | null>(
+    null,
+  );
   const [comment, setComment] = useState<string>("");
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const queryClient = useQueryClient();
@@ -78,7 +80,7 @@ export function ReviewAchievementDialog({
       const actionLabels = {
         approve: "одобрено",
         disapprove: "отклонено",
-        request_changes: "возвращено на доработку"
+        request_changes: "возвращено на доработку",
       };
 
       toast.success("Достижение проверено", {
@@ -152,17 +154,6 @@ export function ReviewAchievementDialog({
         return "отклонить";
       case "request_changes":
         return "запросить изменения";
-    }
-  };
-
-  const getActionLabel = (action: ReviewAction) => {
-    switch (action) {
-      case "approve":
-        return "Одобрить";
-      case "disapprove":
-        return "Отклонить";
-      case "request_changes":
-        return "Запросить изменения";
     }
   };
 
@@ -275,11 +266,12 @@ export function ReviewAchievementDialog({
                     : ""
                 }
               />
-              {selectedAction === "request_changes" && comment.trim() === "" && (
-                <p className="text-sm text-destructive">
-                  Комментарий обязателен при запросе изменений
-                </p>
-              )}
+              {selectedAction === "request_changes" &&
+                comment.trim() === "" && (
+                  <p className="text-sm text-destructive">
+                    Комментарий обязателен при запросе изменений
+                  </p>
+                )}
             </div>
           </div>
 
@@ -306,15 +298,15 @@ export function ReviewAchievementDialog({
               >
                 <X className="h-4 w-4 mr-2" />
                 Отклонить
-                <span className="ml-auto text-xs opacity-75">
-                  Баллы: 0
-                </span>
+                <span className="ml-auto text-xs opacity-75">Баллы: 0</span>
               </Button>
               <Button
                 variant="outline"
                 className="justify-start"
                 onClick={() => handleReview("request_changes")}
-                disabled={reviewMutation.isPending || !canSubmit("request_changes")}
+                disabled={
+                  reviewMutation.isPending || !canSubmit("request_changes")
+                }
               >
                 <MessageCircle className="h-4 w-4 mr-2" />
                 Запросить изменения
@@ -338,10 +330,14 @@ export function ReviewAchievementDialog({
           <AlertDialogHeader>
             <AlertDialogTitle>Подтверждение действия</AlertDialogTitle>
             <AlertDialogDescription>
-              Вы уверены, что хотите {selectedAction ? getActionText(selectedAction) : ""} это достижение?
-              {selectedAction === "approve" && ` Будет назначено ${achievement.points} баллов.`}
+              Вы уверены, что хотите{" "}
+              {selectedAction ? getActionText(selectedAction) : ""} это
+              достижение?
+              {selectedAction === "approve" &&
+                ` Будет назначено ${achievement.points} баллов.`}
               {selectedAction === "disapprove" && " Будет назначено 0 баллов."}
-              {selectedAction === "request_changes" && " Достижение будет возвращено автору на доработку."}
+              {selectedAction === "request_changes" &&
+                " Достижение будет возвращено автору на доработку."}
               {comment.trim() && (
                 <>
                   <br />

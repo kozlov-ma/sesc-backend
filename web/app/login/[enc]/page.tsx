@@ -76,12 +76,7 @@ export default function QuickLoginPage({
         body: credentials,
       });
     }
-  }, [
-    credentials,
-    loginMutation.isPending,
-    loginMutation.isSuccess,
-    loginMutation.isError,
-  ]);
+  }, [credentials, loginMutation]);
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-background">
