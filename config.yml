@@ -10,7 +10,7 @@
 database:
   type: "postgres"
   # Local dev database (use env var SESC_DATABASE_ADDRESS for custom)
-  address: "postgres://sesc:postgres@localhost:5432/sesc?sslmode=disable"
+  address: "postgres://pguser:pgpassword@localhost:5432/sesc?sslmode=disable"
 
 http:
   server_address: ":8080"
