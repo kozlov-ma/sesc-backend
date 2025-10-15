@@ -151,6 +151,14 @@ func init() {
 	department.DefaultID = departmentDescID.Default.(func() uuid.UUID)
 	fileFields := schema.File{}.Fields()
 	_ = fileFields
+	// fileDescFileDeleted is the schema descriptor for file_deleted field.
+	fileDescFileDeleted := fileFields[5].Descriptor()
+	// file.DefaultFileDeleted holds the default value on creation for the file_deleted field.
+	file.DefaultFileDeleted = fileDescFileDeleted.Default.(bool)
+	// fileDescDeletionScheduled is the schema descriptor for deletion_scheduled field.
+	fileDescDeletionScheduled := fileFields[6].Descriptor()
+	// file.DefaultDeletionScheduled holds the default value on creation for the deletion_scheduled field.
+	file.DefaultDeletionScheduled = fileDescDeletionScheduled.Default.(bool)
 	// fileDescID is the schema descriptor for id field.
 	fileDescID := fileFields[0].Descriptor()
 	// file.DefaultID holds the default value on creation for the id field.

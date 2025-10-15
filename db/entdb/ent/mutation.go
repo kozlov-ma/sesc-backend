@@ -4475,6 +4475,9 @@ type FileMutation struct {
 	name                         *string
 	size                         *int
 	addsize                      *int
+	file_deleted                 *bool
+	deletion_scheduled           *bool
+	scheduled_deletion_at        *time.Time
 	clearedFields                map[string]struct{}
 	owner                        *uuid.UUID
 	clearedowner                 bool
@@ -4656,7 +4659,7 @@ func (m *FileMutation) S3ObjectKey() (r string, exists bool) {
 // OldS3ObjectKey returns the old "s3_object_key" field's value of the File entity.
 // If the File object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *FileMutation) OldS3ObjectKey(ctx context.Context) (v string, err error) {
+func (m *FileMutation) OldS3ObjectKey(ctx context.Context) (v *string, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldS3ObjectKey is only allowed on UpdateOne operations")
 	}
@@ -4670,9 +4673,22 @@ func (m *FileMutation) OldS3ObjectKey(ctx context.Context) (v string, err error)
 	return oldValue.S3ObjectKey, nil
 }
 
+// ClearS3ObjectKey clears the value of the "s3_object_key" field.
+func (m *FileMutation) ClearS3ObjectKey() {
+	m.s3_object_key = nil
+	m.clearedFields[file.FieldS3ObjectKey] = struct{}{}
+}
+
+// S3ObjectKeyCleared returns if the "s3_object_key" field was cleared in this mutation.
+func (m *FileMutation) S3ObjectKeyCleared() bool {
+	_, ok := m.clearedFields[file.FieldS3ObjectKey]
+	return ok
+}
+
 // ResetS3ObjectKey resets all changes to the "s3_object_key" field.
 func (m *FileMutation) ResetS3ObjectKey() {
 	m.s3_object_key = nil
+	delete(m.clearedFields, file.FieldS3ObjectKey)
 }
 
 // SetName sets the "name" field.
@@ -4765,6 +4781,127 @@ func (m *FileMutation) AddedSize() (r int, exists bool) {
 func (m *FileMutation) ResetSize() {
 	m.size = nil
 	m.addsize = nil
+}
+
+// SetFileDeleted sets the "file_deleted" field.
+func (m *FileMutation) SetFileDeleted(b bool) {
+	m.file_deleted = &b
+}
+
+// FileDeleted returns the value of the "file_deleted" field in the mutation.
+func (m *FileMutation) FileDeleted() (r bool, exists bool) {
+	v := m.file_deleted
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFileDeleted returns the old "file_deleted" field's value of the File entity.
+// If the File object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FileMutation) OldFileDeleted(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFileDeleted is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFileDeleted requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFileDeleted: %w", err)
+	}
+	return oldValue.FileDeleted, nil
+}
+
+// ResetFileDeleted resets all changes to the "file_deleted" field.
+func (m *FileMutation) ResetFileDeleted() {
+	m.file_deleted = nil
+}
+
+// SetDeletionScheduled sets the "deletion_scheduled" field.
+func (m *FileMutation) SetDeletionScheduled(b bool) {
+	m.deletion_scheduled = &b
+}
+
+// DeletionScheduled returns the value of the "deletion_scheduled" field in the mutation.
+func (m *FileMutation) DeletionScheduled() (r bool, exists bool) {
+	v := m.deletion_scheduled
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDeletionScheduled returns the old "deletion_scheduled" field's value of the File entity.
+// If the File object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FileMutation) OldDeletionScheduled(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDeletionScheduled is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDeletionScheduled requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDeletionScheduled: %w", err)
+	}
+	return oldValue.DeletionScheduled, nil
+}
+
+// ResetDeletionScheduled resets all changes to the "deletion_scheduled" field.
+func (m *FileMutation) ResetDeletionScheduled() {
+	m.deletion_scheduled = nil
+}
+
+// SetScheduledDeletionAt sets the "scheduled_deletion_at" field.
+func (m *FileMutation) SetScheduledDeletionAt(t time.Time) {
+	m.scheduled_deletion_at = &t
+}
+
+// ScheduledDeletionAt returns the value of the "scheduled_deletion_at" field in the mutation.
+func (m *FileMutation) ScheduledDeletionAt() (r time.Time, exists bool) {
+	v := m.scheduled_deletion_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldScheduledDeletionAt returns the old "scheduled_deletion_at" field's value of the File entity.
+// If the File object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *FileMutation) OldScheduledDeletionAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldScheduledDeletionAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldScheduledDeletionAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldScheduledDeletionAt: %w", err)
+	}
+	return oldValue.ScheduledDeletionAt, nil
+}
+
+// ClearScheduledDeletionAt clears the value of the "scheduled_deletion_at" field.
+func (m *FileMutation) ClearScheduledDeletionAt() {
+	m.scheduled_deletion_at = nil
+	m.clearedFields[file.FieldScheduledDeletionAt] = struct{}{}
+}
+
+// ScheduledDeletionAtCleared returns if the "scheduled_deletion_at" field was cleared in this mutation.
+func (m *FileMutation) ScheduledDeletionAtCleared() bool {
+	_, ok := m.clearedFields[file.FieldScheduledDeletionAt]
+	return ok
+}
+
+// ResetScheduledDeletionAt resets all changes to the "scheduled_deletion_at" field.
+func (m *FileMutation) ResetScheduledDeletionAt() {
+	m.scheduled_deletion_at = nil
+	delete(m.clearedFields, file.FieldScheduledDeletionAt)
 }
 
 // ClearOwner clears the "owner" edge to the User entity.
@@ -4882,7 +5019,7 @@ func (m *FileMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *FileMutation) Fields() []string {
-	fields := make([]string, 0, 4)
+	fields := make([]string, 0, 7)
 	if m.owner != nil {
 		fields = append(fields, file.FieldOwnerID)
 	}
@@ -4894,6 +5031,15 @@ func (m *FileMutation) Fields() []string {
 	}
 	if m.size != nil {
 		fields = append(fields, file.FieldSize)
+	}
+	if m.file_deleted != nil {
+		fields = append(fields, file.FieldFileDeleted)
+	}
+	if m.deletion_scheduled != nil {
+		fields = append(fields, file.FieldDeletionScheduled)
+	}
+	if m.scheduled_deletion_at != nil {
+		fields = append(fields, file.FieldScheduledDeletionAt)
 	}
 	return fields
 }
@@ -4911,6 +5057,12 @@ func (m *FileMutation) Field(name string) (ent.Value, bool) {
 		return m.Name()
 	case file.FieldSize:
 		return m.Size()
+	case file.FieldFileDeleted:
+		return m.FileDeleted()
+	case file.FieldDeletionScheduled:
+		return m.DeletionScheduled()
+	case file.FieldScheduledDeletionAt:
+		return m.ScheduledDeletionAt()
 	}
 	return nil, false
 }
@@ -4928,6 +5080,12 @@ func (m *FileMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldName(ctx)
 	case file.FieldSize:
 		return m.OldSize(ctx)
+	case file.FieldFileDeleted:
+		return m.OldFileDeleted(ctx)
+	case file.FieldDeletionScheduled:
+		return m.OldDeletionScheduled(ctx)
+	case file.FieldScheduledDeletionAt:
+		return m.OldScheduledDeletionAt(ctx)
 	}
 	return nil, fmt.Errorf("unknown File field %s", name)
 }
@@ -4964,6 +5122,27 @@ func (m *FileMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetSize(v)
+		return nil
+	case file.FieldFileDeleted:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFileDeleted(v)
+		return nil
+	case file.FieldDeletionScheduled:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDeletionScheduled(v)
+		return nil
+	case file.FieldScheduledDeletionAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetScheduledDeletionAt(v)
 		return nil
 	}
 	return fmt.Errorf("unknown File field %s", name)
@@ -5013,6 +5192,12 @@ func (m *FileMutation) ClearedFields() []string {
 	if m.FieldCleared(file.FieldOwnerID) {
 		fields = append(fields, file.FieldOwnerID)
 	}
+	if m.FieldCleared(file.FieldS3ObjectKey) {
+		fields = append(fields, file.FieldS3ObjectKey)
+	}
+	if m.FieldCleared(file.FieldScheduledDeletionAt) {
+		fields = append(fields, file.FieldScheduledDeletionAt)
+	}
 	return fields
 }
 
@@ -5029,6 +5214,12 @@ func (m *FileMutation) ClearField(name string) error {
 	switch name {
 	case file.FieldOwnerID:
 		m.ClearOwnerID()
+		return nil
+	case file.FieldS3ObjectKey:
+		m.ClearS3ObjectKey()
+		return nil
+	case file.FieldScheduledDeletionAt:
+		m.ClearScheduledDeletionAt()
 		return nil
 	}
 	return fmt.Errorf("unknown File nullable field %s", name)
@@ -5049,6 +5240,15 @@ func (m *FileMutation) ResetField(name string) error {
 		return nil
 	case file.FieldSize:
 		m.ResetSize()
+		return nil
+	case file.FieldFileDeleted:
+		m.ResetFileDeleted()
+		return nil
+	case file.FieldDeletionScheduled:
+		m.ResetDeletionScheduled()
+		return nil
+	case file.FieldScheduledDeletionAt:
+		m.ResetScheduledDeletionAt()
 		return nil
 	}
 	return fmt.Errorf("unknown File field %s", name)

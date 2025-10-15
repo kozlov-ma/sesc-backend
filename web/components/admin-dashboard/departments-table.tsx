@@ -225,11 +225,12 @@ export function DepartmentsTable() {
         open={!!departmentToDelete}
         onOpenChange={() => setDepartmentToDelete(undefined)}
       >
-        <AlertDialogContent>
+        <AlertDialogContent className="max-w-md">
           <AlertDialogHeader>
             <AlertDialogTitle>Удаление кафедры</AlertDialogTitle>
-            <AlertDialogDescription>
-              Вы уверены, что хотите удалить кафедру {departmentToDelete?.name}?
+            <AlertDialogDescription className="break-words whitespace-normal">
+              Вы уверены, что хотите удалить кафедру{" "}
+              <span className="font-semibold break-all">{departmentToDelete?.name}</span>?
               Это действие нельзя будет отменить.
             </AlertDialogDescription>
           </AlertDialogHeader>

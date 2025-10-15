@@ -12,6 +12,7 @@ import (
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/migrate"
 	"github.com/kozlov-ma/sesc-backend/internal/config"
+	"github.com/kozlov-ma/sesc-backend/internal/deletiondaemon"
 	"github.com/kozlov-ma/sesc-backend/internal/filesvc"
 	"github.com/kozlov-ma/sesc-backend/internal/iamsvc"
 	"github.com/kozlov-ma/sesc-backend/internal/s3svc"
@@ -24,13 +25,14 @@ import (
 )
 
 type App struct {
-	Router      *chi.Mux
-	Server      *http.Server
-	Client      *ent.Client
-	API         *api.API
-	Log         *slog.Logger
-	FileService *filesvc.FileService
-	Cleanup     func()
+	Router         *chi.Mux
+	Server         *http.Server
+	Client         *ent.Client
+	API            *api.API
+	Log            *slog.Logger
+	FileService    *filesvc.FileService
+	DeletionDaemon *deletiondaemon.Service
+	Cleanup        func()
 }
 
 // DBOptions contains options for database initialization
@@ -109,12 +111,15 @@ func NewWithDBOptions(ctx context.Context, cfg *config.Config, log *slog.Logger,
 		return nil, fmt.Errorf("failed to create S3 storage: %w", err)
 	}
 
-	// Initialize file service
+	// Initialize file service with delay from config
 	fileService := filesvc.New(
 		client,
 		s3Storage,
 		cfg.MinIO.BucketName,
+		cfg.FileService.Delay,
 	)
+
+	deletionDaemon := deletiondaemon.New(fileService, &cfg.DeletionDaemon)
 
 	apiService := api.New(sescService, iamService, fileService, slogsink.New(log))
 
@@ -130,20 +135,23 @@ func NewWithDBOptions(ctx context.Context, cfg *config.Config, log *slog.Logger,
 	}
 
 	return &App{
-		Router:      router,
-		Server:      server,
-		Client:      client,
-		API:         apiService,
-		Log:         log,
-		FileService: fileService,
-		Cleanup:     cleanup,
+		Router:         router,
+		Server:         server,
+		Client:         client,
+		API:            apiService,
+		Log:            log,
+		FileService:    fileService,
+		DeletionDaemon: deletionDaemon,
+		Cleanup:        cleanup,
 	}, nil
 }
 
 const shutdownTimeout = 15 * time.Second
 
-// Start starts the HTTP server
 func (a *App) Start(ctx context.Context) error {
+	// Start deletion daemon in a separate goroutine
+	go a.DeletionDaemon.Start(ctx)
+
 	go func() {
 		<-ctx.Done()
 		shutdownCtx, cancel := context.WithTimeout(context.Background(), shutdownTimeout)

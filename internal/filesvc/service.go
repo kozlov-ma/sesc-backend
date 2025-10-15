@@ -4,6 +4,7 @@ package filesvc
 import (
 	"context"
 	"crypto/rand"
+	"database/sql"
 	"encoding/hex"
 	"errors"
 	"fmt"
@@ -12,8 +13,10 @@ import (
 
 	"github.com/gofrs/uuid/v5"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent"
+	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievementdocument"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/file"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/predicate"
+	"github.com/kozlov-ma/sesc-backend/internal/services/txwrapper"
 	"github.com/kozlov-ma/sesc-backend/pkg/event"
 	"github.com/kozlov-ma/sesc-backend/pkg/event/events"
 	"github.com/kozlov-ma/sesc-backend/sesc"
@@ -29,14 +32,16 @@ type FileService struct {
 	client     *ent.Client
 	storage    ObjectStorage
 	bucketName string
+	delay      time.Duration
 }
 
 // New creates a new FileService instance.
-func New(client *ent.Client, storage ObjectStorage, bucketName string) *FileService {
+func New(client *ent.Client, storage ObjectStorage, bucketName string, delay time.Duration) *FileService {
 	return &FileService{
 		client:     client,
 		storage:    storage,
 		bucketName: bucketName,
+		delay:      delay,
 	}
 }
 
@@ -175,7 +180,7 @@ func (s *FileService) Create(ctx context.Context, reader io.Reader, opts FileOpt
 	return f, nil
 }
 
-// Delete deletes a file by ID.
+// Delete schedules a file for deletion (does not delete from MinIO immediately).
 func (s *FileService) Delete(ctx context.Context, id UUID) error {
 	rec := event.Get(ctx).Sub("file/delete")
 
@@ -184,52 +189,115 @@ func (s *FileService) Delete(ctx context.Context, id UUID) error {
 		"start_time", time.Now(),
 	)
 
-	// Get file to obtain object key
-	f, err := s.getFile(ctx, rec, id)
+	// Get file to check if it exists
+	_, err := s.getFile(ctx, rec, id)
 	if err != nil {
 		rec.Add(events.Error, err)
 		return err
 	}
 
-	objectKey := f.S3ObjectKey
-
-	// Delete from storage
-	storageErr := rec.Operation("storage_delete", func(rec *event.Record) error {
-		rec.Set("object_key", objectKey)
-		return s.storage.RemoveObject(ctx, objectKey)
-	})
-
-	if storageErr != nil {
-		rec.Add(events.Error, storageErr)
-		rec.Set("success", false)
-
-		return storageErr
+	hasDeps, err := s.hasDependencies(ctx, rec, id)
+	if err != nil {
+		rec.Add(events.Error, err)
+		return err
 	}
-	// Delete from database
-	dbErr := recordDBOperation(ctx, rec, "db_delete_file", func() error {
-		_, err := s.client.File.Delete().Where(file.ID(id)).Exec(ctx)
+	if hasDeps {
+		err := sesc.ErrFileHasDependencies
+		rec.Add(events.Error, err)
+		return err
+	}
+
+	// Schedule file for deletion instead of deleting immediately
+	deletionTime := time.Now().Add(s.delay)
+
+	dbErr := recordDBOperation(ctx, rec, "db_schedule_deletion", func() error {
+		_, err := s.client.File.UpdateOneID(id).
+			SetDeletionScheduled(true).
+			SetScheduledDeletionAt(deletionTime).
+			Save(ctx)
 		return err
 	})
 
 	if dbErr != nil {
 		rec.Add(events.Error, dbErr)
 		rec.Set("success", false)
-
 		return dbErr
 	}
 
+	rec.Set("success", true)
+	rec.Set("scheduled_deletion_at", deletionTime)
+	rec.Set("total_duration_ms", time.Since(rec.Sub("params").Value("start_time").(time.Time)).Milliseconds())
+
+	return nil
+}
+
+func (s *FileService) DeleteAllFiles(ctx context.Context) error {
+	rec := event.Get(ctx).Sub("file/delete_all")
+
+	rec.Sub("params").Set(
+		"start_time", time.Now(),
+	)
+
+	deletionTime := time.Now().Add(s.delay)
+	var scheduledCount int
+
+	err := txwrapper.WithTx(ctx, s.client, sql.LevelSerializable, rec, func(tx *ent.Tx) error {
+		files, err := tx.File.Query().
+			Where(
+				file.FileDeleted(false),
+				file.DeletionScheduled(false),
+			).
+			All(ctx)
+		if err != nil {
+			rec.Add(events.Error, err)
+			return err
+		}
+
+		rec.Set("files_count", len(files))
+
+		for i, f := range files {
+			fileRec := rec.Sub(fmt.Sprintf("file_%d", i))
+			fileRec.Set("file_id", f.ID.String())
+
+			fileRec.Set("action", "schedule_deletion")
+			_, err := tx.File.UpdateOneID(f.ID).
+				SetDeletionScheduled(true).
+				SetScheduledDeletionAt(deletionTime).
+				Save(ctx)
+			if err != nil {
+				fileRec.Add(events.Error, fmt.Errorf("failed to schedule file %s: %w", f.ID.String(), err))
+				return err
+			}
+			fileRec.Set("success", true)
+			scheduledCount++
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return err
+	}
+
+	rec.Set("scheduled_count", scheduledCount)
+	rec.Set("scheduled_deletion_at", deletionTime)
 	rec.Set("success", true)
 	rec.Set("total_duration_ms", time.Since(rec.Sub("params").Value("start_time").(time.Time)).Milliseconds())
 
 	return nil
 }
 
-// buildFilePredicates builds the query predicates for file search
 func buildFilePredicates(opts sesc.FileSearchOptions, rec *event.Record) []predicate.File {
 	buildRec := rec.Sub("build_predicates")
 	buildRec.Set("start_time", time.Now())
 
 	predicates := []predicate.File{}
+
+	// Always exclude deleted files (unless explicitly requested)
+	if !opts.IncludeDeleted {
+		predicates = append(predicates, file.FileDeleted(false))
+		buildRec.Set("exclude_deleted_files", true)
+	}
 
 	// Filter by name if provided
 	if opts.Name != "" {
@@ -402,9 +470,14 @@ func (s *FileService) DownloadURL(ctx context.Context, id UUID) (string, error) 
 		return "", err
 	}
 
+	// Check if file has S3 object key
+	if f.S3ObjectKey == nil || *f.S3ObjectKey == "" {
+		return "", sesc.ErrFileNotFound
+	}
+
 	// Generate pre-signed URL with 1 hour expiration
 	expires := time.Hour
-	downloadURL, err := s.storage.GetObjectURL(ctx, f.S3ObjectKey, f.Name, expires)
+	downloadURL, err := s.storage.GetObjectURL(ctx, *f.S3ObjectKey, f.Name, expires)
 	if err != nil {
 		rec.Add(events.Error, err)
 		return "", err
@@ -414,4 +487,191 @@ func (s *FileService) DownloadURL(ctx context.Context, id UUID) (string, error) 
 	rec.Set("total_duration_ms", time.Since(rec.Sub("params").Value("start_time").(time.Time)).Milliseconds())
 
 	return downloadURL, nil
+}
+
+// hasDependencies checks if a file is referenced by any achievement documents
+func (s *FileService) hasDependencies(ctx context.Context, rec *event.Record, fileID UUID) (bool, error) {
+	rec.Set("check_dependencies", true)
+
+	var count int
+	err := recordDBOperation(ctx, rec, "check_file_dependencies", func() error {
+		var err error
+		count, err = s.client.AchievementDocument.Query().
+			Where(achievementdocument.FileID(fileID)).
+			Count(ctx)
+		if err == nil {
+			rec.Set("dependencies_count", count)
+		}
+		return err
+	})
+
+	if err != nil {
+		rec.Add(events.Error, err)
+		return false, err
+	}
+
+	hasDeps := count > 0
+	rec.Set("has_dependencies", hasDeps)
+	return hasDeps, nil
+}
+
+// ScheduleDeletion schedules files for deletion after a specified delay
+func (s *FileService) ScheduleDeletion(ctx context.Context, opts sesc.ScheduleDeletionOptions) error {
+	rec := event.Get(ctx).Sub("file/schedule_deletion")
+
+	rec.Sub("params").Set(
+		"file_ids", opts.FileIDs,
+		"delay", s.delay,
+		"start_time", time.Now(),
+	)
+
+	if len(opts.FileIDs) == 0 {
+		rec.Add(events.Error, "no file IDs provided")
+		return errors.New("no file IDs provided")
+	}
+
+	deletionTime := time.Now().Add(s.delay)
+
+	err := recordDBOperation(ctx, rec, "schedule_deletion", func() error {
+		_, err := s.client.File.Update().
+			Where(file.IDIn(opts.FileIDs...)).
+			SetDeletionScheduled(true).
+			SetScheduledDeletionAt(deletionTime).
+			Save(ctx)
+		return err
+	})
+
+	if err != nil {
+		rec.Add(events.Error, err)
+		return err
+	}
+
+	rec.Set("success", true)
+	rec.Set("deletion_time", deletionTime.Format(time.RFC3339Nano))
+	rec.Set("total_duration_ms", time.Since(rec.Sub("params").Value("start_time").(time.Time)).Milliseconds())
+
+	return nil
+}
+
+// GetFileStats returns statistics about files and deletion delay
+func (s *FileService) GetFileStats(ctx context.Context) (*sesc.FileStats, string, error) {
+	rec := event.Get(ctx).Sub("file/get_stats")
+
+	rec.Sub("params").Set(
+		"start_time", time.Now(),
+	)
+
+	var stats sesc.FileStats
+
+	// Use transaction to ensure consistent statistics
+	err := txwrapper.WithTx(ctx, s.client, sql.LevelReadCommitted, rec, func(tx *ent.Tx) error {
+		// Count total files
+		totalFiles, err := tx.File.Query().Count(ctx)
+		if err != nil {
+			return err
+		}
+		stats.TotalFiles = totalFiles
+
+		// Count deleted files
+		deletedFiles, err := tx.File.Query().
+			Where(file.FileDeleted(true)).
+			Count(ctx)
+		if err != nil {
+			return err
+		}
+		stats.DeletedFiles = deletedFiles
+
+		// Count scheduled files
+		scheduledFiles, err := tx.File.Query().
+			Where(file.DeletionScheduled(true)).
+			Count(ctx)
+		if err != nil {
+			return err
+		}
+		stats.ScheduledForDeletion = scheduledFiles
+
+		// Count ready for deletion files
+		readyFiles, err := tx.File.Query().
+			Where(
+				file.DeletionScheduled(true),
+				file.ScheduledDeletionAtLTE(time.Now()),
+			).
+			Count(ctx)
+		if err != nil {
+			return err
+		}
+		stats.ReadyForDeletion = readyFiles
+
+		return nil
+	})
+
+	if err != nil {
+		rec.Add(events.Error, err)
+		return nil, "", err
+	}
+
+	stats.NotScheduled = stats.TotalFiles - stats.DeletedFiles - stats.ScheduledForDeletion
+
+	rec.Set("success", true)
+	rec.Set("stats", stats)
+	rec.Set("total_duration_ms", time.Since(rec.Sub("params").Value("start_time").(time.Time)).Milliseconds())
+
+	return &stats, s.delay.String(), nil
+}
+
+// ProcessScheduledDeletions processes files that are ready for deletion
+func (s *FileService) ProcessScheduledDeletions(ctx context.Context) error {
+	rec := event.Get(ctx).Sub("file/process_scheduled_deletions")
+
+	rec.Sub("params").Set(
+		"start_time", time.Now(),
+	)
+
+	// Get files ready for deletion
+	files, err := s.client.File.Query().
+		Where(
+			file.DeletionScheduled(true),
+			file.ScheduledDeletionAtLTE(time.Now()),
+		).
+		All(ctx)
+
+	if err != nil {
+		rec.Add(events.Error, err)
+		return err
+	}
+
+	rec.Set("files_to_process", len(files))
+
+	processedCount := 0
+	for _, f := range files {
+		// Delete from storage
+		if f.S3ObjectKey != nil && *f.S3ObjectKey != "" {
+			storageErr := s.storage.RemoveObject(ctx, *f.S3ObjectKey)
+			if storageErr != nil {
+				rec.Add(events.Error, fmt.Errorf("failed to delete object %s: %w", *f.S3ObjectKey, storageErr))
+				continue
+			}
+		}
+
+		// Mark as deleted and clear S3 object key
+		_, err := s.client.File.UpdateOneID(f.ID).
+			SetFileDeleted(true).
+			ClearS3ObjectKey().
+			SetDeletionScheduled(false).
+			ClearScheduledDeletionAt().
+			Save(ctx)
+
+		if err != nil {
+			rec.Add(events.Error, fmt.Errorf("failed to update file %s: %w", f.ID.String(), err))
+			continue
+		}
+
+		processedCount++
+	}
+
+	rec.Set("processed_count", processedCount)
+	rec.Set("success", true)
+	rec.Set("total_duration_ms", time.Since(rec.Sub("params").Value("start_time").(time.Time)).Milliseconds())
+
+	return nil
 }

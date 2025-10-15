@@ -18,9 +18,12 @@ func (File) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("id", uuid.UUID{}).Default(func() uuid.UUID { return uuid.Must(uuid.NewV7()) }).Unique(),
 		field.UUID("owner_id", uuid.UUID{}).Optional().Nillable(),
-		field.String("s3_object_key").Unique(),
+		field.String("s3_object_key").Unique().Optional().Nillable(),
 		field.String("name"),
 		field.Int("size"),
+		field.Bool("file_deleted").Default(false),
+		field.Bool("deletion_scheduled").Default(false),
+		field.Time("scheduled_deletion_at").Optional().Nillable(),
 	}
 }
 
@@ -41,5 +44,7 @@ func (File) Indexes() []ent.Index {
 		index.Fields("owner_id"),
 		index.Fields("name"),
 		index.Fields("s3_object_key"),
+		index.Fields("deletion_scheduled"),
+		index.Fields("scheduled_deletion_at"),
 	}
 }

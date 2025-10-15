@@ -165,7 +165,7 @@ func (a *API) RegisterRoutes(r chi.Router) {
 			r.Get("/{id}", a.GetFileByID)
 			r.Get("/", a.SearchFiles)
 			r.Post("/", a.UploadFile)
-			r.With(a.FileEditAccessMiddleware).Delete("/{id}", a.DeleteFile)
+			r.With(a.FileEditAccessMiddleware).Delete("/{id}", a.ScheduleFileDeletion)
 		})
 	})
 
@@ -176,6 +176,10 @@ func (a *API) RegisterRoutes(r chi.Router) {
 
 		// Setting credentials for a user
 		r.Put("/users/{id}/credentials", a.RegisterUser)
+
+		// Document management
+		r.Post("/documents/schedule_deletion/all", a.ScheduleDeletionAll)
+		r.Get("/documents/stats", a.GetDocumentStats)
 
 		// Department management
 		r.Post("/departments", a.CreateDepartment)

@@ -120,6 +120,10 @@ export type ParamReviewAchievementRequest = {
   comment?: string;
 };
 
+export type ParamScheduleDeletionRequest = {
+  file_ids: Array<string>;
+};
+
 export type ParamUpdateAchievementPointsRequest = {
   comment?: string;
   points: number;
@@ -176,6 +180,18 @@ export type RespondDocument = {
   name: string;
 };
 
+export type RespondDocumentStats = {
+  deletedFiles?: number;
+  /**
+   * Duration string like "24h", "720h"
+   */
+  deletionDelay?: string;
+  notScheduled?: number;
+  readyForDeletion?: number;
+  scheduledForDeletion?: number;
+  totalFiles?: number;
+};
+
 export type RespondError = {
   code?: string;
   message?: string;
@@ -184,10 +200,13 @@ export type RespondError = {
 };
 
 export type RespondFile = {
+  deletionScheduled?: boolean;
+  fileDeleted?: boolean;
   fileName?: string;
   fileSize?: number;
   id?: string;
   ownerId?: string;
+  s3ObjectKey?: string;
 };
 
 export type RespondFiles = {
@@ -1551,6 +1570,135 @@ export type PutDepartmentsByIdResponses = {
 
 export type PutDepartmentsByIdResponse =
   PutDepartmentsByIdResponses[keyof PutDepartmentsByIdResponses];
+
+export type PostDocumentsScheduleDeletionData = {
+  /**
+   * Schedule deletion request
+   */
+  body: ParamScheduleDeletionRequest;
+  headers?: {
+    /**
+     * Bearer JWT token
+     */
+    Authorization?: string;
+  };
+  path?: never;
+  query?: never;
+  url: "/documents/schedule_deletion";
+};
+
+export type PostDocumentsScheduleDeletionErrors = {
+  /**
+   * Bad Request
+   */
+  400: RespondError;
+  /**
+   * Unauthorized
+   */
+  401: RespondError;
+  /**
+   * Forbidden
+   */
+  403: RespondError;
+  /**
+   * Internal Server Error
+   */
+  500: RespondError;
+};
+
+export type PostDocumentsScheduleDeletionError =
+  PostDocumentsScheduleDeletionErrors[keyof PostDocumentsScheduleDeletionErrors];
+
+export type PostDocumentsScheduleDeletionResponses = {
+  /**
+   * No Content
+   */
+  204: unknown;
+};
+
+export type PostDocumentsScheduleDeletionAllData = {
+  body?: never;
+  headers?: {
+    /**
+     * Bearer JWT token
+     */
+    Authorization?: string;
+  };
+  path?: never;
+  query?: {
+    /**
+     * If true, only mark files as deleted without removing from storage
+     */
+    markOnly?: boolean;
+  };
+  url: "/documents/schedule_deletion/all";
+};
+
+export type PostDocumentsScheduleDeletionAllErrors = {
+  /**
+   * Unauthorized
+   */
+  401: RespondError;
+  /**
+   * Forbidden
+   */
+  403: RespondError;
+  /**
+   * Internal Server Error
+   */
+  500: RespondError;
+};
+
+export type PostDocumentsScheduleDeletionAllError =
+  PostDocumentsScheduleDeletionAllErrors[keyof PostDocumentsScheduleDeletionAllErrors];
+
+export type PostDocumentsScheduleDeletionAllResponses = {
+  /**
+   * No Content
+   */
+  204: unknown;
+};
+
+export type GetDocumentsStatsData = {
+  body?: never;
+  headers?: {
+    /**
+     * Bearer JWT token
+     */
+    Authorization?: string;
+  };
+  path?: never;
+  query?: never;
+  url: "/documents/stats";
+};
+
+export type GetDocumentsStatsErrors = {
+  /**
+   * Unauthorized
+   */
+  401: RespondError;
+  /**
+   * Forbidden
+   */
+  403: RespondError;
+  /**
+   * Internal Server Error
+   */
+  500: RespondError;
+};
+
+export type GetDocumentsStatsError =
+  GetDocumentsStatsErrors[keyof GetDocumentsStatsErrors];
+
+export type GetDocumentsStatsResponses = {
+  /**
+   * OK
+   */
+  200: RespondDocumentStats;
+};
+
+export type GetDocumentsStatsResponse =
+  GetDocumentsStatsResponses[keyof GetDocumentsStatsResponses];
 
 export type GetFilesData = {
   body?: never;

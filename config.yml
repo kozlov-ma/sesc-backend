@@ -39,3 +39,16 @@ minio:
   use_ssl: false
   bucket_name: "sesc-files"
   base_url: "http://localhost:9000/sesc-files"
+
+# File service configuration
+# For production, use env variables:
+# SESC_FILE_SERVICE_DELAY
+file_service:
+  delay: 24h  # How long before scheduled files are actually deleted
+
+# Deletion daemon configuration
+# For production, use env variables:
+# SESC_DELETION_DAEMON_ENABLED, SESC_DELETION_DAEMON_INTERVAL
+deletion_daemon:
+  enabled: true
+  interval: 24h  # How often to check for files ready for deletion (default: same as delay)

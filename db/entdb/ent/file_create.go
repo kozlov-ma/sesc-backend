@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -42,6 +43,14 @@ func (fc *FileCreate) SetS3ObjectKey(s string) *FileCreate {
 	return fc
 }
 
+// SetNillableS3ObjectKey sets the "s3_object_key" field if the given value is not nil.
+func (fc *FileCreate) SetNillableS3ObjectKey(s *string) *FileCreate {
+	if s != nil {
+		fc.SetS3ObjectKey(*s)
+	}
+	return fc
+}
+
 // SetName sets the "name" field.
 func (fc *FileCreate) SetName(s string) *FileCreate {
 	fc.mutation.SetName(s)
@@ -51,6 +60,48 @@ func (fc *FileCreate) SetName(s string) *FileCreate {
 // SetSize sets the "size" field.
 func (fc *FileCreate) SetSize(i int) *FileCreate {
 	fc.mutation.SetSize(i)
+	return fc
+}
+
+// SetFileDeleted sets the "file_deleted" field.
+func (fc *FileCreate) SetFileDeleted(b bool) *FileCreate {
+	fc.mutation.SetFileDeleted(b)
+	return fc
+}
+
+// SetNillableFileDeleted sets the "file_deleted" field if the given value is not nil.
+func (fc *FileCreate) SetNillableFileDeleted(b *bool) *FileCreate {
+	if b != nil {
+		fc.SetFileDeleted(*b)
+	}
+	return fc
+}
+
+// SetDeletionScheduled sets the "deletion_scheduled" field.
+func (fc *FileCreate) SetDeletionScheduled(b bool) *FileCreate {
+	fc.mutation.SetDeletionScheduled(b)
+	return fc
+}
+
+// SetNillableDeletionScheduled sets the "deletion_scheduled" field if the given value is not nil.
+func (fc *FileCreate) SetNillableDeletionScheduled(b *bool) *FileCreate {
+	if b != nil {
+		fc.SetDeletionScheduled(*b)
+	}
+	return fc
+}
+
+// SetScheduledDeletionAt sets the "scheduled_deletion_at" field.
+func (fc *FileCreate) SetScheduledDeletionAt(t time.Time) *FileCreate {
+	fc.mutation.SetScheduledDeletionAt(t)
+	return fc
+}
+
+// SetNillableScheduledDeletionAt sets the "scheduled_deletion_at" field if the given value is not nil.
+func (fc *FileCreate) SetNillableScheduledDeletionAt(t *time.Time) *FileCreate {
+	if t != nil {
+		fc.SetScheduledDeletionAt(*t)
+	}
 	return fc
 }
 
@@ -123,6 +174,14 @@ func (fc *FileCreate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (fc *FileCreate) defaults() {
+	if _, ok := fc.mutation.FileDeleted(); !ok {
+		v := file.DefaultFileDeleted
+		fc.mutation.SetFileDeleted(v)
+	}
+	if _, ok := fc.mutation.DeletionScheduled(); !ok {
+		v := file.DefaultDeletionScheduled
+		fc.mutation.SetDeletionScheduled(v)
+	}
 	if _, ok := fc.mutation.ID(); !ok {
 		v := file.DefaultID()
 		fc.mutation.SetID(v)
@@ -131,14 +190,17 @@ func (fc *FileCreate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (fc *FileCreate) check() error {
-	if _, ok := fc.mutation.S3ObjectKey(); !ok {
-		return &ValidationError{Name: "s3_object_key", err: errors.New(`ent: missing required field "File.s3_object_key"`)}
-	}
 	if _, ok := fc.mutation.Name(); !ok {
 		return &ValidationError{Name: "name", err: errors.New(`ent: missing required field "File.name"`)}
 	}
 	if _, ok := fc.mutation.Size(); !ok {
 		return &ValidationError{Name: "size", err: errors.New(`ent: missing required field "File.size"`)}
+	}
+	if _, ok := fc.mutation.FileDeleted(); !ok {
+		return &ValidationError{Name: "file_deleted", err: errors.New(`ent: missing required field "File.file_deleted"`)}
+	}
+	if _, ok := fc.mutation.DeletionScheduled(); !ok {
+		return &ValidationError{Name: "deletion_scheduled", err: errors.New(`ent: missing required field "File.deletion_scheduled"`)}
 	}
 	return nil
 }
@@ -177,7 +239,7 @@ func (fc *FileCreate) createSpec() (*File, *sqlgraph.CreateSpec) {
 	}
 	if value, ok := fc.mutation.S3ObjectKey(); ok {
 		_spec.SetField(file.FieldS3ObjectKey, field.TypeString, value)
-		_node.S3ObjectKey = value
+		_node.S3ObjectKey = &value
 	}
 	if value, ok := fc.mutation.Name(); ok {
 		_spec.SetField(file.FieldName, field.TypeString, value)
@@ -186,6 +248,18 @@ func (fc *FileCreate) createSpec() (*File, *sqlgraph.CreateSpec) {
 	if value, ok := fc.mutation.Size(); ok {
 		_spec.SetField(file.FieldSize, field.TypeInt, value)
 		_node.Size = value
+	}
+	if value, ok := fc.mutation.FileDeleted(); ok {
+		_spec.SetField(file.FieldFileDeleted, field.TypeBool, value)
+		_node.FileDeleted = value
+	}
+	if value, ok := fc.mutation.DeletionScheduled(); ok {
+		_spec.SetField(file.FieldDeletionScheduled, field.TypeBool, value)
+		_node.DeletionScheduled = value
+	}
+	if value, ok := fc.mutation.ScheduledDeletionAt(); ok {
+		_spec.SetField(file.FieldScheduledDeletionAt, field.TypeTime, value)
+		_node.ScheduledDeletionAt = &value
 	}
 	if nodes := fc.mutation.OwnerIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

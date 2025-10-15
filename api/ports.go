@@ -160,7 +160,14 @@ type (
 		Delete(ctx context.Context, id uuid.UUID) error
 		// ByID returns a file by its ID
 		ByID(ctx context.Context, id uuid.UUID) (*ent.File, error)
+		// DeleteAllFiles schedules all files for deletion
+		DeleteAllFiles(ctx context.Context) error
+		// DownloadURL generates a pre-signed URL for downloading a file
 		DownloadURL(ctx context.Context, id uuid.UUID) (string, error)
+		// GetFileStats returns statistics about files and deletion delay
+		GetFileStats(ctx context.Context) (*sesc.FileStats, string, error)
+		// ProcessScheduledDeletions processes files that are ready for deletion
+		ProcessScheduledDeletions(ctx context.Context) error
 	}
 
 	// EventSink is used by the API to log events

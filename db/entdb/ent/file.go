@@ -5,6 +5,7 @@ package ent
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
@@ -21,11 +22,17 @@ type File struct {
 	// OwnerID holds the value of the "owner_id" field.
 	OwnerID *uuid.UUID `json:"owner_id,omitempty"`
 	// S3ObjectKey holds the value of the "s3_object_key" field.
-	S3ObjectKey string `json:"s3_object_key,omitempty"`
+	S3ObjectKey *string `json:"s3_object_key,omitempty"`
 	// Name holds the value of the "name" field.
 	Name string `json:"name,omitempty"`
 	// Size holds the value of the "size" field.
 	Size int `json:"size,omitempty"`
+	// FileDeleted holds the value of the "file_deleted" field.
+	FileDeleted bool `json:"file_deleted,omitempty"`
+	// DeletionScheduled holds the value of the "deletion_scheduled" field.
+	DeletionScheduled bool `json:"deletion_scheduled,omitempty"`
+	// ScheduledDeletionAt holds the value of the "scheduled_deletion_at" field.
+	ScheduledDeletionAt *time.Time `json:"scheduled_deletion_at,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the FileQuery when eager-loading is set.
 	Edges        FileEdges `json:"edges"`
@@ -70,10 +77,14 @@ func (*File) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case file.FieldOwnerID:
 			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
+		case file.FieldFileDeleted, file.FieldDeletionScheduled:
+			values[i] = new(sql.NullBool)
 		case file.FieldSize:
 			values[i] = new(sql.NullInt64)
 		case file.FieldS3ObjectKey, file.FieldName:
 			values[i] = new(sql.NullString)
+		case file.FieldScheduledDeletionAt:
+			values[i] = new(sql.NullTime)
 		case file.FieldID:
 			values[i] = new(uuid.UUID)
 		default:
@@ -108,7 +119,8 @@ func (f *File) assignValues(columns []string, values []any) error {
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field s3_object_key", values[i])
 			} else if value.Valid {
-				f.S3ObjectKey = value.String
+				f.S3ObjectKey = new(string)
+				*f.S3ObjectKey = value.String
 			}
 		case file.FieldName:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -121,6 +133,25 @@ func (f *File) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field size", values[i])
 			} else if value.Valid {
 				f.Size = int(value.Int64)
+			}
+		case file.FieldFileDeleted:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field file_deleted", values[i])
+			} else if value.Valid {
+				f.FileDeleted = value.Bool
+			}
+		case file.FieldDeletionScheduled:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field deletion_scheduled", values[i])
+			} else if value.Valid {
+				f.DeletionScheduled = value.Bool
+			}
+		case file.FieldScheduledDeletionAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field scheduled_deletion_at", values[i])
+			} else if value.Valid {
+				f.ScheduledDeletionAt = new(time.Time)
+				*f.ScheduledDeletionAt = value.Time
 			}
 		default:
 			f.selectValues.Set(columns[i], values[i])
@@ -173,14 +204,27 @@ func (f *File) String() string {
 		builder.WriteString(fmt.Sprintf("%v", *v))
 	}
 	builder.WriteString(", ")
-	builder.WriteString("s3_object_key=")
-	builder.WriteString(f.S3ObjectKey)
+	if v := f.S3ObjectKey; v != nil {
+		builder.WriteString("s3_object_key=")
+		builder.WriteString(*v)
+	}
 	builder.WriteString(", ")
 	builder.WriteString("name=")
 	builder.WriteString(f.Name)
 	builder.WriteString(", ")
 	builder.WriteString("size=")
 	builder.WriteString(fmt.Sprintf("%v", f.Size))
+	builder.WriteString(", ")
+	builder.WriteString("file_deleted=")
+	builder.WriteString(fmt.Sprintf("%v", f.FileDeleted))
+	builder.WriteString(", ")
+	builder.WriteString("deletion_scheduled=")
+	builder.WriteString(fmt.Sprintf("%v", f.DeletionScheduled))
+	builder.WriteString(", ")
+	if v := f.ScheduledDeletionAt; v != nil {
+		builder.WriteString("scheduled_deletion_at=")
+		builder.WriteString(v.Format(time.ANSIC))
+	}
 	builder.WriteByte(')')
 	return builder.String()
 }

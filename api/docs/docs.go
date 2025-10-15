@@ -1789,6 +1789,184 @@ const docTemplate = `{
                 }
             }
         },
+        "/documents/schedule_deletion": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Schedules files for deletion after a specified delay",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "files"
+                ],
+                "summary": "Schedule file deletion",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer JWT token",
+                        "name": "Authorization",
+                        "in": "header"
+                    },
+                    {
+                        "description": "Schedule deletion request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/param.ScheduleDeletionRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/respond.Error"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/respond.Error"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/respond.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/respond.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/documents/schedule_deletion/all": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Schedules deletion for all files",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "files"
+                ],
+                "summary": "Schedule deletion for all files",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer JWT token",
+                        "name": "Authorization",
+                        "in": "header"
+                    },
+                    {
+                        "type": "boolean",
+                        "default": false,
+                        "description": "If true, only mark files as deleted without removing from storage",
+                        "name": "markOnly",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/respond.Error"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/respond.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/respond.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/documents/stats": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns statistics about documents including total, deleted, scheduled, etc.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "files"
+                ],
+                "summary": "Get document statistics",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer JWT token",
+                        "name": "Authorization",
+                        "in": "header"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/respond.DocumentStats"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/respond.Error"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/respond.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/respond.Error"
+                        }
+                    }
+                }
+            }
+        },
         "/files": {
             "get": {
                 "security": [
@@ -3111,6 +3289,21 @@ const docTemplate = `{
                 }
             }
         },
+        "param.ScheduleDeletionRequest": {
+            "type": "object",
+            "required": [
+                "file_ids"
+            ],
+            "properties": {
+                "file_ids": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
         "param.UpdateAchievementPointsRequest": {
             "type": "object",
             "required": [
@@ -3332,6 +3525,30 @@ const docTemplate = `{
                 }
             }
         },
+        "respond.DocumentStats": {
+            "type": "object",
+            "properties": {
+                "deletedFiles": {
+                    "type": "integer"
+                },
+                "deletionDelay": {
+                    "description": "Duration string like \"24h\", \"720h\"",
+                    "type": "string"
+                },
+                "notScheduled": {
+                    "type": "integer"
+                },
+                "readyForDeletion": {
+                    "type": "integer"
+                },
+                "scheduledForDeletion": {
+                    "type": "integer"
+                },
+                "totalFiles": {
+                    "type": "integer"
+                }
+            }
+        },
         "respond.Error": {
             "type": "object",
             "properties": {
@@ -3352,6 +3569,12 @@ const docTemplate = `{
         "respond.File": {
             "type": "object",
             "properties": {
+                "deletionScheduled": {
+                    "type": "boolean"
+                },
+                "fileDeleted": {
+                    "type": "boolean"
+                },
                 "fileName": {
                     "type": "string"
                 },
@@ -3362,6 +3585,9 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "ownerId": {
+                    "type": "string"
+                },
+                "s3ObjectKey": {
                     "type": "string"
                 }
             }

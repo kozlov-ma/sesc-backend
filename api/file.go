@@ -142,7 +142,8 @@ func (a *API) SearchFiles(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query()
 
 	opts := sesc.FileSearchOptions{
-		Name: query.Get("name"),
+		Name:           query.Get("name"),
+		IncludeDeleted: false, // Never include deleted files in regular search
 	}
 
 	if ownerIDStr := query.Get("owner_id"); ownerIDStr != "" {
@@ -301,9 +302,9 @@ func (a *API) GetFileByID(w http.ResponseWriter, r *http.Request) {
 	a.writeJSON(ctx, w, respond.WithFile(file))
 }
 
-// DeleteFile deletes a file
-// @Summary Delete file
-// @Description Deletes a file by ID
+// ScheduleFileDeletion schedules a file for deletion
+// @Summary Schedule file deletion
+// @Description Schedules a file for deletion after the configured delay
 // @Tags files
 // @Accept json
 // @Produce json
@@ -314,12 +315,13 @@ func (a *API) GetFileByID(w http.ResponseWriter, r *http.Request) {
 // @Failure 401 {object} respond.Error "Unauthorized"
 // @Failure 403 {object} respond.Error "Forbidden"
 // @Failure 404 {object} respond.Error
+// @Failure 409 {object} respond.Error "File has dependencies"
 // @Failure 500 {object} respond.Error
 // @Router /files/{id} [delete]
 // @Security BearerAuth
-func (a *API) DeleteFile(w http.ResponseWriter, r *http.Request) {
+func (a *API) ScheduleFileDeletion(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	rec := event.Get(ctx).Sub("api/delete_file")
+	rec := event.Get(ctx).Sub("api/schedule_file_deletion")
 
 	fileID, err := param.PathUUID(r, "id")
 
@@ -328,7 +330,6 @@ func (a *API) DeleteFile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// FileAccessMiddleware has already checked access permissions
 	err = a.file.Delete(ctx, fileID)
 	if err != nil {
 		rec.Add(events.Error, err)
@@ -380,4 +381,89 @@ func (a *API) DownloadFile(w http.ResponseWriter, r *http.Request) {
 
 	// Redirect to pre-signed URL
 	http.Redirect(w, r, downloadURL, http.StatusTemporaryRedirect)
+}
+
+// ScheduleDeletionAll schedules deletion for all files
+// @Summary Schedule deletion for all files
+// @Description Schedules deletion for all files
+// @Tags files
+// @Accept json
+// @Produce json
+// @Param Authorization header string false "Bearer JWT token"
+// @Param markOnly query bool false "If true, only mark files as deleted without removing from storage" default(false)
+// @Success 204 "No Content"
+// @Failure 401 {object} respond.Error "Unauthorized"
+// @Failure 403 {object} respond.Error "Forbidden"
+// @Failure 500 {object} respond.Error
+// @Router /documents/schedule_deletion/all [post]
+// @Security BearerAuth
+func (a *API) ScheduleDeletionAll(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	rec := event.Get(ctx).Sub("api/schedule_deletion_all")
+
+	// Get identity from context
+	identity, ok := GetIdentityFromContext(ctx)
+	if !ok {
+		a.writeJSON(ctx, w, respond.WithError(ctx, iam.ErrUnauthorized))
+		return
+	}
+
+	// Check if user is admin
+	isAdmin := identity.Role == iam.Role("admin")
+	if !isAdmin {
+		a.writeJSON(ctx, w, respond.WithError(ctx, iam.ErrForbidden))
+		return
+	}
+
+	// Schedule all files for deletion
+	err := a.file.DeleteAllFiles(ctx)
+	if err != nil {
+		rec.Add(events.Error, err)
+		a.writeJSON(ctx, w, respond.WithError(ctx, err))
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}
+
+// GetDocumentStats returns statistics about documents
+// @Summary Get document statistics
+// @Description Returns statistics about documents including total, deleted, scheduled, etc.
+// @Tags files
+// @Accept json
+// @Produce json
+// @Param Authorization header string false "Bearer JWT token"
+// @Success 200 {object} respond.DocumentStats
+// @Failure 401 {object} respond.Error "Unauthorized"
+// @Failure 403 {object} respond.Error "Forbidden"
+// @Failure 500 {object} respond.Error
+// @Router /documents/stats [get]
+// @Security BearerAuth
+func (a *API) GetDocumentStats(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	rec := event.Get(ctx).Sub("api/get_document_stats")
+
+	// Get identity from context
+	identity, ok := GetIdentityFromContext(ctx)
+	if !ok {
+		a.writeJSON(ctx, w, respond.WithError(ctx, iam.ErrUnauthorized))
+		return
+	}
+
+	// Check if user is admin
+	isAdmin := identity.Role == iam.Role("admin")
+	if !isAdmin {
+		a.writeJSON(ctx, w, respond.WithError(ctx, iam.ErrForbidden))
+		return
+	}
+
+	// Get statistics
+	stats, deletionDelay, err := a.file.GetFileStats(ctx)
+	if err != nil {
+		rec.Add(events.Error, err)
+		a.writeJSON(ctx, w, respond.WithError(ctx, err))
+		return
+	}
+
+	a.writeJSON(ctx, w, respond.WithDocumentStats(stats, deletionDelay))
 }

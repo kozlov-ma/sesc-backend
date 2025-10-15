@@ -38,9 +38,12 @@ import {
   useMutation,
   useQueryClient,
 } from "@tanstack/react-query";
-import { Download, FileText, Search, Trash2, Upload, X } from "lucide-react";
+import { Download, FileText, Search, Trash2, Upload, X , AlertCircle, Clock } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 
 interface FileTableProps {
   showOwner?: boolean;
@@ -53,6 +56,7 @@ interface FileTableProps {
   };
   allowDeleteCommon?: boolean;
   allowUpload?: boolean;
+  showDeletedByDefault?: boolean;
 }
 
 export function FileTable({
@@ -62,9 +66,11 @@ export function FileTable({
   initialFilters = {},
   allowDeleteCommon = false,
   allowUpload = true,
+  showDeletedByDefault = false,
 }: FileTableProps) {
   const [searchQuery, setSearchQuery] = useState(initialFilters.name || "");
   const [fileToDelete, setFileToDelete] = useState<RespondFile | null>(null);
+  const [showDeleted, setShowDeleted] = useState(showDeletedByDefault);
   const queryClient = useQueryClient();
   const { token } = useAuth();
   const { handleError, clearError } = useErrorHandler();
@@ -127,7 +133,8 @@ export function FileTable({
     },
   });
 
-  const files = data?.pages.flatMap((page) => page.files || []) || [];
+  const allFiles = data?.pages.flatMap((page) => page.files || []) || [];
+  const files = showDeleted ? allFiles : allFiles.filter(file => !file.fileDeleted && !file.deletionScheduled);
   const hasMore = hasNextPage;
 
   const { ref } = useInfiniteScroll({
@@ -180,23 +187,18 @@ export function FileTable({
   const handleDownload = (file: RespondFile) => {
     if (!file.id || !token) return;
 
-    // Create a temporary form to download the file with authorization
     const form = document.createElement("form");
     form.method = "GET";
     form.action = `${process.env.NEXT_PUBLIC_API_URL}/files/${file.id}/download`;
     form.target = "_blank";
     form.style.display = "none";
 
-    // Add authorization header as a hidden input (though this won't work for headers)
-    // Better approach: use a temporary iframe with custom headers
     const iframe = document.createElement("iframe");
     iframe.style.display = "none";
     document.body.appendChild(iframe);
 
-    // Create a blob URL with the authorization
     const downloadUrl = `${process.env.NEXT_PUBLIC_API_URL}/files/${file.id}/download`;
 
-    // Use fetch to get the file with proper headers
     fetch(downloadUrl, {
       headers: {
         Authorization: `Bearer ${token}`,
@@ -206,7 +208,6 @@ export function FileTable({
         if (response.status === 307 || response.status === 302) {
           const redirectUrl = response.headers.get("location");
           if (redirectUrl) {
-            // Create a link and click it
             const link = document.createElement("a");
             link.href = redirectUrl;
             link.download = file.fileName || "download";
@@ -245,9 +246,9 @@ export function FileTable({
   if (error) return <span className="text-destructive">Ошибка</span>;
 
   return (
-    <div className={cn("space-y-4", className)}>
-      <div className="flex flex-col sm:flex-row gap-4 justify-between">
-        <div className="relative w-full sm:w-1/2">
+    <div className={cn("space-y-3", className)}>
+      <div className="flex flex-col sm:flex-row gap-4 items-start justify-between">
+        <div className="relative w-full sm:flex-1">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
             type="text"
@@ -291,6 +292,19 @@ export function FileTable({
           </div>
         </div>
       </div>
+      <div className="flex items-center space-x-2">
+        <Checkbox
+          id="showDeleted"
+          checked={showDeleted}
+          onCheckedChange={(checked) => setShowDeleted(checked === true)}
+        />
+        <Label
+          htmlFor="showDeleted"
+          className="text-sm font-normal cursor-pointer"
+        >
+          Показать удалённые файлы
+        </Label>
+      </div>
 
       {isLoading && files.length === 0 ? (
         <div className="h-64 flex items-center justify-center">
@@ -321,10 +335,29 @@ export function FileTable({
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {files.map((file) => (
-                  <TableRow key={file.id}>
+                {files.map((file) => {
+                  const isDeleted = file.fileDeleted;
+                  const isScheduled = file.deletionScheduled && !file.fileDeleted;
+                  const isGrayed = isDeleted || isScheduled;
+                  
+                  return (
+                  <TableRow key={file.id} className={cn(isGrayed && "opacity-50")}>
                     <TableCell className="font-medium">
-                      <FileNameDisplay file={file} />
+                      <div className="flex items-center gap-2">
+                        <FileNameDisplay file={file} />
+                        {isDeleted && (
+                          <Badge variant="secondary" className="text-xs text-muted-foreground">
+                            <AlertCircle className="h-3 w-3 mr-1" />
+                            Удалён
+                          </Badge>
+                        )}
+                        {isScheduled && (
+                          <Badge variant="outline" className="text-xs text-orange-600 dark:text-orange-400">
+                            <Clock className="h-3 w-3 mr-1" />
+                            Запланирован
+                          </Badge>
+                        )}
+                      </div>
                     </TableCell>
                     {showOwner && (
                       <TableCell>
@@ -333,27 +366,35 @@ export function FileTable({
                         )}
                       </TableCell>
                     )}
-                    <TableCell>{formatFileSize(file.fileSize || 0)}</TableCell>
+                    <TableCell className={cn(isGrayed && "text-muted-foreground")}>
+                      {formatFileSize(file.fileSize || 0)}
+                    </TableCell>
                     <TableCell className="text-center">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleDownload(file)}
-                      >
-                        <Download className="h-4 w-4" />
-                      </Button>
-                      {(allowDeleteCommon || file.ownerId) && (
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => handleDelete(file)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                      {!isDeleted && (
+                        <>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleDownload(file)}
+                            title="Скачать файл"
+                          >
+                            <Download className="h-4 w-4" />
+                          </Button>
+                          {(allowDeleteCommon || file.ownerId) && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleDelete(file)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          )}
+                        </>
                       )}
                     </TableCell>
                   </TableRow>
-                ))}
+                  );
+                })}
               </TableBody>
             </Table>
           </div>
@@ -371,12 +412,13 @@ export function FileTable({
         open={!!fileToDelete}
         onOpenChange={() => setFileToDelete(null)}
       >
-        <AlertDialogContent>
+        <AlertDialogContent className="max-w-md">
           <AlertDialogHeader>
             <AlertDialogTitle>Удалить файл</AlertDialogTitle>
-            <AlertDialogDescription>
-              Вы уверены, что хотите удалить файл &quot;{fileToDelete?.fileName}
-              &quot;? Это действие нельзя отменить.
+            <AlertDialogDescription className="break-words whitespace-normal">
+              Вы уверены, что хотите удалить файл{" "}
+              <span className="font-semibold break-all">{fileToDelete?.fileName}</span>?
+              Это действие нельзя отменить.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

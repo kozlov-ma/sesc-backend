@@ -304,6 +304,16 @@ definitions:
     required:
     - action
     type: object
+  param.ScheduleDeletionRequest:
+    properties:
+      file_ids:
+        items:
+          type: string
+        minItems: 1
+        type: array
+    required:
+    - file_ids
+    type: object
   param.UpdateAchievementPointsRequest:
     properties:
       comment:
@@ -465,6 +475,22 @@ definitions:
     - id
     - name
     type: object
+  respond.DocumentStats:
+    properties:
+      deletedFiles:
+        type: integer
+      deletionDelay:
+        description: Duration string like "24h", "720h"
+        type: string
+      notScheduled:
+        type: integer
+      readyForDeletion:
+        type: integer
+      scheduledForDeletion:
+        type: integer
+      totalFiles:
+        type: integer
+    type: object
   respond.Error:
     properties:
       code:
@@ -478,6 +504,10 @@ definitions:
     type: object
   respond.File:
     properties:
+      deletionScheduled:
+        type: boolean
+      fileDeleted:
+        type: boolean
       fileName:
         type: string
       fileSize:
@@ -485,6 +515,8 @@ definitions:
       id:
         type: string
       ownerId:
+        type: string
+      s3ObjectKey:
         type: string
     type: object
   respond.Files:
@@ -1767,6 +1799,120 @@ paths:
       summary: Update department details
       tags:
       - departments
+  /documents/schedule_deletion:
+    post:
+      consumes:
+      - application/json
+      description: Schedules files for deletion after a specified delay
+      parameters:
+      - description: Bearer JWT token
+        in: header
+        name: Authorization
+        type: string
+      - description: Schedule deletion request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/param.ScheduleDeletionRequest'
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/respond.Error'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/respond.Error'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/respond.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/respond.Error'
+      security:
+      - BearerAuth: []
+      summary: Schedule file deletion
+      tags:
+      - files
+  /documents/schedule_deletion/all:
+    post:
+      consumes:
+      - application/json
+      description: Schedules deletion for all files
+      parameters:
+      - description: Bearer JWT token
+        in: header
+        name: Authorization
+        type: string
+      - default: false
+        description: If true, only mark files as deleted without removing from storage
+        in: query
+        name: markOnly
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/respond.Error'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/respond.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/respond.Error'
+      security:
+      - BearerAuth: []
+      summary: Schedule deletion for all files
+      tags:
+      - files
+  /documents/stats:
+    get:
+      consumes:
+      - application/json
+      description: Returns statistics about documents including total, deleted, scheduled,
+        etc.
+      parameters:
+      - description: Bearer JWT token
+        in: header
+        name: Authorization
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/respond.DocumentStats'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/respond.Error'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/respond.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/respond.Error'
+      security:
+      - BearerAuth: []
+      summary: Get document statistics
+      tags:
+      - files
   /files:
     get:
       consumes:

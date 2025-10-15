@@ -3,7 +3,8 @@
 ## Development instructions
 - To start the development database in docker: `make dev-db`
 - To start the development API in docker: `make dev-backend`
-- To run the API for development purposes: `make dev-db && go run cmd/api/main.go | jq`
+- To run the API locally (recommended): `make dev-db && make dev-run`
+- Alternative: `make dev-db && go run ./cmd/api`
 
 ## !! READ THIS !! Implementing a new feature
 1. Create the domain types in `sesc` package. If your types are purely application-level, like `Credentials`, place them in a separate package, like `iam`.
@@ -34,26 +35,36 @@ This is an example of the development approach above, describing the implementat
 11. Pushed the changes.
 
 
-The application can be configured using either a `config.yml` file or environment variables. A sample configuration file is provided in the repository root.
-
 ## Configuration
-The application can be configured through:
-1. A `config.yml` file in the root directory or in a `./config/` directory
-2. Environment variables prefixed with `SESC_` (e.g., `SESC_DATABASE_ADDRESS`)
 
-Configuration options include:
-- `database.address`: PostgreSQL connection string
-- `http.server_address`: Address and port to bind the server to
-- `http.read_header_timeout`, `http.read_timeout`, `http.write_timeout`: HTTP timeouts
-- `jwt_secret`: Secret key for JWT token signing
-- `admin_credentials`: Initial admin users with their credentials. To set it with env vars:
+The application supports two configuration modes:
+
+### Local Development
+Uses `config.yml` file with sensible defaults. You can override any value with environment variables.
+
 ```bash
-SESC_ADMIN_CREDENTIALS_0_ID="f1157f63-65dc-4c3d-bcb2-4d6d55d2e3fd"
-SESC_ADMIN_CREDENTIALS_0_USERNAME="admin"
-SESC_ADMIN_CREDENTIALS_0_PASSWORD="admin"
-SESC_ADMIN_CREDENTIALS_1_ID="a33a8393-5e83-41cd-8532-1390952c00ee"
-SESC_ADMIN_CREDENTIALS_1_USERNAME="another_admin"
-SESC_ADMIN_CREDENTIALS_1_PASSWORD="secure_password"
+# Run with default config.yml
+make dev-run
+
+# Or override specific values
+export SESC_DATABASE_ADDRESS="postgres://custom:pass@localhost:5432/db"
+export SESC_JWT_SECRET="my-secret-key"
+make dev-run
+```
+
+### Production / Kamal Deployment
+Uses **only** environment variables (no `config.yml`). All configuration must be provided via `SESC_` prefixed environment variables.
+
+**📖 See [ENV.md](./ENV.md) for complete environment variables reference**
+
+Quick example:
+```bash
+SESC_DATABASE_ADDRESS=postgres://user:pass@host:5432/sesc
+SESC_JWT_SECRET=your-secret-key
+SESC_MINIO_ENDPOINT=minio:9000
+SESC_MINIO_ACCESS_KEY=minioadmin
+SESC_MINIO_SECRET_KEY=minioadmin
+# ... etc
 ```
 
 ## Testing

@@ -32,6 +32,8 @@ type Config struct {
 	HTTP             HTTPConfig              `mapstructure:"http"`
 	JWTSecret        string                  `mapstructure:"jwt_secret"`
 	MinIO            MinIOConfig             `mapstructure:"minio"`
+	FileService      FileServiceConfig       `mapstructure:"file_service"`
+	DeletionDaemon   DeletionDaemonConfig    `mapstructure:"deletion_daemon"`
 }
 
 type DatabaseConfig struct {
@@ -61,6 +63,15 @@ type MinIOConfig struct {
 	BaseURL    string `mapstructure:"base_url"`
 }
 
+type FileServiceConfig struct {
+	Delay time.Duration `mapstructure:"delay"`
+}
+
+type DeletionDaemonConfig struct {
+	Enabled  bool          `mapstructure:"enabled"`
+	Interval time.Duration `mapstructure:"interval"`
+}
+
 func LoadConfig() (*Config, error) {
 	v := viper.New()
 
@@ -76,20 +87,33 @@ func LoadConfig() (*Config, error) {
 	v.SetEnvKeyReplacer(replacer)
 	v.AutomaticEnv()
 
-	// Explicit bindings for all sensitive config fields
+	// Explicit bindings for all config fields
 	// This ensures env variables take precedence over config.yml
-	_ = v.BindEnv("database.address")
-	_ = v.BindEnv("jwt_secret")
-	_ = v.BindEnv("minio.endpoint")
-	_ = v.BindEnv("minio.access_key")
-	_ = v.BindEnv("minio.secret_key")
-	_ = v.BindEnv("minio.use_ssl")
-	_ = v.BindEnv("minio.bucket_name")
-	_ = v.BindEnv("minio.base_url")
-	_ = v.BindEnv("http.server_address")
-	_ = v.BindEnv("http.read_header_timeout")
-	_ = v.BindEnv("http.read_timeout")
-	_ = v.BindEnv("http.write_timeout")
+	configKeys := []string{
+		"database.address",
+		"jwt_secret",
+		"minio.endpoint",
+		"minio.access_key",
+		"minio.secret_key",
+		"minio.use_ssl",
+		"minio.bucket_name",
+		"minio.base_url",
+		"http.server_address",
+		"http.read_header_timeout",
+		"http.read_timeout",
+		"http.write_timeout",
+	}
+
+	var bindErrors []error
+	for _, key := range configKeys {
+		if err := v.BindEnv(key); err != nil {
+			bindErrors = append(bindErrors, fmt.Errorf("failed to bind %s: %w", key, err))
+		}
+	}
+
+	if len(bindErrors) > 0 {
+		return nil, fmt.Errorf("error binding environment variables: %w", errors.Join(bindErrors...))
+	}
 
 	// Admin credentials can be set via env variables
 	// Format: SESC_ADMIN_CREDENTIALS_0_ID, SESC_ADMIN_CREDENTIALS_0_USERNAME, etc.
@@ -149,6 +173,10 @@ func setDefaults(v *viper.Viper) {
 			Password: "admin",
 		},
 	})
+
+	v.SetDefault("file_service.delay", "24h")
+	v.SetDefault("deletion_daemon.enabled", true)
+	v.SetDefault("deletion_daemon.interval", "24h")
 }
 
 func (c *Config) ToIAMAdminCredentials() ([]iam.AdminCredentials, error) {

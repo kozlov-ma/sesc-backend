@@ -374,6 +374,43 @@ func (c *TestClient) MarkAllAccounted() error {
 	return nil
 }
 
+// GetDocumentStats retrieves document statistics
+func (c *TestClient) GetDocumentStats() (*models.RespondDocumentStats, error) {
+	getParams := files.NewGetDocumentsStatsParams()
+
+	getResp, err := c.apiClient.Files.GetDocumentsStats(getParams, c.authInfo)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get document stats: %w", err)
+	}
+
+	return getResp.Payload, nil
+}
+
+// DeleteFile schedules a file for deletion
+func (c *TestClient) DeleteFile(fileID string) error {
+	deleteParams := files.NewDeleteFilesIDParams()
+	deleteParams.SetID(fileID)
+
+	_, err := c.apiClient.Files.DeleteFilesID(deleteParams, c.authInfo)
+	if err != nil {
+		return fmt.Errorf("failed to delete file: %w", err)
+	}
+
+	return nil
+}
+
+// ScheduleDeletionAll schedules deletion for all files
+func (c *TestClient) ScheduleDeletionAll() error {
+	deleteParams := files.NewPostDocumentsScheduleDeletionAllParams()
+
+	_, err := c.apiClient.Files.PostDocumentsScheduleDeletionAll(deleteParams, c.authInfo)
+	if err != nil {
+		return fmt.Errorf("failed to schedule deletion all: %w", err)
+	}
+
+	return nil
+}
+
 // CreateAchievementGroup creates a new achievement group
 func (c *TestClient) CreateAchievementGroup(
 	name, description string,

@@ -393,6 +393,20 @@ export const param_ReviewAchievementRequestSchema = {
   },
 } as const;
 
+export const param_ScheduleDeletionRequestSchema = {
+  type: "object",
+  required: ["file_ids"],
+  properties: {
+    file_ids: {
+      type: "array",
+      minItems: 1,
+      items: {
+        type: "string",
+      },
+    },
+  },
+} as const;
+
 export const param_UpdateAchievementPointsRequestSchema = {
   type: "object",
   required: ["points"],
@@ -601,6 +615,31 @@ export const respond_DocumentSchema = {
   },
 } as const;
 
+export const respond_DocumentStatsSchema = {
+  type: "object",
+  properties: {
+    deletedFiles: {
+      type: "integer",
+    },
+    deletionDelay: {
+      description: 'Duration string like "24h", "720h"',
+      type: "string",
+    },
+    notScheduled: {
+      type: "integer",
+    },
+    readyForDeletion: {
+      type: "integer",
+    },
+    scheduledForDeletion: {
+      type: "integer",
+    },
+    totalFiles: {
+      type: "integer",
+    },
+  },
+} as const;
+
 export const respond_ErrorSchema = {
   type: "object",
   properties: {
@@ -622,6 +661,12 @@ export const respond_ErrorSchema = {
 export const respond_FileSchema = {
   type: "object",
   properties: {
+    deletionScheduled: {
+      type: "boolean",
+    },
+    fileDeleted: {
+      type: "boolean",
+    },
     fileName: {
       type: "string",
     },
@@ -632,6 +677,9 @@ export const respond_FileSchema = {
       type: "string",
     },
     ownerId: {
+      type: "string",
+    },
+    s3ObjectKey: {
       type: "string",
     },
   },

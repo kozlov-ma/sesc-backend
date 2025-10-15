@@ -21,6 +21,12 @@ const (
 	FieldName = "name"
 	// FieldSize holds the string denoting the size field in the database.
 	FieldSize = "size"
+	// FieldFileDeleted holds the string denoting the file_deleted field in the database.
+	FieldFileDeleted = "file_deleted"
+	// FieldDeletionScheduled holds the string denoting the deletion_scheduled field in the database.
+	FieldDeletionScheduled = "deletion_scheduled"
+	// FieldScheduledDeletionAt holds the string denoting the scheduled_deletion_at field in the database.
+	FieldScheduledDeletionAt = "scheduled_deletion_at"
 	// EdgeOwner holds the string denoting the owner edge name in mutations.
 	EdgeOwner = "owner"
 	// EdgeAchievementDocuments holds the string denoting the achievement_documents edge name in mutations.
@@ -50,6 +56,9 @@ var Columns = []string{
 	FieldS3ObjectKey,
 	FieldName,
 	FieldSize,
+	FieldFileDeleted,
+	FieldDeletionScheduled,
+	FieldScheduledDeletionAt,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -63,6 +72,10 @@ func ValidColumn(column string) bool {
 }
 
 var (
+	// DefaultFileDeleted holds the default value on creation for the "file_deleted" field.
+	DefaultFileDeleted bool
+	// DefaultDeletionScheduled holds the default value on creation for the "deletion_scheduled" field.
+	DefaultDeletionScheduled bool
 	// DefaultID holds the default value on creation for the "id" field.
 	DefaultID func() uuid.UUID
 )
@@ -93,6 +106,21 @@ func ByName(opts ...sql.OrderTermOption) OrderOption {
 // BySize orders the results by the size field.
 func BySize(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldSize, opts...).ToFunc()
+}
+
+// ByFileDeleted orders the results by the file_deleted field.
+func ByFileDeleted(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldFileDeleted, opts...).ToFunc()
+}
+
+// ByDeletionScheduled orders the results by the deletion_scheduled field.
+func ByDeletionScheduled(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldDeletionScheduled, opts...).ToFunc()
+}
+
+// ByScheduledDeletionAt orders the results by the scheduled_deletion_at field.
+func ByScheduledDeletionAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldScheduledDeletionAt, opts...).ToFunc()
 }
 
 // ByOwnerField orders the results by owner field.

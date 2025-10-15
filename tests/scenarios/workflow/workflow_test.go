@@ -83,6 +83,9 @@ func TestScenarioFullWorkflow(t *testing.T) {
 		{"UserVerificationDone", stepUserVerificationDone},
 		{"EconomistMarkAccounted", stepEconomistMarkAccounted},
 		{"UserVerificationAccounted", stepUserVerificationAccounted},
+		{"AdminGetDocumentStats", stepAdminGetDocumentStats},
+		{"AdminScheduleDeletionAll", stepAdminScheduleDeletionAll},
+		{"AdminVerifyScheduledDeletion", stepAdminVerifyScheduledDeletion},
 	}
 
 	// Execute all workflow steps in sequence with programmatic numbering
@@ -720,5 +723,59 @@ func stepUserVerificationAccounted(t *testing.T, data *TestData) {
 	}
 
 	t.Log("✅ All users verified their achievements have 'accounted' status")
+}
+
+// stepAdminGetDocumentStats verifies admin can get document statistics
+func stepAdminGetDocumentStats(t *testing.T, data *TestData) {
+	t.Log("Admin Get Document Stats")
+
+	// Re-authenticate as admin to ensure we have admin token
+	err := data.Client.LoginAdmin(AdminUsername, AdminPassword)
+	require.NoError(t, err, "Admin should be able to log in")
+
+	// Get document stats
+	stats, err := data.Client.GetDocumentStats()
+	require.NoError(t, err, "Admin should be able to get document stats")
+
+	totalFiles := len(data.RegularUsers) * FilesPerUser
+	assert.Equal(t, int64(totalFiles), stats.TotalFiles, "Total files should match uploaded files")
+	assert.Equal(t, int64(0), stats.DeletedFiles, "No files should be deleted yet")
+	assert.Equal(t, int64(0), stats.ScheduledForDeletion, "No files should be scheduled for deletion yet")
+	assert.NotEmpty(t, stats.DeletionDelay, "Deletion delay should be set")
+
+	t.Logf("✅ Document stats: Total=%d, Deleted=%d, Scheduled=%d, Delay=%s",
+		stats.TotalFiles, stats.DeletedFiles, stats.ScheduledForDeletion, stats.DeletionDelay)
+}
+
+// stepAdminScheduleDeletionAll has admin schedule all files for deletion
+func stepAdminScheduleDeletionAll(t *testing.T, data *TestData) {
+	t.Log("Admin Schedule Deletion All")
+
+	// Admin is already authenticated from previous step
+
+	// Schedule all files for deletion
+	err := data.Client.ScheduleDeletionAll()
+	require.NoError(t, err, "Admin should be able to schedule all files for deletion")
+
+	t.Log("✅ All files scheduled for deletion")
+}
+
+// stepAdminVerifyScheduledDeletion verifies files are scheduled for deletion
+func stepAdminVerifyScheduledDeletion(t *testing.T, data *TestData) {
+	t.Log("Admin Verify Scheduled Deletion")
+
+	// Admin is already authenticated from previous steps
+
+	// Get document stats
+	stats, err := data.Client.GetDocumentStats()
+	require.NoError(t, err, "Admin should be able to get document stats")
+
+	totalFiles := len(data.RegularUsers) * FilesPerUser
+	assert.Equal(t, int64(totalFiles), stats.TotalFiles, "Total files should match uploaded files")
+	assert.Equal(t, int64(0), stats.DeletedFiles, "No files should be deleted yet")
+	assert.Equal(t, int64(totalFiles), stats.ScheduledForDeletion, "All files should be scheduled for deletion")
+
+	t.Logf("✅ Verified scheduled deletion: Total=%d, Scheduled=%d",
+		stats.TotalFiles, stats.ScheduledForDeletion)
 	t.Log("🎉 Full workflow scenario completed successfully!")
 }
