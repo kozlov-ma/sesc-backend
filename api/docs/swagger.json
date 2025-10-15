@@ -1781,72 +1781,6 @@
                 }
             }
         },
-        "/documents/schedule_deletion": {
-            "post": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Schedules files for deletion after a specified delay",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "files"
-                ],
-                "summary": "Schedule file deletion",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer JWT token",
-                        "name": "Authorization",
-                        "in": "header"
-                    },
-                    {
-                        "description": "Schedule deletion request",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/param.ScheduleDeletionRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "204": {
-                        "description": "No Content"
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/respond.Error"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/respond.Error"
-                        }
-                    },
-                    "403": {
-                        "description": "Forbidden",
-                        "schema": {
-                            "$ref": "#/definitions/respond.Error"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/respond.Error"
-                        }
-                    }
-                }
-            }
-        },
         "/documents/schedule_deletion/all": {
             "post": {
                 "security": [
@@ -2170,7 +2104,7 @@
                         "BearerAuth": []
                     }
                 ],
-                "description": "Deletes a file by ID",
+                "description": "Schedules a file for deletion after the configured delay",
                 "consumes": [
                     "application/json"
                 ],
@@ -2180,7 +2114,7 @@
                 "tags": [
                     "files"
                 ],
-                "summary": "Delete file",
+                "summary": "Schedule file deletion",
                 "parameters": [
                     {
                         "type": "string",
@@ -2220,6 +2154,12 @@
                     },
                     "404": {
                         "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/respond.Error"
+                        }
+                    },
+                    "409": {
+                        "description": "File has dependencies",
                         "schema": {
                             "$ref": "#/definitions/respond.Error"
                         }
@@ -3281,21 +3221,6 @@
                 }
             }
         },
-        "param.ScheduleDeletionRequest": {
-            "type": "object",
-            "required": [
-                "file_ids"
-            ],
-            "properties": {
-                "file_ids": {
-                    "type": "array",
-                    "minItems": 1,
-                    "items": {
-                        "type": "string"
-                    }
-                }
-            }
-        },
         "param.UpdateAchievementPointsRequest": {
             "type": "object",
             "required": [
@@ -3524,7 +3449,6 @@
                     "type": "integer"
                 },
                 "deletionDelay": {
-                    "description": "Duration string like \"24h\", \"720h\"",
                     "type": "string"
                 },
                 "notScheduled": {

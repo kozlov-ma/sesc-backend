@@ -20,7 +20,7 @@ type RespondDocumentStats struct {
 	// deleted files
 	DeletedFiles int64 `json:"deletedFiles,omitempty"`
 
-	// Duration string like "24h", "720h"
+	// deletion delay
 	DeletionDelay string `json:"deletionDelay,omitempty"`
 
 	// not scheduled

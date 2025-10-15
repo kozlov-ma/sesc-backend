@@ -28,7 +28,6 @@ import {
   deleteDepartmentsById,
   getDepartmentsById,
   putDepartmentsById,
-  postDocumentsScheduleDeletion,
   postDocumentsScheduleDeletionAll,
   getDocumentsStats,
   getFiles,
@@ -113,8 +112,6 @@ import type {
   PutDepartmentsByIdData,
   PutDepartmentsByIdError,
   PutDepartmentsByIdResponse,
-  PostDocumentsScheduleDeletionData,
-  PostDocumentsScheduleDeletionError,
   PostDocumentsScheduleDeletionAllData,
   PostDocumentsScheduleDeletionAllError,
   GetDocumentsStatsData,
@@ -1270,59 +1267,6 @@ export const putDepartmentsByIdMutation = (
   return mutationOptions;
 };
 
-export const postDocumentsScheduleDeletionQueryKey = (
-  options: Options<PostDocumentsScheduleDeletionData>,
-) => createQueryKey("postDocumentsScheduleDeletion", options);
-
-/**
- * Schedule file deletion
- * Schedules files for deletion after a specified delay
- */
-export const postDocumentsScheduleDeletionOptions = (
-  options: Options<PostDocumentsScheduleDeletionData>,
-) => {
-  return queryOptions({
-    queryFn: async ({ queryKey, signal }) => {
-      const { data } = await postDocumentsScheduleDeletion({
-        ...options,
-        ...queryKey[0],
-        signal,
-        throwOnError: true,
-      });
-      return data;
-    },
-    queryKey: postDocumentsScheduleDeletionQueryKey(options),
-  });
-};
-
-/**
- * Schedule file deletion
- * Schedules files for deletion after a specified delay
- */
-export const postDocumentsScheduleDeletionMutation = (
-  options?: Partial<Options<PostDocumentsScheduleDeletionData>>,
-): UseMutationOptions<
-  unknown,
-  AxiosError<PostDocumentsScheduleDeletionError>,
-  Options<PostDocumentsScheduleDeletionData>
-> => {
-  const mutationOptions: UseMutationOptions<
-    unknown,
-    AxiosError<PostDocumentsScheduleDeletionError>,
-    Options<PostDocumentsScheduleDeletionData>
-  > = {
-    mutationFn: async (localOptions) => {
-      const { data } = await postDocumentsScheduleDeletion({
-        ...options,
-        ...localOptions,
-        throwOnError: true,
-      });
-      return data;
-    },
-  };
-  return mutationOptions;
-};
-
 export const postDocumentsScheduleDeletionAllQueryKey = (
   options?: Options<PostDocumentsScheduleDeletionAllData>,
 ) => createQueryKey("postDocumentsScheduleDeletionAll", options);
@@ -1523,8 +1467,8 @@ export const postFilesMutation = (
 };
 
 /**
- * Delete file
- * Deletes a file by ID
+ * Schedule file deletion
+ * Schedules a file for deletion after the configured delay
  */
 export const deleteFilesByIdMutation = (
   options?: Partial<Options<DeleteFilesByIdData>>,

@@ -81,8 +81,6 @@ import type {
   PutDepartmentsByIdData,
   PutDepartmentsByIdResponse,
   PutDepartmentsByIdError,
-  PostDocumentsScheduleDeletionData,
-  PostDocumentsScheduleDeletionError,
   PostDocumentsScheduleDeletionAllData,
   PostDocumentsScheduleDeletionAllError,
   GetDocumentsStatsData,
@@ -793,35 +791,6 @@ export const putDepartmentsById = <ThrowOnError extends boolean = false>(
 };
 
 /**
- * Schedule file deletion
- * Schedules files for deletion after a specified delay
- */
-export const postDocumentsScheduleDeletion = <
-  ThrowOnError extends boolean = false,
->(
-  options: Options<PostDocumentsScheduleDeletionData, ThrowOnError>,
-) => {
-  return (options.client ?? _heyApiClient).post<
-    unknown,
-    PostDocumentsScheduleDeletionError,
-    ThrowOnError
-  >({
-    security: [
-      {
-        name: "Authorization",
-        type: "apiKey",
-      },
-    ],
-    url: "/documents/schedule_deletion",
-    ...options,
-    headers: {
-      "Content-Type": "application/json",
-      ...options?.headers,
-    },
-  });
-};
-
-/**
  * Schedule deletion for all files
  * Schedules deletion for all files
  */
@@ -921,8 +890,8 @@ export const postFiles = <ThrowOnError extends boolean = false>(
 };
 
 /**
- * Delete file
- * Deletes a file by ID
+ * Schedule file deletion
+ * Schedules a file for deletion after the configured delay
  */
 export const deleteFilesById = <ThrowOnError extends boolean = false>(
   options: Options<DeleteFilesByIdData, ThrowOnError>,

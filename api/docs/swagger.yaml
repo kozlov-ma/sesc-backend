@@ -304,16 +304,6 @@ definitions:
     required:
     - action
     type: object
-  param.ScheduleDeletionRequest:
-    properties:
-      file_ids:
-        items:
-          type: string
-        minItems: 1
-        type: array
-    required:
-    - file_ids
-    type: object
   param.UpdateAchievementPointsRequest:
     properties:
       comment:
@@ -480,7 +470,6 @@ definitions:
       deletedFiles:
         type: integer
       deletionDelay:
-        description: Duration string like "24h", "720h"
         type: string
       notScheduled:
         type: integer
@@ -1799,48 +1788,6 @@ paths:
       summary: Update department details
       tags:
       - departments
-  /documents/schedule_deletion:
-    post:
-      consumes:
-      - application/json
-      description: Schedules files for deletion after a specified delay
-      parameters:
-      - description: Bearer JWT token
-        in: header
-        name: Authorization
-        type: string
-      - description: Schedule deletion request
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/param.ScheduleDeletionRequest'
-      produces:
-      - application/json
-      responses:
-        "204":
-          description: No Content
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/respond.Error'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/respond.Error'
-        "403":
-          description: Forbidden
-          schema:
-            $ref: '#/definitions/respond.Error'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/respond.Error'
-      security:
-      - BearerAuth: []
-      summary: Schedule file deletion
-      tags:
-      - files
   /documents/schedule_deletion/all:
     post:
       consumes:
@@ -2008,7 +1955,7 @@ paths:
     delete:
       consumes:
       - application/json
-      description: Deletes a file by ID
+      description: Schedules a file for deletion after the configured delay
       parameters:
       - description: Bearer JWT token
         in: header
@@ -2040,13 +1987,17 @@ paths:
           description: Not Found
           schema:
             $ref: '#/definitions/respond.Error'
+        "409":
+          description: File has dependencies
+          schema:
+            $ref: '#/definitions/respond.Error'
         "500":
           description: Internal Server Error
           schema:
             $ref: '#/definitions/respond.Error'
       security:
       - BearerAuth: []
-      summary: Delete file
+      summary: Schedule file deletion
       tags:
       - files
     get:

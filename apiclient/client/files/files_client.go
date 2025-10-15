@@ -90,8 +90,6 @@ type ClientService interface {
 
 	GetFilesIDDownload(params *GetFilesIDDownloadParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) error
 
-	PostDocumentsScheduleDeletion(params *PostDocumentsScheduleDeletionParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostDocumentsScheduleDeletionNoContent, error)
-
 	PostDocumentsScheduleDeletionAll(params *PostDocumentsScheduleDeletionAllParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostDocumentsScheduleDeletionAllNoContent, error)
 
 	PostFiles(params *PostFilesParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostFilesCreated, error)
@@ -100,9 +98,9 @@ type ClientService interface {
 }
 
 /*
-DeleteFilesID deletes file
+DeleteFilesID schedules file deletion
 
-Deletes a file by ID
+Schedules a file for deletion after the configured delay
 */
 func (a *Client) DeleteFilesID(params *DeleteFilesIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*DeleteFilesIDNoContent, error) {
 	// TODO: Validate the params before sending
@@ -295,47 +293,6 @@ func (a *Client) GetFilesIDDownload(params *GetFilesIDDownloadParams, authInfo r
 		return err
 	}
 	return nil
-}
-
-/*
-PostDocumentsScheduleDeletion schedules file deletion
-
-Schedules files for deletion after a specified delay
-*/
-func (a *Client) PostDocumentsScheduleDeletion(params *PostDocumentsScheduleDeletionParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostDocumentsScheduleDeletionNoContent, error) {
-	// TODO: Validate the params before sending
-	if params == nil {
-		params = NewPostDocumentsScheduleDeletionParams()
-	}
-	op := &runtime.ClientOperation{
-		ID:                 "PostDocumentsScheduleDeletion",
-		Method:             "POST",
-		PathPattern:        "/documents/schedule_deletion",
-		ProducesMediaTypes: []string{"application/json"},
-		ConsumesMediaTypes: []string{"application/json"},
-		Schemes:            []string{"http"},
-		Params:             params,
-		Reader:             &PostDocumentsScheduleDeletionReader{formats: a.formats},
-		AuthInfo:           authInfo,
-		Context:            params.Context,
-		Client:             params.HTTPClient,
-	}
-	for _, opt := range opts {
-		opt(op)
-	}
-
-	result, err := a.transport.Submit(op)
-	if err != nil {
-		return nil, err
-	}
-	success, ok := result.(*PostDocumentsScheduleDeletionNoContent)
-	if ok {
-		return success, nil
-	}
-	// unexpected success response
-	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
-	msg := fmt.Sprintf("unexpected success response for PostDocumentsScheduleDeletion: API contract not enforced by server. Client expected to get an error, but got: %T", result)
-	panic(msg)
 }
 
 /*
