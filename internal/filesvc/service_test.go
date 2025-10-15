@@ -248,17 +248,14 @@ func TestDelete(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		ctx, svc, fileID, _ := setup(t)
 
-		// Delete now schedules the file for deletion
+		// Delete now just validates the file exists and has no dependencies
 		err := svc.Delete(ctx, fileID)
 		require.NoError(t, err)
 
-		// Verify the file is scheduled for deletion (not deleted yet)
+		// Verify the file still exists
 		file, err := svc.ByID(ctx, fileID)
 		require.NoError(t, err)
-		require.True(t, file.DeletionScheduled, "File should be scheduled for deletion")
-		require.NotNil(t, file.ScheduledDeletionAt, "File should have scheduled deletion time")
-		require.False(t, file.FileDeleted, "File should not be deleted yet")
-		require.NotNil(t, file.S3ObjectKey, "S3ObjectKey should not be cleared yet")
+		require.NotNil(t, file.S3ObjectKey, "S3ObjectKey should not be cleared")
 	})
 
 	t.Run("non_existent_file", func(t *testing.T) {
@@ -267,23 +264,6 @@ func TestDelete(t *testing.T) {
 		nonExistentID := uuid.Must(uuid.NewV7())
 		err := svc.Delete(ctx, nonExistentID)
 		require.ErrorIs(t, err, sesc.ErrFileNotFound)
-	})
-
-	t.Run("already_scheduled", func(t *testing.T) {
-		ctx, svc, fileID, _ := setup(t)
-
-		// Delete once
-		err := svc.Delete(ctx, fileID)
-		require.NoError(t, err)
-
-		// Delete again - should still succeed (update schedule time)
-		err = svc.Delete(ctx, fileID)
-		require.NoError(t, err)
-
-		// Verify the file is still scheduled
-		file, err := svc.ByID(ctx, fileID)
-		require.NoError(t, err)
-		require.True(t, file.DeletionScheduled)
 	})
 
 	t.Run("file_has_dependencies", func(t *testing.T) {
@@ -320,8 +300,7 @@ func TestDelete(t *testing.T) {
 
 		file, err := svc.ByID(ctx, fileID)
 		require.NoError(t, err)
-		require.False(t, file.DeletionScheduled, "File should not be scheduled for deletion")
-		require.False(t, file.FileDeleted, "File should not be deleted")
+		require.NotNil(t, file, "File should still exist")
 	})
 }
 
@@ -634,169 +613,5 @@ func TestDownloadURL(t *testing.T) {
 		_, err := svc.DownloadURL(ctx, fileID)
 		require.Error(t, err)
 		require.ErrorIs(t, err, storageError)
-	})
-}
-
-func TestDeleteAll(t *testing.T) {
-	setup := func(t *testing.T) (ctx context.Context, svc *FileService, storage *mocks.MockObjectStorage) {
-		ctx = t.Context()
-		ctx, _ = event.NewRecord(ctx, "test")
-		svc, storage, _ = setupFileService(t)
-
-		return ctx, svc, storage
-	}
-
-	t.Run("success_schedule_all", func(t *testing.T) {
-		ctx, svc, storage := setup(t)
-
-		// Create test files
-		files := make([]*ent.File, 3)
-		for i := range 3 {
-			content := []byte(fmt.Sprintf("test file content %d", i))
-			reader := bytes.NewReader(content)
-
-			opts := FileOpts{
-				FileName: fmt.Sprintf("test%d.txt", i),
-				FileSize: len(content),
-			}
-
-			storage.EXPECT().
-				PutObject(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Eq(int64(len(content)))).
-				Return(nil)
-
-			file, err := svc.Create(ctx, reader, opts)
-			require.NoError(t, err)
-			files[i] = file
-		}
-
-		// Schedule all files for deletion
-		err := svc.DeleteAllFiles(ctx)
-		require.NoError(t, err)
-
-		// Verify all files are scheduled for deletion (not deleted yet)
-		for i, file := range files {
-			retrievedFile, err := svc.ByID(ctx, file.ID)
-			require.NoError(t, err, "File %d should still exist", i)
-			require.True(t, retrievedFile.DeletionScheduled, "File %d should be scheduled for deletion", i)
-			require.NotNil(t, retrievedFile.ScheduledDeletionAt, "File %d should have scheduled deletion time", i)
-			require.False(t, retrievedFile.FileDeleted, "File %d should not be deleted yet", i)
-		}
-	})
-
-	t.Run("skip_already_deleted", func(t *testing.T) {
-		ctx, svc, storage := setup(t)
-
-		// Create one normal file and one already deleted file
-		content := []byte("test file content")
-		reader := bytes.NewReader(content)
-
-		opts := FileOpts{
-			FileName: "test.txt",
-			FileSize: len(content),
-		}
-
-		storage.EXPECT().PutObject(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Eq(int64(len(content)))).Return(nil)
-
-		file, err := svc.Create(ctx, reader, opts)
-		require.NoError(t, err)
-
-		// Schedule all files - should only schedule the one normal file
-		err = svc.DeleteAllFiles(ctx)
-		require.NoError(t, err)
-
-		// Verify file is scheduled
-		retrievedFile, err := svc.ByID(ctx, file.ID)
-		require.NoError(t, err)
-		require.True(t, retrievedFile.DeletionScheduled, "File should be scheduled for deletion")
-		require.NotNil(t, retrievedFile.ScheduledDeletionAt, "File should have scheduled deletion time")
-	})
-
-	t.Run("empty_files", func(t *testing.T) {
-		ctx, svc, _ := setup(t)
-
-		// Delete all files when no files exist
-		err := svc.DeleteAllFiles(ctx)
-		require.NoError(t, err)
-	})
-
-	t.Run("skip_already_scheduled", func(t *testing.T) {
-		ctx, svc, storage := setup(t)
-
-		// Create test files
-		files := make([]*ent.File, 2)
-		for i := range 2 {
-			content := []byte(fmt.Sprintf("test file content %d", i))
-			reader := bytes.NewReader(content)
-
-			opts := FileOpts{
-				FileName: fmt.Sprintf("test%d.txt", i),
-				FileSize: len(content),
-			}
-
-			storage.EXPECT().
-				PutObject(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Eq(int64(len(content)))).
-				Return(nil)
-
-			file, err := svc.Create(ctx, reader, opts)
-			require.NoError(t, err)
-			files[i] = file
-		}
-
-		// Schedule all files
-		err := svc.DeleteAllFiles(ctx)
-		require.NoError(t, err)
-
-		// Verify both files are scheduled
-		for i, file := range files {
-			retrievedFile, err := svc.ByID(ctx, file.ID)
-			require.NoError(t, err)
-			require.True(t, retrievedFile.DeletionScheduled, "File %d should be scheduled", i)
-		}
-	})
-}
-
-func TestDeleteAllFilesIntegration(t *testing.T) {
-	// This test verifies the DeleteAllFiles and ProcessScheduledDeletions work together
-	setup := func(t *testing.T) (ctx context.Context, svc *FileService, storage *mocks.MockObjectStorage) {
-		ctx = t.Context()
-		ctx, _ = event.NewRecord(ctx, "test")
-		svc, storage, _ = setupFileService(t)
-		return ctx, svc, storage
-	}
-
-	t.Run("schedule_and_process", func(t *testing.T) {
-		ctx, svc, storage := setup(t)
-
-		// Create test files
-		files := make([]*ent.File, 3)
-		for i := range 3 {
-			content := []byte(fmt.Sprintf("test file content %d", i))
-			reader := bytes.NewReader(content)
-
-			opts := FileOpts{
-				FileName: fmt.Sprintf("test%d.txt", i),
-				FileSize: len(content),
-			}
-
-			storage.EXPECT().
-				PutObject(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Eq(int64(len(content)))).
-				Return(nil)
-
-			file, err := svc.Create(ctx, reader, opts)
-			require.NoError(t, err)
-			files[i] = file
-		}
-
-		// Schedule all files for deletion
-		err := svc.DeleteAllFiles(ctx)
-		require.NoError(t, err)
-
-		// Verify all files are scheduled but not deleted yet
-		for i, file := range files {
-			retrievedFile, err := svc.ByID(ctx, file.ID)
-			require.NoError(t, err, "File %d should still exist", i)
-			require.True(t, retrievedFile.DeletionScheduled, "File %d should be scheduled", i)
-			require.False(t, retrievedFile.FileDeleted, "File %d should not be deleted yet", i)
-		}
 	})
 }

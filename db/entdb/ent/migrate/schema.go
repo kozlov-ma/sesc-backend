@@ -40,6 +40,8 @@ var (
 	AchievementDocumentsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID, Unique: true},
 		{Name: "name", Type: field.TypeString, Size: 255},
+		{Name: "status", Type: field.TypeString, Default: "active"},
+		{Name: "scheduled_deletion_at", Type: field.TypeTime, Nullable: true},
 		{Name: "achievement_id", Type: field.TypeUUID},
 		{Name: "file_id", Type: field.TypeUUID},
 	}
@@ -51,15 +53,27 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "achievement_documents_achievements_documents",
-				Columns:    []*schema.Column{AchievementDocumentsColumns[2]},
+				Columns:    []*schema.Column{AchievementDocumentsColumns[4]},
 				RefColumns: []*schema.Column{AchievementsColumns[0]},
 				OnDelete:   schema.NoAction,
 			},
 			{
 				Symbol:     "achievement_documents_files_achievement_documents",
-				Columns:    []*schema.Column{AchievementDocumentsColumns[3]},
+				Columns:    []*schema.Column{AchievementDocumentsColumns[5]},
 				RefColumns: []*schema.Column{FilesColumns[0]},
 				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "achievementdocument_status",
+				Unique:  false,
+				Columns: []*schema.Column{AchievementDocumentsColumns[2]},
+			},
+			{
+				Name:    "achievementdocument_scheduled_deletion_at",
+				Unique:  false,
+				Columns: []*schema.Column{AchievementDocumentsColumns[3]},
 			},
 		},
 	}
@@ -192,9 +206,6 @@ var (
 		{Name: "s3_object_key", Type: field.TypeString, Unique: true, Nullable: true},
 		{Name: "name", Type: field.TypeString},
 		{Name: "size", Type: field.TypeInt},
-		{Name: "file_deleted", Type: field.TypeBool, Default: false},
-		{Name: "deletion_scheduled", Type: field.TypeBool, Default: false},
-		{Name: "scheduled_deletion_at", Type: field.TypeTime, Nullable: true},
 		{Name: "owner_id", Type: field.TypeUUID, Nullable: true},
 	}
 	// FilesTable holds the schema information for the "files" table.
@@ -205,7 +216,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "files_users_files",
-				Columns:    []*schema.Column{FilesColumns[7]},
+				Columns:    []*schema.Column{FilesColumns[4]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -214,7 +225,7 @@ var (
 			{
 				Name:    "file_owner_id",
 				Unique:  false,
-				Columns: []*schema.Column{FilesColumns[7]},
+				Columns: []*schema.Column{FilesColumns[4]},
 			},
 			{
 				Name:    "file_name",
@@ -225,16 +236,6 @@ var (
 				Name:    "file_s3_object_key",
 				Unique:  false,
 				Columns: []*schema.Column{FilesColumns[1]},
-			},
-			{
-				Name:    "file_deletion_scheduled",
-				Unique:  false,
-				Columns: []*schema.Column{FilesColumns[5]},
-			},
-			{
-				Name:    "file_scheduled_deletion_at",
-				Unique:  false,
-				Columns: []*schema.Column{FilesColumns[6]},
 			},
 		},
 	}

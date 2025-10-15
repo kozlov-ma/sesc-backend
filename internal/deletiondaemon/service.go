@@ -5,26 +5,31 @@ import (
 	"time"
 
 	"github.com/kozlov-ma/sesc-backend/internal/config"
-	"github.com/kozlov-ma/sesc-backend/internal/filesvc"
+	"github.com/kozlov-ma/sesc-backend/internal/services/achsvc"
 	"github.com/kozlov-ma/sesc-backend/pkg/event"
 	"github.com/kozlov-ma/sesc-backend/pkg/event/events"
 )
 
-type Service struct {
-	fileService *filesvc.FileService
-	config      *config.DeletionDaemonConfig
-	stopChan    chan struct{}
+type ObjectStorage interface {
+	RemoveObject(ctx context.Context, objectKey string) error
 }
 
-func New(fileService *filesvc.FileService, config *config.DeletionDaemonConfig) *Service {
+type Service struct {
+	achService *achsvc.ACS
+	storage    ObjectStorage
+	config     *config.DeletionDaemonConfig
+	stopChan   chan struct{}
+}
+
+func New(achService *achsvc.ACS, storage ObjectStorage, config *config.DeletionDaemonConfig) *Service {
 	return &Service{
-		fileService: fileService,
-		config:      config,
-		stopChan:    make(chan struct{}),
+		achService: achService,
+		storage:    storage,
+		config:     config,
+		stopChan:   make(chan struct{}),
 	}
 }
 
-// Start starts the deletion daemon
 func (s *Service) Start(ctx context.Context) {
 	ctx, daemonRec := event.NewRecord(ctx, "deletion_daemon")
 
@@ -47,7 +52,6 @@ func (s *Service) Start(ctx context.Context) {
 		select {
 		case <-ticker.C:
 			iterationCount++
-			// Create new record for each iteration to ensure it gets logged
 			ctx, iterRec := event.NewRecord(ctx, "deletion_daemon_iteration")
 			iterRec.Set("iteration_number", iterationCount)
 			iterRec.Set("iteration_time", time.Now())
@@ -70,17 +74,15 @@ func (s *Service) Start(ctx context.Context) {
 	}
 }
 
-// Stop stops the deletion daemon
 func (s *Service) Stop() {
 	close(s.stopChan)
 }
 
-// processScheduledDeletions processes files that are ready for deletion
 func (s *Service) processScheduledDeletions(ctx context.Context, rec *event.Record) {
 	processRec := rec.Sub("process_scheduled_deletions")
 	processRec.Set("start_time", time.Now())
 
-	err := s.fileService.ProcessScheduledDeletions(ctx)
+	err := s.achService.ProcessScheduledDocumentDeletions(ctx, s.storage)
 	if err != nil {
 		processRec.Add(events.Error, err)
 		processRec.Set("success", false)

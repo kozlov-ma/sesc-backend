@@ -4,7 +4,9 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
+	"entgo.io/ent/schema/index"
 	"github.com/gofrs/uuid/v5"
+	"github.com/kozlov-ma/sesc-backend/achievement"
 )
 
 // AchievementDocument holds the schema definition for the AchievementDocument entity.
@@ -24,6 +26,10 @@ func (AchievementDocument) Fields() []ent.Field {
 			NotEmpty().
 			MaxLen(255),
 		field.UUID("file_id", uuid.UUID{}),
+		field.String("status").
+			Default(achievement.DocumentStatusActive).
+			NotEmpty(),
+		field.Time("scheduled_deletion_at").Optional().Nillable(),
 	}
 }
 
@@ -40,5 +46,13 @@ func (AchievementDocument) Edges() []ent.Edge {
 			Field("file_id").
 			Unique().
 			Required(),
+	}
+}
+
+// Indexes of the AchievementDocument.
+func (AchievementDocument) Indexes() []ent.Index {
+	return []ent.Index{
+		index.Fields("status"),
+		index.Fields("scheduled_deletion_at"),
 	}
 }

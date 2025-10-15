@@ -3,8 +3,6 @@
 package file
 
 import (
-	"time"
-
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	uuid "github.com/gofrs/uuid/v5"
@@ -74,21 +72,6 @@ func Name(v string) predicate.File {
 // Size applies equality check predicate on the "size" field. It's identical to SizeEQ.
 func Size(v int) predicate.File {
 	return predicate.File(sql.FieldEQ(FieldSize, v))
-}
-
-// FileDeleted applies equality check predicate on the "file_deleted" field. It's identical to FileDeletedEQ.
-func FileDeleted(v bool) predicate.File {
-	return predicate.File(sql.FieldEQ(FieldFileDeleted, v))
-}
-
-// DeletionScheduled applies equality check predicate on the "deletion_scheduled" field. It's identical to DeletionScheduledEQ.
-func DeletionScheduled(v bool) predicate.File {
-	return predicate.File(sql.FieldEQ(FieldDeletionScheduled, v))
-}
-
-// ScheduledDeletionAt applies equality check predicate on the "scheduled_deletion_at" field. It's identical to ScheduledDeletionAtEQ.
-func ScheduledDeletionAt(v time.Time) predicate.File {
-	return predicate.File(sql.FieldEQ(FieldScheduledDeletionAt, v))
 }
 
 // OwnerIDEQ applies the EQ predicate on the "owner_id" field.
@@ -299,76 +282,6 @@ func SizeLT(v int) predicate.File {
 // SizeLTE applies the LTE predicate on the "size" field.
 func SizeLTE(v int) predicate.File {
 	return predicate.File(sql.FieldLTE(FieldSize, v))
-}
-
-// FileDeletedEQ applies the EQ predicate on the "file_deleted" field.
-func FileDeletedEQ(v bool) predicate.File {
-	return predicate.File(sql.FieldEQ(FieldFileDeleted, v))
-}
-
-// FileDeletedNEQ applies the NEQ predicate on the "file_deleted" field.
-func FileDeletedNEQ(v bool) predicate.File {
-	return predicate.File(sql.FieldNEQ(FieldFileDeleted, v))
-}
-
-// DeletionScheduledEQ applies the EQ predicate on the "deletion_scheduled" field.
-func DeletionScheduledEQ(v bool) predicate.File {
-	return predicate.File(sql.FieldEQ(FieldDeletionScheduled, v))
-}
-
-// DeletionScheduledNEQ applies the NEQ predicate on the "deletion_scheduled" field.
-func DeletionScheduledNEQ(v bool) predicate.File {
-	return predicate.File(sql.FieldNEQ(FieldDeletionScheduled, v))
-}
-
-// ScheduledDeletionAtEQ applies the EQ predicate on the "scheduled_deletion_at" field.
-func ScheduledDeletionAtEQ(v time.Time) predicate.File {
-	return predicate.File(sql.FieldEQ(FieldScheduledDeletionAt, v))
-}
-
-// ScheduledDeletionAtNEQ applies the NEQ predicate on the "scheduled_deletion_at" field.
-func ScheduledDeletionAtNEQ(v time.Time) predicate.File {
-	return predicate.File(sql.FieldNEQ(FieldScheduledDeletionAt, v))
-}
-
-// ScheduledDeletionAtIn applies the In predicate on the "scheduled_deletion_at" field.
-func ScheduledDeletionAtIn(vs ...time.Time) predicate.File {
-	return predicate.File(sql.FieldIn(FieldScheduledDeletionAt, vs...))
-}
-
-// ScheduledDeletionAtNotIn applies the NotIn predicate on the "scheduled_deletion_at" field.
-func ScheduledDeletionAtNotIn(vs ...time.Time) predicate.File {
-	return predicate.File(sql.FieldNotIn(FieldScheduledDeletionAt, vs...))
-}
-
-// ScheduledDeletionAtGT applies the GT predicate on the "scheduled_deletion_at" field.
-func ScheduledDeletionAtGT(v time.Time) predicate.File {
-	return predicate.File(sql.FieldGT(FieldScheduledDeletionAt, v))
-}
-
-// ScheduledDeletionAtGTE applies the GTE predicate on the "scheduled_deletion_at" field.
-func ScheduledDeletionAtGTE(v time.Time) predicate.File {
-	return predicate.File(sql.FieldGTE(FieldScheduledDeletionAt, v))
-}
-
-// ScheduledDeletionAtLT applies the LT predicate on the "scheduled_deletion_at" field.
-func ScheduledDeletionAtLT(v time.Time) predicate.File {
-	return predicate.File(sql.FieldLT(FieldScheduledDeletionAt, v))
-}
-
-// ScheduledDeletionAtLTE applies the LTE predicate on the "scheduled_deletion_at" field.
-func ScheduledDeletionAtLTE(v time.Time) predicate.File {
-	return predicate.File(sql.FieldLTE(FieldScheduledDeletionAt, v))
-}
-
-// ScheduledDeletionAtIsNil applies the IsNil predicate on the "scheduled_deletion_at" field.
-func ScheduledDeletionAtIsNil() predicate.File {
-	return predicate.File(sql.FieldIsNull(FieldScheduledDeletionAt))
-}
-
-// ScheduledDeletionAtNotNil applies the NotNil predicate on the "scheduled_deletion_at" field.
-func ScheduledDeletionAtNotNil() predicate.File {
-	return predicate.File(sql.FieldNotNull(FieldScheduledDeletionAt))
 }
 
 // HasOwner applies the HasEdge predicate on the "owner" edge.

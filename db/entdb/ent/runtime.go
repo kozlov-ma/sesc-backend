@@ -59,6 +59,12 @@ func init() {
 			return nil
 		}
 	}()
+	// achievementdocumentDescStatus is the schema descriptor for status field.
+	achievementdocumentDescStatus := achievementdocumentFields[4].Descriptor()
+	// achievementdocument.DefaultStatus holds the default value on creation for the status field.
+	achievementdocument.DefaultStatus = achievementdocumentDescStatus.Default.(string)
+	// achievementdocument.StatusValidator is a validator for the "status" field. It is called by the builders before save.
+	achievementdocument.StatusValidator = achievementdocumentDescStatus.Validators[0].(func(string) error)
 	// achievementdocumentDescID is the schema descriptor for id field.
 	achievementdocumentDescID := achievementdocumentFields[0].Descriptor()
 	// achievementdocument.DefaultID holds the default value on creation for the id field.
@@ -151,14 +157,6 @@ func init() {
 	department.DefaultID = departmentDescID.Default.(func() uuid.UUID)
 	fileFields := schema.File{}.Fields()
 	_ = fileFields
-	// fileDescFileDeleted is the schema descriptor for file_deleted field.
-	fileDescFileDeleted := fileFields[5].Descriptor()
-	// file.DefaultFileDeleted holds the default value on creation for the file_deleted field.
-	file.DefaultFileDeleted = fileDescFileDeleted.Default.(bool)
-	// fileDescDeletionScheduled is the schema descriptor for deletion_scheduled field.
-	fileDescDeletionScheduled := fileFields[6].Descriptor()
-	// file.DefaultDeletionScheduled holds the default value on creation for the deletion_scheduled field.
-	file.DefaultDeletionScheduled = fileDescDeletionScheduled.Default.(bool)
 	// fileDescID is the schema descriptor for id field.
 	fileDescID := fileFields[0].Descriptor()
 	// file.DefaultID holds the default value on creation for the id field.

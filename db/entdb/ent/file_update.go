@@ -6,7 +6,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -103,54 +102,6 @@ func (fu *FileUpdate) SetNillableSize(i *int) *FileUpdate {
 // AddSize adds i to the "size" field.
 func (fu *FileUpdate) AddSize(i int) *FileUpdate {
 	fu.mutation.AddSize(i)
-	return fu
-}
-
-// SetFileDeleted sets the "file_deleted" field.
-func (fu *FileUpdate) SetFileDeleted(b bool) *FileUpdate {
-	fu.mutation.SetFileDeleted(b)
-	return fu
-}
-
-// SetNillableFileDeleted sets the "file_deleted" field if the given value is not nil.
-func (fu *FileUpdate) SetNillableFileDeleted(b *bool) *FileUpdate {
-	if b != nil {
-		fu.SetFileDeleted(*b)
-	}
-	return fu
-}
-
-// SetDeletionScheduled sets the "deletion_scheduled" field.
-func (fu *FileUpdate) SetDeletionScheduled(b bool) *FileUpdate {
-	fu.mutation.SetDeletionScheduled(b)
-	return fu
-}
-
-// SetNillableDeletionScheduled sets the "deletion_scheduled" field if the given value is not nil.
-func (fu *FileUpdate) SetNillableDeletionScheduled(b *bool) *FileUpdate {
-	if b != nil {
-		fu.SetDeletionScheduled(*b)
-	}
-	return fu
-}
-
-// SetScheduledDeletionAt sets the "scheduled_deletion_at" field.
-func (fu *FileUpdate) SetScheduledDeletionAt(t time.Time) *FileUpdate {
-	fu.mutation.SetScheduledDeletionAt(t)
-	return fu
-}
-
-// SetNillableScheduledDeletionAt sets the "scheduled_deletion_at" field if the given value is not nil.
-func (fu *FileUpdate) SetNillableScheduledDeletionAt(t *time.Time) *FileUpdate {
-	if t != nil {
-		fu.SetScheduledDeletionAt(*t)
-	}
-	return fu
-}
-
-// ClearScheduledDeletionAt clears the value of the "scheduled_deletion_at" field.
-func (fu *FileUpdate) ClearScheduledDeletionAt() *FileUpdate {
-	fu.mutation.ClearScheduledDeletionAt()
 	return fu
 }
 
@@ -256,18 +207,6 @@ func (fu *FileUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := fu.mutation.AddedSize(); ok {
 		_spec.AddField(file.FieldSize, field.TypeInt, value)
-	}
-	if value, ok := fu.mutation.FileDeleted(); ok {
-		_spec.SetField(file.FieldFileDeleted, field.TypeBool, value)
-	}
-	if value, ok := fu.mutation.DeletionScheduled(); ok {
-		_spec.SetField(file.FieldDeletionScheduled, field.TypeBool, value)
-	}
-	if value, ok := fu.mutation.ScheduledDeletionAt(); ok {
-		_spec.SetField(file.FieldScheduledDeletionAt, field.TypeTime, value)
-	}
-	if fu.mutation.ScheduledDeletionAtCleared() {
-		_spec.ClearField(file.FieldScheduledDeletionAt, field.TypeTime)
 	}
 	if fu.mutation.OwnerCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -438,54 +377,6 @@ func (fuo *FileUpdateOne) AddSize(i int) *FileUpdateOne {
 	return fuo
 }
 
-// SetFileDeleted sets the "file_deleted" field.
-func (fuo *FileUpdateOne) SetFileDeleted(b bool) *FileUpdateOne {
-	fuo.mutation.SetFileDeleted(b)
-	return fuo
-}
-
-// SetNillableFileDeleted sets the "file_deleted" field if the given value is not nil.
-func (fuo *FileUpdateOne) SetNillableFileDeleted(b *bool) *FileUpdateOne {
-	if b != nil {
-		fuo.SetFileDeleted(*b)
-	}
-	return fuo
-}
-
-// SetDeletionScheduled sets the "deletion_scheduled" field.
-func (fuo *FileUpdateOne) SetDeletionScheduled(b bool) *FileUpdateOne {
-	fuo.mutation.SetDeletionScheduled(b)
-	return fuo
-}
-
-// SetNillableDeletionScheduled sets the "deletion_scheduled" field if the given value is not nil.
-func (fuo *FileUpdateOne) SetNillableDeletionScheduled(b *bool) *FileUpdateOne {
-	if b != nil {
-		fuo.SetDeletionScheduled(*b)
-	}
-	return fuo
-}
-
-// SetScheduledDeletionAt sets the "scheduled_deletion_at" field.
-func (fuo *FileUpdateOne) SetScheduledDeletionAt(t time.Time) *FileUpdateOne {
-	fuo.mutation.SetScheduledDeletionAt(t)
-	return fuo
-}
-
-// SetNillableScheduledDeletionAt sets the "scheduled_deletion_at" field if the given value is not nil.
-func (fuo *FileUpdateOne) SetNillableScheduledDeletionAt(t *time.Time) *FileUpdateOne {
-	if t != nil {
-		fuo.SetScheduledDeletionAt(*t)
-	}
-	return fuo
-}
-
-// ClearScheduledDeletionAt clears the value of the "scheduled_deletion_at" field.
-func (fuo *FileUpdateOne) ClearScheduledDeletionAt() *FileUpdateOne {
-	fuo.mutation.ClearScheduledDeletionAt()
-	return fuo
-}
-
 // SetOwner sets the "owner" edge to the User entity.
 func (fuo *FileUpdateOne) SetOwner(u *User) *FileUpdateOne {
 	return fuo.SetOwnerID(u.ID)
@@ -618,18 +509,6 @@ func (fuo *FileUpdateOne) sqlSave(ctx context.Context) (_node *File, err error) 
 	}
 	if value, ok := fuo.mutation.AddedSize(); ok {
 		_spec.AddField(file.FieldSize, field.TypeInt, value)
-	}
-	if value, ok := fuo.mutation.FileDeleted(); ok {
-		_spec.SetField(file.FieldFileDeleted, field.TypeBool, value)
-	}
-	if value, ok := fuo.mutation.DeletionScheduled(); ok {
-		_spec.SetField(file.FieldDeletionScheduled, field.TypeBool, value)
-	}
-	if value, ok := fuo.mutation.ScheduledDeletionAt(); ok {
-		_spec.SetField(file.FieldScheduledDeletionAt, field.TypeTime, value)
-	}
-	if fuo.mutation.ScheduledDeletionAtCleared() {
-		_spec.ClearField(file.FieldScheduledDeletionAt, field.TypeTime)
 	}
 	if fuo.mutation.OwnerCleared() {
 		edge := &sqlgraph.EdgeSpec{

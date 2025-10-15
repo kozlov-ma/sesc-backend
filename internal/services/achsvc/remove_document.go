@@ -96,14 +96,16 @@ func (s *ACS) RemoveDocument(
 			return err
 		}
 
-		err = rec.Operation("delete_document", func(_ *event.Record) error {
+		err = rec.Operation("mark_document_deleted", func(_ *event.Record) error {
 			start := time.Now()
-			err := tx.AchievementDocument.DeleteOne(doc).Exec(ctx)
+			_, err := tx.AchievementDocument.UpdateOne(doc).
+				SetStatus(achievement.DocumentStatusDeleted).
+				Save(ctx)
 			statsRec.Add(events.PostgresQueries, 1)
 			statsRec.Add(events.PostgresTime, time.Since(start))
 
 			if err != nil {
-				return fmt.Errorf("failed to delete document: %w", err)
+				return fmt.Errorf("failed to mark document as deleted: %w", err)
 			}
 			return nil
 		})

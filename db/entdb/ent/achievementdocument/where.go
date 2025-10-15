@@ -3,6 +3,8 @@
 package achievementdocument
 
 import (
+	"time"
+
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	uuid "github.com/gofrs/uuid/v5"
@@ -67,6 +69,16 @@ func Name(v string) predicate.AchievementDocument {
 // FileID applies equality check predicate on the "file_id" field. It's identical to FileIDEQ.
 func FileID(v uuid.UUID) predicate.AchievementDocument {
 	return predicate.AchievementDocument(sql.FieldEQ(FieldFileID, v))
+}
+
+// Status applies equality check predicate on the "status" field. It's identical to StatusEQ.
+func Status(v string) predicate.AchievementDocument {
+	return predicate.AchievementDocument(sql.FieldEQ(FieldStatus, v))
+}
+
+// ScheduledDeletionAt applies equality check predicate on the "scheduled_deletion_at" field. It's identical to ScheduledDeletionAtEQ.
+func ScheduledDeletionAt(v time.Time) predicate.AchievementDocument {
+	return predicate.AchievementDocument(sql.FieldEQ(FieldScheduledDeletionAt, v))
 }
 
 // AchievementIDEQ applies the EQ predicate on the "achievement_id" field.
@@ -172,6 +184,121 @@ func FileIDIn(vs ...uuid.UUID) predicate.AchievementDocument {
 // FileIDNotIn applies the NotIn predicate on the "file_id" field.
 func FileIDNotIn(vs ...uuid.UUID) predicate.AchievementDocument {
 	return predicate.AchievementDocument(sql.FieldNotIn(FieldFileID, vs...))
+}
+
+// StatusEQ applies the EQ predicate on the "status" field.
+func StatusEQ(v string) predicate.AchievementDocument {
+	return predicate.AchievementDocument(sql.FieldEQ(FieldStatus, v))
+}
+
+// StatusNEQ applies the NEQ predicate on the "status" field.
+func StatusNEQ(v string) predicate.AchievementDocument {
+	return predicate.AchievementDocument(sql.FieldNEQ(FieldStatus, v))
+}
+
+// StatusIn applies the In predicate on the "status" field.
+func StatusIn(vs ...string) predicate.AchievementDocument {
+	return predicate.AchievementDocument(sql.FieldIn(FieldStatus, vs...))
+}
+
+// StatusNotIn applies the NotIn predicate on the "status" field.
+func StatusNotIn(vs ...string) predicate.AchievementDocument {
+	return predicate.AchievementDocument(sql.FieldNotIn(FieldStatus, vs...))
+}
+
+// StatusGT applies the GT predicate on the "status" field.
+func StatusGT(v string) predicate.AchievementDocument {
+	return predicate.AchievementDocument(sql.FieldGT(FieldStatus, v))
+}
+
+// StatusGTE applies the GTE predicate on the "status" field.
+func StatusGTE(v string) predicate.AchievementDocument {
+	return predicate.AchievementDocument(sql.FieldGTE(FieldStatus, v))
+}
+
+// StatusLT applies the LT predicate on the "status" field.
+func StatusLT(v string) predicate.AchievementDocument {
+	return predicate.AchievementDocument(sql.FieldLT(FieldStatus, v))
+}
+
+// StatusLTE applies the LTE predicate on the "status" field.
+func StatusLTE(v string) predicate.AchievementDocument {
+	return predicate.AchievementDocument(sql.FieldLTE(FieldStatus, v))
+}
+
+// StatusContains applies the Contains predicate on the "status" field.
+func StatusContains(v string) predicate.AchievementDocument {
+	return predicate.AchievementDocument(sql.FieldContains(FieldStatus, v))
+}
+
+// StatusHasPrefix applies the HasPrefix predicate on the "status" field.
+func StatusHasPrefix(v string) predicate.AchievementDocument {
+	return predicate.AchievementDocument(sql.FieldHasPrefix(FieldStatus, v))
+}
+
+// StatusHasSuffix applies the HasSuffix predicate on the "status" field.
+func StatusHasSuffix(v string) predicate.AchievementDocument {
+	return predicate.AchievementDocument(sql.FieldHasSuffix(FieldStatus, v))
+}
+
+// StatusEqualFold applies the EqualFold predicate on the "status" field.
+func StatusEqualFold(v string) predicate.AchievementDocument {
+	return predicate.AchievementDocument(sql.FieldEqualFold(FieldStatus, v))
+}
+
+// StatusContainsFold applies the ContainsFold predicate on the "status" field.
+func StatusContainsFold(v string) predicate.AchievementDocument {
+	return predicate.AchievementDocument(sql.FieldContainsFold(FieldStatus, v))
+}
+
+// ScheduledDeletionAtEQ applies the EQ predicate on the "scheduled_deletion_at" field.
+func ScheduledDeletionAtEQ(v time.Time) predicate.AchievementDocument {
+	return predicate.AchievementDocument(sql.FieldEQ(FieldScheduledDeletionAt, v))
+}
+
+// ScheduledDeletionAtNEQ applies the NEQ predicate on the "scheduled_deletion_at" field.
+func ScheduledDeletionAtNEQ(v time.Time) predicate.AchievementDocument {
+	return predicate.AchievementDocument(sql.FieldNEQ(FieldScheduledDeletionAt, v))
+}
+
+// ScheduledDeletionAtIn applies the In predicate on the "scheduled_deletion_at" field.
+func ScheduledDeletionAtIn(vs ...time.Time) predicate.AchievementDocument {
+	return predicate.AchievementDocument(sql.FieldIn(FieldScheduledDeletionAt, vs...))
+}
+
+// ScheduledDeletionAtNotIn applies the NotIn predicate on the "scheduled_deletion_at" field.
+func ScheduledDeletionAtNotIn(vs ...time.Time) predicate.AchievementDocument {
+	return predicate.AchievementDocument(sql.FieldNotIn(FieldScheduledDeletionAt, vs...))
+}
+
+// ScheduledDeletionAtGT applies the GT predicate on the "scheduled_deletion_at" field.
+func ScheduledDeletionAtGT(v time.Time) predicate.AchievementDocument {
+	return predicate.AchievementDocument(sql.FieldGT(FieldScheduledDeletionAt, v))
+}
+
+// ScheduledDeletionAtGTE applies the GTE predicate on the "scheduled_deletion_at" field.
+func ScheduledDeletionAtGTE(v time.Time) predicate.AchievementDocument {
+	return predicate.AchievementDocument(sql.FieldGTE(FieldScheduledDeletionAt, v))
+}
+
+// ScheduledDeletionAtLT applies the LT predicate on the "scheduled_deletion_at" field.
+func ScheduledDeletionAtLT(v time.Time) predicate.AchievementDocument {
+	return predicate.AchievementDocument(sql.FieldLT(FieldScheduledDeletionAt, v))
+}
+
+// ScheduledDeletionAtLTE applies the LTE predicate on the "scheduled_deletion_at" field.
+func ScheduledDeletionAtLTE(v time.Time) predicate.AchievementDocument {
+	return predicate.AchievementDocument(sql.FieldLTE(FieldScheduledDeletionAt, v))
+}
+
+// ScheduledDeletionAtIsNil applies the IsNil predicate on the "scheduled_deletion_at" field.
+func ScheduledDeletionAtIsNil() predicate.AchievementDocument {
+	return predicate.AchievementDocument(sql.FieldIsNull(FieldScheduledDeletionAt))
+}
+
+// ScheduledDeletionAtNotNil applies the NotNil predicate on the "scheduled_deletion_at" field.
+func ScheduledDeletionAtNotNil() predicate.AchievementDocument {
+	return predicate.AchievementDocument(sql.FieldNotNull(FieldScheduledDeletionAt))
 }
 
 // HasAchievement applies the HasEdge predicate on the "achievement" edge.

@@ -1,6 +1,6 @@
 package respond
 
-import "github.com/kozlov-ma/sesc-backend/sesc"
+import "github.com/kozlov-ma/sesc-backend/internal/services/achsvc"
 
 // DocumentStats represents the response for document statistics
 type DocumentStats struct {
@@ -12,11 +12,10 @@ type DocumentStats struct {
 	DeletionDelay        string `json:"deletionDelay"`
 }
 
-// WithDocumentStats creates a response with document statistics
-func WithDocumentStats(stats *sesc.FileStats, deletionDelay string) *DocumentStats {
+func WithDocumentStats(stats *achsvc.DocumentStats, deletionDelay string) *DocumentStats {
 	return &DocumentStats{
-		TotalFiles:           stats.TotalFiles,
-		DeletedFiles:         stats.DeletedFiles,
+		TotalFiles:           stats.TotalDocuments,
+		DeletedFiles:         stats.DeletedDocuments,
 		ScheduledForDeletion: stats.ScheduledForDeletion,
 		ReadyForDeletion:     stats.ReadyForDeletion,
 		NotScheduled:         stats.NotScheduled,
