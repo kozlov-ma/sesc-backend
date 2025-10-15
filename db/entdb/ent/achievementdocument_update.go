@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -72,6 +73,40 @@ func (adu *AchievementDocumentUpdate) SetNillableFileID(u *uuid.UUID) *Achieveme
 	return adu
 }
 
+// SetStatus sets the "status" field.
+func (adu *AchievementDocumentUpdate) SetStatus(s string) *AchievementDocumentUpdate {
+	adu.mutation.SetStatus(s)
+	return adu
+}
+
+// SetNillableStatus sets the "status" field if the given value is not nil.
+func (adu *AchievementDocumentUpdate) SetNillableStatus(s *string) *AchievementDocumentUpdate {
+	if s != nil {
+		adu.SetStatus(*s)
+	}
+	return adu
+}
+
+// SetScheduledDeletionAt sets the "scheduled_deletion_at" field.
+func (adu *AchievementDocumentUpdate) SetScheduledDeletionAt(t time.Time) *AchievementDocumentUpdate {
+	adu.mutation.SetScheduledDeletionAt(t)
+	return adu
+}
+
+// SetNillableScheduledDeletionAt sets the "scheduled_deletion_at" field if the given value is not nil.
+func (adu *AchievementDocumentUpdate) SetNillableScheduledDeletionAt(t *time.Time) *AchievementDocumentUpdate {
+	if t != nil {
+		adu.SetScheduledDeletionAt(*t)
+	}
+	return adu
+}
+
+// ClearScheduledDeletionAt clears the value of the "scheduled_deletion_at" field.
+func (adu *AchievementDocumentUpdate) ClearScheduledDeletionAt() *AchievementDocumentUpdate {
+	adu.mutation.ClearScheduledDeletionAt()
+	return adu
+}
+
 // SetAchievement sets the "achievement" edge to the Achievement entity.
 func (adu *AchievementDocumentUpdate) SetAchievement(a *Achievement) *AchievementDocumentUpdate {
 	return adu.SetAchievementID(a.ID)
@@ -133,6 +168,11 @@ func (adu *AchievementDocumentUpdate) check() error {
 			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "AchievementDocument.name": %w`, err)}
 		}
 	}
+	if v, ok := adu.mutation.Status(); ok {
+		if err := achievementdocument.StatusValidator(v); err != nil {
+			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "AchievementDocument.status": %w`, err)}
+		}
+	}
 	if adu.mutation.AchievementCleared() && len(adu.mutation.AchievementIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "AchievementDocument.achievement"`)
 	}
@@ -156,6 +196,15 @@ func (adu *AchievementDocumentUpdate) sqlSave(ctx context.Context) (n int, err e
 	}
 	if value, ok := adu.mutation.Name(); ok {
 		_spec.SetField(achievementdocument.FieldName, field.TypeString, value)
+	}
+	if value, ok := adu.mutation.Status(); ok {
+		_spec.SetField(achievementdocument.FieldStatus, field.TypeString, value)
+	}
+	if value, ok := adu.mutation.ScheduledDeletionAt(); ok {
+		_spec.SetField(achievementdocument.FieldScheduledDeletionAt, field.TypeTime, value)
+	}
+	if adu.mutation.ScheduledDeletionAtCleared() {
+		_spec.ClearField(achievementdocument.FieldScheduledDeletionAt, field.TypeTime)
 	}
 	if adu.mutation.AchievementCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -277,6 +326,40 @@ func (aduo *AchievementDocumentUpdateOne) SetNillableFileID(u *uuid.UUID) *Achie
 	return aduo
 }
 
+// SetStatus sets the "status" field.
+func (aduo *AchievementDocumentUpdateOne) SetStatus(s string) *AchievementDocumentUpdateOne {
+	aduo.mutation.SetStatus(s)
+	return aduo
+}
+
+// SetNillableStatus sets the "status" field if the given value is not nil.
+func (aduo *AchievementDocumentUpdateOne) SetNillableStatus(s *string) *AchievementDocumentUpdateOne {
+	if s != nil {
+		aduo.SetStatus(*s)
+	}
+	return aduo
+}
+
+// SetScheduledDeletionAt sets the "scheduled_deletion_at" field.
+func (aduo *AchievementDocumentUpdateOne) SetScheduledDeletionAt(t time.Time) *AchievementDocumentUpdateOne {
+	aduo.mutation.SetScheduledDeletionAt(t)
+	return aduo
+}
+
+// SetNillableScheduledDeletionAt sets the "scheduled_deletion_at" field if the given value is not nil.
+func (aduo *AchievementDocumentUpdateOne) SetNillableScheduledDeletionAt(t *time.Time) *AchievementDocumentUpdateOne {
+	if t != nil {
+		aduo.SetScheduledDeletionAt(*t)
+	}
+	return aduo
+}
+
+// ClearScheduledDeletionAt clears the value of the "scheduled_deletion_at" field.
+func (aduo *AchievementDocumentUpdateOne) ClearScheduledDeletionAt() *AchievementDocumentUpdateOne {
+	aduo.mutation.ClearScheduledDeletionAt()
+	return aduo
+}
+
 // SetAchievement sets the "achievement" edge to the Achievement entity.
 func (aduo *AchievementDocumentUpdateOne) SetAchievement(a *Achievement) *AchievementDocumentUpdateOne {
 	return aduo.SetAchievementID(a.ID)
@@ -351,6 +434,11 @@ func (aduo *AchievementDocumentUpdateOne) check() error {
 			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "AchievementDocument.name": %w`, err)}
 		}
 	}
+	if v, ok := aduo.mutation.Status(); ok {
+		if err := achievementdocument.StatusValidator(v); err != nil {
+			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "AchievementDocument.status": %w`, err)}
+		}
+	}
 	if aduo.mutation.AchievementCleared() && len(aduo.mutation.AchievementIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "AchievementDocument.achievement"`)
 	}
@@ -391,6 +479,15 @@ func (aduo *AchievementDocumentUpdateOne) sqlSave(ctx context.Context) (_node *A
 	}
 	if value, ok := aduo.mutation.Name(); ok {
 		_spec.SetField(achievementdocument.FieldName, field.TypeString, value)
+	}
+	if value, ok := aduo.mutation.Status(); ok {
+		_spec.SetField(achievementdocument.FieldStatus, field.TypeString, value)
+	}
+	if value, ok := aduo.mutation.ScheduledDeletionAt(); ok {
+		_spec.SetField(achievementdocument.FieldScheduledDeletionAt, field.TypeTime, value)
+	}
+	if aduo.mutation.ScheduledDeletionAtCleared() {
+		_spec.ClearField(achievementdocument.FieldScheduledDeletionAt, field.TypeTime)
 	}
 	if aduo.mutation.AchievementCleared() {
 		edge := &sqlgraph.EdgeSpec{

@@ -846,18 +846,20 @@ func (m *AchievementMutation) ResetEdge(name string) error {
 // AchievementDocumentMutation represents an operation that mutates the AchievementDocument nodes in the graph.
 type AchievementDocumentMutation struct {
 	config
-	op                 Op
-	typ                string
-	id                 *uuid.UUID
-	name               *string
-	clearedFields      map[string]struct{}
-	achievement        *uuid.UUID
-	clearedachievement bool
-	file               *uuid.UUID
-	clearedfile        bool
-	done               bool
-	oldValue           func(context.Context) (*AchievementDocument, error)
-	predicates         []predicate.AchievementDocument
+	op                    Op
+	typ                   string
+	id                    *uuid.UUID
+	name                  *string
+	status                *string
+	scheduled_deletion_at *time.Time
+	clearedFields         map[string]struct{}
+	achievement           *uuid.UUID
+	clearedachievement    bool
+	file                  *uuid.UUID
+	clearedfile           bool
+	done                  bool
+	oldValue              func(context.Context) (*AchievementDocument, error)
+	predicates            []predicate.AchievementDocument
 }
 
 var _ ent.Mutation = (*AchievementDocumentMutation)(nil)
@@ -1072,6 +1074,91 @@ func (m *AchievementDocumentMutation) ResetFileID() {
 	m.file = nil
 }
 
+// SetStatus sets the "status" field.
+func (m *AchievementDocumentMutation) SetStatus(s string) {
+	m.status = &s
+}
+
+// Status returns the value of the "status" field in the mutation.
+func (m *AchievementDocumentMutation) Status() (r string, exists bool) {
+	v := m.status
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStatus returns the old "status" field's value of the AchievementDocument entity.
+// If the AchievementDocument object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AchievementDocumentMutation) OldStatus(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStatus is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStatus requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStatus: %w", err)
+	}
+	return oldValue.Status, nil
+}
+
+// ResetStatus resets all changes to the "status" field.
+func (m *AchievementDocumentMutation) ResetStatus() {
+	m.status = nil
+}
+
+// SetScheduledDeletionAt sets the "scheduled_deletion_at" field.
+func (m *AchievementDocumentMutation) SetScheduledDeletionAt(t time.Time) {
+	m.scheduled_deletion_at = &t
+}
+
+// ScheduledDeletionAt returns the value of the "scheduled_deletion_at" field in the mutation.
+func (m *AchievementDocumentMutation) ScheduledDeletionAt() (r time.Time, exists bool) {
+	v := m.scheduled_deletion_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldScheduledDeletionAt returns the old "scheduled_deletion_at" field's value of the AchievementDocument entity.
+// If the AchievementDocument object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AchievementDocumentMutation) OldScheduledDeletionAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldScheduledDeletionAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldScheduledDeletionAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldScheduledDeletionAt: %w", err)
+	}
+	return oldValue.ScheduledDeletionAt, nil
+}
+
+// ClearScheduledDeletionAt clears the value of the "scheduled_deletion_at" field.
+func (m *AchievementDocumentMutation) ClearScheduledDeletionAt() {
+	m.scheduled_deletion_at = nil
+	m.clearedFields[achievementdocument.FieldScheduledDeletionAt] = struct{}{}
+}
+
+// ScheduledDeletionAtCleared returns if the "scheduled_deletion_at" field was cleared in this mutation.
+func (m *AchievementDocumentMutation) ScheduledDeletionAtCleared() bool {
+	_, ok := m.clearedFields[achievementdocument.FieldScheduledDeletionAt]
+	return ok
+}
+
+// ResetScheduledDeletionAt resets all changes to the "scheduled_deletion_at" field.
+func (m *AchievementDocumentMutation) ResetScheduledDeletionAt() {
+	m.scheduled_deletion_at = nil
+	delete(m.clearedFields, achievementdocument.FieldScheduledDeletionAt)
+}
+
 // ClearAchievement clears the "achievement" edge to the Achievement entity.
 func (m *AchievementDocumentMutation) ClearAchievement() {
 	m.clearedachievement = true
@@ -1160,7 +1247,7 @@ func (m *AchievementDocumentMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *AchievementDocumentMutation) Fields() []string {
-	fields := make([]string, 0, 3)
+	fields := make([]string, 0, 5)
 	if m.achievement != nil {
 		fields = append(fields, achievementdocument.FieldAchievementID)
 	}
@@ -1169,6 +1256,12 @@ func (m *AchievementDocumentMutation) Fields() []string {
 	}
 	if m.file != nil {
 		fields = append(fields, achievementdocument.FieldFileID)
+	}
+	if m.status != nil {
+		fields = append(fields, achievementdocument.FieldStatus)
+	}
+	if m.scheduled_deletion_at != nil {
+		fields = append(fields, achievementdocument.FieldScheduledDeletionAt)
 	}
 	return fields
 }
@@ -1184,6 +1277,10 @@ func (m *AchievementDocumentMutation) Field(name string) (ent.Value, bool) {
 		return m.Name()
 	case achievementdocument.FieldFileID:
 		return m.FileID()
+	case achievementdocument.FieldStatus:
+		return m.Status()
+	case achievementdocument.FieldScheduledDeletionAt:
+		return m.ScheduledDeletionAt()
 	}
 	return nil, false
 }
@@ -1199,6 +1296,10 @@ func (m *AchievementDocumentMutation) OldField(ctx context.Context, name string)
 		return m.OldName(ctx)
 	case achievementdocument.FieldFileID:
 		return m.OldFileID(ctx)
+	case achievementdocument.FieldStatus:
+		return m.OldStatus(ctx)
+	case achievementdocument.FieldScheduledDeletionAt:
+		return m.OldScheduledDeletionAt(ctx)
 	}
 	return nil, fmt.Errorf("unknown AchievementDocument field %s", name)
 }
@@ -1229,6 +1330,20 @@ func (m *AchievementDocumentMutation) SetField(name string, value ent.Value) err
 		}
 		m.SetFileID(v)
 		return nil
+	case achievementdocument.FieldStatus:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStatus(v)
+		return nil
+	case achievementdocument.FieldScheduledDeletionAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetScheduledDeletionAt(v)
+		return nil
 	}
 	return fmt.Errorf("unknown AchievementDocument field %s", name)
 }
@@ -1258,7 +1373,11 @@ func (m *AchievementDocumentMutation) AddField(name string, value ent.Value) err
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
 func (m *AchievementDocumentMutation) ClearedFields() []string {
-	return nil
+	var fields []string
+	if m.FieldCleared(achievementdocument.FieldScheduledDeletionAt) {
+		fields = append(fields, achievementdocument.FieldScheduledDeletionAt)
+	}
+	return fields
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
@@ -1271,6 +1390,11 @@ func (m *AchievementDocumentMutation) FieldCleared(name string) bool {
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
 func (m *AchievementDocumentMutation) ClearField(name string) error {
+	switch name {
+	case achievementdocument.FieldScheduledDeletionAt:
+		m.ClearScheduledDeletionAt()
+		return nil
+	}
 	return fmt.Errorf("unknown AchievementDocument nullable field %s", name)
 }
 
@@ -1286,6 +1410,12 @@ func (m *AchievementDocumentMutation) ResetField(name string) error {
 		return nil
 	case achievementdocument.FieldFileID:
 		m.ResetFileID()
+		return nil
+	case achievementdocument.FieldStatus:
+		m.ResetStatus()
+		return nil
+	case achievementdocument.FieldScheduledDeletionAt:
+		m.ResetScheduledDeletionAt()
 		return nil
 	}
 	return fmt.Errorf("unknown AchievementDocument field %s", name)
@@ -4475,9 +4605,6 @@ type FileMutation struct {
 	name                         *string
 	size                         *int
 	addsize                      *int
-	file_deleted                 *bool
-	deletion_scheduled           *bool
-	scheduled_deletion_at        *time.Time
 	clearedFields                map[string]struct{}
 	owner                        *uuid.UUID
 	clearedowner                 bool
@@ -4783,127 +4910,6 @@ func (m *FileMutation) ResetSize() {
 	m.addsize = nil
 }
 
-// SetFileDeleted sets the "file_deleted" field.
-func (m *FileMutation) SetFileDeleted(b bool) {
-	m.file_deleted = &b
-}
-
-// FileDeleted returns the value of the "file_deleted" field in the mutation.
-func (m *FileMutation) FileDeleted() (r bool, exists bool) {
-	v := m.file_deleted
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldFileDeleted returns the old "file_deleted" field's value of the File entity.
-// If the File object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *FileMutation) OldFileDeleted(ctx context.Context) (v bool, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldFileDeleted is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldFileDeleted requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldFileDeleted: %w", err)
-	}
-	return oldValue.FileDeleted, nil
-}
-
-// ResetFileDeleted resets all changes to the "file_deleted" field.
-func (m *FileMutation) ResetFileDeleted() {
-	m.file_deleted = nil
-}
-
-// SetDeletionScheduled sets the "deletion_scheduled" field.
-func (m *FileMutation) SetDeletionScheduled(b bool) {
-	m.deletion_scheduled = &b
-}
-
-// DeletionScheduled returns the value of the "deletion_scheduled" field in the mutation.
-func (m *FileMutation) DeletionScheduled() (r bool, exists bool) {
-	v := m.deletion_scheduled
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldDeletionScheduled returns the old "deletion_scheduled" field's value of the File entity.
-// If the File object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *FileMutation) OldDeletionScheduled(ctx context.Context) (v bool, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldDeletionScheduled is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldDeletionScheduled requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldDeletionScheduled: %w", err)
-	}
-	return oldValue.DeletionScheduled, nil
-}
-
-// ResetDeletionScheduled resets all changes to the "deletion_scheduled" field.
-func (m *FileMutation) ResetDeletionScheduled() {
-	m.deletion_scheduled = nil
-}
-
-// SetScheduledDeletionAt sets the "scheduled_deletion_at" field.
-func (m *FileMutation) SetScheduledDeletionAt(t time.Time) {
-	m.scheduled_deletion_at = &t
-}
-
-// ScheduledDeletionAt returns the value of the "scheduled_deletion_at" field in the mutation.
-func (m *FileMutation) ScheduledDeletionAt() (r time.Time, exists bool) {
-	v := m.scheduled_deletion_at
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldScheduledDeletionAt returns the old "scheduled_deletion_at" field's value of the File entity.
-// If the File object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *FileMutation) OldScheduledDeletionAt(ctx context.Context) (v *time.Time, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldScheduledDeletionAt is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldScheduledDeletionAt requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldScheduledDeletionAt: %w", err)
-	}
-	return oldValue.ScheduledDeletionAt, nil
-}
-
-// ClearScheduledDeletionAt clears the value of the "scheduled_deletion_at" field.
-func (m *FileMutation) ClearScheduledDeletionAt() {
-	m.scheduled_deletion_at = nil
-	m.clearedFields[file.FieldScheduledDeletionAt] = struct{}{}
-}
-
-// ScheduledDeletionAtCleared returns if the "scheduled_deletion_at" field was cleared in this mutation.
-func (m *FileMutation) ScheduledDeletionAtCleared() bool {
-	_, ok := m.clearedFields[file.FieldScheduledDeletionAt]
-	return ok
-}
-
-// ResetScheduledDeletionAt resets all changes to the "scheduled_deletion_at" field.
-func (m *FileMutation) ResetScheduledDeletionAt() {
-	m.scheduled_deletion_at = nil
-	delete(m.clearedFields, file.FieldScheduledDeletionAt)
-}
-
 // ClearOwner clears the "owner" edge to the User entity.
 func (m *FileMutation) ClearOwner() {
 	m.clearedowner = true
@@ -5019,7 +5025,7 @@ func (m *FileMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *FileMutation) Fields() []string {
-	fields := make([]string, 0, 7)
+	fields := make([]string, 0, 4)
 	if m.owner != nil {
 		fields = append(fields, file.FieldOwnerID)
 	}
@@ -5031,15 +5037,6 @@ func (m *FileMutation) Fields() []string {
 	}
 	if m.size != nil {
 		fields = append(fields, file.FieldSize)
-	}
-	if m.file_deleted != nil {
-		fields = append(fields, file.FieldFileDeleted)
-	}
-	if m.deletion_scheduled != nil {
-		fields = append(fields, file.FieldDeletionScheduled)
-	}
-	if m.scheduled_deletion_at != nil {
-		fields = append(fields, file.FieldScheduledDeletionAt)
 	}
 	return fields
 }
@@ -5057,12 +5054,6 @@ func (m *FileMutation) Field(name string) (ent.Value, bool) {
 		return m.Name()
 	case file.FieldSize:
 		return m.Size()
-	case file.FieldFileDeleted:
-		return m.FileDeleted()
-	case file.FieldDeletionScheduled:
-		return m.DeletionScheduled()
-	case file.FieldScheduledDeletionAt:
-		return m.ScheduledDeletionAt()
 	}
 	return nil, false
 }
@@ -5080,12 +5071,6 @@ func (m *FileMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldName(ctx)
 	case file.FieldSize:
 		return m.OldSize(ctx)
-	case file.FieldFileDeleted:
-		return m.OldFileDeleted(ctx)
-	case file.FieldDeletionScheduled:
-		return m.OldDeletionScheduled(ctx)
-	case file.FieldScheduledDeletionAt:
-		return m.OldScheduledDeletionAt(ctx)
 	}
 	return nil, fmt.Errorf("unknown File field %s", name)
 }
@@ -5122,27 +5107,6 @@ func (m *FileMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetSize(v)
-		return nil
-	case file.FieldFileDeleted:
-		v, ok := value.(bool)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetFileDeleted(v)
-		return nil
-	case file.FieldDeletionScheduled:
-		v, ok := value.(bool)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetDeletionScheduled(v)
-		return nil
-	case file.FieldScheduledDeletionAt:
-		v, ok := value.(time.Time)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetScheduledDeletionAt(v)
 		return nil
 	}
 	return fmt.Errorf("unknown File field %s", name)
@@ -5195,9 +5159,6 @@ func (m *FileMutation) ClearedFields() []string {
 	if m.FieldCleared(file.FieldS3ObjectKey) {
 		fields = append(fields, file.FieldS3ObjectKey)
 	}
-	if m.FieldCleared(file.FieldScheduledDeletionAt) {
-		fields = append(fields, file.FieldScheduledDeletionAt)
-	}
 	return fields
 }
 
@@ -5218,9 +5179,6 @@ func (m *FileMutation) ClearField(name string) error {
 	case file.FieldS3ObjectKey:
 		m.ClearS3ObjectKey()
 		return nil
-	case file.FieldScheduledDeletionAt:
-		m.ClearScheduledDeletionAt()
-		return nil
 	}
 	return fmt.Errorf("unknown File nullable field %s", name)
 }
@@ -5240,15 +5198,6 @@ func (m *FileMutation) ResetField(name string) error {
 		return nil
 	case file.FieldSize:
 		m.ResetSize()
-		return nil
-	case file.FieldFileDeleted:
-		m.ResetFileDeleted()
-		return nil
-	case file.FieldDeletionScheduled:
-		m.ResetDeletionScheduled()
-		return nil
-	case file.FieldScheduledDeletionAt:
-		m.ResetScheduledDeletionAt()
 		return nil
 	}
 	return fmt.Errorf("unknown File field %s", name)

@@ -16,6 +16,7 @@ import (
 	"github.com/kozlov-ma/sesc-backend/internal/filesvc"
 	"github.com/kozlov-ma/sesc-backend/internal/iamsvc"
 	"github.com/kozlov-ma/sesc-backend/internal/s3svc"
+	"github.com/kozlov-ma/sesc-backend/internal/services/achsvc"
 	"github.com/kozlov-ma/sesc-backend/internal/sescsvc"
 	"github.com/kozlov-ma/sesc-backend/internal/slogsink"
 	// database driver
@@ -96,6 +97,7 @@ func NewWithDBOptions(ctx context.Context, cfg *config.Config, log *slog.Logger,
 	// Initialize services
 	iamService := iamsvc.New(client, 7*24*time.Hour, adminCredentials, []byte(cfg.JWTSecret))
 	sescService := sescsvc.New(client)
+	achService := achsvc.New(client)
 
 	// Initialize S3 storage
 	s3Storage, err := s3svc.NewStorage(
@@ -119,7 +121,7 @@ func NewWithDBOptions(ctx context.Context, cfg *config.Config, log *slog.Logger,
 		cfg.FileService.Delay,
 	)
 
-	deletionDaemon := deletiondaemon.New(fileService, &cfg.DeletionDaemon)
+	deletionDaemon := deletiondaemon.New(achService, s3Storage, &cfg.DeletionDaemon)
 
 	apiService := api.New(sescService, iamService, fileService, slogsink.New(log))
 

@@ -19,6 +19,10 @@ const (
 	FieldName = "name"
 	// FieldFileID holds the string denoting the file_id field in the database.
 	FieldFileID = "file_id"
+	// FieldStatus holds the string denoting the status field in the database.
+	FieldStatus = "status"
+	// FieldScheduledDeletionAt holds the string denoting the scheduled_deletion_at field in the database.
+	FieldScheduledDeletionAt = "scheduled_deletion_at"
 	// EdgeAchievement holds the string denoting the achievement edge name in mutations.
 	EdgeAchievement = "achievement"
 	// EdgeFile holds the string denoting the file edge name in mutations.
@@ -47,6 +51,8 @@ var Columns = []string{
 	FieldAchievementID,
 	FieldName,
 	FieldFileID,
+	FieldStatus,
+	FieldScheduledDeletionAt,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -62,6 +68,10 @@ func ValidColumn(column string) bool {
 var (
 	// NameValidator is a validator for the "name" field. It is called by the builders before save.
 	NameValidator func(string) error
+	// DefaultStatus holds the default value on creation for the "status" field.
+	DefaultStatus string
+	// StatusValidator is a validator for the "status" field. It is called by the builders before save.
+	StatusValidator func(string) error
 	// DefaultID holds the default value on creation for the "id" field.
 	DefaultID func() uuid.UUID
 )
@@ -87,6 +97,16 @@ func ByName(opts ...sql.OrderTermOption) OrderOption {
 // ByFileID orders the results by the file_id field.
 func ByFileID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldFileID, opts...).ToFunc()
+}
+
+// ByStatus orders the results by the status field.
+func ByStatus(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldStatus, opts...).ToFunc()
+}
+
+// ByScheduledDeletionAt orders the results by the scheduled_deletion_at field.
+func ByScheduledDeletionAt(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldScheduledDeletionAt, opts...).ToFunc()
 }
 
 // ByAchievementField orders the results by achievement field.

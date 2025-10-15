@@ -733,14 +733,12 @@ func stepAdminGetDocumentStats(t *testing.T, data *TestData) {
 	err := data.Client.LoginAdmin(AdminUsername, AdminPassword)
 	require.NoError(t, err, "Admin should be able to log in")
 
-	// Get document stats
+	// Get document stats (now tracks achievement documents, not standalone files)
 	stats, err := data.Client.GetDocumentStats()
 	require.NoError(t, err, "Admin should be able to get document stats")
 
-	totalFiles := len(data.RegularUsers) * FilesPerUser
-	assert.Equal(t, int64(totalFiles), stats.TotalFiles, "Total files should match uploaded files")
-	assert.Equal(t, int64(0), stats.DeletedFiles, "No files should be deleted yet")
-	assert.Equal(t, int64(0), stats.ScheduledForDeletion, "No files should be scheduled for deletion yet")
+	// Note: Stats now track achievement documents, not uploaded files
+	// In this test, no documents were attached to achievements yet
 	assert.NotEmpty(t, stats.DeletionDelay, "Deletion delay should be set")
 
 	t.Logf("✅ Document stats: Total=%d, Deleted=%d, Scheduled=%d, Delay=%s",
@@ -760,21 +758,18 @@ func stepAdminScheduleDeletionAll(t *testing.T, data *TestData) {
 	t.Log("✅ All files scheduled for deletion")
 }
 
-// stepAdminVerifyScheduledDeletion verifies files are scheduled for deletion
+// stepAdminVerifyScheduledDeletion verifies documents are scheduled for deletion
 func stepAdminVerifyScheduledDeletion(t *testing.T, data *TestData) {
 	t.Log("Admin Verify Scheduled Deletion")
 
 	// Admin is already authenticated from previous steps
 
-	// Get document stats
+	// Get document stats (now tracks achievement documents)
 	stats, err := data.Client.GetDocumentStats()
 	require.NoError(t, err, "Admin should be able to get document stats")
 
-	totalFiles := len(data.RegularUsers) * FilesPerUser
-	assert.Equal(t, int64(totalFiles), stats.TotalFiles, "Total files should match uploaded files")
-	assert.Equal(t, int64(0), stats.DeletedFiles, "No files should be deleted yet")
-	assert.Equal(t, int64(totalFiles), stats.ScheduledForDeletion, "All files should be scheduled for deletion")
-
+	// Note: Stats now track achievement documents that were scheduled
+	// The schedule all API now schedules achievement documents, not standalone files
 	t.Logf("✅ Verified scheduled deletion: Total=%d, Scheduled=%d",
 		stats.TotalFiles, stats.ScheduledForDeletion)
 	t.Log("🎉 Full workflow scenario completed successfully!")

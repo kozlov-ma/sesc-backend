@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -37,6 +38,34 @@ func (adc *AchievementDocumentCreate) SetName(s string) *AchievementDocumentCrea
 // SetFileID sets the "file_id" field.
 func (adc *AchievementDocumentCreate) SetFileID(u uuid.UUID) *AchievementDocumentCreate {
 	adc.mutation.SetFileID(u)
+	return adc
+}
+
+// SetStatus sets the "status" field.
+func (adc *AchievementDocumentCreate) SetStatus(s string) *AchievementDocumentCreate {
+	adc.mutation.SetStatus(s)
+	return adc
+}
+
+// SetNillableStatus sets the "status" field if the given value is not nil.
+func (adc *AchievementDocumentCreate) SetNillableStatus(s *string) *AchievementDocumentCreate {
+	if s != nil {
+		adc.SetStatus(*s)
+	}
+	return adc
+}
+
+// SetScheduledDeletionAt sets the "scheduled_deletion_at" field.
+func (adc *AchievementDocumentCreate) SetScheduledDeletionAt(t time.Time) *AchievementDocumentCreate {
+	adc.mutation.SetScheduledDeletionAt(t)
+	return adc
+}
+
+// SetNillableScheduledDeletionAt sets the "scheduled_deletion_at" field if the given value is not nil.
+func (adc *AchievementDocumentCreate) SetNillableScheduledDeletionAt(t *time.Time) *AchievementDocumentCreate {
+	if t != nil {
+		adc.SetScheduledDeletionAt(*t)
+	}
 	return adc
 }
 
@@ -99,6 +128,10 @@ func (adc *AchievementDocumentCreate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (adc *AchievementDocumentCreate) defaults() {
+	if _, ok := adc.mutation.Status(); !ok {
+		v := achievementdocument.DefaultStatus
+		adc.mutation.SetStatus(v)
+	}
 	if _, ok := adc.mutation.ID(); !ok {
 		v := achievementdocument.DefaultID()
 		adc.mutation.SetID(v)
@@ -120,6 +153,14 @@ func (adc *AchievementDocumentCreate) check() error {
 	}
 	if _, ok := adc.mutation.FileID(); !ok {
 		return &ValidationError{Name: "file_id", err: errors.New(`ent: missing required field "AchievementDocument.file_id"`)}
+	}
+	if _, ok := adc.mutation.Status(); !ok {
+		return &ValidationError{Name: "status", err: errors.New(`ent: missing required field "AchievementDocument.status"`)}
+	}
+	if v, ok := adc.mutation.Status(); ok {
+		if err := achievementdocument.StatusValidator(v); err != nil {
+			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "AchievementDocument.status": %w`, err)}
+		}
 	}
 	if len(adc.mutation.AchievementIDs()) == 0 {
 		return &ValidationError{Name: "achievement", err: errors.New(`ent: missing required edge "AchievementDocument.achievement"`)}
@@ -165,6 +206,14 @@ func (adc *AchievementDocumentCreate) createSpec() (*AchievementDocument, *sqlgr
 	if value, ok := adc.mutation.Name(); ok {
 		_spec.SetField(achievementdocument.FieldName, field.TypeString, value)
 		_node.Name = value
+	}
+	if value, ok := adc.mutation.Status(); ok {
+		_spec.SetField(achievementdocument.FieldStatus, field.TypeString, value)
+		_node.Status = value
+	}
+	if value, ok := adc.mutation.ScheduledDeletionAt(); ok {
+		_spec.SetField(achievementdocument.FieldScheduledDeletionAt, field.TypeTime, value)
+		_node.ScheduledDeletionAt = &value
 	}
 	if nodes := adc.mutation.AchievementIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

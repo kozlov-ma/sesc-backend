@@ -5,6 +5,7 @@ package ent
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
@@ -25,6 +26,10 @@ type AchievementDocument struct {
 	Name string `json:"name,omitempty"`
 	// FileID holds the value of the "file_id" field.
 	FileID uuid.UUID `json:"file_id,omitempty"`
+	// Status holds the value of the "status" field.
+	Status string `json:"status,omitempty"`
+	// ScheduledDeletionAt holds the value of the "scheduled_deletion_at" field.
+	ScheduledDeletionAt *time.Time `json:"scheduled_deletion_at,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the AchievementDocumentQuery when eager-loading is set.
 	Edges        AchievementDocumentEdges `json:"edges"`
@@ -69,8 +74,10 @@ func (*AchievementDocument) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case achievementdocument.FieldName:
+		case achievementdocument.FieldName, achievementdocument.FieldStatus:
 			values[i] = new(sql.NullString)
+		case achievementdocument.FieldScheduledDeletionAt:
+			values[i] = new(sql.NullTime)
 		case achievementdocument.FieldID, achievementdocument.FieldAchievementID, achievementdocument.FieldFileID:
 			values[i] = new(uuid.UUID)
 		default:
@@ -111,6 +118,19 @@ func (ad *AchievementDocument) assignValues(columns []string, values []any) erro
 				return fmt.Errorf("unexpected type %T for field file_id", values[i])
 			} else if value != nil {
 				ad.FileID = *value
+			}
+		case achievementdocument.FieldStatus:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field status", values[i])
+			} else if value.Valid {
+				ad.Status = value.String
+			}
+		case achievementdocument.FieldScheduledDeletionAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field scheduled_deletion_at", values[i])
+			} else if value.Valid {
+				ad.ScheduledDeletionAt = new(time.Time)
+				*ad.ScheduledDeletionAt = value.Time
 			}
 		default:
 			ad.selectValues.Set(columns[i], values[i])
@@ -166,6 +186,14 @@ func (ad *AchievementDocument) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("file_id=")
 	builder.WriteString(fmt.Sprintf("%v", ad.FileID))
+	builder.WriteString(", ")
+	builder.WriteString("status=")
+	builder.WriteString(ad.Status)
+	builder.WriteString(", ")
+	if v := ad.ScheduledDeletionAt; v != nil {
+		builder.WriteString("scheduled_deletion_at=")
+		builder.WriteString(v.Format(time.ANSIC))
+	}
 	builder.WriteByte(')')
 	return builder.String()
 }

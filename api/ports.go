@@ -4,11 +4,13 @@ import (
 	"bytes"
 	"context"
 	"io"
+	"time"
 
 	"github.com/gofrs/uuid/v5"
 	"github.com/kozlov-ma/sesc-backend/achievement"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent"
 	"github.com/kozlov-ma/sesc-backend/iam"
+	"github.com/kozlov-ma/sesc-backend/internal/services/achsvc"
 	"github.com/kozlov-ma/sesc-backend/pkg/event"
 	"github.com/kozlov-ma/sesc-backend/sesc"
 )
@@ -104,7 +106,7 @@ type (
 			userID uuid.UUID,
 			whosAsking uuid.UUID,
 			offset, limit int,
-			requireChanges bool,
+			includeDeleted bool,
 		) (ent.Achievements, int, error)
 		GetUsersWithAchievements(
 			ctx context.Context,
@@ -144,6 +146,10 @@ type (
 
 		// MarkAllDoneAchievementsAsAccounted marks all achievements with "done" status as "accounted"
 		MarkAllDoneAchievementsAsAccounted(ctx context.Context) (int, error)
+
+		// Document management
+		ScheduleDocumentDeletionAll(ctx context.Context, delay time.Duration) error
+		GetDocumentStats(ctx context.Context) (*achsvc.DocumentStats, error)
 	}
 
 	// FileService defines the file operations interface required by the API
@@ -160,14 +166,8 @@ type (
 		Delete(ctx context.Context, id uuid.UUID) error
 		// ByID returns a file by its ID
 		ByID(ctx context.Context, id uuid.UUID) (*ent.File, error)
-		// DeleteAllFiles schedules all files for deletion
-		DeleteAllFiles(ctx context.Context) error
 		// DownloadURL generates a pre-signed URL for downloading a file
 		DownloadURL(ctx context.Context, id uuid.UUID) (string, error)
-		// GetFileStats returns statistics about files and deletion delay
-		GetFileStats(ctx context.Context) (*sesc.FileStats, string, error)
-		// ProcessScheduledDeletions processes files that are ready for deletion
-		ProcessScheduledDeletions(ctx context.Context) error
 	}
 
 	// EventSink is used by the API to log events
