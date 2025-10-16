@@ -142,8 +142,7 @@ func (a *API) SearchFiles(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query()
 
 	opts := sesc.FileSearchOptions{
-		Name:           query.Get("name"),
-		IncludeDeleted: false, // Never include deleted files in regular search
+		Name: query.Get("name"),
 	}
 
 	if ownerIDStr := query.Get("owner_id"); ownerIDStr != "" {

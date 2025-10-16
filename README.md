@@ -3,7 +3,7 @@
 ## Development instructions
 - To start the development database in docker: `make dev-db`
 - To start the development API in docker: `make dev-backend`
-- To run the API locally (recommended): `make dev-db && go run ./cmd/api/main.go | jq`
+- To run the API for development purposes: `make dev-db && go run cmd/api/main.go | jq`
 
 ## !! READ THIS !! Implementing a new feature
 1. Create the domain types in `sesc` package. If your types are purely application-level, like `Credentials`, place them in a separate package, like `iam`.
