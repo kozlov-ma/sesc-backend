@@ -2,11 +2,16 @@ package achsvc
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"time"
 
+	"github.com/gofrs/uuid/v5"
 	"github.com/kozlov-ma/sesc-backend/achievement"
+	"github.com/kozlov-ma/sesc-backend/db/entdb/ent"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievementdocument"
+	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/file"
+	"github.com/kozlov-ma/sesc-backend/internal/services/txwrapper"
 	"github.com/kozlov-ma/sesc-backend/pkg/event"
 	"github.com/kozlov-ma/sesc-backend/pkg/event/events"
 )
@@ -26,49 +31,50 @@ func (s *ACS) ProcessScheduledDocumentDeletions(ctx context.Context, storage Obj
 		"delay", delay,
 	)
 
-	// Get documents ready for deletion (scheduled_deletion_at + delay <= now)
 	cutoffTime := time.Now().Add(-delay)
 	rec.Set("cutoff_time", cutoffTime)
 
-	start := time.Now()
-	documents, err := s.client.AchievementDocument.Query().
-		Where(
-			achievementdocument.Status(achievement.DocumentStatusScheduled),
-			achievementdocument.ScheduledDeletionAtLTE(cutoffTime),
-		).
-		WithFile().
-		All(ctx)
-	statsRec.Add(events.PostgresQueries, 1)
-	statsRec.Add(events.PostgresTime, time.Since(start))
-
-	if err != nil {
-		rec.Add(events.Error, err)
-		return err
+	type fileInfo struct {
+		FileID      uuid.UUID
+		S3ObjectKey string
 	}
 
-	rec.Set("documents_to_process", len(documents))
+	var filesToDelete []fileInfo
+	var processedCount int
 
-	processedCount := 0
-	for _, doc := range documents {
-		// Get the associated file
-		file := doc.Edges.File
-		if file == nil {
-			rec.Add(events.Error, fmt.Errorf("document %s has no associated file", doc.ID.String()))
-			continue
+	err := txwrapper.WithTx(ctx, s.client, sql.LevelSerializable, rec, func(tx *ent.Tx) error {
+		start := time.Now()
+		documents, err := tx.AchievementDocument.Query().
+			Where(
+				achievementdocument.Status(achievement.DocumentStatusScheduled),
+				achievementdocument.ScheduledDeletionAtLTE(cutoffTime),
+			).
+			WithFile().
+			All(ctx)
+		statsRec.Add(events.PostgresQueries, 1)
+		statsRec.Add(events.PostgresTime, time.Since(start))
+
+		if err != nil {
+			return fmt.Errorf("failed to query documents: %w", err)
 		}
 
-		// Delete from storage if the file has an S3 object key
-		if file.S3ObjectKey != "" {
-			storageErr := storage.RemoveObject(ctx, file.S3ObjectKey)
-			if storageErr != nil {
-				rec.Add(events.Error, fmt.Errorf("failed to delete object %s: %w", file.S3ObjectKey, storageErr))
-				continue
+		rec.Set("documents_to_process", len(documents))
+
+		for _, doc := range documents {
+			if doc.Edges.File != nil && doc.Edges.File.S3ObjectKey != "" {
+				filesToDelete = append(filesToDelete, fileInfo{
+					FileID:      doc.Edges.File.ID,
+					S3ObjectKey: doc.Edges.File.S3ObjectKey,
+				})
 			}
 		}
 
-		// Mark document as deleted and clear deletion schedule
-		start := time.Now()
-		_, err := s.client.AchievementDocument.UpdateOneID(doc.ID).
+		start = time.Now()
+		updateCount, err := tx.AchievementDocument.Update().
+			Where(
+				achievementdocument.Status(achievement.DocumentStatusScheduled),
+				achievementdocument.ScheduledDeletionAtLTE(cutoffTime),
+			).
 			SetStatus(achievement.DocumentStatusDeleted).
 			ClearScheduledDeletionAt().
 			Save(ctx)
@@ -76,23 +82,48 @@ func (s *ACS) ProcessScheduledDocumentDeletions(ctx context.Context, storage Obj
 		statsRec.Add(events.PostgresTime, time.Since(start))
 
 		if err != nil {
-			rec.Add(events.Error, fmt.Errorf("failed to update document %s: %w", doc.ID.String(), err))
-			continue
+			return fmt.Errorf("failed to update documents: %w", err)
 		}
 
-		// Delete the file record from database
-		start = time.Now()
-		err = s.client.File.DeleteOneID(file.ID).Exec(ctx)
-		statsRec.Add(events.PostgresQueries, 1)
-		statsRec.Add(events.PostgresTime, time.Since(start))
+		processedCount = updateCount
+		rec.Set("documents_updated", updateCount)
 
-		if err != nil {
-			rec.Add(events.Error, fmt.Errorf("failed to delete file record %s: %w", file.ID.String(), err))
-			continue
+		if len(filesToDelete) > 0 {
+			fileIDs := make([]uuid.UUID, len(filesToDelete))
+			for i, f := range filesToDelete {
+				fileIDs[i] = f.FileID
+			}
+
+			start = time.Now()
+			deletedCount, err := tx.File.Delete().
+				Where(file.IDIn(fileIDs...)).
+				Exec(ctx)
+			statsRec.Add(events.PostgresQueries, 1)
+			statsRec.Add(events.PostgresTime, time.Since(start))
+
+			if err != nil {
+				return fmt.Errorf("failed to delete files: %w", err)
+			}
+
+			rec.Set("files_deleted", deletedCount)
 		}
 
-		processedCount++
+		return nil
+	})
+
+	if err != nil {
+		rec.Add(events.Error, err)
+		return err
 	}
+
+	storageFailures := 0
+	for _, f := range filesToDelete {
+		if err := storage.RemoveObject(ctx, f.S3ObjectKey); err != nil {
+			rec.Add(events.Error, fmt.Errorf("failed to delete object %s: %w", f.S3ObjectKey, err))
+			storageFailures++
+		}
+	}
+	rec.Set("storage_failures", storageFailures)
 
 	rec.Set("processed_count", processedCount)
 	rec.Set("success", true)

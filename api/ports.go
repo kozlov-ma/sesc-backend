@@ -105,7 +105,7 @@ type (
 			userID uuid.UUID,
 			whosAsking uuid.UUID,
 			offset, limit int,
-			includeDeleted bool,
+			requireChanges bool,
 		) (ent.Achievements, int, error)
 		GetUsersWithAchievements(
 			ctx context.Context,
