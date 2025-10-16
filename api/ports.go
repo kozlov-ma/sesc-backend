@@ -173,6 +173,6 @@ type (
 	// EventSink is used by the API to log events
 	EventSink interface {
 		RecordHTTPRequest(ctx context.Context, event *event.Record)
-		RecordEvent(ctx context.Context, event *event.Record)
+		ProcessEvent(r *event.Record)
 	}
 )

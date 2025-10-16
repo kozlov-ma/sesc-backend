@@ -14,15 +14,15 @@ type ObjectStorage interface {
 	RemoveObject(ctx context.Context, objectKey string) error
 }
 
-type EventSink interface {
-	RecordEvent(ctx context.Context, event *event.Record)
+type EventMiddleware interface {
+	ProcessEvent(r *event.Record)
 }
 
 type Service struct {
 	achService *achsvc.ACS
 	storage    ObjectStorage
 	config     *config.DeletionDaemonConfig
-	eventSink  EventSink
+	eventSink  EventMiddleware
 	stopChan   chan struct{}
 }
 
@@ -30,7 +30,7 @@ func New(
 	achService *achsvc.ACS,
 	storage ObjectStorage,
 	config *config.DeletionDaemonConfig,
-	eventSink EventSink,
+	eventSink EventMiddleware,
 ) *Service {
 	return &Service{
 		achService: achService,
@@ -49,7 +49,7 @@ func (s *Service) Start(ctx context.Context) {
 
 	if !s.config.Enabled {
 		daemonRec.Set("status", "disabled")
-		s.eventSink.RecordEvent(ctx, daemonRec)
+		s.eventSink.ProcessEvent(daemonRec)
 		return
 	}
 
@@ -73,17 +73,17 @@ func (s *Service) Start(ctx context.Context) {
 			})
 
 			s.processScheduledDeletions(iterCtx, iterRec)
-			s.eventSink.RecordEvent(iterCtx, iterRec)
+			s.eventSink.ProcessEvent(iterRec)
 
 		case <-s.stopChan:
 			daemonRec.Set("status", "stopped_via_signal")
 			daemonRec.Set("iterations_completed", iterationCount)
-			s.eventSink.RecordEvent(ctx, daemonRec)
+			s.eventSink.ProcessEvent(daemonRec)
 			return
 		case <-ctx.Done():
 			daemonRec.Set("status", "stopped_via_context")
 			daemonRec.Set("iterations_completed", iterationCount)
-			s.eventSink.RecordEvent(ctx, daemonRec)
+			s.eventSink.ProcessEvent(daemonRec)
 			return
 		}
 	}

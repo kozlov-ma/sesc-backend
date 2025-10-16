@@ -289,18 +289,27 @@ func TestDelete(t *testing.T) {
 			SetTemplate(achievementTemplate).
 			SaveX(ctx)
 
+		docID := uuid.Must(uuid.NewV7())
 		client.AchievementDocument.Create().
+			SetID(docID).
 			SetName("Test Document").
-			SetAchievementID(achievement.ID).
 			SetFileID(fileID).
+			SetAchievementID(achievement.ID).
 			SaveX(ctx)
 
+		// Delete should succeed and mark the document as deleted
 		err := svc.Delete(ctx, fileID)
-		require.ErrorIs(t, err, sesc.ErrFileHasDependencies)
+		require.NoError(t, err)
 
+		// File should still exist
 		file, err := svc.ByID(ctx, fileID)
 		require.NoError(t, err)
-		require.NotNil(t, file, "File should still exist")
+		require.NotNil(t, file)
+
+		// Document should be marked as deleted
+		doc, err := client.AchievementDocument.Get(ctx, docID)
+		require.NoError(t, err)
+		require.Equal(t, "deleted", doc.Status)
 	})
 }
 

@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/gofrs/uuid/v5"
+	"github.com/kozlov-ma/sesc-backend/achievement"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievementdocument"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/file"
@@ -194,13 +195,9 @@ func (s *FileService) Delete(ctx context.Context, id UUID) error {
 		return err
 	}
 
-	hasDeps, err := s.hasDependencies(ctx, rec, id)
+	// Mark related achievement documents as deleted
+	err = s.markDocumentsAsDeleted(ctx, rec, id)
 	if err != nil {
-		rec.Add(events.Error, err)
-		return err
-	}
-	if hasDeps {
-		err := sesc.ErrFileHasDependencies
 		rec.Add(events.Error, err)
 		return err
 	}
@@ -409,28 +406,31 @@ func (s *FileService) DownloadURL(ctx context.Context, id UUID) (string, error) 
 	return downloadURL, nil
 }
 
-// hasDependencies checks if a file is referenced by any achievement documents
-func (s *FileService) hasDependencies(ctx context.Context, rec *event.Record, fileID UUID) (bool, error) {
-	rec.Set("check_dependencies", true)
+// markDocumentsAsDeleted marks all achievement documents referencing this file as deleted
+func (s *FileService) markDocumentsAsDeleted(ctx context.Context, rec *event.Record, fileID UUID) error {
+	rec.Set("mark_documents_as_deleted", true)
 
-	var count int
-	err := recordDBOperation(ctx, rec, "check_file_dependencies", func() error {
+	var updatedCount int
+	err := recordDBOperation(ctx, rec, "mark_documents_deleted", func() error {
 		var err error
-		count, err = s.client.AchievementDocument.Query().
-			Where(achievementdocument.FileID(fileID)).
-			Count(ctx)
+		updatedCount, err = s.client.AchievementDocument.Update().
+			Where(
+				achievementdocument.FileID(fileID),
+				achievementdocument.StatusNEQ(achievement.DocumentStatusDeleted),
+			).
+			SetStatus(achievement.DocumentStatusDeleted).
+			Save(ctx)
 		if err == nil {
-			rec.Set("dependencies_count", count)
+			rec.Set("documents_marked_deleted", updatedCount)
 		}
 		return err
 	})
 
 	if err != nil {
 		rec.Add(events.Error, err)
-		return false, err
+		return err
 	}
 
-	hasDeps := count > 0
-	rec.Set("has_dependencies", hasDeps)
-	return hasDeps, nil
+	rec.Set("marked_documents_count", updatedCount)
+	return nil
 }

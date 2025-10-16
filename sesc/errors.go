@@ -16,11 +16,9 @@ var (
 	ErrInvalidUserName       = domerr.New("имя пользователя заполнено некорректно", domerr.KindValidation)
 	ErrInvalidDepartmentName = domerr.New("название кафедры некорректно", domerr.KindValidation)
 
-	ErrInvalidFileName     = domerr.New("некорректное имя файла", domerr.KindValidation)
-	ErrInvalidFileSize     = domerr.New("некорректный размер файла", domerr.KindValidation)
-	ErrFileNotFound        = domerr.New("файл не существует", domerr.KindNotFound)
-	ErrFileHasDependencies = domerr.New("файл используется в документах достижений", domerr.KindConflict)
-
+	ErrInvalidFileName       = domerr.New("некорректное имя файла", domerr.KindValidation)
+	ErrInvalidFileSize       = domerr.New("некорректный размер файла", domerr.KindValidation)
+	ErrFileNotFound          = domerr.New("файл не существует", domerr.KindNotFound)
 	ErrInvalidEmploymentRate = domerr.New("некорректная доля ставки", domerr.KindValidation)
 
 	ErrSuspended = apperr.New("действие вашего аккаунта приостановлено", apperr.KindForbidden)

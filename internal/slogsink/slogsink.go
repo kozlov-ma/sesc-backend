@@ -63,23 +63,3 @@ func (s *SlogSink) RecordHTTPRequest(ctx context.Context, rec *event.Record) {
 
 	rec.Finish()
 }
-
-// RecordEvent records a general event
-func (s *SlogSink) RecordEvent(ctx context.Context, rec *event.Record) {
-	for _, mw := range s.middlewares {
-		mw.ProcessEvent(rec)
-	}
-
-	level := slog.LevelInfo
-	if e := rec.Value(events.Error); e != nil {
-		level = slog.LevelError
-	}
-
-	if p := rec.Value("panic"); p != nil {
-		level = slog.LevelError
-	}
-
-	s.log.Log(ctx, level, "event", slog.Any(rec.EventName(), rec))
-
-	rec.Finish()
-}
