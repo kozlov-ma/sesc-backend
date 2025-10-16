@@ -56,7 +56,7 @@ func (s *ACS) ScheduleDeletion(
 
 		err = rec.Operation("schedule_document_deletion", func(_ *event.Record) error {
 			start := time.Now()
-			scheduledAt := time.Now().Add(s.deletionDelay)
+			scheduledAt := time.Now()
 			_, err := tx.AchievementDocument.UpdateOne(doc).
 				SetStatus(achievement.DocumentStatusScheduled).
 				SetScheduledDeletionAt(scheduledAt).

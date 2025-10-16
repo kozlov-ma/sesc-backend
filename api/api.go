@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/http/pprof"
 	"net/url"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 	_ "github.com/kozlov-ma/sesc-backend/api/docs" // This blank import is needed to serve the swagger scheme.
@@ -17,18 +18,20 @@ import (
 )
 
 type API struct {
-	sesc      SESC
-	iam       IAMService
-	file      FileService
-	eventSink EventSink
+	sesc          SESC
+	iam           IAMService
+	file          FileService
+	eventSink     EventSink
+	deletionDelay time.Duration
 }
 
-func New(sesc SESC, iam IAMService, file FileService, eventSink EventSink) *API {
+func New(sesc SESC, iam IAMService, file FileService, eventSink EventSink, deletionDelay time.Duration) *API {
 	return &API{
-		sesc:      sesc,
-		iam:       iam,
-		file:      file,
-		eventSink: eventSink,
+		sesc:          sesc,
+		iam:           iam,
+		file:          file,
+		eventSink:     eventSink,
+		deletionDelay: deletionDelay,
 	}
 }
 

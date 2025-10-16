@@ -1,8 +1,6 @@
 package achsvc
 
 import (
-	"time"
-
 	"github.com/gofrs/uuid/v5"
 	"github.com/kozlov-ma/sesc-backend/achievement"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent"
@@ -26,14 +24,12 @@ type (
 )
 
 type ACS struct {
-	client        *ent.Client
-	deletionDelay time.Duration
+	client *ent.Client
 }
 
-func New(client *ent.Client, deletionDelay time.Duration) *ACS {
+func New(client *ent.Client) *ACS {
 	return &ACS{
-		client:        client,
-		deletionDelay: deletionDelay,
+		client: client,
 	}
 }
 

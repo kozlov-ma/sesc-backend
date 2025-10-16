@@ -3,7 +3,6 @@ package achsvc
 import (
 	"fmt"
 	"testing"
-	"time"
 
 	"github.com/kozlov-ma/sesc-backend/achievement"
 	"github.com/kozlov-ma/sesc-backend/internal/services/testutil"
@@ -20,7 +19,7 @@ func TestGetUsersWithAchievements(t *testing.T) {
 		client := testutil.SetupDatabase(t)
 
 		// Create the service
-		svc := New(client, 24*time.Hour)
+		svc := New(client)
 
 		// Create test users and department
 		dept := testutil.CreateTestDepartmentWithName(ctx, t, client, "Test Department")
@@ -57,7 +56,7 @@ func TestGetUsersWithAchievements(t *testing.T) {
 		client := testutil.SetupDatabase(t)
 
 		// Create the service
-		svc := New(client, 24*time.Hour)
+		svc := New(client)
 
 		// Create departments and users
 		dept1 := testutil.CreateTestDepartmentWithName(ctx, t, client, "Department 1")
@@ -130,7 +129,7 @@ func TestGetUsersWithAchievements(t *testing.T) {
 		client := testutil.SetupDatabase(t)
 
 		// Create the service
-		svc := New(client, 24*time.Hour)
+		svc := New(client)
 
 		// Create users and templates
 		dept := testutil.CreateTestDepartmentWithName(ctx, t, client, "Test Department")
@@ -200,7 +199,7 @@ func TestGetUsersWithAchievements(t *testing.T) {
 		client := testutil.SetupDatabase(t)
 
 		// Create the service
-		svc := New(client, 24*time.Hour)
+		svc := New(client)
 
 		// Create users and templates
 		dept := testutil.CreateTestDepartmentWithName(ctx, t, client, "Test Department")
@@ -270,7 +269,7 @@ func TestGetUsersWithAchievements(t *testing.T) {
 		client := testutil.SetupDatabase(t)
 
 		// Create the service
-		svc := New(client, 24*time.Hour)
+		svc := New(client)
 
 		// Create departments and users
 		dept1 := testutil.CreateTestDepartmentWithName(ctx, t, client, "Department 1")
@@ -319,7 +318,7 @@ func TestGetUsersWithAchievements(t *testing.T) {
 		client := testutil.SetupDatabase(t)
 
 		// Create the service
-		svc := New(client, 24*time.Hour)
+		svc := New(client)
 
 		// Create an asker but no users with achievements
 		dept := testutil.CreateTestDepartmentWithName(ctx, t, client, "Test Department")
@@ -341,7 +340,7 @@ func TestGetUsersWithAchievements(t *testing.T) {
 		client := testutil.SetupDatabase(t)
 
 		// Create the service
-		svc := New(client, 24*time.Hour)
+		svc := New(client)
 
 		// Create multiple test users with achievements
 		dept := testutil.CreateTestDepartmentWithName(ctx, t, client, "Test Department")
@@ -388,7 +387,7 @@ func TestGetUsersWithAchievements(t *testing.T) {
 		client := testutil.SetupDatabase(t)
 
 		// Create the service
-		svc := New(client, 24*time.Hour)
+		svc := New(client)
 
 		// Create an asker
 		dept := testutil.CreateTestDepartmentWithName(ctx, t, client, "Test Department")

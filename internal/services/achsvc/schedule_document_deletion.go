@@ -23,7 +23,7 @@ func (s *ACS) ScheduleDocumentDeletionAll(ctx context.Context) error {
 		"start_time", time.Now(),
 	)
 
-	scheduledDeletionAt := time.Now().Add(s.deletionDelay)
+	scheduledDeletionAt := time.Now()
 	var scheduledCount int
 
 	err := txwrapper.WithTx(ctx, s.client, sql.LevelSerializable, rec, func(tx *ent.Tx) error {

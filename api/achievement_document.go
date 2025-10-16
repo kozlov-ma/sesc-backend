@@ -123,7 +123,7 @@ func (a *API) GetDocumentStats(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	a.writeJSON(ctx, w, respond.WithDocumentStats(stats, stats.DeletionDelay.String()))
+	a.writeJSON(ctx, w, respond.WithDocumentStats(stats, a.deletionDelay.String()))
 }
 
 // ScheduleDeletion godoc

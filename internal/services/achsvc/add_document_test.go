@@ -2,7 +2,6 @@ package achsvc
 
 import (
 	"testing"
-	"time"
 
 	"github.com/kozlov-ma/sesc-backend/achievement"
 	"github.com/kozlov-ma/sesc-backend/internal/services/testutil"
@@ -19,7 +18,7 @@ func TestAddDocument(t *testing.T) {
 		client := testutil.SetupDatabase(t)
 
 		// Create the service
-		svc := New(client, 24*time.Hour)
+		svc := New(client)
 
 		// Create test user, template, achievement, and file
 		user := testutil.CreateTestUser(ctx, t, client, "Test", "User", sesc.Role(1))
@@ -51,7 +50,7 @@ func TestAddDocument(t *testing.T) {
 		client := testutil.SetupDatabase(t)
 
 		// Create the service
-		svc := New(client, 24*time.Hour)
+		svc := New(client)
 
 		// Create a test user and file but use non-existent achievement
 		user := testutil.CreateTestUser(ctx, t, client, "Test", "User", sesc.Role(1))
@@ -78,7 +77,7 @@ func TestAddDocument(t *testing.T) {
 		client := testutil.SetupDatabase(t)
 
 		// Create the service
-		svc := New(client, 24*time.Hour)
+		svc := New(client)
 
 		// Create test user, template and achievement but use non-existent file
 		user := testutil.CreateTestUser(ctx, t, client, "Test", "User", sesc.Role(1))
@@ -106,7 +105,7 @@ func TestAddDocument(t *testing.T) {
 		client := testutil.SetupDatabase(t)
 
 		// Create the service
-		svc := New(client, 24*time.Hour)
+		svc := New(client)
 
 		// Create test user, reviewer, template, achievement, and file
 		user := testutil.CreateTestUser(ctx, t, client, "Test", "User", sesc.Role(1))
@@ -135,7 +134,7 @@ func TestAddDocument(t *testing.T) {
 		client := testutil.SetupDatabase(t)
 
 		// Create the service
-		svc := New(client, 24*time.Hour)
+		svc := New(client)
 
 		// Create test user, template, achievement, and file
 		user := testutil.CreateTestUser(ctx, t, client, "Test", "User", sesc.Role(1))
