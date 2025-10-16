@@ -58,8 +58,6 @@ type ClientOption func(*runtime.ClientOperation)
 type ClientService interface {
 	DeleteAchievementsID(params *DeleteAchievementsIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*DeleteAchievementsIDNoContent, error)
 
-	DeleteAchievementsIDDocumentsDocumentID(params *DeleteAchievementsIDDocumentsDocumentIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*DeleteAchievementsIDDocumentsDocumentIDNoContent, error)
-
 	GetAchievements(params *GetAchievementsParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetAchievementsOK, error)
 
 	GetAchievementsID(params *GetAchievementsIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetAchievementsIDOK, error)
@@ -117,47 +115,6 @@ func (a *Client) DeleteAchievementsID(params *DeleteAchievementsIDParams, authIn
 	// unexpected success response
 	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
 	msg := fmt.Sprintf("unexpected success response for DeleteAchievementsID: API contract not enforced by server. Client expected to get an error, but got: %T", result)
-	panic(msg)
-}
-
-/*
-DeleteAchievementsIDDocumentsDocumentID removes a document from an achievement immediately
-
-Immediately removes a document from an achievement (marks as deleted)
-*/
-func (a *Client) DeleteAchievementsIDDocumentsDocumentID(params *DeleteAchievementsIDDocumentsDocumentIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*DeleteAchievementsIDDocumentsDocumentIDNoContent, error) {
-	// TODO: Validate the params before sending
-	if params == nil {
-		params = NewDeleteAchievementsIDDocumentsDocumentIDParams()
-	}
-	op := &runtime.ClientOperation{
-		ID:                 "DeleteAchievementsIDDocumentsDocumentID",
-		Method:             "DELETE",
-		PathPattern:        "/achievements/{id}/documents/{documentId}",
-		ProducesMediaTypes: []string{"application/json"},
-		ConsumesMediaTypes: []string{"application/json"},
-		Schemes:            []string{"http"},
-		Params:             params,
-		Reader:             &DeleteAchievementsIDDocumentsDocumentIDReader{formats: a.formats},
-		AuthInfo:           authInfo,
-		Context:            params.Context,
-		Client:             params.HTTPClient,
-	}
-	for _, opt := range opts {
-		opt(op)
-	}
-
-	result, err := a.transport.Submit(op)
-	if err != nil {
-		return nil, err
-	}
-	success, ok := result.(*DeleteAchievementsIDDocumentsDocumentIDNoContent)
-	if ok {
-		return success, nil
-	}
-	// unexpected success response
-	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
-	msg := fmt.Sprintf("unexpected success response for DeleteAchievementsIDDocumentsDocumentID: API contract not enforced by server. Client expected to get an error, but got: %T", result)
 	panic(msg)
 }
 

@@ -124,7 +124,6 @@ type (
 			opt achievement.AddDocumentOptions,
 		) (*ent.AchievementDocument, error)
 		ScheduleDeletion(ctx context.Context, opt achievement.ScheduleDocumentDeletionOptions) error
-		RemoveDocument(ctx context.Context, opt achievement.RemoveDocumentOptions) error
 
 		SubmitAchievement(
 			ctx context.Context,

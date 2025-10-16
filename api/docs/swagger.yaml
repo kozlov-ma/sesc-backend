@@ -461,7 +461,6 @@ definitions:
         example: Publication proof
         type: string
     required:
-    - fileId
     - id
     - name
     type: object
@@ -1138,54 +1137,6 @@ paths:
       security:
       - BearerAuth: []
       summary: Add a document to an achievement
-      tags:
-      - achievements
-  /achievements/{id}/documents/{documentId}:
-    delete:
-      description: Immediately removes a document from an achievement (marks as deleted)
-      parameters:
-      - description: Bearer JWT token
-        in: header
-        name: Authorization
-        type: string
-      - description: Achievement UUID
-        in: path
-        name: id
-        required: true
-        type: string
-      - description: Document UUID
-        in: path
-        name: documentId
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "204":
-          description: No Content
-        "400":
-          description: Invalid UUID format
-          schema:
-            $ref: '#/definitions/respond.Error'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/respond.Error'
-        "404":
-          description: Document not found
-          schema:
-            $ref: '#/definitions/respond.Error'
-        "409":
-          description: Wrong achievement status
-          schema:
-            $ref: '#/definitions/respond.Error'
-        "500":
-          description: Internal server error
-          schema:
-            $ref: '#/definitions/respond.Error'
-      security:
-      - BearerAuth: []
-      summary: Remove a document from an achievement immediately
       tags:
       - achievements
   /achievements/{id}/review:

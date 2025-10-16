@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { PlusCircle, Trash2, Send, X, FilePlus } from "lucide-react";
+import { PlusCircle, Trash2, Send, FilePlus } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -24,7 +24,6 @@ import {
   postAchievementsMutation,
   deleteAchievementsByIdMutation,
   postAchievementsByIdSubmitMutation,
-  deleteAchievementsByIdDocumentsByDocumentIdMutation,
 } from "@/lib/api/@tanstack/react-query.gen";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -65,36 +64,6 @@ export default function DraftAchievementsPage() {
   };
 
   const queryClient = useQueryClient();
-
-  // Remove document mutation
-  const { mutate: deleteDocument } = useMutation({
-    ...deleteAchievementsByIdDocumentsByDocumentIdMutation(),
-    onSuccess: () => {
-      toast.success("Документ удален", {
-        description: "Документ успешно удален из достижения",
-      });
-      queryClient.invalidateQueries({
-        queryKey: getAchievementsOptions().queryKey,
-      });
-    },
-    onError: () => {
-      toast.error("Ошибка", {
-        description: "Не удалось удалить документ",
-      });
-    },
-  });
-
-  const handleRemoveDocument = (
-    achievement: RespondAchievement,
-    documentId: string,
-  ) => {
-    deleteDocument({
-      path: {
-        id: achievement.id,
-        documentId: documentId,
-      },
-    });
-  };
 
   // Submit achievement mutation
   const { mutate: submitAchievement, isPending: isSubmitPending } = useMutation(
@@ -260,21 +229,11 @@ export default function DraftAchievementsPage() {
                     {achievement.documents.map((document) => (
                       <div
                         key={document.id}
-                        className="flex items-center justify-between rounded-md group"
+                        className="flex items-center rounded-md"
                       >
-                        <div className="flex items-center">
+                        {document.fileId && (
                           <FileNameByIdDisplay fileId={document.fileId} />
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-6 w-6 ml-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                            onClick={() =>
-                              handleRemoveDocument(achievement, document.id)
-                            }
-                          >
-                            <X className="h-3.5 w-3.5 text-muted-foreground" />
-                          </Button>
-                        </div>
+                        )}
                       </div>
                     ))}
 

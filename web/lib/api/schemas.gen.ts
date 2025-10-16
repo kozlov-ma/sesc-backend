@@ -584,7 +584,7 @@ export const respond_DepartmentsSchema = {
 
 export const respond_DocumentSchema = {
   type: "object",
-  required: ["fileId", "id", "name"],
+  required: ["id", "name"],
   properties: {
     fileId: {
       type: "string",

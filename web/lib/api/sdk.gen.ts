@@ -42,8 +42,6 @@ import type {
   PostAchievementsByIdDocumentsData,
   PostAchievementsByIdDocumentsResponse,
   PostAchievementsByIdDocumentsError,
-  DeleteAchievementsByIdDocumentsByDocumentIdData,
-  DeleteAchievementsByIdDocumentsByDocumentIdError,
   PostAchievementsByIdReviewData,
   PostAchievementsByIdReviewResponse,
   PostAchievementsByIdReviewError,
@@ -450,34 +448,6 @@ export const postAchievementsByIdDocuments = <
       "Content-Type": "application/json",
       ...options?.headers,
     },
-  });
-};
-
-/**
- * Remove a document from an achievement immediately
- * Immediately removes a document from an achievement (marks as deleted)
- */
-export const deleteAchievementsByIdDocumentsByDocumentId = <
-  ThrowOnError extends boolean = false,
->(
-  options: Options<
-    DeleteAchievementsByIdDocumentsByDocumentIdData,
-    ThrowOnError
-  >,
-) => {
-  return (options.client ?? _heyApiClient).delete<
-    unknown,
-    DeleteAchievementsByIdDocumentsByDocumentIdError,
-    ThrowOnError
-  >({
-    security: [
-      {
-        name: "Authorization",
-        type: "apiKey",
-      },
-    ],
-    url: "/achievements/{id}/documents/{documentId}",
-    ...options,
   });
 };
 

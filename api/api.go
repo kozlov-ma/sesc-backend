@@ -158,7 +158,6 @@ func (a *API) RegisterRoutes(r chi.Router) {
 
 				// Document management
 				r.Post("/documents", a.AddDocument)
-				r.Delete("/documents/{documentId}", a.RemoveDocument)
 
 				// Achievement status management
 				r.Post("/submit", a.SubmitAchievement)

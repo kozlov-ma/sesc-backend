@@ -14,7 +14,6 @@ import {
   deleteAchievementsById,
   getAchievementsById,
   postAchievementsByIdDocuments,
-  deleteAchievementsByIdDocumentsByDocumentId,
   postAchievementsByIdReview,
   postAchievementsByIdSubmit,
   postAchievementsByIdSubmitWithNewPoints,
@@ -82,8 +81,6 @@ import type {
   PostAchievementsByIdDocumentsData,
   PostAchievementsByIdDocumentsError,
   PostAchievementsByIdDocumentsResponse,
-  DeleteAchievementsByIdDocumentsByDocumentIdData,
-  DeleteAchievementsByIdDocumentsByDocumentIdError,
   PostAchievementsByIdReviewData,
   PostAchievementsByIdReviewError,
   PostAchievementsByIdReviewResponse,
@@ -734,34 +731,6 @@ export const postAchievementsByIdDocumentsMutation = (
   > = {
     mutationFn: async (localOptions) => {
       const { data } = await postAchievementsByIdDocuments({
-        ...options,
-        ...localOptions,
-        throwOnError: true,
-      });
-      return data;
-    },
-  };
-  return mutationOptions;
-};
-
-/**
- * Remove a document from an achievement immediately
- * Immediately removes a document from an achievement (marks as deleted)
- */
-export const deleteAchievementsByIdDocumentsByDocumentIdMutation = (
-  options?: Partial<Options<DeleteAchievementsByIdDocumentsByDocumentIdData>>,
-): UseMutationOptions<
-  unknown,
-  AxiosError<DeleteAchievementsByIdDocumentsByDocumentIdError>,
-  Options<DeleteAchievementsByIdDocumentsByDocumentIdData>
-> => {
-  const mutationOptions: UseMutationOptions<
-    unknown,
-    AxiosError<DeleteAchievementsByIdDocumentsByDocumentIdError>,
-    Options<DeleteAchievementsByIdDocumentsByDocumentIdData>
-  > = {
-    mutationFn: async (localOptions) => {
-      const { data } = await deleteAchievementsByIdDocumentsByDocumentId({
         ...options,
         ...localOptions,
         throwOnError: true,

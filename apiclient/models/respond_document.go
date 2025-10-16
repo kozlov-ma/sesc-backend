@@ -21,8 +21,7 @@ type RespondDocument struct {
 
 	// file Id
 	// Example: 550e8400-e29b-41d4-a716-446655440000
-	// Required: true
-	FileID *string `json:"fileId"`
+	FileID string `json:"fileId,omitempty"`
 
 	// id
 	// Example: 550e8400-e29b-41d4-a716-446655440000
@@ -39,10 +38,6 @@ type RespondDocument struct {
 func (m *RespondDocument) Validate(formats strfmt.Registry) error {
 	var res []error
 
-	if err := m.validateFileID(formats); err != nil {
-		res = append(res, err)
-	}
-
 	if err := m.validateID(formats); err != nil {
 		res = append(res, err)
 	}
@@ -54,15 +49,6 @@ func (m *RespondDocument) Validate(formats strfmt.Registry) error {
 	if len(res) > 0 {
 		return errors.CompositeValidationError(res...)
 	}
-	return nil
-}
-
-func (m *RespondDocument) validateFileID(formats strfmt.Registry) error {
-
-	if err := validate.Required("fileId", "body", m.FileID); err != nil {
-		return err
-	}
-
 	return nil
 }
 

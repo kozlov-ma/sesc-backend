@@ -880,80 +880,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/achievements/{id}/documents/{documentId}": {
-            "delete": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Immediately removes a document from an achievement (marks as deleted)",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "achievements"
-                ],
-                "summary": "Remove a document from an achievement immediately",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer JWT token",
-                        "name": "Authorization",
-                        "in": "header"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Achievement UUID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Document UUID",
-                        "name": "documentId",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "204": {
-                        "description": "No Content"
-                    },
-                    "400": {
-                        "description": "Invalid UUID format",
-                        "schema": {
-                            "$ref": "#/definitions/respond.Error"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/respond.Error"
-                        }
-                    },
-                    "404": {
-                        "description": "Document not found",
-                        "schema": {
-                            "$ref": "#/definitions/respond.Error"
-                        }
-                    },
-                    "409": {
-                        "description": "Wrong achievement status",
-                        "schema": {
-                            "$ref": "#/definitions/respond.Error"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "$ref": "#/definitions/respond.Error"
-                        }
-                    }
-                }
-            }
-        },
         "/achievements/{id}/review": {
             "post": {
                 "security": [
@@ -3488,7 +3414,6 @@ const docTemplate = `{
         "respond.Document": {
             "type": "object",
             "required": [
-                "fileId",
                 "id",
                 "name"
             ],

@@ -167,7 +167,7 @@ export type RespondDepartments = {
 };
 
 export type RespondDocument = {
-  fileId: string;
+  fileId?: string;
   id: string;
   name: string;
 };
@@ -867,61 +867,6 @@ export type PostAchievementsByIdDocumentsResponses = {
 
 export type PostAchievementsByIdDocumentsResponse =
   PostAchievementsByIdDocumentsResponses[keyof PostAchievementsByIdDocumentsResponses];
-
-export type DeleteAchievementsByIdDocumentsByDocumentIdData = {
-  body?: never;
-  headers?: {
-    /**
-     * Bearer JWT token
-     */
-    Authorization?: string;
-  };
-  path: {
-    /**
-     * Achievement UUID
-     */
-    id: string;
-    /**
-     * Document UUID
-     */
-    documentId: string;
-  };
-  query?: never;
-  url: "/achievements/{id}/documents/{documentId}";
-};
-
-export type DeleteAchievementsByIdDocumentsByDocumentIdErrors = {
-  /**
-   * Invalid UUID format
-   */
-  400: RespondError;
-  /**
-   * Unauthorized
-   */
-  401: RespondError;
-  /**
-   * Document not found
-   */
-  404: RespondError;
-  /**
-   * Wrong achievement status
-   */
-  409: RespondError;
-  /**
-   * Internal server error
-   */
-  500: RespondError;
-};
-
-export type DeleteAchievementsByIdDocumentsByDocumentIdError =
-  DeleteAchievementsByIdDocumentsByDocumentIdErrors[keyof DeleteAchievementsByIdDocumentsByDocumentIdErrors];
-
-export type DeleteAchievementsByIdDocumentsByDocumentIdResponses = {
-  /**
-   * No Content
-   */
-  204: unknown;
-};
 
 export type PostAchievementsByIdReviewData = {
   /**
