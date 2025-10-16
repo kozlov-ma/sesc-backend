@@ -2,6 +2,7 @@ package api
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 
 	"github.com/gofrs/uuid/v5"
@@ -45,6 +46,12 @@ func (a *API) AddDocument(w http.ResponseWriter, r *http.Request) {
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		rec.Add(events.Error, "invalid request body")
 		a.writeJSON(ctx, w, respond.WithError(ctx, err))
+		return
+	}
+
+	if req.FileID == uuid.Nil {
+		rec.Add(events.Error, "Nil file ID")
+		a.writeJSON(ctx, w, respond.WithError(ctx, errors.New("you must provide a file")))
 		return
 	}
 

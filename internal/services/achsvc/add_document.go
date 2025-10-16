@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/gofrs/uuid/v5"
 	"github.com/kozlov-ma/sesc-backend/achievement"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent"
 	"github.com/kozlov-ma/sesc-backend/internal/services/txwrapper"
@@ -32,10 +31,6 @@ func (s *ACS) AddDocument(
 		"file_id", opt.FileID,
 		"name", opt.Name,
 	)
-
-	if opt.FileID == uuid.Nil {
-		return nil, sesc.ErrFileNotFound
-	}
 
 	var doc *ent.AchievementDocument
 	err := txwrapper.WithTx(ctx, s.client, sql.LevelReadCommitted, rec, func(tx *ent.Tx) error {
