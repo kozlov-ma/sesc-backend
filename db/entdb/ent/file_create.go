@@ -42,14 +42,6 @@ func (fc *FileCreate) SetS3ObjectKey(s string) *FileCreate {
 	return fc
 }
 
-// SetNillableS3ObjectKey sets the "s3_object_key" field if the given value is not nil.
-func (fc *FileCreate) SetNillableS3ObjectKey(s *string) *FileCreate {
-	if s != nil {
-		fc.SetS3ObjectKey(*s)
-	}
-	return fc
-}
-
 // SetName sets the "name" field.
 func (fc *FileCreate) SetName(s string) *FileCreate {
 	fc.mutation.SetName(s)
@@ -139,6 +131,9 @@ func (fc *FileCreate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (fc *FileCreate) check() error {
+	if _, ok := fc.mutation.S3ObjectKey(); !ok {
+		return &ValidationError{Name: "s3_object_key", err: errors.New(`ent: missing required field "File.s3_object_key"`)}
+	}
 	if _, ok := fc.mutation.Name(); !ok {
 		return &ValidationError{Name: "name", err: errors.New(`ent: missing required field "File.name"`)}
 	}
@@ -182,7 +177,7 @@ func (fc *FileCreate) createSpec() (*File, *sqlgraph.CreateSpec) {
 	}
 	if value, ok := fc.mutation.S3ObjectKey(); ok {
 		_spec.SetField(file.FieldS3ObjectKey, field.TypeString, value)
-		_node.S3ObjectKey = &value
+		_node.S3ObjectKey = value
 	}
 	if value, ok := fc.mutation.Name(); ok {
 		_spec.SetField(file.FieldName, field.TypeString, value)

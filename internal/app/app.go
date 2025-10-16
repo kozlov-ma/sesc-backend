@@ -96,8 +96,8 @@ func NewWithDBOptions(ctx context.Context, cfg *config.Config, log *slog.Logger,
 
 	// Initialize services
 	iamService := iamsvc.New(client, 7*24*time.Hour, adminCredentials, []byte(cfg.JWTSecret))
-	sescService := sescsvc.New(client, cfg.DocumentService.DeletionDelay)
-	achService := achsvc.New(client, cfg.DocumentService.DeletionDelay)
+	sescService := sescsvc.New(client, cfg.DeletionDaemon.Delay)
+	achService := achsvc.New(client, cfg.DeletionDaemon.Delay)
 
 	// Initialize S3 storage
 	s3Storage, err := s3svc.NewStorage(
@@ -118,10 +118,16 @@ func NewWithDBOptions(ctx context.Context, cfg *config.Config, log *slog.Logger,
 		client,
 		s3Storage,
 		cfg.MinIO.BucketName,
-		cfg.DocumentService.DeletionDelay,
 	)
 
-	deletionDaemon := deletiondaemon.New(achService, s3Storage, &cfg.DeletionDaemon, slogsink.New(log))
+	deletionDaemon := deletiondaemon.New(
+		achService,
+		s3Storage,
+		cfg.DeletionDaemon.Delay,
+		cfg.DeletionDaemon.Enabled,
+		cfg.DeletionDaemon.Interval,
+		slogsink.New(log),
+	)
 
 	apiService := api.New(sescService, iamService, fileService, slogsink.New(log))
 

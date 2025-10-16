@@ -14,7 +14,6 @@ import (
 	"github.com/go-openapi/runtime"
 	cr "github.com/go-openapi/runtime/client"
 	"github.com/go-openapi/strfmt"
-	"github.com/go-openapi/swag"
 )
 
 // NewPostDocumentsScheduleDeletionAllParams creates a new PostDocumentsScheduleDeletionAllParams object,
@@ -68,12 +67,6 @@ type PostDocumentsScheduleDeletionAllParams struct {
 	*/
 	Authorization *string
 
-	/* MarkOnly.
-
-	   If true, only mark files as deleted without removing from storage
-	*/
-	MarkOnly *bool
-
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
@@ -91,18 +84,7 @@ func (o *PostDocumentsScheduleDeletionAllParams) WithDefaults() *PostDocumentsSc
 //
 // All values with no default are reset to their zero value.
 func (o *PostDocumentsScheduleDeletionAllParams) SetDefaults() {
-	var (
-		markOnlyDefault = bool(false)
-	)
-
-	val := PostDocumentsScheduleDeletionAllParams{
-		MarkOnly: &markOnlyDefault,
-	}
-
-	val.timeout = o.timeout
-	val.Context = o.Context
-	val.HTTPClient = o.HTTPClient
-	*o = val
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the post documents schedule deletion all params
@@ -149,17 +131,6 @@ func (o *PostDocumentsScheduleDeletionAllParams) SetAuthorization(authorization 
 	o.Authorization = authorization
 }
 
-// WithMarkOnly adds the markOnly to the post documents schedule deletion all params
-func (o *PostDocumentsScheduleDeletionAllParams) WithMarkOnly(markOnly *bool) *PostDocumentsScheduleDeletionAllParams {
-	o.SetMarkOnly(markOnly)
-	return o
-}
-
-// SetMarkOnly adds the markOnly to the post documents schedule deletion all params
-func (o *PostDocumentsScheduleDeletionAllParams) SetMarkOnly(markOnly *bool) {
-	o.MarkOnly = markOnly
-}
-
 // WriteToRequest writes these params to a swagger request
 func (o *PostDocumentsScheduleDeletionAllParams) WriteToRequest(r runtime.ClientRequest, reg strfmt.Registry) error {
 
@@ -173,23 +144,6 @@ func (o *PostDocumentsScheduleDeletionAllParams) WriteToRequest(r runtime.Client
 		// header param Authorization
 		if err := r.SetHeaderParam("Authorization", *o.Authorization); err != nil {
 			return err
-		}
-	}
-
-	if o.MarkOnly != nil {
-
-		// query param markOnly
-		var qrMarkOnly bool
-
-		if o.MarkOnly != nil {
-			qrMarkOnly = *o.MarkOnly
-		}
-		qMarkOnly := swag.FormatBool(qrMarkOnly)
-		if qMarkOnly != "" {
-
-			if err := r.SetQueryParam("markOnly", qMarkOnly); err != nil {
-				return err
-			}
 		}
 	}
 

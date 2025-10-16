@@ -887,14 +887,14 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Removes a document from an achievement",
+                "description": "Immediately removes a document from an achievement (marks as deleted)",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "achievements"
                 ],
-                "summary": "Remove a document from an achievement",
+                "summary": "Remove a document from an achievement immediately",
                 "parameters": [
                     {
                         "type": "string",
@@ -1796,7 +1796,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Schedules deletion for all files",
+                "description": "Schedules deletion for all documents",
                 "consumes": [
                     "application/json"
                 ],
@@ -1806,20 +1806,13 @@ const docTemplate = `{
                 "tags": [
                     "files"
                 ],
-                "summary": "Schedule deletion for all files",
+                "summary": "Schedule deletion for all documents",
                 "parameters": [
                     {
                         "type": "string",
                         "description": "Bearer JWT token",
                         "name": "Authorization",
                         "in": "header"
-                    },
-                    {
-                        "type": "boolean",
-                        "default": false,
-                        "description": "If true, only mark files as deleted without removing from storage",
-                        "name": "markOnly",
-                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -1834,6 +1827,76 @@ const docTemplate = `{
                     },
                     "403": {
                         "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/respond.Error"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/respond.Error"
+                        }
+                    }
+                }
+            }
+        },
+        "/documents/schedule_deletion/{documentId}": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Schedules a specific document for deletion",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "files"
+                ],
+                "summary": "Schedule document deletion by ID (admin only)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer JWT token",
+                        "name": "Authorization",
+                        "in": "header"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Document UUID",
+                        "name": "documentId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "400": {
+                        "description": "Invalid document ID",
+                        "schema": {
+                            "$ref": "#/definitions/respond.Error"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/respond.Error"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/respond.Error"
+                        }
+                    },
+                    "404": {
+                        "description": "Document not found",
                         "schema": {
                             "$ref": "#/definitions/respond.Error"
                         }
@@ -2112,7 +2175,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Schedules a file for deletion after the configured delay",
+                "description": "Immediately delete a file. Only file owner or admin can delete.",
                 "consumes": [
                     "application/json"
                 ],
@@ -2122,20 +2185,20 @@ const docTemplate = `{
                 "tags": [
                     "files"
                 ],
-                "summary": "Schedule file deletion",
+                "summary": "Delete file immediately",
                 "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer JWT token",
-                        "name": "Authorization",
-                        "in": "header"
-                    },
                     {
                         "type": "string",
                         "description": "File ID",
                         "name": "id",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bearer JWT token",
+                        "name": "Authorization",
+                        "in": "header"
                     }
                 ],
                 "responses": {
@@ -2143,7 +2206,7 @@ const docTemplate = `{
                         "description": "No Content"
                     },
                     "400": {
-                        "description": "Bad Request",
+                        "description": "Invalid file ID format",
                         "schema": {
                             "$ref": "#/definitions/respond.Error"
                         }
@@ -2155,19 +2218,13 @@ const docTemplate = `{
                         }
                     },
                     "403": {
-                        "description": "Forbidden",
+                        "description": "Forbidden - user is not file owner or admin",
                         "schema": {
                             "$ref": "#/definitions/respond.Error"
                         }
                     },
                     "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/respond.Error"
-                        }
-                    },
-                    "409": {
-                        "description": "File has dependencies",
+                        "description": "File not found",
                         "schema": {
                             "$ref": "#/definitions/respond.Error"
                         }
@@ -3493,12 +3550,6 @@ const docTemplate = `{
         "respond.File": {
             "type": "object",
             "properties": {
-                "deletionScheduled": {
-                    "type": "boolean"
-                },
-                "fileDeleted": {
-                    "type": "boolean"
-                },
                 "fileName": {
                     "type": "string"
                 },
@@ -3509,9 +3560,6 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "ownerId": {
-                    "type": "string"
-                },
-                "s3ObjectKey": {
                     "type": "string"
                 }
             }

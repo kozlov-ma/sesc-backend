@@ -54,12 +54,6 @@ func (o *DeleteFilesIDReader) ReadResponse(response runtime.ClientResponse, cons
 			return nil, err
 		}
 		return nil, result
-	case 409:
-		result := NewDeleteFilesIDConflict()
-		if err := result.readResponse(response, consumer, o.formats); err != nil {
-			return nil, err
-		}
-		return nil, result
 	case 500:
 		result := NewDeleteFilesIDInternalServerError()
 		if err := result.readResponse(response, consumer, o.formats); err != nil {
@@ -135,7 +129,7 @@ func NewDeleteFilesIDBadRequest() *DeleteFilesIDBadRequest {
 /*
 DeleteFilesIDBadRequest describes a response with status code 400, with default header values.
 
-Bad Request
+Invalid file ID format
 */
 type DeleteFilesIDBadRequest struct {
 	Payload *models.RespondError
@@ -275,7 +269,7 @@ func NewDeleteFilesIDForbidden() *DeleteFilesIDForbidden {
 /*
 DeleteFilesIDForbidden describes a response with status code 403, with default header values.
 
-Forbidden
+Forbidden - user is not file owner or admin
 */
 type DeleteFilesIDForbidden struct {
 	Payload *models.RespondError
@@ -345,7 +339,7 @@ func NewDeleteFilesIDNotFound() *DeleteFilesIDNotFound {
 /*
 DeleteFilesIDNotFound describes a response with status code 404, with default header values.
 
-Not Found
+File not found
 */
 type DeleteFilesIDNotFound struct {
 	Payload *models.RespondError
@@ -396,76 +390,6 @@ func (o *DeleteFilesIDNotFound) GetPayload() *models.RespondError {
 }
 
 func (o *DeleteFilesIDNotFound) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
-
-	o.Payload = new(models.RespondError)
-
-	// response payload
-	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
-		return err
-	}
-
-	return nil
-}
-
-// NewDeleteFilesIDConflict creates a DeleteFilesIDConflict with default headers values
-func NewDeleteFilesIDConflict() *DeleteFilesIDConflict {
-	return &DeleteFilesIDConflict{}
-}
-
-/*
-DeleteFilesIDConflict describes a response with status code 409, with default header values.
-
-File has dependencies
-*/
-type DeleteFilesIDConflict struct {
-	Payload *models.RespondError
-}
-
-// IsSuccess returns true when this delete files Id conflict response has a 2xx status code
-func (o *DeleteFilesIDConflict) IsSuccess() bool {
-	return false
-}
-
-// IsRedirect returns true when this delete files Id conflict response has a 3xx status code
-func (o *DeleteFilesIDConflict) IsRedirect() bool {
-	return false
-}
-
-// IsClientError returns true when this delete files Id conflict response has a 4xx status code
-func (o *DeleteFilesIDConflict) IsClientError() bool {
-	return true
-}
-
-// IsServerError returns true when this delete files Id conflict response has a 5xx status code
-func (o *DeleteFilesIDConflict) IsServerError() bool {
-	return false
-}
-
-// IsCode returns true when this delete files Id conflict response a status code equal to that given
-func (o *DeleteFilesIDConflict) IsCode(code int) bool {
-	return code == 409
-}
-
-// Code gets the status code for the delete files Id conflict response
-func (o *DeleteFilesIDConflict) Code() int {
-	return 409
-}
-
-func (o *DeleteFilesIDConflict) Error() string {
-	payload, _ := json.Marshal(o.Payload)
-	return fmt.Sprintf("[DELETE /files/{id}][%d] deleteFilesIdConflict %s", 409, payload)
-}
-
-func (o *DeleteFilesIDConflict) String() string {
-	payload, _ := json.Marshal(o.Payload)
-	return fmt.Sprintf("[DELETE /files/{id}][%d] deleteFilesIdConflict %s", 409, payload)
-}
-
-func (o *DeleteFilesIDConflict) GetPayload() *models.RespondError {
-	return o.Payload
-}
-
-func (o *DeleteFilesIDConflict) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
 	o.Payload = new(models.RespondError)
 

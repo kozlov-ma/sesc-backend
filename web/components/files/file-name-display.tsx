@@ -62,15 +62,8 @@ export function FileNameDisplay({ file, className }: FileNameDisplayProps) {
   const isImage = IMAGE_EXTENSIONS.some((ext) =>
     file.fileName?.toLowerCase()?.endsWith(ext),
   );
-  
-  const isDeleted = file.fileDeleted;
-  const isScheduled = file.deletionScheduled && !file.fileDeleted;
-  const isGrayed = isDeleted || isScheduled;
 
   const handleDownload = () => {
-    if (isDeleted) {
-      return;
-    }
     const link = document.createElement("a");
     link.href =
       process.env.NEXT_PUBLIC_API_URL + "/files/" + file.id + "/download";
@@ -83,16 +76,15 @@ export function FileNameDisplay({ file, className }: FileNameDisplayProps) {
     document.body.removeChild(link);
   };
 
-  if (!isImage || !file.fileName || isDeleted) {
+  if (!isImage || !file.fileName) {
     return (
       <Button
         variant="link"
-        className={cn("p-0 justify-start block w-full min-w-0", className, isDeleted && "pointer-events-none")}
+        className={cn("p-0 justify-start block w-full min-w-0", className)}
         onClick={handleDownload}
         title={file.fileName || "Файл"}
-        disabled={isDeleted}
       >
-        <span className={cn("font-medium truncate block", isGrayed && "text-muted-foreground")}>
+        <span className="font-medium truncate block">
           {file.fileName || "Файл"}
         </span>
       </Button>

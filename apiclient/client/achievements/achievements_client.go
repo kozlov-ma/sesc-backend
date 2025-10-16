@@ -121,9 +121,9 @@ func (a *Client) DeleteAchievementsID(params *DeleteAchievementsIDParams, authIn
 }
 
 /*
-DeleteAchievementsIDDocumentsDocumentID removes a document from an achievement
+DeleteAchievementsIDDocumentsDocumentID removes a document from an achievement immediately
 
-Removes a document from an achievement
+Immediately removes a document from an achievement (marks as deleted)
 */
 func (a *Client) DeleteAchievementsIDDocumentsDocumentID(params *DeleteAchievementsIDDocumentsDocumentIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*DeleteAchievementsIDDocumentsDocumentIDNoContent, error) {
 	// TODO: Validate the params before sending

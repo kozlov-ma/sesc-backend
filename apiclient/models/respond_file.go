@@ -17,12 +17,6 @@ import (
 // swagger:model respond.File
 type RespondFile struct {
 
-	// deletion scheduled
-	DeletionScheduled bool `json:"deletionScheduled,omitempty"`
-
-	// file deleted
-	FileDeleted bool `json:"fileDeleted,omitempty"`
-
 	// file name
 	FileName string `json:"fileName,omitempty"`
 
@@ -34,9 +28,6 @@ type RespondFile struct {
 
 	// owner Id
 	OwnerID string `json:"ownerId,omitempty"`
-
-	// s3 object key
-	S3ObjectKey string `json:"s3ObjectKey,omitempty"`
 }
 
 // Validate validates this respond file

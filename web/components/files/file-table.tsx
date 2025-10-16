@@ -38,12 +38,9 @@ import {
   useMutation,
   useQueryClient,
 } from "@tanstack/react-query";
-import { Download, FileText, Search, Trash2, Upload, X , AlertCircle, Clock } from "lucide-react";
+import { Download, FileText, Search, Trash2, Upload, X } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
-import { Badge } from "@/components/ui/badge";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
 
 interface FileTableProps {
   showOwner?: boolean;
@@ -56,7 +53,6 @@ interface FileTableProps {
   };
   allowDeleteCommon?: boolean;
   allowUpload?: boolean;
-  showDeletedByDefault?: boolean;
 }
 
 export function FileTable({
@@ -66,11 +62,9 @@ export function FileTable({
   initialFilters = {},
   allowDeleteCommon = false,
   allowUpload = true,
-  showDeletedByDefault = false,
 }: FileTableProps) {
   const [searchQuery, setSearchQuery] = useState(initialFilters.name || "");
   const [fileToDelete, setFileToDelete] = useState<RespondFile | null>(null);
-  const [showDeleted, setShowDeleted] = useState(showDeletedByDefault);
   const queryClient = useQueryClient();
   const { token } = useAuth();
   const { handleError, clearError } = useErrorHandler();
@@ -134,7 +128,8 @@ export function FileTable({
   });
 
   const allFiles = data?.pages.flatMap((page) => page.files || []) || [];
-  const files = showDeleted ? allFiles : allFiles.filter(file => !file.fileDeleted && !file.deletionScheduled);
+  // Note: Files don't have deletion status anymore - files are deleted from storage, not marked
+  const files = allFiles;
   const hasMore = hasNextPage;
 
   const { ref } = useInfiniteScroll({
@@ -292,19 +287,6 @@ export function FileTable({
           </div>
         </div>
       </div>
-      <div className="flex items-center space-x-2">
-        <Checkbox
-          id="showDeleted"
-          checked={showDeleted}
-          onCheckedChange={(checked) => setShowDeleted(checked === true)}
-        />
-        <Label
-          htmlFor="showDeleted"
-          className="text-sm font-normal cursor-pointer"
-        >
-          Показать удалённые файлы
-        </Label>
-      </div>
 
       {isLoading && files.length === 0 ? (
         <div className="h-64 flex items-center justify-center">
@@ -336,28 +318,10 @@ export function FileTable({
               </TableHeader>
               <TableBody>
                 {files.map((file) => {
-                  const isDeleted = file.fileDeleted;
-                  const isScheduled = file.deletionScheduled && !file.fileDeleted;
-                  const isGrayed = isDeleted || isScheduled;
-                  
                   return (
-                  <TableRow key={file.id} className={cn(isGrayed && "opacity-50")}>
+                  <TableRow key={file.id}>
                     <TableCell className="font-medium">
-                      <div className="flex items-center gap-2">
-                        <FileNameDisplay file={file} />
-                        {isDeleted && (
-                          <Badge variant="secondary" className="text-xs text-muted-foreground">
-                            <AlertCircle className="h-3 w-3 mr-1" />
-                            Удалён
-                          </Badge>
-                        )}
-                        {isScheduled && (
-                          <Badge variant="outline" className="text-xs text-orange-600 dark:text-orange-400">
-                            <Clock className="h-3 w-3 mr-1" />
-                            Запланирован
-                          </Badge>
-                        )}
-                      </div>
+                      <FileNameDisplay file={file} />
                     </TableCell>
                     {showOwner && (
                       <TableCell>
@@ -366,30 +330,26 @@ export function FileTable({
                         )}
                       </TableCell>
                     )}
-                    <TableCell className={cn(isGrayed && "text-muted-foreground")}>
+                    <TableCell>
                       {formatFileSize(file.fileSize || 0)}
                     </TableCell>
                     <TableCell className="text-center">
-                      {!isDeleted && (
-                        <>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleDownload(file)}
-                            title="Скачать файл"
-                          >
-                            <Download className="h-4 w-4" />
-                          </Button>
-                          {(allowDeleteCommon || file.ownerId) && (
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => handleDelete(file)}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          )}
-                        </>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleDownload(file)}
+                        title="Скачать файл"
+                      >
+                        <Download className="h-4 w-4" />
+                      </Button>
+                      {(allowDeleteCommon || file.ownerId) && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleDelete(file)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
                       )}
                     </TableCell>
                   </TableRow>

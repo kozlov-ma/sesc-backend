@@ -29,6 +29,7 @@ import {
   getDepartmentsById,
   putDepartmentsById,
   postDocumentsScheduleDeletionAll,
+  postDocumentsScheduleDeletionByDocumentId,
   getDocumentsStats,
   getFiles,
   postFiles,
@@ -114,6 +115,8 @@ import type {
   PutDepartmentsByIdResponse,
   PostDocumentsScheduleDeletionAllData,
   PostDocumentsScheduleDeletionAllError,
+  PostDocumentsScheduleDeletionByDocumentIdData,
+  PostDocumentsScheduleDeletionByDocumentIdError,
   GetDocumentsStatsData,
   GetFilesData,
   GetFilesError,
@@ -742,8 +745,8 @@ export const postAchievementsByIdDocumentsMutation = (
 };
 
 /**
- * Remove a document from an achievement
- * Removes a document from an achievement
+ * Remove a document from an achievement immediately
+ * Immediately removes a document from an achievement (marks as deleted)
  */
 export const deleteAchievementsByIdDocumentsByDocumentIdMutation = (
   options?: Partial<Options<DeleteAchievementsByIdDocumentsByDocumentIdData>>,
@@ -1272,8 +1275,8 @@ export const postDocumentsScheduleDeletionAllQueryKey = (
 ) => createQueryKey("postDocumentsScheduleDeletionAll", options);
 
 /**
- * Schedule deletion for all files
- * Schedules deletion for all files
+ * Schedule deletion for all documents
+ * Schedules deletion for all documents
  */
 export const postDocumentsScheduleDeletionAllOptions = (
   options?: Options<PostDocumentsScheduleDeletionAllData>,
@@ -1293,8 +1296,8 @@ export const postDocumentsScheduleDeletionAllOptions = (
 };
 
 /**
- * Schedule deletion for all files
- * Schedules deletion for all files
+ * Schedule deletion for all documents
+ * Schedules deletion for all documents
  */
 export const postDocumentsScheduleDeletionAllMutation = (
   options?: Partial<Options<PostDocumentsScheduleDeletionAllData>>,
@@ -1310,6 +1313,59 @@ export const postDocumentsScheduleDeletionAllMutation = (
   > = {
     mutationFn: async (localOptions) => {
       const { data } = await postDocumentsScheduleDeletionAll({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
+};
+
+export const postDocumentsScheduleDeletionByDocumentIdQueryKey = (
+  options: Options<PostDocumentsScheduleDeletionByDocumentIdData>,
+) => createQueryKey("postDocumentsScheduleDeletionByDocumentId", options);
+
+/**
+ * Schedule document deletion by ID (admin only)
+ * Schedules a specific document for deletion
+ */
+export const postDocumentsScheduleDeletionByDocumentIdOptions = (
+  options: Options<PostDocumentsScheduleDeletionByDocumentIdData>,
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await postDocumentsScheduleDeletionByDocumentId({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: postDocumentsScheduleDeletionByDocumentIdQueryKey(options),
+  });
+};
+
+/**
+ * Schedule document deletion by ID (admin only)
+ * Schedules a specific document for deletion
+ */
+export const postDocumentsScheduleDeletionByDocumentIdMutation = (
+  options?: Partial<Options<PostDocumentsScheduleDeletionByDocumentIdData>>,
+): UseMutationOptions<
+  unknown,
+  AxiosError<PostDocumentsScheduleDeletionByDocumentIdError>,
+  Options<PostDocumentsScheduleDeletionByDocumentIdData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    unknown,
+    AxiosError<PostDocumentsScheduleDeletionByDocumentIdError>,
+    Options<PostDocumentsScheduleDeletionByDocumentIdData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await postDocumentsScheduleDeletionByDocumentId({
         ...options,
         ...localOptions,
         throwOnError: true,
@@ -1467,8 +1523,8 @@ export const postFilesMutation = (
 };
 
 /**
- * Schedule file deletion
- * Schedules a file for deletion after the configured delay
+ * Delete file immediately
+ * Immediately delete a file. Only file owner or admin can delete.
  */
 export const deleteFilesByIdMutation = (
   options?: Partial<Options<DeleteFilesByIdData>>,

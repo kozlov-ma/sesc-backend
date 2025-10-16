@@ -83,6 +83,8 @@ import type {
   PutDepartmentsByIdError,
   PostDocumentsScheduleDeletionAllData,
   PostDocumentsScheduleDeletionAllError,
+  PostDocumentsScheduleDeletionByDocumentIdData,
+  PostDocumentsScheduleDeletionByDocumentIdError,
   GetDocumentsStatsData,
   GetDocumentsStatsResponse,
   GetDocumentsStatsError,
@@ -452,8 +454,8 @@ export const postAchievementsByIdDocuments = <
 };
 
 /**
- * Remove a document from an achievement
- * Removes a document from an achievement
+ * Remove a document from an achievement immediately
+ * Immediately removes a document from an achievement (marks as deleted)
  */
 export const deleteAchievementsByIdDocumentsByDocumentId = <
   ThrowOnError extends boolean = false,
@@ -791,8 +793,8 @@ export const putDepartmentsById = <ThrowOnError extends boolean = false>(
 };
 
 /**
- * Schedule deletion for all files
- * Schedules deletion for all files
+ * Schedule deletion for all documents
+ * Schedules deletion for all documents
  */
 export const postDocumentsScheduleDeletionAll = <
   ThrowOnError extends boolean = false,
@@ -811,6 +813,31 @@ export const postDocumentsScheduleDeletionAll = <
       },
     ],
     url: "/documents/schedule_deletion/all",
+    ...options,
+  });
+};
+
+/**
+ * Schedule document deletion by ID (admin only)
+ * Schedules a specific document for deletion
+ */
+export const postDocumentsScheduleDeletionByDocumentId = <
+  ThrowOnError extends boolean = false,
+>(
+  options: Options<PostDocumentsScheduleDeletionByDocumentIdData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).post<
+    unknown,
+    PostDocumentsScheduleDeletionByDocumentIdError,
+    ThrowOnError
+  >({
+    security: [
+      {
+        name: "Authorization",
+        type: "apiKey",
+      },
+    ],
+    url: "/documents/schedule_deletion/{documentId}",
     ...options,
   });
 };
@@ -890,8 +917,8 @@ export const postFiles = <ThrowOnError extends boolean = false>(
 };
 
 /**
- * Schedule file deletion
- * Schedules a file for deletion after the configured delay
+ * Delete file immediately
+ * Immediately delete a file. Only file owner or admin can delete.
  */
 export const deleteFilesById = <ThrowOnError extends boolean = false>(
   options: Options<DeleteFilesByIdData, ThrowOnError>,

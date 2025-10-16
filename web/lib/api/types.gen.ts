@@ -189,13 +189,10 @@ export type RespondError = {
 };
 
 export type RespondFile = {
-  deletionScheduled?: boolean;
-  fileDeleted?: boolean;
   fileName?: string;
   fileSize?: number;
   id?: string;
   ownerId?: string;
-  s3ObjectKey?: string;
 };
 
 export type RespondFiles = {
@@ -1569,12 +1566,7 @@ export type PostDocumentsScheduleDeletionAllData = {
     Authorization?: string;
   };
   path?: never;
-  query?: {
-    /**
-     * If true, only mark files as deleted without removing from storage
-     */
-    markOnly?: boolean;
-  };
+  query?: never;
   url: "/documents/schedule_deletion/all";
 };
 
@@ -1597,6 +1589,57 @@ export type PostDocumentsScheduleDeletionAllError =
   PostDocumentsScheduleDeletionAllErrors[keyof PostDocumentsScheduleDeletionAllErrors];
 
 export type PostDocumentsScheduleDeletionAllResponses = {
+  /**
+   * No Content
+   */
+  204: unknown;
+};
+
+export type PostDocumentsScheduleDeletionByDocumentIdData = {
+  body?: never;
+  headers?: {
+    /**
+     * Bearer JWT token
+     */
+    Authorization?: string;
+  };
+  path: {
+    /**
+     * Document UUID
+     */
+    documentId: string;
+  };
+  query?: never;
+  url: "/documents/schedule_deletion/{documentId}";
+};
+
+export type PostDocumentsScheduleDeletionByDocumentIdErrors = {
+  /**
+   * Invalid document ID
+   */
+  400: RespondError;
+  /**
+   * Unauthorized
+   */
+  401: RespondError;
+  /**
+   * Forbidden
+   */
+  403: RespondError;
+  /**
+   * Document not found
+   */
+  404: RespondError;
+  /**
+   * Internal Server Error
+   */
+  500: RespondError;
+};
+
+export type PostDocumentsScheduleDeletionByDocumentIdError =
+  PostDocumentsScheduleDeletionByDocumentIdErrors[keyof PostDocumentsScheduleDeletionByDocumentIdErrors];
+
+export type PostDocumentsScheduleDeletionByDocumentIdResponses = {
   /**
    * No Content
    */
@@ -1764,7 +1807,7 @@ export type DeleteFilesByIdData = {
 
 export type DeleteFilesByIdErrors = {
   /**
-   * Bad Request
+   * Invalid file ID format
    */
   400: RespondError;
   /**
@@ -1772,17 +1815,13 @@ export type DeleteFilesByIdErrors = {
    */
   401: RespondError;
   /**
-   * Forbidden
+   * Forbidden - user is not file owner or admin
    */
   403: RespondError;
   /**
-   * Not Found
+   * File not found
    */
   404: RespondError;
-  /**
-   * File has dependencies
-   */
-  409: RespondError;
   /**
    * Internal Server Error
    */

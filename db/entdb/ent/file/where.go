@@ -159,16 +159,6 @@ func S3ObjectKeyHasSuffix(v string) predicate.File {
 	return predicate.File(sql.FieldHasSuffix(FieldS3ObjectKey, v))
 }
 
-// S3ObjectKeyIsNil applies the IsNil predicate on the "s3_object_key" field.
-func S3ObjectKeyIsNil() predicate.File {
-	return predicate.File(sql.FieldIsNull(FieldS3ObjectKey))
-}
-
-// S3ObjectKeyNotNil applies the NotNil predicate on the "s3_object_key" field.
-func S3ObjectKeyNotNil() predicate.File {
-	return predicate.File(sql.FieldNotNull(FieldS3ObjectKey))
-}
-
 // S3ObjectKeyEqualFold applies the EqualFold predicate on the "s3_object_key" field.
 func S3ObjectKeyEqualFold(v string) predicate.File {
 	return predicate.File(sql.FieldEqualFold(FieldS3ObjectKey, v))

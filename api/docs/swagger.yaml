@@ -493,10 +493,6 @@ definitions:
     type: object
   respond.File:
     properties:
-      deletionScheduled:
-        type: boolean
-      fileDeleted:
-        type: boolean
       fileName:
         type: string
       fileSize:
@@ -504,8 +500,6 @@ definitions:
       id:
         type: string
       ownerId:
-        type: string
-      s3ObjectKey:
         type: string
     type: object
   respond.Files:
@@ -1148,7 +1142,7 @@ paths:
       - achievements
   /achievements/{id}/documents/{documentId}:
     delete:
-      description: Removes a document from an achievement
+      description: Immediately removes a document from an achievement (marks as deleted)
       parameters:
       - description: Bearer JWT token
         in: header
@@ -1191,7 +1185,7 @@ paths:
             $ref: '#/definitions/respond.Error'
       security:
       - BearerAuth: []
-      summary: Remove a document from an achievement
+      summary: Remove a document from an achievement immediately
       tags:
       - achievements
   /achievements/{id}/review:
@@ -1788,21 +1782,61 @@ paths:
       summary: Update department details
       tags:
       - departments
-  /documents/schedule_deletion/all:
+  /documents/schedule_deletion/{documentId}:
     post:
       consumes:
       - application/json
-      description: Schedules deletion for all files
+      description: Schedules a specific document for deletion
       parameters:
       - description: Bearer JWT token
         in: header
         name: Authorization
         type: string
-      - default: false
-        description: If true, only mark files as deleted without removing from storage
-        in: query
-        name: markOnly
-        type: boolean
+      - description: Document UUID
+        in: path
+        name: documentId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Invalid document ID
+          schema:
+            $ref: '#/definitions/respond.Error'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/respond.Error'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/respond.Error'
+        "404":
+          description: Document not found
+          schema:
+            $ref: '#/definitions/respond.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/respond.Error'
+      security:
+      - BearerAuth: []
+      summary: Schedule document deletion by ID (admin only)
+      tags:
+      - files
+  /documents/schedule_deletion/all:
+    post:
+      consumes:
+      - application/json
+      description: Schedules deletion for all documents
+      parameters:
+      - description: Bearer JWT token
+        in: header
+        name: Authorization
+        type: string
       produces:
       - application/json
       responses:
@@ -1822,7 +1856,7 @@ paths:
             $ref: '#/definitions/respond.Error'
       security:
       - BearerAuth: []
-      summary: Schedule deletion for all files
+      summary: Schedule deletion for all documents
       tags:
       - files
   /documents/stats:
@@ -1955,16 +1989,16 @@ paths:
     delete:
       consumes:
       - application/json
-      description: Schedules a file for deletion after the configured delay
+      description: Immediately delete a file. Only file owner or admin can delete.
       parameters:
-      - description: Bearer JWT token
-        in: header
-        name: Authorization
-        type: string
       - description: File ID
         in: path
         name: id
         required: true
+        type: string
+      - description: Bearer JWT token
+        in: header
+        name: Authorization
         type: string
       produces:
       - application/json
@@ -1972,7 +2006,7 @@ paths:
         "204":
           description: No Content
         "400":
-          description: Bad Request
+          description: Invalid file ID format
           schema:
             $ref: '#/definitions/respond.Error'
         "401":
@@ -1980,15 +2014,11 @@ paths:
           schema:
             $ref: '#/definitions/respond.Error'
         "403":
-          description: Forbidden
+          description: Forbidden - user is not file owner or admin
           schema:
             $ref: '#/definitions/respond.Error'
         "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/respond.Error'
-        "409":
-          description: File has dependencies
+          description: File not found
           schema:
             $ref: '#/definitions/respond.Error'
         "500":
@@ -1997,7 +2027,7 @@ paths:
             $ref: '#/definitions/respond.Error'
       security:
       - BearerAuth: []
-      summary: Schedule file deletion
+      summary: Delete file immediately
       tags:
       - files
     get:

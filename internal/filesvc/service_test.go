@@ -56,7 +56,7 @@ func setupFileService(t *testing.T) (*FileService, *mocks.MockObjectStorage, *en
 
 	mockStorage := mocks.NewMockObjectStorage(ctrl)
 
-	return New(client, mockStorage, "test-bucket", time.Hour), mockStorage, client
+	return New(client, mockStorage, "test-bucket"), mockStorage, client
 }
 
 // createTestUser creates a test user in the database

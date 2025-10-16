@@ -31,16 +31,14 @@ type FileService struct {
 	client     *ent.Client
 	storage    ObjectStorage
 	bucketName string
-	delay      time.Duration
 }
 
 // New creates a new FileService instance.
-func New(client *ent.Client, storage ObjectStorage, bucketName string, delay time.Duration) *FileService {
+func New(client *ent.Client, storage ObjectStorage, bucketName string) *FileService {
 	return &FileService{
 		client:     client,
 		storage:    storage,
 		bucketName: bucketName,
-		delay:      delay,
 	}
 }
 
@@ -388,13 +386,13 @@ func (s *FileService) DownloadURL(ctx context.Context, id UUID) (string, error) 
 	}
 
 	// Check if file has S3 object key
-	if f.S3ObjectKey == nil || *f.S3ObjectKey == "" {
+	if f.S3ObjectKey == "" {
 		return "", sesc.ErrFileNotFound
 	}
 
 	// Generate pre-signed URL with 1 hour expiration
 	expires := time.Hour
-	downloadURL, err := s.storage.GetObjectURL(ctx, *f.S3ObjectKey, f.Name, expires)
+	downloadURL, err := s.storage.GetObjectURL(ctx, f.S3ObjectKey, f.Name, expires)
 	if err != nil {
 		rec.Add(events.Error, err)
 		return "", err

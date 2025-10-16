@@ -17,20 +17,24 @@ type ObjectStorage interface {
 }
 
 // ProcessScheduledDocumentDeletions processes documents that are ready for deletion
-func (s *ACS) ProcessScheduledDocumentDeletions(ctx context.Context, storage ObjectStorage) error {
+func (s *ACS) ProcessScheduledDocumentDeletions(ctx context.Context, storage ObjectStorage, delay time.Duration) error {
 	rec := event.Get(ctx).Sub("achsvc/process_scheduled_document_deletions")
 	statsRec := event.Root(ctx).Sub("stats")
 
 	rec.Sub("params").Set(
 		"start_time", time.Now(),
+		"delay", delay,
 	)
 
-	// Get documents ready for deletion
+	// Get documents ready for deletion (scheduled_deletion_at + delay <= now)
+	cutoffTime := time.Now().Add(-delay)
+	rec.Set("cutoff_time", cutoffTime)
+
 	start := time.Now()
 	documents, err := s.client.AchievementDocument.Query().
 		Where(
 			achievementdocument.Status(achievement.DocumentStatusScheduled),
-			achievementdocument.ScheduledDeletionAtLTE(time.Now()),
+			achievementdocument.ScheduledDeletionAtLTE(cutoffTime),
 		).
 		WithFile().
 		All(ctx)
@@ -54,10 +58,10 @@ func (s *ACS) ProcessScheduledDocumentDeletions(ctx context.Context, storage Obj
 		}
 
 		// Delete from storage if the file has an S3 object key
-		if file.S3ObjectKey != nil && *file.S3ObjectKey != "" {
-			storageErr := storage.RemoveObject(ctx, *file.S3ObjectKey)
+		if file.S3ObjectKey != "" {
+			storageErr := storage.RemoveObject(ctx, file.S3ObjectKey)
 			if storageErr != nil {
-				rec.Add(events.Error, fmt.Errorf("failed to delete object %s: %w", *file.S3ObjectKey, storageErr))
+				rec.Add(events.Error, fmt.Errorf("failed to delete object %s: %w", file.S3ObjectKey, storageErr))
 				continue
 			}
 		}
@@ -76,16 +80,14 @@ func (s *ACS) ProcessScheduledDocumentDeletions(ctx context.Context, storage Obj
 			continue
 		}
 
-		// Also update the file to mark it as deleted and clear S3 key
+		// Delete the file record from database
 		start = time.Now()
-		_, err = s.client.File.UpdateOneID(file.ID).
-			ClearS3ObjectKey().
-			Save(ctx)
+		err = s.client.File.DeleteOneID(file.ID).Exec(ctx)
 		statsRec.Add(events.PostgresQueries, 1)
 		statsRec.Add(events.PostgresTime, time.Since(start))
 
 		if err != nil {
-			rec.Add(events.Error, fmt.Errorf("failed to update file %s: %w", file.ID.String(), err))
+			rec.Add(events.Error, fmt.Errorf("failed to delete file record %s: %w", file.ID.String(), err))
 			continue
 		}
 

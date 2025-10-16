@@ -4786,7 +4786,7 @@ func (m *FileMutation) S3ObjectKey() (r string, exists bool) {
 // OldS3ObjectKey returns the old "s3_object_key" field's value of the File entity.
 // If the File object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *FileMutation) OldS3ObjectKey(ctx context.Context) (v *string, err error) {
+func (m *FileMutation) OldS3ObjectKey(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldS3ObjectKey is only allowed on UpdateOne operations")
 	}
@@ -4800,22 +4800,9 @@ func (m *FileMutation) OldS3ObjectKey(ctx context.Context) (v *string, err error
 	return oldValue.S3ObjectKey, nil
 }
 
-// ClearS3ObjectKey clears the value of the "s3_object_key" field.
-func (m *FileMutation) ClearS3ObjectKey() {
-	m.s3_object_key = nil
-	m.clearedFields[file.FieldS3ObjectKey] = struct{}{}
-}
-
-// S3ObjectKeyCleared returns if the "s3_object_key" field was cleared in this mutation.
-func (m *FileMutation) S3ObjectKeyCleared() bool {
-	_, ok := m.clearedFields[file.FieldS3ObjectKey]
-	return ok
-}
-
 // ResetS3ObjectKey resets all changes to the "s3_object_key" field.
 func (m *FileMutation) ResetS3ObjectKey() {
 	m.s3_object_key = nil
-	delete(m.clearedFields, file.FieldS3ObjectKey)
 }
 
 // SetName sets the "name" field.
@@ -5156,9 +5143,6 @@ func (m *FileMutation) ClearedFields() []string {
 	if m.FieldCleared(file.FieldOwnerID) {
 		fields = append(fields, file.FieldOwnerID)
 	}
-	if m.FieldCleared(file.FieldS3ObjectKey) {
-		fields = append(fields, file.FieldS3ObjectKey)
-	}
 	return fields
 }
 
@@ -5175,9 +5159,6 @@ func (m *FileMutation) ClearField(name string) error {
 	switch name {
 	case file.FieldOwnerID:
 		m.ClearOwnerID()
-		return nil
-	case file.FieldS3ObjectKey:
-		m.ClearS3ObjectKey()
 		return nil
 	}
 	return fmt.Errorf("unknown File nullable field %s", name)

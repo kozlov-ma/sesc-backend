@@ -64,18 +64,6 @@ var (
 				OnDelete:   schema.NoAction,
 			},
 		},
-		Indexes: []*schema.Index{
-			{
-				Name:    "achievementdocument_status",
-				Unique:  false,
-				Columns: []*schema.Column{AchievementDocumentsColumns[2]},
-			},
-			{
-				Name:    "achievementdocument_scheduled_deletion_at",
-				Unique:  false,
-				Columns: []*schema.Column{AchievementDocumentsColumns[3]},
-			},
-		},
 	}
 	// AchievementGroupsColumns holds the columns for the "achievement_groups" table.
 	AchievementGroupsColumns = []*schema.Column{
@@ -203,7 +191,7 @@ var (
 	// FilesColumns holds the columns for the "files" table.
 	FilesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID, Unique: true},
-		{Name: "s3_object_key", Type: field.TypeString, Unique: true, Nullable: true},
+		{Name: "s3_object_key", Type: field.TypeString},
 		{Name: "name", Type: field.TypeString},
 		{Name: "size", Type: field.TypeInt},
 		{Name: "owner_id", Type: field.TypeUUID, Nullable: true},

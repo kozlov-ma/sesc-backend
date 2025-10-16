@@ -64,12 +64,6 @@ func (fu *FileUpdate) SetNillableS3ObjectKey(s *string) *FileUpdate {
 	return fu
 }
 
-// ClearS3ObjectKey clears the value of the "s3_object_key" field.
-func (fu *FileUpdate) ClearS3ObjectKey() *FileUpdate {
-	fu.mutation.ClearS3ObjectKey()
-	return fu
-}
-
 // SetName sets the "name" field.
 func (fu *FileUpdate) SetName(s string) *FileUpdate {
 	fu.mutation.SetName(s)
@@ -195,9 +189,6 @@ func (fu *FileUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := fu.mutation.S3ObjectKey(); ok {
 		_spec.SetField(file.FieldS3ObjectKey, field.TypeString, value)
-	}
-	if fu.mutation.S3ObjectKeyCleared() {
-		_spec.ClearField(file.FieldS3ObjectKey, field.TypeString)
 	}
 	if value, ok := fu.mutation.Name(); ok {
 		_spec.SetField(file.FieldName, field.TypeString, value)
@@ -333,12 +324,6 @@ func (fuo *FileUpdateOne) SetNillableS3ObjectKey(s *string) *FileUpdateOne {
 	if s != nil {
 		fuo.SetS3ObjectKey(*s)
 	}
-	return fuo
-}
-
-// ClearS3ObjectKey clears the value of the "s3_object_key" field.
-func (fuo *FileUpdateOne) ClearS3ObjectKey() *FileUpdateOne {
-	fuo.mutation.ClearS3ObjectKey()
 	return fuo
 }
 
@@ -497,9 +482,6 @@ func (fuo *FileUpdateOne) sqlSave(ctx context.Context) (_node *File, err error) 
 	}
 	if value, ok := fuo.mutation.S3ObjectKey(); ok {
 		_spec.SetField(file.FieldS3ObjectKey, field.TypeString, value)
-	}
-	if fuo.mutation.S3ObjectKeyCleared() {
-		_spec.ClearField(file.FieldS3ObjectKey, field.TypeString)
 	}
 	if value, ok := fuo.mutation.Name(); ok {
 		_spec.SetField(file.FieldName, field.TypeString, value)

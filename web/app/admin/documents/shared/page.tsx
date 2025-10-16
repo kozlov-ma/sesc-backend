@@ -13,11 +13,14 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { FileText, Trash2 } from "lucide-react";
+import { FileText, Trash2, BarChart3 } from "lucide-react";
 import { FileTable } from "@/components/files/file-table";
 import { useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { postDocumentsScheduleDeletionAllMutation } from "@/lib/api/@tanstack/react-query.gen";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { 
+  postDocumentsScheduleDeletionAllMutation,
+  getDocumentsStatsOptions
+} from "@/lib/api/@tanstack/react-query.gen";
 import { toast } from "sonner";
 import { useErrorHandler } from "@/hooks/use-error-handler";
 import { getErrorMessage } from "@/lib/error-handler";
@@ -27,6 +30,11 @@ export default function SharedDocumentsPage() {
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const queryClient = useQueryClient();
   const { handleError, clearError } = useErrorHandler();
+
+  const { data: stats, isLoading: statsLoading } = useQuery({
+    ...getDocumentsStatsOptions(),
+    refetchInterval: 30000, // Refresh every 30 seconds
+  });
 
   const scheduleAllMutation = useMutation({
     ...postDocumentsScheduleDeletionAllMutation(),
@@ -81,6 +89,73 @@ export default function SharedDocumentsPage() {
             </Button>
           </div>
         </header>
+
+        {stats && (
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5 mb-6">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">
+                  Всего документов
+                </CardTitle>
+                <BarChart3 className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stats.totalFiles}</div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">
+                  Активных
+                </CardTitle>
+                <FileText className="h-4 w-4 text-green-600" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stats.notScheduled}</div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">
+                  Запланировано
+                </CardTitle>
+                <FileText className="h-4 w-4 text-orange-600" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stats.scheduledForDeletion}</div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Готовы: {stats.readyForDeletion}
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">
+                  Удалено
+                </CardTitle>
+                <FileText className="h-4 w-4 text-red-600" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stats.deletedFiles}</div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">
+                  Задержка удаления
+                </CardTitle>
+                <FileText className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-lg font-bold">{stats.deletionDelay}</div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
 
         <Card>
           <CardHeader>

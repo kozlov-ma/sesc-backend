@@ -21,7 +21,7 @@ type File struct {
 	// OwnerID holds the value of the "owner_id" field.
 	OwnerID *uuid.UUID `json:"owner_id,omitempty"`
 	// S3ObjectKey holds the value of the "s3_object_key" field.
-	S3ObjectKey *string `json:"s3_object_key,omitempty"`
+	S3ObjectKey string `json:"s3_object_key,omitempty"`
 	// Name holds the value of the "name" field.
 	Name string `json:"name,omitempty"`
 	// Size holds the value of the "size" field.
@@ -108,8 +108,7 @@ func (f *File) assignValues(columns []string, values []any) error {
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field s3_object_key", values[i])
 			} else if value.Valid {
-				f.S3ObjectKey = new(string)
-				*f.S3ObjectKey = value.String
+				f.S3ObjectKey = value.String
 			}
 		case file.FieldName:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -174,10 +173,8 @@ func (f *File) String() string {
 		builder.WriteString(fmt.Sprintf("%v", *v))
 	}
 	builder.WriteString(", ")
-	if v := f.S3ObjectKey; v != nil {
-		builder.WriteString("s3_object_key=")
-		builder.WriteString(*v)
-	}
+	builder.WriteString("s3_object_key=")
+	builder.WriteString(f.S3ObjectKey)
 	builder.WriteString(", ")
 	builder.WriteString("name=")
 	builder.WriteString(f.Name)

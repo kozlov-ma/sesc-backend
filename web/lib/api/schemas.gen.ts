@@ -646,12 +646,6 @@ export const respond_ErrorSchema = {
 export const respond_FileSchema = {
   type: "object",
   properties: {
-    deletionScheduled: {
-      type: "boolean",
-    },
-    fileDeleted: {
-      type: "boolean",
-    },
     fileName: {
       type: "string",
     },
@@ -662,9 +656,6 @@ export const respond_FileSchema = {
       type: "string",
     },
     ownerId: {
-      type: "string",
-    },
-    s3ObjectKey: {
       type: "string",
     },
   },

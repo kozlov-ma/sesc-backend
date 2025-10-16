@@ -32,7 +32,6 @@ type Config struct {
 	HTTP             HTTPConfig              `mapstructure:"http"`
 	JWTSecret        string                  `mapstructure:"jwt_secret"`
 	MinIO            MinIOConfig             `mapstructure:"minio"`
-	DocumentService  DocumentServiceConfig   `mapstructure:"document_service"`
 	DeletionDaemon   DeletionDaemonConfig    `mapstructure:"deletion_daemon"`
 }
 
@@ -63,13 +62,10 @@ type MinIOConfig struct {
 	BaseURL    string `mapstructure:"base_url"`
 }
 
-type DocumentServiceConfig struct {
-	DeletionDelay time.Duration `mapstructure:"deletion_delay"`
-}
-
 type DeletionDaemonConfig struct {
 	Enabled  bool          `mapstructure:"enabled"`
 	Interval time.Duration `mapstructure:"interval"`
+	Delay    time.Duration `mapstructure:"delay"`
 }
 
 func LoadConfig() (*Config, error) {
@@ -174,9 +170,9 @@ func setDefaults(v *viper.Viper) {
 		},
 	})
 
-	v.SetDefault("document_service.deletion_delay", "24h")
 	v.SetDefault("deletion_daemon.enabled", true)
 	v.SetDefault("deletion_daemon.interval", "24h")
+	v.SetDefault("deletion_daemon.delay", "24h")
 }
 
 func (c *Config) ToIAMAdminCredentials() ([]iam.AdminCredentials, error) {
