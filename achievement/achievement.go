@@ -59,6 +59,12 @@ type RemoveDocumentOptions struct {
 	DocumentID    UUID
 }
 
+type ScheduleDocumentDeletionOptions struct {
+	OwnerID       UUID
+	AchievementID UUID
+	DocumentID    UUID
+}
+
 type SubmitOptions struct {
 	OwnerID       UUID
 	AchievementID UUID

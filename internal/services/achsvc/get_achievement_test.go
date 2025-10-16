@@ -2,6 +2,7 @@ package achsvc
 
 import (
 	"testing"
+	"time"
 
 	"github.com/kozlov-ma/sesc-backend/achievement"
 	"github.com/kozlov-ma/sesc-backend/internal/services/testutil"
@@ -18,7 +19,7 @@ func TestGetAchievement(t *testing.T) {
 		client := testutil.SetupDatabase(t)
 
 		// Create the service
-		svc := New(client)
+		svc := New(client, 24*time.Hour)
 
 		// Create test user, template, and achievement
 		user := testutil.CreateTestUser(ctx, t, client, "Test", "User", sesc.Role(1))
@@ -43,7 +44,7 @@ func TestGetAchievement(t *testing.T) {
 		client := testutil.SetupDatabase(t)
 
 		// Create the service
-		svc := New(client)
+		svc := New(client, 24*time.Hour)
 
 		// Use non-existent achievement ID
 		nonExistentID := testutil.RandomUUID()
@@ -62,7 +63,7 @@ func TestGetAchievement(t *testing.T) {
 		client := testutil.SetupDatabase(t)
 
 		// Create the service
-		svc := New(client)
+		svc := New(client, 24*time.Hour)
 
 		// Close the database to force errors
 		client.Close()

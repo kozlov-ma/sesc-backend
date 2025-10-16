@@ -2,6 +2,7 @@ package achsvc
 
 import (
 	"testing"
+	"time"
 
 	"github.com/kozlov-ma/sesc-backend/achievement"
 	"github.com/kozlov-ma/sesc-backend/internal/services/testutil"
@@ -18,7 +19,7 @@ func TestReviewAchievement(t *testing.T) {
 		client := testutil.SetupDatabase(t)
 
 		// Create the service
-		svc := New(client)
+		svc := New(client, 24*time.Hour)
 
 		// Create test user, reviewer, template, and achievement
 		user := testutil.CreateTestUser(ctx, t, client, "Test", "User", sesc.Role(1))
@@ -56,7 +57,7 @@ func TestReviewAchievement(t *testing.T) {
 		client := testutil.SetupDatabase(t)
 
 		// Create the service
-		svc := New(client)
+		svc := New(client, 24*time.Hour)
 
 		// Create test user and reviewer
 		user := testutil.CreateTestUser(ctx, t, client, "Test", "User", sesc.Role(1))
@@ -83,7 +84,7 @@ func TestReviewAchievement(t *testing.T) {
 		client := testutil.SetupDatabase(t)
 
 		// Create the service
-		svc := New(client)
+		svc := New(client, 24*time.Hour)
 
 		// Create test user, reviewer, template, and achievement with wrong status
 		user := testutil.CreateTestUser(ctx, t, client, "Test", "User", sesc.Role(1))
@@ -118,7 +119,7 @@ func TestReviewAchievement(t *testing.T) {
 		client := testutil.SetupDatabase(t)
 
 		// Create the service
-		svc := New(client)
+		svc := New(client, 24*time.Hour)
 
 		// Create test user, invalid reviewer, template, and achievement
 		user := testutil.CreateTestUser(ctx, t, client, "Test", "User", sesc.Role(1))

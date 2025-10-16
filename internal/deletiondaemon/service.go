@@ -14,18 +14,29 @@ type ObjectStorage interface {
 	RemoveObject(ctx context.Context, objectKey string) error
 }
 
+type EventSink interface {
+	RecordEvent(ctx context.Context, event *event.Record)
+}
+
 type Service struct {
 	achService *achsvc.ACS
 	storage    ObjectStorage
 	config     *config.DeletionDaemonConfig
+	eventSink  EventSink
 	stopChan   chan struct{}
 }
 
-func New(achService *achsvc.ACS, storage ObjectStorage, config *config.DeletionDaemonConfig) *Service {
+func New(
+	achService *achsvc.ACS,
+	storage ObjectStorage,
+	config *config.DeletionDaemonConfig,
+	eventSink EventSink,
+) *Service {
 	return &Service{
 		achService: achService,
 		storage:    storage,
 		config:     config,
+		eventSink:  eventSink,
 		stopChan:   make(chan struct{}),
 	}
 }
@@ -38,6 +49,7 @@ func (s *Service) Start(ctx context.Context) {
 
 	if !s.config.Enabled {
 		daemonRec.Set("status", "disabled")
+		s.eventSink.RecordEvent(ctx, daemonRec)
 		return
 	}
 
@@ -52,7 +64,7 @@ func (s *Service) Start(ctx context.Context) {
 		select {
 		case <-ticker.C:
 			iterationCount++
-			ctx, iterRec := event.NewRecord(ctx, "deletion_daemon_iteration")
+			iterCtx, iterRec := event.NewRecord(ctx, "deletion_daemon_iteration")
 			iterRec.Set("iteration_number", iterationCount)
 			iterRec.Set("iteration_time", time.Now())
 			iterRec.Set("daemon_config", map[string]interface{}{
@@ -60,15 +72,18 @@ func (s *Service) Start(ctx context.Context) {
 				"interval": s.config.Interval,
 			})
 
-			s.processScheduledDeletions(ctx, iterRec)
+			s.processScheduledDeletions(iterCtx, iterRec)
+			s.eventSink.RecordEvent(iterCtx, iterRec)
 
 		case <-s.stopChan:
 			daemonRec.Set("status", "stopped_via_signal")
 			daemonRec.Set("iterations_completed", iterationCount)
+			s.eventSink.RecordEvent(ctx, daemonRec)
 			return
 		case <-ctx.Done():
 			daemonRec.Set("status", "stopped_via_context")
 			daemonRec.Set("iterations_completed", iterationCount)
+			s.eventSink.RecordEvent(ctx, daemonRec)
 			return
 		}
 	}

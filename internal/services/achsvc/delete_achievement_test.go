@@ -2,6 +2,7 @@ package achsvc
 
 import (
 	"testing"
+	"time"
 
 	"github.com/kozlov-ma/sesc-backend/achievement"
 	"github.com/kozlov-ma/sesc-backend/internal/services/testutil"
@@ -18,7 +19,7 @@ func TestDeleteAchievement(t *testing.T) {
 		client := testutil.SetupDatabase(t)
 
 		// Create the service
-		svc := New(client)
+		svc := New(client, 24*time.Hour)
 
 		// Create test user, template, and achievement
 		user := testutil.CreateTestUser(ctx, t, client, "Test", "User", sesc.Role(1))
@@ -46,7 +47,7 @@ func TestDeleteAchievement(t *testing.T) {
 		client := testutil.SetupDatabase(t)
 
 		// Create the service
-		svc := New(client)
+		svc := New(client, 24*time.Hour)
 
 		// Create test user
 		user := testutil.CreateTestUser(ctx, t, client, "Test", "User", sesc.Role(1))
@@ -69,7 +70,7 @@ func TestDeleteAchievement(t *testing.T) {
 		client := testutil.SetupDatabase(t)
 
 		// Create the service
-		svc := New(client)
+		svc := New(client, 24*time.Hour)
 
 		// Create test user, template, and achievement with non-draft status
 		user := testutil.CreateTestUser(ctx, t, client, "Test", "User", sesc.Role(1))

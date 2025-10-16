@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/gofrs/uuid/v5"
 	"github.com/kozlov-ma/sesc-backend/achievement"
 	"github.com/kozlov-ma/sesc-backend/api/param"
 	"github.com/kozlov-ma/sesc-backend/api/respond"
@@ -302,118 +301,6 @@ func (a *API) DeleteAchievement(w http.ResponseWriter, r *http.Request) {
 		AchievementID: ach.ID,
 	}
 	err := a.sesc.DeleteAchievement(ctx, opt)
-	if err != nil {
-		rec.Add(events.Error, err)
-		a.writeJSON(ctx, w, respond.WithError(ctx, err))
-		return
-	}
-
-	w.WriteHeader(http.StatusNoContent)
-}
-
-// AddDocument godoc
-// @Summary Add a document to an achievement
-// @Description Adds a document to an achievement
-// @Tags achievements
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param Authorization header string false "Bearer JWT token"
-// @Param id path string true "Achievement UUID"
-// @Param request body param.AddDocumentRequest true "Document data"
-// @Success 201 {object} respond.Document
-// @Failure 400 {object} respond.Error "Invalid request format"
-// @Failure 401 {object} respond.Error "Unauthorized"
-// @Failure 404 {object} respond.Error "Achievement not found"
-// @Failure 409 {object} respond.Error "Wrong achievement status"
-// @Failure 500 {object} respond.Error "Internal server error"
-// @Router /achievements/{id}/documents [post]
-func (a *API) AddDocument(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-	rec := event.Get(ctx)
-
-	// Get achievement from context (added by AchievementMiddleware)
-	ach, ok := GetAchievementFromContext(ctx)
-	if !ok {
-		a.writeJSON(ctx, w, respond.WithError(ctx, achievement.ErrAchievementNotFound))
-		return
-	}
-
-	// Parse request
-	var req param.AddDocumentRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		rec.Add(events.Error, "invalid request body")
-		a.writeJSON(ctx, w, respond.WithError(ctx, err))
-		return
-	}
-
-	// Add document
-	opt := achievement.AddDocumentOptions{
-		OwnerID:       ach.OwnerID,
-		AchievementID: ach.ID,
-		Name:          req.Name,
-		FileID:        req.FileID,
-	}
-	doc, err := a.sesc.AddDocument(ctx, opt)
-	if err != nil {
-		rec.Add(events.Error, err)
-		a.writeJSON(ctx, w, respond.WithError(ctx, err))
-		return
-	}
-
-	// Convert to response format
-	response := respond.Document{
-		ID:     doc.ID,
-		Name:   doc.Name,
-		FileID: doc.FileID,
-	}
-	a.writeJSON(ctx, w, respond.WithStatus(response, http.StatusCreated))
-}
-
-// RemoveDocument godoc
-// @Summary Remove a document from an achievement
-// @Description Removes a document from an achievement
-// @Tags achievements
-// @Produce json
-// @Security BearerAuth
-// @Param Authorization header string false "Bearer JWT token"
-// @Param id path string true "Achievement UUID"
-// @Param documentId path string true "Document UUID"
-// @Success 204 "No Content"
-// @Failure 400 {object} respond.Error "Invalid UUID format"
-// @Failure 401 {object} respond.Error "Unauthorized"
-// @Failure 404 {object} respond.Error "Achievement not found"
-// @Failure 404 {object} respond.Error "Document not found"
-// @Failure 409 {object} respond.Error "Wrong achievement status"
-// @Failure 500 {object} respond.Error "Internal server error"
-// @Router /achievements/{id}/documents/{documentId} [delete]
-func (a *API) RemoveDocument(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-	rec := event.Get(ctx)
-
-	// Get achievement from context (added by AchievementMiddleware)
-	ach, ok := GetAchievementFromContext(ctx)
-	if !ok {
-		a.writeJSON(ctx, w, respond.WithError(ctx, achievement.ErrAchievementNotFound))
-		return
-	}
-
-	// Get document ID from path
-	docIDStr := r.PathValue("documentId")
-	docID, err := uuid.FromString(docIDStr)
-	if err != nil {
-		rec.Add(events.Error, "invalid document ID format")
-		a.writeJSON(ctx, w, respond.WithError(ctx, err))
-		return
-	}
-
-	// Remove document
-	opt := achievement.RemoveDocumentOptions{
-		OwnerID:       ach.OwnerID,
-		AchievementID: ach.ID,
-		DocumentID:    docID,
-	}
-	err = a.sesc.RemoveDocument(ctx, opt)
 	if err != nil {
 		rec.Add(events.Error, err)
 		a.writeJSON(ctx, w, respond.WithError(ctx, err))

@@ -24,7 +24,12 @@ type API struct {
 }
 
 func New(sesc SESC, iam IAMService, file FileService, eventSink EventSink) *API {
-	return &API{sesc: sesc, iam: iam, file: file, eventSink: eventSink}
+	return &API{
+		sesc:      sesc,
+		iam:       iam,
+		file:      file,
+		eventSink: eventSink,
+	}
 }
 
 type statusCoder interface {
@@ -165,7 +170,7 @@ func (a *API) RegisterRoutes(r chi.Router) {
 			r.Get("/{id}", a.GetFileByID)
 			r.Get("/", a.SearchFiles)
 			r.Post("/", a.UploadFile)
-			r.With(a.FileEditAccessMiddleware).Delete("/{id}", a.ScheduleFileDeletion)
+			r.With(a.FileEditAccessMiddleware).Delete("/{id}", a.DeleteFile)
 		})
 	})
 
@@ -179,6 +184,7 @@ func (a *API) RegisterRoutes(r chi.Router) {
 
 		// Document management
 		r.Post("/documents/schedule_deletion/all", a.ScheduleDeletionAll)
+		r.Post("/documents/schedule_deletion/{documentId}", a.ScheduleDeletion)
 		r.Get("/documents/stats", a.GetDocumentStats)
 
 		// Department management

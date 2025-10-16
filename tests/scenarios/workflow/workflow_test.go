@@ -733,7 +733,7 @@ func stepAdminGetDocumentStats(t *testing.T, data *TestData) {
 	err := data.Client.LoginAdmin(AdminUsername, AdminPassword)
 	require.NoError(t, err, "Admin should be able to log in")
 
-	// Get document stats (now tracks achievement documents, not standalone files)
+	// Get document stats
 	stats, err := data.Client.GetDocumentStats()
 	require.NoError(t, err, "Admin should be able to get document stats")
 

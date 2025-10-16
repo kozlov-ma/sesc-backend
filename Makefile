@@ -1,4 +1,4 @@
-.PHONY: dev-db dev-backend dev-run down lint test integration-tests
+.PHONY: dev-db dev-backend down lint test integration-tests
 
 # Generate Go code and frontend API client
 generate:
@@ -9,11 +9,6 @@ generate:
 # Spin up the development database
 dev-db:
 	docker compose up -d postgres minio
-
-# Run the backend locally (requires dev-db to be running)
-# Uses config.yml for configuration, can be overridden with env vars
-dev-run:
-	go run ./cmd/api
 
 # Spin up both database and backend
 dev-backend: generate

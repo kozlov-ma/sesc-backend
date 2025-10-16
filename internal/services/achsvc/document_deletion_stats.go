@@ -19,6 +19,7 @@ type DocumentStats struct {
 	ScheduledForDeletion int
 	ReadyForDeletion     int
 	NotScheduled         int
+	DeletionDelay        time.Duration
 }
 
 // GetDocumentStats returns statistics about documents and deletion delay
@@ -31,7 +32,7 @@ func (s *ACS) GetDocumentStats(ctx context.Context) (*DocumentStats, error) {
 
 	var stats DocumentStats
 
-	err := txwrapper.WithTx(ctx, s.client, sql.LevelReadCommitted, rec, func(tx *ent.Tx) error {
+	err := txwrapper.WithTx(ctx, s.client, sql.LevelRepeatableRead, rec, func(tx *ent.Tx) error {
 		var txErr error
 		// Count total documents
 		stats.TotalDocuments, txErr = tx.AchievementDocument.Query().Count(ctx)
@@ -75,6 +76,7 @@ func (s *ACS) GetDocumentStats(ctx context.Context) (*DocumentStats, error) {
 	}
 
 	stats.NotScheduled = stats.TotalDocuments - stats.DeletedDocuments - stats.ScheduledForDeletion
+	stats.DeletionDelay = s.deletionDelay
 
 	rec.Set("success", true)
 	rec.Set("stats", stats)

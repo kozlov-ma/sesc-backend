@@ -15,7 +15,7 @@ import (
 	"github.com/kozlov-ma/sesc-backend/pkg/event/events"
 )
 
-// RemoveDocument removes a document from an achievement.
+// RemoveDocument immediately deletes a document from an achievement.
 // Returns achievement.ErrAchievementNotFound if the achievement does not exist.
 // Returns achievement.ErrDocumentNotFound if the document does not exist.
 // Returns achievement.ErrWrongAchievementStatus if the achievement is not in draft status.
@@ -96,10 +96,11 @@ func (s *ACS) RemoveDocument(
 			return err
 		}
 
-		err = rec.Operation("mark_document_deleted", func(_ *event.Record) error {
+		err = rec.Operation("delete_document_immediately", func(_ *event.Record) error {
 			start := time.Now()
 			_, err := tx.AchievementDocument.UpdateOne(doc).
-				SetStatus(achievement.DocumentStatusDeleted).
+				SetStatus(achievement.DocumentStatusScheduled).
+				SetScheduledDeletionAt(time.Now()).
 				Save(ctx)
 			statsRec.Add(events.PostgresQueries, 1)
 			statsRec.Add(events.PostgresTime, time.Since(start))

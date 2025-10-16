@@ -4,7 +4,6 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
-	"entgo.io/ent/schema/index"
 	"github.com/gofrs/uuid/v5"
 	"github.com/kozlov-ma/sesc-backend/achievement"
 )
@@ -46,13 +45,5 @@ func (AchievementDocument) Edges() []ent.Edge {
 			Field("file_id").
 			Unique().
 			Required(),
-	}
-}
-
-// Indexes of the AchievementDocument.
-func (AchievementDocument) Indexes() []ent.Index {
-	return []ent.Index{
-		index.Fields("status"),
-		index.Fields("scheduled_deletion_at"),
 	}
 }

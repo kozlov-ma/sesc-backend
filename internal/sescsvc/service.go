@@ -2,6 +2,8 @@
 package sescsvc
 
 import (
+	"time"
+
 	"github.com/gofrs/uuid/v5"
 	"github.com/kozlov-ma/sesc-backend/achievement"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent"
@@ -19,9 +21,9 @@ type SESC struct {
 	*usersvc.USS
 }
 
-func New(client *ent.Client) *SESC {
+func New(client *ent.Client, documentDeletionDelay time.Duration) *SESC {
 	return &SESC{
-		ACS: achsvc.New(client),
+		ACS: achsvc.New(client, documentDeletionDelay),
 		ATS: atsvc.New(client),
 		DES: depsvc.New(client),
 		USS: usersvc.New(client),

@@ -14,17 +14,16 @@ import (
 	"github.com/kozlov-ma/sesc-backend/pkg/event/events"
 )
 
-// ScheduleDocumentDeletionAll schedules all documents for deletion after a specified delay
-func (s *ACS) ScheduleDocumentDeletionAll(ctx context.Context, delay time.Duration) error {
+// ScheduleDocumentDeletionAll schedules all documents for deletion
+func (s *ACS) ScheduleDocumentDeletionAll(ctx context.Context) error {
 	rec := event.Get(ctx).Sub("achsvc/schedule_document_deletion_all")
 	statsRec := event.Root(ctx).Sub("stats")
 
 	rec.Sub("params").Set(
-		"delay", delay,
 		"start_time", time.Now(),
 	)
 
-	deletionTime := time.Now().Add(delay)
+	scheduledDeletionAt := time.Now().Add(s.deletionDelay)
 	var scheduledCount int
 
 	err := txwrapper.WithTx(ctx, s.client, sql.LevelSerializable, rec, func(tx *ent.Tx) error {
@@ -52,7 +51,7 @@ func (s *ACS) ScheduleDocumentDeletionAll(ctx context.Context, delay time.Durati
 			start := time.Now()
 			_, err := tx.AchievementDocument.UpdateOneID(doc.ID).
 				SetStatus(achievement.DocumentStatusScheduled).
-				SetScheduledDeletionAt(deletionTime).
+				SetScheduledDeletionAt(scheduledDeletionAt).
 				Save(ctx)
 			statsRec.Add(events.PostgresQueries, 1)
 			statsRec.Add(events.PostgresTime, time.Since(start))
@@ -73,7 +72,7 @@ func (s *ACS) ScheduleDocumentDeletionAll(ctx context.Context, delay time.Durati
 	}
 
 	rec.Set("scheduled_count", scheduledCount)
-	rec.Set("scheduled_deletion_at", deletionTime)
+	rec.Set("scheduled_deletion_at", scheduledDeletionAt)
 	rec.Set("success", true)
 	rec.Set("total_duration_ms", time.Since(rec.Sub("params").Value("start_time").(time.Time)).Milliseconds())
 

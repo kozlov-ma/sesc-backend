@@ -3,6 +3,7 @@ package achsvc_test
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/gofrs/uuid/v5"
 	"github.com/kozlov-ma/sesc-backend/achievement"
@@ -27,7 +28,7 @@ func TestCreateAchievement(t *testing.T) {
 		template := testutil.CreateTestAchievementTemplate(ctx, t, client, sesc.ScientificDeputy)
 
 		// Create achievement service
-		svc := achsvc.New(client)
+		svc := achsvc.New(client, 24*time.Hour)
 
 		return ctx, &testutil.TestContext{
 			Client:   client,

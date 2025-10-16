@@ -302,44 +302,6 @@ func (a *API) GetFileByID(w http.ResponseWriter, r *http.Request) {
 	a.writeJSON(ctx, w, respond.WithFile(file))
 }
 
-// ScheduleFileDeletion schedules a file for deletion
-// @Summary Schedule file deletion
-// @Description Schedules a file for deletion after the configured delay
-// @Tags files
-// @Accept json
-// @Produce json
-// @Param Authorization header string false "Bearer JWT token"
-// @Param id path string true "File ID"
-// @Success 204 "No Content"
-// @Failure 400 {object} respond.Error
-// @Failure 401 {object} respond.Error "Unauthorized"
-// @Failure 403 {object} respond.Error "Forbidden"
-// @Failure 404 {object} respond.Error
-// @Failure 409 {object} respond.Error "File has dependencies"
-// @Failure 500 {object} respond.Error
-// @Router /files/{id} [delete]
-// @Security BearerAuth
-func (a *API) ScheduleFileDeletion(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-	rec := event.Get(ctx).Sub("api/schedule_file_deletion")
-
-	fileID, err := param.PathUUID(r, "id")
-
-	if err != nil {
-		a.writeJSON(ctx, w, respond.WithError(ctx, err))
-		return
-	}
-
-	err = a.file.Delete(ctx, fileID)
-	if err != nil {
-		rec.Add(events.Error, err)
-		a.writeJSON(ctx, w, respond.WithError(ctx, err))
-		return
-	}
-
-	w.WriteHeader(http.StatusNoContent)
-}
-
 // DownloadFile redirects to a pre-signed URL for file download
 // @Summary Download file
 // @Description Redirects to a pre-signed URL for downloading the file
@@ -381,4 +343,45 @@ func (a *API) DownloadFile(w http.ResponseWriter, r *http.Request) {
 
 	// Redirect to pre-signed URL
 	http.Redirect(w, r, downloadURL, http.StatusTemporaryRedirect)
+}
+
+// DeleteFile immediately deletes a file
+// @Summary Delete file immediately
+// @Description Immediately delete a file. Only file owner or admin can delete.
+// @Tags files
+// @Accept json
+// @Produce json
+// @Param id path string true "File ID"
+// @Param Authorization header string false "Bearer JWT token"
+// @Success 204 "No Content"
+// @Failure 400 {object} respond.Error "Invalid file ID format"
+// @Failure 401 {object} respond.Error "Unauthorized"
+// @Failure 403 {object} respond.Error "Forbidden - user is not file owner or admin"
+// @Failure 404 {object} respond.Error "File not found"
+// @Failure 500 {object} respond.Error
+// @Router /files/{id} [delete]
+// @Security BearerAuth
+func (a *API) DeleteFile(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	rec := event.Get(ctx).Sub("api/delete_file")
+
+	idStr := r.PathValue("id")
+	fileID, err := uuid.FromString(idStr)
+	if err != nil {
+		rec.Add(events.Error, err)
+		a.writeJSON(ctx, w, respond.WithError(ctx, err))
+		return
+	}
+
+	rec.Sub("params").Set("file_id", fileID)
+
+	err = a.file.Delete(ctx, fileID)
+	if err != nil {
+		rec.Add(events.Error, err)
+		a.writeJSON(ctx, w, respond.WithError(ctx, err))
+		return
+	}
+
+	rec.Set("success", true)
+	w.WriteHeader(http.StatusNoContent)
 }

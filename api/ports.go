@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"io"
-	"time"
 
 	"github.com/gofrs/uuid/v5"
 	"github.com/kozlov-ma/sesc-backend/achievement"
@@ -124,6 +123,7 @@ type (
 			ctx context.Context,
 			opt achievement.AddDocumentOptions,
 		) (*ent.AchievementDocument, error)
+		ScheduleDeletion(ctx context.Context, opt achievement.ScheduleDocumentDeletionOptions) error
 		RemoveDocument(ctx context.Context, opt achievement.RemoveDocumentOptions) error
 
 		SubmitAchievement(
@@ -148,7 +148,7 @@ type (
 		MarkAllDoneAchievementsAsAccounted(ctx context.Context) (int, error)
 
 		// Document management
-		ScheduleDocumentDeletionAll(ctx context.Context, delay time.Duration) error
+		ScheduleDocumentDeletionAll(ctx context.Context) error
 		GetDocumentStats(ctx context.Context) (*achsvc.DocumentStats, error)
 	}
 
@@ -173,5 +173,6 @@ type (
 	// EventSink is used by the API to log events
 	EventSink interface {
 		RecordHTTPRequest(ctx context.Context, event *event.Record)
+		RecordEvent(ctx context.Context, event *event.Record)
 	}
 )

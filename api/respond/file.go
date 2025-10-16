@@ -6,11 +6,10 @@ import (
 )
 
 type File struct {
-	ID          uuid.UUID  `json:"id"`
-	OwnerID     *uuid.UUID `json:"ownerId,omitzero"`
-	S3ObjectKey *string    `json:"s3ObjectKey,omitzero"`
-	FileName    string     `json:"fileName"`
-	FileSize    int        `json:"fileSize"`
+	ID       uuid.UUID  `json:"id"`
+	OwnerID  *uuid.UUID `json:"ownerId,omitzero"`
+	FileName string     `json:"fileName"`
+	FileSize int        `json:"fileSize"`
 }
 
 type Files struct {
@@ -18,19 +17,12 @@ type Files struct {
 	Total int     `json:"total"`
 }
 
-type DeleteAllFilesResponse struct {
-	Message   string `json:"message"`
-	MarkOnly  bool   `json:"markOnly"`
-	Timestamp int64  `json:"timestamp"`
-}
-
 func WithFile(f *ent.File) *File {
 	return &File{
-		ID:          f.ID,
-		OwnerID:     f.OwnerID,
-		S3ObjectKey: f.S3ObjectKey,
-		FileName:    f.Name,
-		FileSize:    f.Size,
+		ID:       f.ID,
+		OwnerID:  f.OwnerID,
+		FileName: f.Name,
+		FileSize: f.Size,
 	}
 }
 
