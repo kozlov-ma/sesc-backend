@@ -43,7 +43,7 @@ var (
 		{Name: "status", Type: field.TypeString, Default: "active"},
 		{Name: "scheduled_deletion_at", Type: field.TypeTime, Nullable: true},
 		{Name: "achievement_id", Type: field.TypeUUID},
-		{Name: "file_id", Type: field.TypeUUID},
+		{Name: "file_id", Type: field.TypeUUID, Nullable: true},
 	}
 	// AchievementDocumentsTable holds the schema information for the "achievement_documents" table.
 	AchievementDocumentsTable = &schema.Table{
@@ -61,7 +61,7 @@ var (
 				Symbol:     "achievement_documents_files_achievement_documents",
 				Columns:    []*schema.Column{AchievementDocumentsColumns[5]},
 				RefColumns: []*schema.Column{FilesColumns[0]},
-				OnDelete:   schema.NoAction,
+				OnDelete:   schema.SetNull,
 			},
 		},
 	}
@@ -191,7 +191,7 @@ var (
 	// FilesColumns holds the columns for the "files" table.
 	FilesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID, Unique: true},
-		{Name: "s3_object_key", Type: field.TypeString},
+		{Name: "s3_object_key", Type: field.TypeString, Unique: true},
 		{Name: "name", Type: field.TypeString},
 		{Name: "size", Type: field.TypeInt},
 		{Name: "owner_id", Type: field.TypeUUID, Nullable: true},

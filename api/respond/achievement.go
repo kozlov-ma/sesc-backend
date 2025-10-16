@@ -20,9 +20,9 @@ type Achievement struct {
 
 // Document represents a document response (used in Achievement responses)
 type Document struct {
-	ID     uuid.UUID `json:"id"     example:"550e8400-e29b-41d4-a716-446655440000" validate:"required"`
-	Name   string    `json:"name"   example:"Publication proof"                    validate:"required"`
-	FileID uuid.UUID `json:"fileId" example:"550e8400-e29b-41d4-a716-446655440000" validate:"required"`
+	ID     uuid.UUID  `json:"id"               example:"550e8400-e29b-41d4-a716-446655440000" validate:"required"`
+	Name   string     `json:"name"             example:"Publication proof"                    validate:"required"`
+	FileID *uuid.UUID `json:"fileId,omitempty" example:"550e8400-e29b-41d4-a716-446655440000"`
 }
 
 // Review represents a review response

@@ -246,16 +246,17 @@ func TestDelete(t *testing.T) {
 	}
 
 	t.Run("success", func(t *testing.T) {
-		ctx, svc, fileID, _ := setup(t)
+		ctx, svc, fileID, storage := setup(t)
 
-		// Delete now just validates the file exists and has no dependencies
+		// Expect RemoveObject to be called
+		storage.EXPECT().RemoveObject(gomock.Any(), gomock.Any()).Return(nil)
+
 		err := svc.Delete(ctx, fileID)
 		require.NoError(t, err)
 
-		// Verify the file still exists
-		file, err := svc.ByID(ctx, fileID)
-		require.NoError(t, err)
-		require.NotNil(t, file.S3ObjectKey, "S3ObjectKey should not be cleared")
+		// Verify the file was deleted from database
+		_, err = svc.ByID(ctx, fileID)
+		require.ErrorIs(t, err, sesc.ErrFileNotFound)
 	})
 
 	t.Run("non_existent_file", func(t *testing.T) {
@@ -267,7 +268,7 @@ func TestDelete(t *testing.T) {
 	})
 
 	t.Run("file_has_dependencies", func(t *testing.T) {
-		ctx, svc, fileID, _ := setup(t)
+		ctx, svc, fileID, storage := setup(t)
 
 		client := svc.client
 		userID := createTestUser(ctx, t, client)
@@ -297,19 +298,22 @@ func TestDelete(t *testing.T) {
 			SetAchievementID(achievement.ID).
 			SaveX(ctx)
 
-		// Delete should succeed and mark the document as deleted
+		// Expect RemoveObject to be called
+		storage.EXPECT().RemoveObject(gomock.Any(), gomock.Any()).Return(nil)
+
+		// Delete should succeed
 		err := svc.Delete(ctx, fileID)
 		require.NoError(t, err)
 
-		// File should still exist
-		file, err := svc.ByID(ctx, fileID)
-		require.NoError(t, err)
-		require.NotNil(t, file)
+		// File should be deleted from database
+		_, err = svc.ByID(ctx, fileID)
+		require.ErrorIs(t, err, sesc.ErrFileNotFound)
 
-		// Document should be marked as deleted
+		// Document should be marked as deleted and file_id cleared
 		doc, err := client.AchievementDocument.Get(ctx, docID)
 		require.NoError(t, err)
 		require.Equal(t, "deleted", doc.Status)
+		require.Nil(t, doc.FileID, "FileID should be cleared")
 	})
 }
 

@@ -186,6 +186,16 @@ func FileIDNotIn(vs ...uuid.UUID) predicate.AchievementDocument {
 	return predicate.AchievementDocument(sql.FieldNotIn(FieldFileID, vs...))
 }
 
+// FileIDIsNil applies the IsNil predicate on the "file_id" field.
+func FileIDIsNil() predicate.AchievementDocument {
+	return predicate.AchievementDocument(sql.FieldIsNull(FieldFileID))
+}
+
+// FileIDNotNil applies the NotNil predicate on the "file_id" field.
+func FileIDNotNil() predicate.AchievementDocument {
+	return predicate.AchievementDocument(sql.FieldNotNull(FieldFileID))
+}
+
 // StatusEQ applies the EQ predicate on the "status" field.
 func StatusEQ(v string) predicate.AchievementDocument {
 	return predicate.AchievementDocument(sql.FieldEQ(FieldStatus, v))

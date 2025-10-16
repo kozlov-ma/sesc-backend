@@ -41,6 +41,14 @@ func (adc *AchievementDocumentCreate) SetFileID(u uuid.UUID) *AchievementDocumen
 	return adc
 }
 
+// SetNillableFileID sets the "file_id" field if the given value is not nil.
+func (adc *AchievementDocumentCreate) SetNillableFileID(u *uuid.UUID) *AchievementDocumentCreate {
+	if u != nil {
+		adc.SetFileID(*u)
+	}
+	return adc
+}
+
 // SetStatus sets the "status" field.
 func (adc *AchievementDocumentCreate) SetStatus(s string) *AchievementDocumentCreate {
 	adc.mutation.SetStatus(s)
@@ -151,9 +159,6 @@ func (adc *AchievementDocumentCreate) check() error {
 			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "AchievementDocument.name": %w`, err)}
 		}
 	}
-	if _, ok := adc.mutation.FileID(); !ok {
-		return &ValidationError{Name: "file_id", err: errors.New(`ent: missing required field "AchievementDocument.file_id"`)}
-	}
 	if _, ok := adc.mutation.Status(); !ok {
 		return &ValidationError{Name: "status", err: errors.New(`ent: missing required field "AchievementDocument.status"`)}
 	}
@@ -164,9 +169,6 @@ func (adc *AchievementDocumentCreate) check() error {
 	}
 	if len(adc.mutation.AchievementIDs()) == 0 {
 		return &ValidationError{Name: "achievement", err: errors.New(`ent: missing required edge "AchievementDocument.achievement"`)}
-	}
-	if len(adc.mutation.FileIDs()) == 0 {
-		return &ValidationError{Name: "file", err: errors.New(`ent: missing required edge "AchievementDocument.file"`)}
 	}
 	return nil
 }
@@ -246,7 +248,7 @@ func (adc *AchievementDocumentCreate) createSpec() (*AchievementDocument, *sqlgr
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		_node.FileID = nodes[0]
+		_node.FileID = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

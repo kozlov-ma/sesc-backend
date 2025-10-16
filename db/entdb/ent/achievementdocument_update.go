@@ -73,6 +73,12 @@ func (adu *AchievementDocumentUpdate) SetNillableFileID(u *uuid.UUID) *Achieveme
 	return adu
 }
 
+// ClearFileID clears the value of the "file_id" field.
+func (adu *AchievementDocumentUpdate) ClearFileID() *AchievementDocumentUpdate {
+	adu.mutation.ClearFileID()
+	return adu
+}
+
 // SetStatus sets the "status" field.
 func (adu *AchievementDocumentUpdate) SetStatus(s string) *AchievementDocumentUpdate {
 	adu.mutation.SetStatus(s)
@@ -175,9 +181,6 @@ func (adu *AchievementDocumentUpdate) check() error {
 	}
 	if adu.mutation.AchievementCleared() && len(adu.mutation.AchievementIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "AchievementDocument.achievement"`)
-	}
-	if adu.mutation.FileCleared() && len(adu.mutation.FileIDs()) > 0 {
-		return errors.New(`ent: clearing a required unique edge "AchievementDocument.file"`)
 	}
 	return nil
 }
@@ -326,6 +329,12 @@ func (aduo *AchievementDocumentUpdateOne) SetNillableFileID(u *uuid.UUID) *Achie
 	return aduo
 }
 
+// ClearFileID clears the value of the "file_id" field.
+func (aduo *AchievementDocumentUpdateOne) ClearFileID() *AchievementDocumentUpdateOne {
+	aduo.mutation.ClearFileID()
+	return aduo
+}
+
 // SetStatus sets the "status" field.
 func (aduo *AchievementDocumentUpdateOne) SetStatus(s string) *AchievementDocumentUpdateOne {
 	aduo.mutation.SetStatus(s)
@@ -441,9 +450,6 @@ func (aduo *AchievementDocumentUpdateOne) check() error {
 	}
 	if aduo.mutation.AchievementCleared() && len(aduo.mutation.AchievementIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "AchievementDocument.achievement"`)
-	}
-	if aduo.mutation.FileCleared() && len(aduo.mutation.FileIDs()) > 0 {
-		return errors.New(`ent: clearing a required unique edge "AchievementDocument.file"`)
 	}
 	return nil
 }

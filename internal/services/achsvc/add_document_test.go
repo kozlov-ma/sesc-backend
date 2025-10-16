@@ -40,7 +40,8 @@ func TestAddDocument(t *testing.T) {
 		// Verify the document was created
 		require.NotEmpty(t, doc.ID)
 		require.Equal(t, "Test Document", doc.Name)
-		require.Equal(t, file.ID, doc.FileID)
+		require.NotNil(t, doc.FileID)
+		require.Equal(t, file.ID, *doc.FileID)
 	})
 
 	t.Run("non_existent_achievement", func(t *testing.T) {

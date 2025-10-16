@@ -187,17 +187,48 @@ func (s *FileService) Delete(ctx context.Context, id UUID) error {
 	)
 
 	// Get file to check if it exists
-	_, err := s.getFile(ctx, rec, id)
+	f, err := s.getFile(ctx, rec, id)
 	if err != nil {
 		rec.Add(events.Error, err)
 		return err
 	}
 
-	// Mark related achievement documents as deleted
+	objectKey := f.S3ObjectKey
+
+	// Step 1: Mark related achievement documents as deleted first
 	err = s.markDocumentsAsDeleted(ctx, rec, id)
 	if err != nil {
 		rec.Add(events.Error, err)
+		rec.Set("success", false)
 		return err
+	}
+
+	// Step 2: Delete from storage
+	storageErr := rec.Operation("storage_delete", func(rec *event.Record) error {
+		rec.Set("object_key", objectKey)
+		return s.storage.RemoveObject(ctx, objectKey)
+	})
+
+	if storageErr != nil {
+		rec.Add(events.Error, storageErr)
+		rec.Set("success", false)
+		return storageErr
+	}
+
+	// Step 3: Delete from database
+	dbErr := recordDBOperation(ctx, rec, "db_delete_file", func() error {
+		_, err := s.client.File.Delete().Where(file.ID(id)).Exec(ctx)
+		if err != nil {
+			rec.Add(events.Error, err)
+			return err
+		}
+		return nil
+	})
+
+	if dbErr != nil {
+		rec.Add(events.Error, dbErr)
+		rec.Set("success", false)
+		return dbErr
 	}
 
 	rec.Set("success", true)
@@ -211,8 +242,6 @@ func buildFilePredicates(opts sesc.FileSearchOptions, rec *event.Record) []predi
 	buildRec.Set("start_time", time.Now())
 
 	predicates := []predicate.File{}
-
-	// No longer filtering by deleted status
 
 	// Filter by name if provided
 	if opts.Name != "" {
@@ -385,11 +414,6 @@ func (s *FileService) DownloadURL(ctx context.Context, id UUID) (string, error) 
 		return "", err
 	}
 
-	// Check if file has S3 object key
-	if f.S3ObjectKey == "" {
-		return "", sesc.ErrFileNotFound
-	}
-
 	// Generate pre-signed URL with 1 hour expiration
 	expires := time.Hour
 	downloadURL, err := s.storage.GetObjectURL(ctx, f.S3ObjectKey, f.Name, expires)
@@ -417,6 +441,7 @@ func (s *FileService) markDocumentsAsDeleted(ctx context.Context, rec *event.Rec
 				achievementdocument.StatusNEQ(achievement.DocumentStatusDeleted),
 			).
 			SetStatus(achievement.DocumentStatusDeleted).
+			ClearFileID().
 			Save(ctx)
 		if err == nil {
 			rec.Set("documents_marked_deleted", updatedCount)

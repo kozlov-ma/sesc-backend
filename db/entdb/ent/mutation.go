@@ -1055,7 +1055,7 @@ func (m *AchievementDocumentMutation) FileID() (r uuid.UUID, exists bool) {
 // OldFileID returns the old "file_id" field's value of the AchievementDocument entity.
 // If the AchievementDocument object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *AchievementDocumentMutation) OldFileID(ctx context.Context) (v uuid.UUID, err error) {
+func (m *AchievementDocumentMutation) OldFileID(ctx context.Context) (v *uuid.UUID, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldFileID is only allowed on UpdateOne operations")
 	}
@@ -1069,9 +1069,22 @@ func (m *AchievementDocumentMutation) OldFileID(ctx context.Context) (v uuid.UUI
 	return oldValue.FileID, nil
 }
 
+// ClearFileID clears the value of the "file_id" field.
+func (m *AchievementDocumentMutation) ClearFileID() {
+	m.file = nil
+	m.clearedFields[achievementdocument.FieldFileID] = struct{}{}
+}
+
+// FileIDCleared returns if the "file_id" field was cleared in this mutation.
+func (m *AchievementDocumentMutation) FileIDCleared() bool {
+	_, ok := m.clearedFields[achievementdocument.FieldFileID]
+	return ok
+}
+
 // ResetFileID resets all changes to the "file_id" field.
 func (m *AchievementDocumentMutation) ResetFileID() {
 	m.file = nil
+	delete(m.clearedFields, achievementdocument.FieldFileID)
 }
 
 // SetStatus sets the "status" field.
@@ -1194,7 +1207,7 @@ func (m *AchievementDocumentMutation) ClearFile() {
 
 // FileCleared reports if the "file" edge to the File entity was cleared.
 func (m *AchievementDocumentMutation) FileCleared() bool {
-	return m.clearedfile
+	return m.FileIDCleared() || m.clearedfile
 }
 
 // FileIDs returns the "file" edge IDs in the mutation.
@@ -1374,6 +1387,9 @@ func (m *AchievementDocumentMutation) AddField(name string, value ent.Value) err
 // mutation.
 func (m *AchievementDocumentMutation) ClearedFields() []string {
 	var fields []string
+	if m.FieldCleared(achievementdocument.FieldFileID) {
+		fields = append(fields, achievementdocument.FieldFileID)
+	}
 	if m.FieldCleared(achievementdocument.FieldScheduledDeletionAt) {
 		fields = append(fields, achievementdocument.FieldScheduledDeletionAt)
 	}
@@ -1391,6 +1407,9 @@ func (m *AchievementDocumentMutation) FieldCleared(name string) bool {
 // error if the field is not defined in the schema.
 func (m *AchievementDocumentMutation) ClearField(name string) error {
 	switch name {
+	case achievementdocument.FieldFileID:
+		m.ClearFileID()
+		return nil
 	case achievementdocument.FieldScheduledDeletionAt:
 		m.ClearScheduledDeletionAt()
 		return nil

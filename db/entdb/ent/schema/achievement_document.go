@@ -24,7 +24,9 @@ func (AchievementDocument) Fields() []ent.Field {
 		field.String("name").
 			NotEmpty().
 			MaxLen(255),
-		field.UUID("file_id", uuid.UUID{}),
+		field.UUID("file_id", uuid.UUID{}).
+			Optional().
+			Nillable(),
 		field.String("status").
 			Default(achievement.DocumentStatusActive).
 			NotEmpty(),
@@ -43,7 +45,6 @@ func (AchievementDocument) Edges() []ent.Edge {
 		edge.From("file", File.Type).
 			Ref("achievement_documents").
 			Field("file_id").
-			Unique().
-			Required(),
+			Unique(),
 	}
 }

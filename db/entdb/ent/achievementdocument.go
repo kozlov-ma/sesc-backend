@@ -25,7 +25,7 @@ type AchievementDocument struct {
 	// Name holds the value of the "name" field.
 	Name string `json:"name,omitempty"`
 	// FileID holds the value of the "file_id" field.
-	FileID uuid.UUID `json:"file_id,omitempty"`
+	FileID *uuid.UUID `json:"file_id,omitempty"`
 	// Status holds the value of the "status" field.
 	Status string `json:"status,omitempty"`
 	// ScheduledDeletionAt holds the value of the "scheduled_deletion_at" field.
@@ -74,11 +74,13 @@ func (*AchievementDocument) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
+		case achievementdocument.FieldFileID:
+			values[i] = &sql.NullScanner{S: new(uuid.UUID)}
 		case achievementdocument.FieldName, achievementdocument.FieldStatus:
 			values[i] = new(sql.NullString)
 		case achievementdocument.FieldScheduledDeletionAt:
 			values[i] = new(sql.NullTime)
-		case achievementdocument.FieldID, achievementdocument.FieldAchievementID, achievementdocument.FieldFileID:
+		case achievementdocument.FieldID, achievementdocument.FieldAchievementID:
 			values[i] = new(uuid.UUID)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -114,10 +116,11 @@ func (ad *AchievementDocument) assignValues(columns []string, values []any) erro
 				ad.Name = value.String
 			}
 		case achievementdocument.FieldFileID:
-			if value, ok := values[i].(*uuid.UUID); !ok {
+			if value, ok := values[i].(*sql.NullScanner); !ok {
 				return fmt.Errorf("unexpected type %T for field file_id", values[i])
-			} else if value != nil {
-				ad.FileID = *value
+			} else if value.Valid {
+				ad.FileID = new(uuid.UUID)
+				*ad.FileID = *value.S.(*uuid.UUID)
 			}
 		case achievementdocument.FieldStatus:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -184,8 +187,10 @@ func (ad *AchievementDocument) String() string {
 	builder.WriteString("name=")
 	builder.WriteString(ad.Name)
 	builder.WriteString(", ")
-	builder.WriteString("file_id=")
-	builder.WriteString(fmt.Sprintf("%v", ad.FileID))
+	if v := ad.FileID; v != nil {
+		builder.WriteString("file_id=")
+		builder.WriteString(fmt.Sprintf("%v", *v))
+	}
 	builder.WriteString(", ")
 	builder.WriteString("status=")
 	builder.WriteString(ad.Status)
