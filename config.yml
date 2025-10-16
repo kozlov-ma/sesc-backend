@@ -44,11 +44,11 @@ minio:
 # For production, use env variables:
 # SESC_DOCUMENT_SERVICE_DELETION_DELAY
 document_service:
-  deletion_delay: 24h  # How long before scheduled documents are actually deleted
+  deletion_delay: 5h  # How long before scheduled documents are actually deleted
 
 # Deletion daemon configuration
 # For production, use env variables:
 # SESC_DELETION_DAEMON_ENABLED, SESC_DELETION_DAEMON_INTERVAL
 deletion_daemon:
   enabled: true
-  interval: 24h  # How often to check for files ready for deletion (default: same as delay)
+  interval: 1h  # How often to check for files ready for deletion (default: same as delay)

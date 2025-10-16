@@ -2,6 +2,7 @@
 
 import { FileNameByIdDisplay } from "@/components/files/file-name-display";
 import { Badge } from "@/components/ui/badge";
+import { AchievementDocumentsTable } from "@/components/achievements/achievement-documents-table";
 import {
     Dialog,
     DialogContent,
@@ -88,36 +89,7 @@ export function AchievementDetailsDialog({
             <h3 className="text-sm font-medium text-muted-foreground mb-2">
               Документы
             </h3>
-            {achievement.documents.length === 0 ? (
-              <p className="text-sm text-muted-foreground">
-                Нет прикрепленных документов
-              </p>
-            ) : (
-              <div className="rounded-md border">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Название</TableHead>
-                      <TableHead>Файл</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {achievement.documents.map((document) => (
-                      <TableRow key={document.id}>
-                        <TableCell className="max-w-[150px]">
-                          <div className="truncate" title={document.name}>
-                            {document.name}
-                          </div>
-                        </TableCell>
-                        <TableCell className="max-w-[200px]">
-                          <FileNameByIdDisplay fileId={document.fileId} />
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            )}
+            <AchievementDocumentsTable documents={achievement.documents} />
           </div>
 
           <Separator />

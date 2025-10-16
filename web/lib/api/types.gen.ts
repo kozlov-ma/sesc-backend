@@ -170,6 +170,7 @@ export type RespondDocument = {
   fileId?: string;
   id: string;
   name: string;
+  status: string;
 };
 
 export type RespondDocumentStats = {

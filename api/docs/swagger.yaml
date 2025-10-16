@@ -460,9 +460,13 @@ definitions:
       name:
         example: Publication proof
         type: string
+      status:
+        example: active
+        type: string
     required:
     - id
     - name
+    - status
     type: object
   respond.DocumentStats:
     properties:

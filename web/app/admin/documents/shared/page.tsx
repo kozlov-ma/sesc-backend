@@ -21,6 +21,7 @@ import {
   postDocumentsScheduleDeletionAllMutation,
   getDocumentsStatsOptions
 } from "@/lib/api/@tanstack/react-query.gen";
+import Link from "next/link";
 import { toast } from "sonner";
 import { useErrorHandler } from "@/hooks/use-error-handler";
 import { getErrorMessage } from "@/lib/error-handler";
@@ -157,11 +158,27 @@ export default function SharedDocumentsPage() {
           </div>
         )}
 
+        <div className="mb-6 p-4 bg-muted rounded-lg flex items-center justify-between">
+          <div>
+            <p className="text-sm font-medium">
+              Для просмотра документов достижений со статусами и красной подсветкой
+            </p>
+            <p className="text-sm text-muted-foreground">
+              используйте страницу "Документы Пользователей" с фильтром по пользователю
+            </p>
+          </div>
+          <Link href="/admin/documents/users">
+            <Button variant="outline">
+              Перейти →
+            </Button>
+          </Link>
+        </div>
+
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <FileText className="h-5 w-5" />
-              Общие Документы
+              Общие Файлы
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -182,8 +199,8 @@ export default function SharedDocumentsPage() {
               Запланировать удаление всех документов?
             </AlertDialogTitle>
             <AlertDialogDescription className="break-words whitespace-normal">
-              Это действие запланирует удаление всех документов из хранилища через
-              24 часа. Записи в базе данных сохранятся с пометкой "удалён". Это
+              Это действие запланирует удаление всех документов из хранилища. 
+              Убедитесь, что за все достижения выставлены финальные баллы. Это
               действие нельзя отменить после выполнения.
             </AlertDialogDescription>
           </AlertDialogHeader>

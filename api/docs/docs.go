@@ -3415,7 +3415,8 @@ const docTemplate = `{
             "type": "object",
             "required": [
                 "id",
-                "name"
+                "name",
+                "status"
             ],
             "properties": {
                 "fileId": {
@@ -3429,6 +3430,10 @@ const docTemplate = `{
                 "name": {
                     "type": "string",
                     "example": "Publication proof"
+                },
+                "status": {
+                    "type": "string",
+                    "example": "active"
                 }
             }
         },

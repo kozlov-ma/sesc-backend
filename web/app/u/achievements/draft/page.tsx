@@ -226,16 +226,41 @@ export default function DraftAchievementsPage() {
                   </div>
 
                   <div className="space-y-1.5 mb-3">
-                    {achievement.documents.map((document) => (
-                      <div
-                        key={document.id}
-                        className="flex items-center rounded-md"
-                      >
-                        {document.fileId && (
-                          <FileNameByIdDisplay fileId={document.fileId} />
-                        )}
-                      </div>
-                    ))}
+                    {achievement.documents.map((document) => {
+                      const isDeleted =
+                        document.status === "deleted" ||
+                        document.status === "scheduled";
+                      const statusText =
+                        document.status === "deleted"
+                          ? "Удалён"
+                          : document.status === "scheduled"
+                            ? "Запрошено удаление"
+                            : null;
+                      return (
+                        <div
+                          key={document.id}
+                          className={`flex items-center justify-between rounded-md ${isDeleted ? "opacity-50" : ""}`}
+                        >
+                          <div className="flex items-center">
+                            {document.fileId ? (
+                              <FileNameByIdDisplay 
+                                fileId={document.fileId}
+                                documentStatus={document.status}
+                              />
+                            ) : (
+                              <span className="text-sm text-muted-foreground">
+                                Файл удалён
+                              </span>
+                            )}
+                          </div>
+                          {statusText && (
+                            <span className="text-xs text-muted-foreground ml-2 px-2 py-1 bg-muted rounded">
+                              {statusText}
+                            </span>
+                          )}
+                        </div>
+                      );
+                    })}
 
                     <Button
                       variant="outline"

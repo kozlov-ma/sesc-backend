@@ -3,7 +3,7 @@
 import { useAuth } from "@/hooks/use-auth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FileText } from "lucide-react";
-import { FileTable } from "@/components/files/file-table";
+import { AchievementDocumentsAdminTable } from "@/components/admin/achievement-documents-table";
 import { UserFilter } from "@/components/files/user-filter";
 import { useState } from "react";
 
@@ -19,8 +19,17 @@ export default function UsersDocumentsPage() {
   return (
     <div className="min-h-screen flex flex-col p-6 bg-background">
       <header className="w-full mb-8">
-        <h1 className="text-2xl font-bold">Документы Пользователей</h1>
+        <h1 className="text-2xl font-bold">Документы Достижений Пользователей</h1>
       </header>
+
+      <div className="mb-6 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+        <p className="text-sm font-medium text-yellow-900 dark:text-yellow-100">
+          ⚠️ Эта функция работает только для пользователей с ролями: заведующий кафедрой, заместители директора, главный экономист.
+        </p>
+        <p className="text-sm text-yellow-800 dark:text-yellow-200 mt-1">
+          Войдите под учетной записью с соответствующей ролью для просмотра документов.
+        </p>
+      </div>
 
       <Card>
         <CardHeader>
@@ -36,14 +45,7 @@ export default function UsersDocumentsPage() {
               onChange={setSelectedUserId}
             />
           </div>
-          <FileTable
-            showOwner={true}
-            emptyMessage="Нет документов пользователей"
-            initialFilters={{
-              common: false,
-              ownerId: selectedUserId,
-            }}
-          />
+          <AchievementDocumentsAdminTable filterByOwnerId={selectedUserId} />
         </CardContent>
       </Card>
     </div>

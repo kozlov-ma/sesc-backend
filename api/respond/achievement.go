@@ -23,6 +23,7 @@ type Document struct {
 	ID     uuid.UUID  `json:"id"               example:"550e8400-e29b-41d4-a716-446655440000" validate:"required"`
 	Name   string     `json:"name"             example:"Publication proof"                    validate:"required"`
 	FileID *uuid.UUID `json:"fileId,omitempty" example:"550e8400-e29b-41d4-a716-446655440000"`
+	Status string     `json:"status"           example:"active"                               validate:"required"`
 }
 
 // Review represents a review response
@@ -61,6 +62,7 @@ func WithAchievement(ach *ent.Achievement) Achievement {
 			ID:     doc.ID,
 			Name:   doc.Name,
 			FileID: doc.FileID,
+			Status: doc.Status,
 		})
 	}
 

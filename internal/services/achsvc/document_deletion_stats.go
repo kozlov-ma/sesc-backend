@@ -33,15 +33,10 @@ func (s *ACS) GetDocumentStats(ctx context.Context) (*DocumentStats, error) {
 
 	err := txwrapper.WithTx(ctx, s.client, sql.LevelRepeatableRead, rec, func(tx *ent.Tx) error {
 		var txErr error
-		// Count total documents
-		stats.TotalDocuments, txErr = tx.AchievementDocument.Query().Count(ctx)
-		if txErr != nil {
-			return txErr
-		}
 
-		// Count deleted documents
-		stats.DeletedDocuments, txErr = tx.AchievementDocument.Query().
-			Where(achievementdocument.Status(achievement.DocumentStatusDeleted)).
+		// Count active (not scheduled) documents
+		stats.NotScheduled, txErr = tx.AchievementDocument.Query().
+			Where(achievementdocument.Status(achievement.DocumentStatusActive)).
 			Count(ctx)
 		if txErr != nil {
 			return txErr
@@ -55,7 +50,18 @@ func (s *ACS) GetDocumentStats(ctx context.Context) (*DocumentStats, error) {
 			return txErr
 		}
 
-		// Count ready for deletion documents
+		// Count deleted documents
+		stats.DeletedDocuments, txErr = tx.AchievementDocument.Query().
+			Where(achievementdocument.Status(achievement.DocumentStatusDeleted)).
+			Count(ctx)
+		if txErr != nil {
+			return txErr
+		}
+
+		// Total = active + scheduled (excluding permanently deleted)
+		stats.TotalDocuments = stats.NotScheduled + stats.ScheduledForDeletion
+
+		// Count ready for deletion documents (scheduled and past cutoff time)
 		stats.ReadyForDeletion, txErr = tx.AchievementDocument.Query().
 			Where(
 				achievementdocument.Status(achievement.DocumentStatusScheduled),
@@ -73,8 +79,6 @@ func (s *ACS) GetDocumentStats(ctx context.Context) (*DocumentStats, error) {
 		rec.Add(events.Error, err)
 		return nil, err
 	}
-
-	stats.NotScheduled = stats.TotalDocuments - stats.DeletedDocuments - stats.ScheduledForDeletion
 
 	rec.Set("success", true)
 	rec.Set("stats", stats)

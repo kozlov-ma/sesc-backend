@@ -16,16 +16,18 @@ import { Download, Loader2, Sparkles } from "lucide-react";
 interface FileNameDisplayProps {
   file: RespondFile;
   className?: string;
+  documentStatus?: string;
 }
 
 interface FileByIdProps {
   fileId: string;
   className?: string;
+  documentStatus?: string;
 }
 
 const IMAGE_EXTENSIONS = [".jpg", ".jpeg", ".png", ".gif", ".webp", ".svg"];
 
-export function FileNameByIdDisplay({ fileId, className }: FileByIdProps) {
+export function FileNameByIdDisplay({ fileId, className, documentStatus }: FileByIdProps) {
   const {
     data: file,
     isLoading,
@@ -37,6 +39,8 @@ export function FileNameByIdDisplay({ fileId, className }: FileByIdProps) {
       },
     }),
   });
+
+  const isScheduledOrDeleted = documentStatus === "scheduled" || documentStatus === "deleted";
 
   if (isLoading) {
     return (
@@ -55,13 +59,16 @@ export function FileNameByIdDisplay({ fileId, className }: FileByIdProps) {
     );
   }
 
-  return <FileNameDisplay file={file} className={className} />;
+  return <FileNameDisplay file={file} className={className} documentStatus={documentStatus} />;
 }
 
-export function FileNameDisplay({ file, className }: FileNameDisplayProps) {
+export function FileNameDisplay({ file, className, documentStatus }: FileNameDisplayProps) {
   const isImage = IMAGE_EXTENSIONS.some((ext) =>
     file.fileName?.toLowerCase()?.endsWith(ext),
   );
+
+  const isScheduledOrDeleted = documentStatus === "scheduled" || documentStatus === "deleted";
+  const textColor = isScheduledOrDeleted ? "text-red-600" : "";
 
   const handleDownload = () => {
     const link = document.createElement("a");
@@ -80,11 +87,11 @@ export function FileNameDisplay({ file, className }: FileNameDisplayProps) {
     return (
       <Button
         variant="link"
-        className={cn("p-0 justify-start block w-full min-w-0", className)}
+        className={cn("p-0 justify-start block w-full min-w-0", textColor, className)}
         onClick={handleDownload}
         title={file.fileName || "Файл"}
       >
-        <span className="font-medium truncate block">
+        <span className={cn("font-medium truncate block", textColor)}>
           {file.fileName || "Файл"}
         </span>
       </Button>
@@ -100,8 +107,8 @@ export function FileNameDisplay({ file, className }: FileNameDisplayProps) {
           title={file.fileName}
         >
           <div className="flex items-center gap-2 min-w-0 max-w-full">
-            <Sparkles className="h-4 w-4 text-muted-foreground shrink-0" />
-            <span className="font-medium truncate min-w-0">{file.fileName}</span>
+            <Sparkles className={cn("h-4 w-4 shrink-0", isScheduledOrDeleted ? "text-red-600" : "text-muted-foreground")} />
+            <span className={cn("font-medium truncate min-w-0", textColor)}>{file.fileName}</span>
           </div>
         </Button>
       </DialogTrigger>

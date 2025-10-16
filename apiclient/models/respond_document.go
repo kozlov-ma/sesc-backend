@@ -32,6 +32,11 @@ type RespondDocument struct {
 	// Example: Publication proof
 	// Required: true
 	Name *string `json:"name"`
+
+	// status
+	// Example: active
+	// Required: true
+	Status *string `json:"status"`
 }
 
 // Validate validates this respond document
@@ -43,6 +48,10 @@ func (m *RespondDocument) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := m.validateName(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateStatus(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -64,6 +73,15 @@ func (m *RespondDocument) validateID(formats strfmt.Registry) error {
 func (m *RespondDocument) validateName(formats strfmt.Registry) error {
 
 	if err := validate.Required("name", "body", m.Name); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *RespondDocument) validateStatus(formats strfmt.Registry) error {
+
+	if err := validate.Required("status", "body", m.Status); err != nil {
 		return err
 	}
 

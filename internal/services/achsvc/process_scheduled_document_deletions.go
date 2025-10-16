@@ -69,6 +69,7 @@ func (s *ACS) ProcessScheduledDocumentDeletions(ctx context.Context, storage Obj
 			}
 		}
 
+		// Mark documents as deleted (but keep them in DB)
 		start = time.Now()
 		updateCount, err := tx.AchievementDocument.Update().
 			Where(
@@ -77,6 +78,7 @@ func (s *ACS) ProcessScheduledDocumentDeletions(ctx context.Context, storage Obj
 			).
 			SetStatus(achievement.DocumentStatusDeleted).
 			ClearScheduledDeletionAt().
+			ClearFileID(). // Remove file reference
 			Save(ctx)
 		statsRec.Add(events.PostgresQueries, 1)
 		statsRec.Add(events.PostgresTime, time.Since(start))
@@ -88,6 +90,7 @@ func (s *ACS) ProcessScheduledDocumentDeletions(ctx context.Context, storage Obj
 		processedCount = updateCount
 		rec.Set("documents_updated", updateCount)
 
+		// Delete file records from DB (not documents!)
 		if len(filesToDelete) > 0 {
 			fileIDs := make([]uuid.UUID, len(filesToDelete))
 			for i, f := range filesToDelete {

@@ -7,7 +7,6 @@ import {
   FolderOpen,
   Users,
   Award,
-  Trash2,
 } from "lucide-react";
 
 import { Separator } from "@/components/ui/separator";
@@ -46,11 +45,6 @@ const groups = [
         name: "Документы Пользователей",
         url: "/admin/documents/users",
         icon: FolderPlus,
-      },
-      {
-        name: "Управление удалением",
-        url: "/admin/documents/management",
-        icon: Trash2,
       },
     ],
   },

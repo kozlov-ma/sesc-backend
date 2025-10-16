@@ -221,20 +221,42 @@ export function ReviewAchievementDialog({
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {achievement.documents?.map((document) => (
-                      <TableRow key={document.id}>
-                        <TableCell className="max-w-[150px]">
-                          <div className="truncate" title={document.name}>
-                            {document.name}
-                          </div>
-                        </TableCell>
-                        <TableCell className="max-w-[200px]">
-                          <div className="truncate">
-                            <FileNameByIdDisplay fileId={document.fileId} />
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
+                    {achievement.documents?.map((document) => {
+                      const isDeleted = 
+                        document.status === "deleted" || 
+                        document.status === "scheduled";
+                      return (
+                        <TableRow 
+                          key={document.id}
+                          className={isDeleted ? "opacity-50" : ""}
+                        >
+                          <TableCell className="max-w-[150px]">
+                            <div className="truncate" title={document.name}>
+                              {document.name}
+                              {isDeleted && (
+                                <span className="text-xs text-muted-foreground ml-2">
+                                  ({document.status === "deleted" ? "удалён" : "запрошено удаление"})
+                                </span>
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell className="max-w-[200px]">
+                            <div className="truncate">
+                              {document.fileId ? (
+                                <FileNameByIdDisplay 
+                                  fileId={document.fileId}
+                                  documentStatus={document.status}
+                                />
+                              ) : (
+                                <span className="text-muted-foreground text-sm">
+                                  Файл удалён
+                                </span>
+                              )}
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
                   </TableBody>
                 </Table>
               </div>
