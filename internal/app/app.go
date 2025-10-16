@@ -113,7 +113,7 @@ func NewWithDBOptions(ctx context.Context, cfg *config.Config, log *slog.Logger,
 		return nil, fmt.Errorf("failed to create S3 storage: %w", err)
 	}
 
-	// Initialize file service with delay from config
+	// Initialize file service
 	fileService := filesvc.New(
 		client,
 		s3Storage,

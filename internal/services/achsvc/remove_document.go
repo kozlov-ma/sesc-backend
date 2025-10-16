@@ -15,7 +15,8 @@ import (
 	"github.com/kozlov-ma/sesc-backend/pkg/event/events"
 )
 
-// RemoveDocument immediately deletes a document from an achievement.
+// RemoveDocument marks a document as deleted and clears its file reference.
+// The actual file will be deleted by the deletion daemon after the configured delay.
 // Returns achievement.ErrAchievementNotFound if the achievement does not exist.
 // Returns achievement.ErrDocumentNotFound if the document does not exist.
 // Returns achievement.ErrWrongAchievementStatus if the achievement is not in draft status.
@@ -32,6 +33,8 @@ func (s *ACS) RemoveDocument(
 		"achievement_id", opt.AchievementID,
 		"document_id", opt.DocumentID,
 	)
+
+	var fileIDToDelete *UUID
 
 	err := txwrapper.WithTx(ctx, s.client, sql.LevelReadCommitted, rec, func(tx *ent.Tx) error {
 		var ach *ent.Achievement
@@ -70,7 +73,7 @@ func (s *ACS) RemoveDocument(
 			return err
 		}
 
-		var doc *ent.AchievementDocument
+		// Verify document exists and get its fileID
 		err = rec.Operation("verify_document", func(_ *event.Record) error {
 			start := time.Now()
 			document, err := tx.AchievementDocument.Query().
@@ -89,29 +92,39 @@ func (s *ACS) RemoveDocument(
 				return fmt.Errorf("failed to query document: %w", err)
 			}
 
-			doc = document
+			fileIDToDelete = document.FileID
 			return nil
 		})
 		if err != nil {
 			return err
 		}
 
-		err = rec.Operation("delete_document_immediately", func(_ *event.Record) error {
-			start := time.Now()
-			_, err := tx.AchievementDocument.UpdateOne(doc).
-				SetStatus(achievement.DocumentStatusScheduled).
-				SetScheduledDeletionAt(time.Now()).
-				Save(ctx)
-			statsRec.Add(events.PostgresQueries, 1)
-			statsRec.Add(events.PostgresTime, time.Since(start))
+		// Mark ALL documents referencing this file as deleted (including the current one)
+		if fileIDToDelete != nil {
+			err = rec.Operation("mark_all_documents_deleted", func(_ *event.Record) error {
+				start := time.Now()
+				count, err := tx.AchievementDocument.Update().
+					Where(
+						achievementdocument.FileID(*fileIDToDelete),
+						achievementdocument.StatusNEQ(achievement.DocumentStatusDeleted),
+					).
+					SetStatus(achievement.DocumentStatusDeleted).
+					ClearFileID().
+					ClearScheduledDeletionAt().
+					Save(ctx)
+				statsRec.Add(events.PostgresQueries, 1)
+				statsRec.Add(events.PostgresTime, time.Since(start))
 
+				if err != nil {
+					return fmt.Errorf("failed to mark documents as deleted: %w", err)
+				}
+
+				rec.Set("documents_marked_deleted", count)
+				return nil
+			})
 			if err != nil {
-				return fmt.Errorf("failed to mark document as deleted: %w", err)
+				return err
 			}
-			return nil
-		})
-		if err != nil {
-			return err
 		}
 
 		return nil
