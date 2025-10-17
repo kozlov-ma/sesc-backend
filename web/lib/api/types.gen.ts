@@ -1512,7 +1512,12 @@ export type PostDocumentsScheduleDeletionAllData = {
     Authorization?: string;
   };
   path?: never;
-  query?: never;
+  query?: {
+    /**
+     * If true, schedule only common files for deletion; if false, schedule only user files
+     */
+    isCommon?: boolean;
+  };
   url: "/documents/schedule_deletion/all";
 };
 
@@ -1601,7 +1606,12 @@ export type GetDocumentsStatsData = {
     Authorization?: string;
   };
   path?: never;
-  query?: never;
+  query?: {
+    /**
+     * If true, return stats for common files only; if false, return stats for user files only
+     */
+    isCommon?: boolean;
+  };
   url: "/documents/stats";
 };
 

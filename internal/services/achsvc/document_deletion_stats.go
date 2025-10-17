@@ -8,6 +8,7 @@ import (
 	"github.com/kozlov-ma/sesc-backend/achievement"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievementdocument"
+	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/file"
 	"github.com/kozlov-ma/sesc-backend/internal/services/txwrapper"
 	"github.com/kozlov-ma/sesc-backend/pkg/event"
 	"github.com/kozlov-ma/sesc-backend/pkg/event/events"
@@ -21,12 +22,12 @@ type DocumentStats struct {
 	NotScheduled         int
 }
 
-// GetDocumentStats returns statistics about documents and deletion delay
-func (s *ACS) GetDocumentStats(ctx context.Context) (*DocumentStats, error) {
+func (s *ACS) GetDocumentStats(ctx context.Context, isCommon bool) (*DocumentStats, error) {
 	rec := event.Get(ctx).Sub("achsvc/get_document_stats")
 
 	rec.Sub("params").Set(
 		"start_time", time.Now(),
+		"is_common", isCommon,
 	)
 
 	var stats DocumentStats
@@ -34,43 +35,50 @@ func (s *ACS) GetDocumentStats(ctx context.Context) (*DocumentStats, error) {
 	err := txwrapper.WithTx(ctx, s.client, sql.LevelRepeatableRead, rec, func(tx *ent.Tx) error {
 		var txErr error
 
-		// Count active (not scheduled) documents
-		stats.NotScheduled, txErr = tx.AchievementDocument.Query().
+		baseQuery := tx.AchievementDocument.Query().Where(achievementdocument.HasFile())
+		if isCommon {
+			baseQuery = baseQuery.Where(achievementdocument.HasFileWith(file.OwnerIDIsNil()))
+		} else {
+			baseQuery = baseQuery.Where(achievementdocument.HasFileWith(file.OwnerIDNotNil()))
+		}
+
+		notScheduledDocs, txErr := baseQuery.Clone().
 			Where(achievementdocument.Status(achievement.DocumentStatusActive)).
-			Count(ctx)
+			All(ctx)
 		if txErr != nil {
 			return txErr
 		}
+		stats.NotScheduled = len(notScheduledDocs)
 
-		// Count scheduled documents
-		stats.ScheduledForDeletion, txErr = tx.AchievementDocument.Query().
+		scheduledDocs, txErr := baseQuery.Clone().
 			Where(achievementdocument.Status(achievement.DocumentStatusScheduled)).
-			Count(ctx)
+			All(ctx)
 		if txErr != nil {
 			return txErr
 		}
+		stats.ScheduledForDeletion = len(scheduledDocs)
 
-		// Count deleted documents
-		stats.DeletedDocuments, txErr = tx.AchievementDocument.Query().
+		deletedDocs, txErr := baseQuery.Clone().
 			Where(achievementdocument.Status(achievement.DocumentStatusDeleted)).
-			Count(ctx)
+			All(ctx)
 		if txErr != nil {
 			return txErr
 		}
+		stats.DeletedDocuments = len(deletedDocs)
 
-		// Total = active + scheduled (excluding permanently deleted)
 		stats.TotalDocuments = stats.NotScheduled + stats.ScheduledForDeletion
 
-		// Count ready for deletion documents (scheduled and past cutoff time)
-		stats.ReadyForDeletion, txErr = tx.AchievementDocument.Query().
+		readyDocs, txErr := baseQuery.Clone().
 			Where(
 				achievementdocument.Status(achievement.DocumentStatusScheduled),
 				achievementdocument.ScheduledDeletionAtLTE(time.Now()),
 			).
-			Count(ctx)
+			All(ctx)
 		if txErr != nil {
 			return txErr
 		}
+
+		stats.ReadyForDeletion = len(readyDocs)
 
 		return nil
 	})

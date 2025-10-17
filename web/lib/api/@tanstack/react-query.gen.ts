@@ -1245,7 +1245,7 @@ export const postDocumentsScheduleDeletionAllQueryKey = (
 
 /**
  * Schedule deletion for all documents
- * Schedules deletion for all documents
+ * Schedules deletion for all documents (common or user documents based on isCommon parameter)
  */
 export const postDocumentsScheduleDeletionAllOptions = (
   options?: Options<PostDocumentsScheduleDeletionAllData>,
@@ -1266,7 +1266,7 @@ export const postDocumentsScheduleDeletionAllOptions = (
 
 /**
  * Schedule deletion for all documents
- * Schedules deletion for all documents
+ * Schedules deletion for all documents (common or user documents based on isCommon parameter)
  */
 export const postDocumentsScheduleDeletionAllMutation = (
   options?: Partial<Options<PostDocumentsScheduleDeletionAllData>>,
@@ -1351,7 +1351,7 @@ export const getDocumentsStatsQueryKey = (
 
 /**
  * Get document statistics
- * Returns statistics about documents including total, deleted, scheduled, etc.
+ * Returns statistics about documents including total, deleted, scheduled, etc. (common or user documents based on isCommon parameter)
  */
 export const getDocumentsStatsOptions = (
   options?: Options<GetDocumentsStatsData>,

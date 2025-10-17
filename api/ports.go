@@ -147,8 +147,8 @@ type (
 		MarkAllDoneAchievementsAsAccounted(ctx context.Context) (int, error)
 
 		// Document management
-		ScheduleDocumentDeletionAll(ctx context.Context) error
-		GetDocumentStats(ctx context.Context) (*achsvc.DocumentStats, error)
+		ScheduleDocumentDeletionAll(ctx context.Context, isCommon bool) error
+		GetDocumentStats(ctx context.Context, isCommon bool) (*achsvc.DocumentStats, error)
 	}
 
 	// FileService defines the file operations interface required by the API

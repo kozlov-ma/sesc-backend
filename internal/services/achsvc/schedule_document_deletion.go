@@ -9,18 +9,20 @@ import (
 	"github.com/kozlov-ma/sesc-backend/achievement"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievementdocument"
+	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/file"
 	"github.com/kozlov-ma/sesc-backend/internal/services/txwrapper"
 	"github.com/kozlov-ma/sesc-backend/pkg/event"
 	"github.com/kozlov-ma/sesc-backend/pkg/event/events"
 )
 
 // ScheduleDocumentDeletionAll schedules all documents for deletion
-func (s *ACS) ScheduleDocumentDeletionAll(ctx context.Context) error {
+func (s *ACS) ScheduleDocumentDeletionAll(ctx context.Context, isCommon bool) error {
 	rec := event.Get(ctx).Sub("achsvc/schedule_document_deletion_all")
 	statsRec := event.Root(ctx).Sub("stats")
 
 	rec.Sub("params").Set(
 		"start_time", time.Now(),
+		"is_common", isCommon,
 	)
 
 	scheduledDeletionAt := time.Now()
@@ -28,11 +30,19 @@ func (s *ACS) ScheduleDocumentDeletionAll(ctx context.Context) error {
 
 	err := txwrapper.WithTx(ctx, s.client, sql.LevelSerializable, rec, func(tx *ent.Tx) error {
 		start := time.Now()
-		documents, err := tx.AchievementDocument.Query().
+		query := tx.AchievementDocument.Query().
 			Where(
 				achievementdocument.Status(achievement.DocumentStatusActive),
 			).
-			All(ctx)
+			WithFile()
+
+		if isCommon {
+			query = query.Where(achievementdocument.HasFileWith(file.OwnerIDIsNil()))
+		} else {
+			query = query.Where(achievementdocument.HasFileWith(file.OwnerIDNotNil()))
+		}
+
+		documents, err := query.All(ctx)
 		statsRec.Add(events.PostgresQueries, 1)
 		statsRec.Add(events.PostgresTime, time.Since(start))
 

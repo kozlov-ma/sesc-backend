@@ -13,6 +13,8 @@ import (
 	"github.com/kozlov-ma/sesc-backend/pkg/event/events"
 )
 
+const queryParamTrue = "true"
+
 // AddDocument godoc
 // @Summary Add a document to an achievement
 // @Description Adds a document to an achievement
@@ -80,22 +82,28 @@ func (a *API) AddDocument(w http.ResponseWriter, r *http.Request) {
 
 // ScheduleDeletionAll schedules deletion for all documents
 // @Summary Schedule deletion for all documents
-// @Description Schedules deletion for all documents
-// @Tags files
+// @Description Schedules deletion for all documents (common or user documents based on isCommon parameter)
+// @Tags documents
 // @Accept json
 // @Produce json
 // @Param Authorization header string false "Bearer JWT token"
+// @Param isCommon query bool false "If true, schedule only common files for deletion; if false, schedule only user files"
 // @Success 204 "No Content"
 // @Failure 401 {object} respond.Error "Unauthorized"
 // @Failure 403 {object} respond.Error "Forbidden"
-// @Failure 500 {object} respond.Error
+// @Failure 500 {object} respond.Error "Internal Server Error"
 // @Router /documents/schedule_deletion/all [post]
 // @Security BearerAuth
 func (a *API) ScheduleDeletionAll(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	rec := event.Get(ctx).Sub("api/schedule_deletion_all")
-	// Schedule all documents for deletion
-	err := a.sesc.ScheduleDocumentDeletionAll(ctx)
+
+	isCommonStr := r.URL.Query().Get("isCommon")
+	isCommon := isCommonStr == queryParamTrue
+
+	rec.Set("is_common", isCommon)
+
+	err := a.sesc.ScheduleDocumentDeletionAll(ctx, isCommon)
 	if err != nil {
 		rec.Add(events.Error, err)
 		a.writeJSON(ctx, w, respond.WithError(ctx, err))
@@ -107,23 +115,28 @@ func (a *API) ScheduleDeletionAll(w http.ResponseWriter, r *http.Request) {
 
 // GetDocumentStats returns statistics about documents
 // @Summary Get document statistics
-// @Description Returns statistics about documents including total, deleted, scheduled, etc.
-// @Tags files
+// @Description Returns statistics about documents including total, deleted, scheduled, etc. (common or user documents based on isCommon parameter)
+// @Tags documents
 // @Accept json
 // @Produce json
 // @Param Authorization header string false "Bearer JWT token"
+// @Param isCommon query bool false "If true, return stats for common files only; if false, return stats for user files only"
 // @Success 200 {object} respond.DocumentStats
 // @Failure 401 {object} respond.Error "Unauthorized"
 // @Failure 403 {object} respond.Error "Forbidden"
-// @Failure 500 {object} respond.Error
+// @Failure 500 {object} respond.Error "Internal Server Error"
 // @Router /documents/stats [get]
 // @Security BearerAuth
 func (a *API) GetDocumentStats(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	rec := event.Get(ctx).Sub("api/get_document_stats")
 
-	// Get statistics from achievement service
-	stats, err := a.sesc.GetDocumentStats(ctx)
+	isCommonStr := r.URL.Query().Get("isCommon")
+	isCommon := isCommonStr == queryParamTrue
+
+	rec.Set("is_common", isCommon)
+
+	stats, err := a.sesc.GetDocumentStats(ctx, isCommon)
 	if err != nil {
 		rec.Add(events.Error, err)
 		a.writeJSON(ctx, w, respond.WithError(ctx, err))

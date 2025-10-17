@@ -98,6 +98,9 @@ func LoadConfig() (*Config, error) {
 		"http.read_header_timeout",
 		"http.read_timeout",
 		"http.write_timeout",
+		"deletion_daemon.enabled",
+		"deletion_daemon.interval",
+		"deletion_daemon.delay",
 	}
 
 	var bindErrors []error

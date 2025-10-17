@@ -764,7 +764,7 @@ export const putDepartmentsById = <ThrowOnError extends boolean = false>(
 
 /**
  * Schedule deletion for all documents
- * Schedules deletion for all documents
+ * Schedules deletion for all documents (common or user documents based on isCommon parameter)
  */
 export const postDocumentsScheduleDeletionAll = <
   ThrowOnError extends boolean = false,
@@ -814,7 +814,7 @@ export const postDocumentsScheduleDeletionByDocumentId = <
 
 /**
  * Get document statistics
- * Returns statistics about documents including total, deleted, scheduled, etc.
+ * Returns statistics about documents including total, deleted, scheduled, etc. (common or user documents based on isCommon parameter)
  */
 export const getDocumentsStats = <ThrowOnError extends boolean = false>(
   options?: Options<GetDocumentsStatsData, ThrowOnError>,

@@ -1786,12 +1786,18 @@ paths:
     post:
       consumes:
       - application/json
-      description: Schedules deletion for all documents
+      description: Schedules deletion for all documents (common or user documents
+        based on isCommon parameter)
       parameters:
       - description: Bearer JWT token
         in: header
         name: Authorization
         type: string
+      - description: If true, schedule only common files for deletion; if false, schedule
+          only user files
+        in: query
+        name: isCommon
+        type: boolean
       produces:
       - application/json
       responses:
@@ -1813,18 +1819,23 @@ paths:
       - BearerAuth: []
       summary: Schedule deletion for all documents
       tags:
-      - files
+      - documents
   /documents/stats:
     get:
       consumes:
       - application/json
       description: Returns statistics about documents including total, deleted, scheduled,
-        etc.
+        etc. (common or user documents based on isCommon parameter)
       parameters:
       - description: Bearer JWT token
         in: header
         name: Authorization
         type: string
+      - description: If true, return stats for common files only; if false, return
+          stats for user files only
+        in: query
+        name: isCommon
+        type: boolean
       produces:
       - application/json
       responses:
@@ -1848,7 +1859,7 @@ paths:
       - BearerAuth: []
       summary: Get document statistics
       tags:
-      - files
+      - documents
   /files:
     get:
       consumes:

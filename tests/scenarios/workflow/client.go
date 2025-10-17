@@ -18,6 +18,7 @@ import (
 	"github.com/kozlov-ma/sesc-backend/apiclient/client/achievements"
 	"github.com/kozlov-ma/sesc-backend/apiclient/client/authentication"
 	"github.com/kozlov-ma/sesc-backend/apiclient/client/departments"
+	"github.com/kozlov-ma/sesc-backend/apiclient/client/documents"
 	"github.com/kozlov-ma/sesc-backend/apiclient/client/files"
 	"github.com/kozlov-ma/sesc-backend/apiclient/client/reports"
 	"github.com/kozlov-ma/sesc-backend/apiclient/client/roles"
@@ -376,9 +377,9 @@ func (c *TestClient) MarkAllAccounted() error {
 
 // GetDocumentStats retrieves document statistics
 func (c *TestClient) GetDocumentStats() (*models.RespondDocumentStats, error) {
-	getParams := files.NewGetDocumentsStatsParams()
+	getParams := documents.NewGetDocumentsStatsParams()
 
-	getResp, err := c.apiClient.Files.GetDocumentsStats(getParams, c.authInfo)
+	getResp, err := c.apiClient.Documents.GetDocumentsStats(getParams, c.authInfo)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get document stats: %w", err)
 	}
@@ -401,9 +402,9 @@ func (c *TestClient) DeleteFile(fileID string) error {
 
 // ScheduleDeletionAll schedules deletion for all files
 func (c *TestClient) ScheduleDeletionAll() error {
-	deleteParams := files.NewPostDocumentsScheduleDeletionAllParams()
+	deleteParams := documents.NewPostDocumentsScheduleDeletionAllParams()
 
-	_, err := c.apiClient.Files.PostDocumentsScheduleDeletionAll(deleteParams, c.authInfo)
+	_, err := c.apiClient.Documents.PostDocumentsScheduleDeletionAll(deleteParams, c.authInfo)
 	if err != nil {
 		return fmt.Errorf("failed to schedule deletion all: %w", err)
 	}

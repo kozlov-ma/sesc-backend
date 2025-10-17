@@ -12,7 +12,7 @@ servers:
 # Enable SSL auto certification via Let's Encrypt and allow for multiple apps on a single web server.
 proxy:
   ssl: true
-  hosts: 
+  hosts:
     - api.sesc-fiit.ru
   app_port: 8080
 # Registry configuration for GitHub Container Registry
@@ -48,6 +48,9 @@ env:
     - SESC_HTTP_READ_HEADER_TIMEOUT
     - SESC_HTTP_READ_TIMEOUT
     - SESC_HTTP_WRITE_TIMEOUT
+    - SESC_DELETION_DAEMON_ENABLED
+    - SESC_DELETION_DAEMON_INTERVAL
+    - SESC_DELETION_DAEMON_DELAY
 
 ssh:
   user: kanyewest

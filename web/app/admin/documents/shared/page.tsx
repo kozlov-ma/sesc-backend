@@ -17,14 +17,14 @@ import { FileText, Trash2, BarChart3 } from "lucide-react";
 import { FileTable } from "@/components/files/file-table";
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { 
-  postDocumentsScheduleDeletionAllMutation,
-  getDocumentsStatsOptions
-} from "@/lib/api/@tanstack/react-query.gen";
-import Link from "next/link";
 import { toast } from "sonner";
 import { useErrorHandler } from "@/hooks/use-error-handler";
 import { getErrorMessage } from "@/lib/error-handler";
+import {
+  getDocumentsStats,
+  postDocumentsScheduleDeletionAll,
+} from "@/lib/api/sdk.gen";
+import Link from "next/link";
 
 export default function SharedDocumentsPage() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -33,18 +33,32 @@ export default function SharedDocumentsPage() {
   const { handleError, clearError } = useErrorHandler();
 
   const { data: stats, isLoading: statsLoading } = useQuery({
-    ...getDocumentsStatsOptions(),
-    refetchInterval: 30000, // Refresh every 30 seconds
+    queryKey: ["documents", "stats", "common"],
+    queryFn: async () => {
+      const response = await getDocumentsStats({
+        query: { isCommon: true },
+      });
+      return response.data;
+    },
+    refetchInterval: 30000,
   });
 
   const scheduleAllMutation = useMutation({
-    ...postDocumentsScheduleDeletionAllMutation(),
+    mutationFn: async () => {
+      const response = await postDocumentsScheduleDeletionAll({
+        query: { isCommon: true },
+      });
+      return response.data;
+    },
     onSuccess: () => {
-      toast.success("Документы запланированы на удаление", {
-        description: "Все документы будут удалены из хранилища через 24 часа",
+      toast.success("Общие документы запланированы на удаление", {
+        description: `Все общие документы будут удалены через ${stats?.deletionDelay || "24h"}`,
       });
       clearError();
       setShowConfirmDialog(false);
+      queryClient.invalidateQueries({
+        queryKey: ["documents", "stats", "common"],
+      });
     },
     onError: (error) => {
       handleError(error);
@@ -61,13 +75,12 @@ export default function SharedDocumentsPage() {
 
   const confirmScheduleAll = async () => {
     try {
-      await scheduleAllMutation.mutateAsync({});
+      await scheduleAllMutation.mutateAsync();
     } catch (error) {
       console.error("Error scheduling deletion:", error);
     }
   };
 
-  // Only render if user is authenticated
   if (!isAuthenticated || isLoading) {
     return null;
   }
@@ -86,7 +99,7 @@ export default function SharedDocumentsPage() {
               <Trash2 className="mr-2 h-4 w-4" />
               {scheduleAllMutation.isPending
                 ? "Планирование..."
-                : "Запланировать удаление всех документов"}
+                : "Запланировать удаление всех общих документов"}
             </Button>
           </div>
         </header>
@@ -107,9 +120,7 @@ export default function SharedDocumentsPage() {
 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  Активных
-                </CardTitle>
+                <CardTitle className="text-sm font-medium">Активных</CardTitle>
                 <FileText className="h-4 w-4 text-green-600" />
               </CardHeader>
               <CardContent>
@@ -125,7 +136,9 @@ export default function SharedDocumentsPage() {
                 <FileText className="h-4 w-4 text-orange-600" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{stats.scheduledForDeletion}</div>
+                <div className="text-2xl font-bold">
+                  {stats.scheduledForDeletion}
+                </div>
                 <p className="text-xs text-muted-foreground mt-1">
                   Готовы: {stats.readyForDeletion}
                 </p>
@@ -134,9 +147,7 @@ export default function SharedDocumentsPage() {
 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  Удалено
-                </CardTitle>
+                <CardTitle className="text-sm font-medium">Удалено</CardTitle>
                 <FileText className="h-4 w-4 text-red-600" />
               </CardHeader>
               <CardContent>
@@ -158,22 +169,6 @@ export default function SharedDocumentsPage() {
           </div>
         )}
 
-        <div className="mb-6 p-4 bg-muted rounded-lg flex items-center justify-between">
-          <div>
-            <p className="text-sm font-medium">
-              Для просмотра документов достижений со статусами и красной подсветкой
-            </p>
-            <p className="text-sm text-muted-foreground">
-              используйте страницу "Документы Пользователей" с фильтром по пользователю
-            </p>
-          </div>
-          <Link href="/admin/documents/users">
-            <Button variant="outline">
-              Перейти →
-            </Button>
-          </Link>
-        </div>
-
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -182,11 +177,39 @@ export default function SharedDocumentsPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
+            <div className="mb-4 p-4 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg">
+              <p className="text-sm font-medium text-blue-900 dark:text-blue-100 mb-2">
+                ℹ️ Как работает удаление
+              </p>
+              <ul className="text-sm text-blue-800 dark:text-blue-200 space-y-1 list-disc list-inside">
+                <li>
+                  Кнопка "Запланировать удаление" планирует удаление всех{" "}
+                  <strong>документов достижений</strong>, использующих общие
+                  файлы
+                </li>
+                <li>
+                  Файлы удаляются автоматически демоном через{" "}
+                  {stats?.deletionDelay || "24h"}, если на них не ссылается ни
+                  один активный документ
+                </li>
+                <li>
+                  Статистика выше показывает количество документов, а не файлов
+                </li>
+                <li>
+                  Просмотр документов со статусом "scheduled"/"deleted" доступен
+                  в{" "}
+                  <Link href="/admin/users" className="underline font-medium">
+                    достижениях пользователя
+                  </Link>
+                </li>
+              </ul>
+            </div>
             <FileTable
               showOwner={true}
               emptyMessage="Общих файлов пока нет"
               initialFilters={{ common: true }}
               allowDeleteCommon={true}
+              allowUpload={false}
             />
           </CardContent>
         </Card>
@@ -196,12 +219,12 @@ export default function SharedDocumentsPage() {
         <AlertDialogContent className="max-w-md">
           <AlertDialogHeader>
             <AlertDialogTitle>
-              Запланировать удаление всех документов?
+              Запланировать удаление всех общих документов?
             </AlertDialogTitle>
             <AlertDialogDescription className="break-words whitespace-normal">
-              Это действие запланирует удаление всех документов из хранилища. 
-              Убедитесь, что за все достижения выставлены финальные баллы. Это
-              действие нельзя отменить после выполнения.
+              Это действие запланирует удаление всех общих документов из
+              хранилища. Убедитесь, что за все достижения выставлены финальные
+              баллы. Это действие нельзя отменить после выполнения.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

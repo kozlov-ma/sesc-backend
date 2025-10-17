@@ -82,15 +82,11 @@ func WithContentTypeMultipartFormData(r *runtime.ClientOperation) {
 type ClientService interface {
 	DeleteFilesID(params *DeleteFilesIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*DeleteFilesIDNoContent, error)
 
-	GetDocumentsStats(params *GetDocumentsStatsParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetDocumentsStatsOK, error)
-
 	GetFiles(params *GetFilesParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetFilesOK, error)
 
 	GetFilesID(params *GetFilesIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetFilesIDOK, error)
 
 	GetFilesIDDownload(params *GetFilesIDDownloadParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) error
-
-	PostDocumentsScheduleDeletionAll(params *PostDocumentsScheduleDeletionAllParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostDocumentsScheduleDeletionAllNoContent, error)
 
 	PostDocumentsScheduleDeletionDocumentID(params *PostDocumentsScheduleDeletionDocumentIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostDocumentsScheduleDeletionDocumentIDNoContent, error)
 
@@ -137,47 +133,6 @@ func (a *Client) DeleteFilesID(params *DeleteFilesIDParams, authInfo runtime.Cli
 	// unexpected success response
 	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
 	msg := fmt.Sprintf("unexpected success response for DeleteFilesID: API contract not enforced by server. Client expected to get an error, but got: %T", result)
-	panic(msg)
-}
-
-/*
-GetDocumentsStats gets document statistics
-
-Returns statistics about documents including total, deleted, scheduled, etc.
-*/
-func (a *Client) GetDocumentsStats(params *GetDocumentsStatsParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetDocumentsStatsOK, error) {
-	// TODO: Validate the params before sending
-	if params == nil {
-		params = NewGetDocumentsStatsParams()
-	}
-	op := &runtime.ClientOperation{
-		ID:                 "GetDocumentsStats",
-		Method:             "GET",
-		PathPattern:        "/documents/stats",
-		ProducesMediaTypes: []string{"application/json"},
-		ConsumesMediaTypes: []string{"application/json"},
-		Schemes:            []string{"http"},
-		Params:             params,
-		Reader:             &GetDocumentsStatsReader{formats: a.formats},
-		AuthInfo:           authInfo,
-		Context:            params.Context,
-		Client:             params.HTTPClient,
-	}
-	for _, opt := range opts {
-		opt(op)
-	}
-
-	result, err := a.transport.Submit(op)
-	if err != nil {
-		return nil, err
-	}
-	success, ok := result.(*GetDocumentsStatsOK)
-	if ok {
-		return success, nil
-	}
-	// unexpected success response
-	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
-	msg := fmt.Sprintf("unexpected success response for GetDocumentsStats: API contract not enforced by server. Client expected to get an error, but got: %T", result)
 	panic(msg)
 }
 
@@ -295,47 +250,6 @@ func (a *Client) GetFilesIDDownload(params *GetFilesIDDownloadParams, authInfo r
 		return err
 	}
 	return nil
-}
-
-/*
-PostDocumentsScheduleDeletionAll schedules deletion for all documents
-
-Schedules deletion for all documents
-*/
-func (a *Client) PostDocumentsScheduleDeletionAll(params *PostDocumentsScheduleDeletionAllParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostDocumentsScheduleDeletionAllNoContent, error) {
-	// TODO: Validate the params before sending
-	if params == nil {
-		params = NewPostDocumentsScheduleDeletionAllParams()
-	}
-	op := &runtime.ClientOperation{
-		ID:                 "PostDocumentsScheduleDeletionAll",
-		Method:             "POST",
-		PathPattern:        "/documents/schedule_deletion/all",
-		ProducesMediaTypes: []string{"application/json"},
-		ConsumesMediaTypes: []string{"application/json"},
-		Schemes:            []string{"http"},
-		Params:             params,
-		Reader:             &PostDocumentsScheduleDeletionAllReader{formats: a.formats},
-		AuthInfo:           authInfo,
-		Context:            params.Context,
-		Client:             params.HTTPClient,
-	}
-	for _, opt := range opts {
-		opt(op)
-	}
-
-	result, err := a.transport.Submit(op)
-	if err != nil {
-		return nil, err
-	}
-	success, ok := result.(*PostDocumentsScheduleDeletionAllNoContent)
-	if ok {
-		return success, nil
-	}
-	// unexpected success response
-	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
-	msg := fmt.Sprintf("unexpected success response for PostDocumentsScheduleDeletionAll: API contract not enforced by server. Client expected to get an error, but got: %T", result)
-	panic(msg)
 }
 
 /*

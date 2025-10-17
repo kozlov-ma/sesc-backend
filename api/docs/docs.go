@@ -1722,7 +1722,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Schedules deletion for all documents",
+                "description": "Schedules deletion for all documents (common or user documents based on isCommon parameter)",
                 "consumes": [
                     "application/json"
                 ],
@@ -1730,7 +1730,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "files"
+                    "documents"
                 ],
                 "summary": "Schedule deletion for all documents",
                 "parameters": [
@@ -1739,6 +1739,12 @@ const docTemplate = `{
                         "description": "Bearer JWT token",
                         "name": "Authorization",
                         "in": "header"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "If true, schedule only common files for deletion; if false, schedule only user files",
+                        "name": "isCommon",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -1843,7 +1849,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Returns statistics about documents including total, deleted, scheduled, etc.",
+                "description": "Returns statistics about documents including total, deleted, scheduled, etc. (common or user documents based on isCommon parameter)",
                 "consumes": [
                     "application/json"
                 ],
@@ -1851,7 +1857,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "files"
+                    "documents"
                 ],
                 "summary": "Get document statistics",
                 "parameters": [
@@ -1860,6 +1866,12 @@ const docTemplate = `{
                         "description": "Bearer JWT token",
                         "name": "Authorization",
                         "in": "header"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "If true, return stats for common files only; if false, return stats for user files only",
+                        "name": "isCommon",
+                        "in": "query"
                     }
                 ],
                 "responses": {
