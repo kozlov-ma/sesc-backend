@@ -28,6 +28,7 @@ func (Department) Fields() []ent.Field {
 func (Department) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("users", User.Type).Annotations(entsql.OnDelete(entsql.Restrict)),
+		edge.To("achievements", Achievement.Type).Annotations(entsql.OnDelete(entsql.Restrict)),
 	}
 }
 

@@ -48,26 +48,28 @@ const (
 // AchievementMutation represents an operation that mutates the Achievement nodes in the graph.
 type AchievementMutation struct {
 	config
-	op               Op
-	typ              string
-	id               *uuid.UUID
-	status           *string
-	points           *int
-	addpoints        *int
-	clearedFields    map[string]struct{}
-	documents        map[uuid.UUID]struct{}
-	removeddocuments map[uuid.UUID]struct{}
-	cleareddocuments bool
-	reviews          map[uuid.UUID]struct{}
-	removedreviews   map[uuid.UUID]struct{}
-	clearedreviews   bool
-	owner            *uuid.UUID
-	clearedowner     bool
-	template         *uuid.UUID
-	clearedtemplate  bool
-	done             bool
-	oldValue         func(context.Context) (*Achievement, error)
-	predicates       []predicate.Achievement
+	op                 Op
+	typ                string
+	id                 *uuid.UUID
+	status             *string
+	points             *int
+	addpoints          *int
+	clearedFields      map[string]struct{}
+	documents          map[uuid.UUID]struct{}
+	removeddocuments   map[uuid.UUID]struct{}
+	cleareddocuments   bool
+	reviews            map[uuid.UUID]struct{}
+	removedreviews     map[uuid.UUID]struct{}
+	clearedreviews     bool
+	owner              *uuid.UUID
+	clearedowner       bool
+	departments        *uuid.UUID
+	cleareddepartments bool
+	template           *uuid.UUID
+	clearedtemplate    bool
+	done               bool
+	oldValue           func(context.Context) (*Achievement, error)
+	predicates         []predicate.Achievement
 }
 
 var _ ent.Mutation = (*AchievementMutation)(nil)
@@ -244,6 +246,42 @@ func (m *AchievementMutation) OldTemplateID(ctx context.Context) (v uuid.UUID, e
 // ResetTemplateID resets all changes to the "template_id" field.
 func (m *AchievementMutation) ResetTemplateID() {
 	m.template = nil
+}
+
+// SetDepartmentID sets the "department_id" field.
+func (m *AchievementMutation) SetDepartmentID(u uuid.UUID) {
+	m.departments = &u
+}
+
+// DepartmentID returns the value of the "department_id" field in the mutation.
+func (m *AchievementMutation) DepartmentID() (r uuid.UUID, exists bool) {
+	v := m.departments
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDepartmentID returns the old "department_id" field's value of the Achievement entity.
+// If the Achievement object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AchievementMutation) OldDepartmentID(ctx context.Context) (v uuid.UUID, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDepartmentID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDepartmentID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDepartmentID: %w", err)
+	}
+	return oldValue.DepartmentID, nil
+}
+
+// ResetDepartmentID resets all changes to the "department_id" field.
+func (m *AchievementMutation) ResetDepartmentID() {
+	m.departments = nil
 }
 
 // SetStatus sets the "status" field.
@@ -473,6 +511,46 @@ func (m *AchievementMutation) ResetOwner() {
 	m.clearedowner = false
 }
 
+// SetDepartmentsID sets the "departments" edge to the Department entity by id.
+func (m *AchievementMutation) SetDepartmentsID(id uuid.UUID) {
+	m.departments = &id
+}
+
+// ClearDepartments clears the "departments" edge to the Department entity.
+func (m *AchievementMutation) ClearDepartments() {
+	m.cleareddepartments = true
+	m.clearedFields[achievement.FieldDepartmentID] = struct{}{}
+}
+
+// DepartmentsCleared reports if the "departments" edge to the Department entity was cleared.
+func (m *AchievementMutation) DepartmentsCleared() bool {
+	return m.cleareddepartments
+}
+
+// DepartmentsID returns the "departments" edge ID in the mutation.
+func (m *AchievementMutation) DepartmentsID() (id uuid.UUID, exists bool) {
+	if m.departments != nil {
+		return *m.departments, true
+	}
+	return
+}
+
+// DepartmentsIDs returns the "departments" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// DepartmentsID instead. It exists only for internal usage by the builders.
+func (m *AchievementMutation) DepartmentsIDs() (ids []uuid.UUID) {
+	if id := m.departments; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetDepartments resets all changes to the "departments" edge.
+func (m *AchievementMutation) ResetDepartments() {
+	m.departments = nil
+	m.cleareddepartments = false
+}
+
 // ClearTemplate clears the "template" edge to the AchievementTemplate entity.
 func (m *AchievementMutation) ClearTemplate() {
 	m.clearedtemplate = true
@@ -534,12 +612,15 @@ func (m *AchievementMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *AchievementMutation) Fields() []string {
-	fields := make([]string, 0, 4)
+	fields := make([]string, 0, 5)
 	if m.owner != nil {
 		fields = append(fields, achievement.FieldOwnerID)
 	}
 	if m.template != nil {
 		fields = append(fields, achievement.FieldTemplateID)
+	}
+	if m.departments != nil {
+		fields = append(fields, achievement.FieldDepartmentID)
 	}
 	if m.status != nil {
 		fields = append(fields, achievement.FieldStatus)
@@ -559,6 +640,8 @@ func (m *AchievementMutation) Field(name string) (ent.Value, bool) {
 		return m.OwnerID()
 	case achievement.FieldTemplateID:
 		return m.TemplateID()
+	case achievement.FieldDepartmentID:
+		return m.DepartmentID()
 	case achievement.FieldStatus:
 		return m.Status()
 	case achievement.FieldPoints:
@@ -576,6 +659,8 @@ func (m *AchievementMutation) OldField(ctx context.Context, name string) (ent.Va
 		return m.OldOwnerID(ctx)
 	case achievement.FieldTemplateID:
 		return m.OldTemplateID(ctx)
+	case achievement.FieldDepartmentID:
+		return m.OldDepartmentID(ctx)
 	case achievement.FieldStatus:
 		return m.OldStatus(ctx)
 	case achievement.FieldPoints:
@@ -602,6 +687,13 @@ func (m *AchievementMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetTemplateID(v)
+		return nil
+	case achievement.FieldDepartmentID:
+		v, ok := value.(uuid.UUID)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDepartmentID(v)
 		return nil
 	case achievement.FieldStatus:
 		v, ok := value.(string)
@@ -687,6 +779,9 @@ func (m *AchievementMutation) ResetField(name string) error {
 	case achievement.FieldTemplateID:
 		m.ResetTemplateID()
 		return nil
+	case achievement.FieldDepartmentID:
+		m.ResetDepartmentID()
+		return nil
 	case achievement.FieldStatus:
 		m.ResetStatus()
 		return nil
@@ -699,7 +794,7 @@ func (m *AchievementMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *AchievementMutation) AddedEdges() []string {
-	edges := make([]string, 0, 4)
+	edges := make([]string, 0, 5)
 	if m.documents != nil {
 		edges = append(edges, achievement.EdgeDocuments)
 	}
@@ -708,6 +803,9 @@ func (m *AchievementMutation) AddedEdges() []string {
 	}
 	if m.owner != nil {
 		edges = append(edges, achievement.EdgeOwner)
+	}
+	if m.departments != nil {
+		edges = append(edges, achievement.EdgeDepartments)
 	}
 	if m.template != nil {
 		edges = append(edges, achievement.EdgeTemplate)
@@ -735,6 +833,10 @@ func (m *AchievementMutation) AddedIDs(name string) []ent.Value {
 		if id := m.owner; id != nil {
 			return []ent.Value{*id}
 		}
+	case achievement.EdgeDepartments:
+		if id := m.departments; id != nil {
+			return []ent.Value{*id}
+		}
 	case achievement.EdgeTemplate:
 		if id := m.template; id != nil {
 			return []ent.Value{*id}
@@ -745,7 +847,7 @@ func (m *AchievementMutation) AddedIDs(name string) []ent.Value {
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *AchievementMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 4)
+	edges := make([]string, 0, 5)
 	if m.removeddocuments != nil {
 		edges = append(edges, achievement.EdgeDocuments)
 	}
@@ -777,7 +879,7 @@ func (m *AchievementMutation) RemovedIDs(name string) []ent.Value {
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *AchievementMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 4)
+	edges := make([]string, 0, 5)
 	if m.cleareddocuments {
 		edges = append(edges, achievement.EdgeDocuments)
 	}
@@ -786,6 +888,9 @@ func (m *AchievementMutation) ClearedEdges() []string {
 	}
 	if m.clearedowner {
 		edges = append(edges, achievement.EdgeOwner)
+	}
+	if m.cleareddepartments {
+		edges = append(edges, achievement.EdgeDepartments)
 	}
 	if m.clearedtemplate {
 		edges = append(edges, achievement.EdgeTemplate)
@@ -803,6 +908,8 @@ func (m *AchievementMutation) EdgeCleared(name string) bool {
 		return m.clearedreviews
 	case achievement.EdgeOwner:
 		return m.clearedowner
+	case achievement.EdgeDepartments:
+		return m.cleareddepartments
 	case achievement.EdgeTemplate:
 		return m.clearedtemplate
 	}
@@ -815,6 +922,9 @@ func (m *AchievementMutation) ClearEdge(name string) error {
 	switch name {
 	case achievement.EdgeOwner:
 		m.ClearOwner()
+		return nil
+	case achievement.EdgeDepartments:
+		m.ClearDepartments()
 		return nil
 	case achievement.EdgeTemplate:
 		m.ClearTemplate()
@@ -835,6 +945,9 @@ func (m *AchievementMutation) ResetEdge(name string) error {
 		return nil
 	case achievement.EdgeOwner:
 		m.ResetOwner()
+		return nil
+	case achievement.EdgeDepartments:
+		m.ResetDepartments()
 		return nil
 	case achievement.EdgeTemplate:
 		m.ResetTemplate()
@@ -3967,18 +4080,21 @@ func (m *AuthUserMutation) ResetEdge(name string) error {
 // DepartmentMutation represents an operation that mutates the Department nodes in the graph.
 type DepartmentMutation struct {
 	config
-	op            Op
-	typ           string
-	id            *uuid.UUID
-	name          *string
-	description   *string
-	clearedFields map[string]struct{}
-	users         map[uuid.UUID]struct{}
-	removedusers  map[uuid.UUID]struct{}
-	clearedusers  bool
-	done          bool
-	oldValue      func(context.Context) (*Department, error)
-	predicates    []predicate.Department
+	op                  Op
+	typ                 string
+	id                  *uuid.UUID
+	name                *string
+	description         *string
+	clearedFields       map[string]struct{}
+	users               map[uuid.UUID]struct{}
+	removedusers        map[uuid.UUID]struct{}
+	clearedusers        bool
+	achievements        map[uuid.UUID]struct{}
+	removedachievements map[uuid.UUID]struct{}
+	clearedachievements bool
+	done                bool
+	oldValue            func(context.Context) (*Department, error)
+	predicates          []predicate.Department
 }
 
 var _ ent.Mutation = (*DepartmentMutation)(nil)
@@ -4224,6 +4340,60 @@ func (m *DepartmentMutation) ResetUsers() {
 	m.removedusers = nil
 }
 
+// AddAchievementIDs adds the "achievements" edge to the Achievement entity by ids.
+func (m *DepartmentMutation) AddAchievementIDs(ids ...uuid.UUID) {
+	if m.achievements == nil {
+		m.achievements = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.achievements[ids[i]] = struct{}{}
+	}
+}
+
+// ClearAchievements clears the "achievements" edge to the Achievement entity.
+func (m *DepartmentMutation) ClearAchievements() {
+	m.clearedachievements = true
+}
+
+// AchievementsCleared reports if the "achievements" edge to the Achievement entity was cleared.
+func (m *DepartmentMutation) AchievementsCleared() bool {
+	return m.clearedachievements
+}
+
+// RemoveAchievementIDs removes the "achievements" edge to the Achievement entity by IDs.
+func (m *DepartmentMutation) RemoveAchievementIDs(ids ...uuid.UUID) {
+	if m.removedachievements == nil {
+		m.removedachievements = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.achievements, ids[i])
+		m.removedachievements[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedAchievements returns the removed IDs of the "achievements" edge to the Achievement entity.
+func (m *DepartmentMutation) RemovedAchievementsIDs() (ids []uuid.UUID) {
+	for id := range m.removedachievements {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// AchievementsIDs returns the "achievements" edge IDs in the mutation.
+func (m *DepartmentMutation) AchievementsIDs() (ids []uuid.UUID) {
+	for id := range m.achievements {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetAchievements resets all changes to the "achievements" edge.
+func (m *DepartmentMutation) ResetAchievements() {
+	m.achievements = nil
+	m.clearedachievements = false
+	m.removedachievements = nil
+}
+
 // Where appends a list predicates to the DepartmentMutation builder.
 func (m *DepartmentMutation) Where(ps ...predicate.Department) {
 	m.predicates = append(m.predicates, ps...)
@@ -4383,9 +4553,12 @@ func (m *DepartmentMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *DepartmentMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.users != nil {
 		edges = append(edges, department.EdgeUsers)
+	}
+	if m.achievements != nil {
+		edges = append(edges, department.EdgeAchievements)
 	}
 	return edges
 }
@@ -4400,15 +4573,24 @@ func (m *DepartmentMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case department.EdgeAchievements:
+		ids := make([]ent.Value, 0, len(m.achievements))
+		for id := range m.achievements {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *DepartmentMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.removedusers != nil {
 		edges = append(edges, department.EdgeUsers)
+	}
+	if m.removedachievements != nil {
+		edges = append(edges, department.EdgeAchievements)
 	}
 	return edges
 }
@@ -4423,15 +4605,24 @@ func (m *DepartmentMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case department.EdgeAchievements:
+		ids := make([]ent.Value, 0, len(m.removedachievements))
+		for id := range m.removedachievements {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *DepartmentMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.clearedusers {
 		edges = append(edges, department.EdgeUsers)
+	}
+	if m.clearedachievements {
+		edges = append(edges, department.EdgeAchievements)
 	}
 	return edges
 }
@@ -4442,6 +4633,8 @@ func (m *DepartmentMutation) EdgeCleared(name string) bool {
 	switch name {
 	case department.EdgeUsers:
 		return m.clearedusers
+	case department.EdgeAchievements:
+		return m.clearedachievements
 	}
 	return false
 }
@@ -4460,6 +4653,9 @@ func (m *DepartmentMutation) ResetEdge(name string) error {
 	switch name {
 	case department.EdgeUsers:
 		m.ResetUsers()
+		return nil
+	case department.EdgeAchievements:
+		m.ResetAchievements()
 		return nil
 	}
 	return fmt.Errorf("unknown Department edge %s", name)

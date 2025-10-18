@@ -64,6 +64,11 @@ func TemplateID(v uuid.UUID) predicate.Achievement {
 	return predicate.Achievement(sql.FieldEQ(FieldTemplateID, v))
 }
 
+// DepartmentID applies equality check predicate on the "department_id" field. It's identical to DepartmentIDEQ.
+func DepartmentID(v uuid.UUID) predicate.Achievement {
+	return predicate.Achievement(sql.FieldEQ(FieldDepartmentID, v))
+}
+
 // Status applies equality check predicate on the "status" field. It's identical to StatusEQ.
 func Status(v string) predicate.Achievement {
 	return predicate.Achievement(sql.FieldEQ(FieldStatus, v))
@@ -112,6 +117,26 @@ func TemplateIDIn(vs ...uuid.UUID) predicate.Achievement {
 // TemplateIDNotIn applies the NotIn predicate on the "template_id" field.
 func TemplateIDNotIn(vs ...uuid.UUID) predicate.Achievement {
 	return predicate.Achievement(sql.FieldNotIn(FieldTemplateID, vs...))
+}
+
+// DepartmentIDEQ applies the EQ predicate on the "department_id" field.
+func DepartmentIDEQ(v uuid.UUID) predicate.Achievement {
+	return predicate.Achievement(sql.FieldEQ(FieldDepartmentID, v))
+}
+
+// DepartmentIDNEQ applies the NEQ predicate on the "department_id" field.
+func DepartmentIDNEQ(v uuid.UUID) predicate.Achievement {
+	return predicate.Achievement(sql.FieldNEQ(FieldDepartmentID, v))
+}
+
+// DepartmentIDIn applies the In predicate on the "department_id" field.
+func DepartmentIDIn(vs ...uuid.UUID) predicate.Achievement {
+	return predicate.Achievement(sql.FieldIn(FieldDepartmentID, vs...))
+}
+
+// DepartmentIDNotIn applies the NotIn predicate on the "department_id" field.
+func DepartmentIDNotIn(vs ...uuid.UUID) predicate.Achievement {
+	return predicate.Achievement(sql.FieldNotIn(FieldDepartmentID, vs...))
 }
 
 // StatusEQ applies the EQ predicate on the "status" field.
@@ -280,6 +305,29 @@ func HasOwner() predicate.Achievement {
 func HasOwnerWith(preds ...predicate.User) predicate.Achievement {
 	return predicate.Achievement(func(s *sql.Selector) {
 		step := newOwnerStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasDepartments applies the HasEdge predicate on the "departments" edge.
+func HasDepartments() predicate.Achievement {
+	return predicate.Achievement(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, DepartmentsTable, DepartmentsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasDepartmentsWith applies the HasEdge predicate on the "departments" edge with a given conditions (other predicates).
+func HasDepartmentsWith(preds ...predicate.Department) predicate.Achievement {
+	return predicate.Achievement(func(s *sql.Selector) {
+		step := newDepartmentsStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

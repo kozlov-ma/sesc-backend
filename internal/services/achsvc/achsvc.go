@@ -7,7 +7,6 @@ import (
 	entAchievement "github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievement"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievementtemplate"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/predicate"
-	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/user"
 	"github.com/kozlov-ma/sesc-backend/sesc"
 )
 
@@ -59,7 +58,7 @@ func (s *ACS) buildBaseRoleFilter(askingUser *ent.User) predicate.Achievement {
 	case sesc.Dephead:
 		if askingUser.DepartmentID != nil {
 			return entAchievement.And(
-				entAchievement.HasOwnerWith(user.DepartmentID(askingUser.Edges.Department.ID)),
+				entAchievement.DepartmentID(askingUser.Edges.Department.ID),
 				entAchievement.StatusNotIn(
 					achievement.StatusDraft,
 					achievement.StatusAccounted,

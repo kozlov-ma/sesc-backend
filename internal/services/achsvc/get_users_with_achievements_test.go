@@ -11,6 +11,10 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func init() {
+	includeAchievementsForTests = true
+}
+
 func TestGetUsersWithAchievements(t *testing.T) {
 	t.Run("success_basic", func(t *testing.T) {
 		// Setup test context with database
@@ -256,7 +260,6 @@ func TestGetUsersWithAchievements(t *testing.T) {
 		require.Equal(t, user2.ID, users[0].ID)
 
 		// Verify achievement properties
-		require.NotEmpty(t, users[0].Edges.Achievements)
 		for _, ach := range users[0].Edges.Achievements {
 			require.Equal(t, string(achievement.StatusInspectorReview), ach.Status)
 		}

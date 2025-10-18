@@ -1,12 +1,15 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
-    Tooltip,
-    TooltipContent,
-    TooltipProvider,
-    TooltipTrigger,
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { getDepartmentsByIdOptions, getUsersByIdOptions } from "@/lib/api/@tanstack/react-query.gen";
+import {
+  getDepartmentsByIdOptions,
+  getUsersByIdOptions,
+} from "@/lib/api/@tanstack/react-query.gen";
 import { cn } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { User } from "lucide-react";
@@ -37,13 +40,10 @@ export function UserAvatar({
     enabled: !!userId,
   });
 
-  const {
-    data: department,
-    isLoading: isDepartmentLoading,
-  } = useQuery({
+  const { data: department, isLoading: isDepartmentLoading } = useQuery({
     ...getDepartmentsByIdOptions({
       path: {
-        id: user?.departmentId!,
+        id: user?.departmentId,
       },
     }),
     enabled: !!user?.departmentId,

@@ -14,6 +14,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	uuid "github.com/gofrs/uuid/v5"
+	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievement"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/department"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/predicate"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/user"
@@ -22,12 +23,13 @@ import (
 // DepartmentQuery is the builder for querying Department entities.
 type DepartmentQuery struct {
 	config
-	ctx        *QueryContext
-	order      []department.OrderOption
-	inters     []Interceptor
-	predicates []predicate.Department
-	withUsers  *UserQuery
-	modifiers  []func(*sql.Selector)
+	ctx              *QueryContext
+	order            []department.OrderOption
+	inters           []Interceptor
+	predicates       []predicate.Department
+	withUsers        *UserQuery
+	withAchievements *AchievementQuery
+	modifiers        []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -79,6 +81,28 @@ func (dq *DepartmentQuery) QueryUsers() *UserQuery {
 			sqlgraph.From(department.Table, department.FieldID, selector),
 			sqlgraph.To(user.Table, user.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, department.UsersTable, department.UsersColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(dq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryAchievements chains the current query on the "achievements" edge.
+func (dq *DepartmentQuery) QueryAchievements() *AchievementQuery {
+	query := (&AchievementClient{config: dq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := dq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := dq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(department.Table, department.FieldID, selector),
+			sqlgraph.To(achievement.Table, achievement.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, department.AchievementsTable, department.AchievementsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(dq.driver.Dialect(), step)
 		return fromU, nil
@@ -273,12 +297,13 @@ func (dq *DepartmentQuery) Clone() *DepartmentQuery {
 		return nil
 	}
 	return &DepartmentQuery{
-		config:     dq.config,
-		ctx:        dq.ctx.Clone(),
-		order:      append([]department.OrderOption{}, dq.order...),
-		inters:     append([]Interceptor{}, dq.inters...),
-		predicates: append([]predicate.Department{}, dq.predicates...),
-		withUsers:  dq.withUsers.Clone(),
+		config:           dq.config,
+		ctx:              dq.ctx.Clone(),
+		order:            append([]department.OrderOption{}, dq.order...),
+		inters:           append([]Interceptor{}, dq.inters...),
+		predicates:       append([]predicate.Department{}, dq.predicates...),
+		withUsers:        dq.withUsers.Clone(),
+		withAchievements: dq.withAchievements.Clone(),
 		// clone intermediate query.
 		sql:  dq.sql.Clone(),
 		path: dq.path,
@@ -293,6 +318,17 @@ func (dq *DepartmentQuery) WithUsers(opts ...func(*UserQuery)) *DepartmentQuery 
 		opt(query)
 	}
 	dq.withUsers = query
+	return dq
+}
+
+// WithAchievements tells the query-builder to eager-load the nodes that are connected to
+// the "achievements" edge. The optional arguments are used to configure the query builder of the edge.
+func (dq *DepartmentQuery) WithAchievements(opts ...func(*AchievementQuery)) *DepartmentQuery {
+	query := (&AchievementClient{config: dq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	dq.withAchievements = query
 	return dq
 }
 
@@ -374,8 +410,9 @@ func (dq *DepartmentQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*D
 	var (
 		nodes       = []*Department{}
 		_spec       = dq.querySpec()
-		loadedTypes = [1]bool{
+		loadedTypes = [2]bool{
 			dq.withUsers != nil,
+			dq.withAchievements != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -403,6 +440,13 @@ func (dq *DepartmentQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*D
 		if err := dq.loadUsers(ctx, query, nodes,
 			func(n *Department) { n.Edges.Users = []*User{} },
 			func(n *Department, e *User) { n.Edges.Users = append(n.Edges.Users, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := dq.withAchievements; query != nil {
+		if err := dq.loadAchievements(ctx, query, nodes,
+			func(n *Department) { n.Edges.Achievements = []*Achievement{} },
+			func(n *Department, e *Achievement) { n.Edges.Achievements = append(n.Edges.Achievements, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -437,6 +481,36 @@ func (dq *DepartmentQuery) loadUsers(ctx context.Context, query *UserQuery, node
 		node, ok := nodeids[*fk]
 		if !ok {
 			return fmt.Errorf(`unexpected referenced foreign-key "department_id" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (dq *DepartmentQuery) loadAchievements(ctx context.Context, query *AchievementQuery, nodes []*Department, init func(*Department), assign func(*Department, *Achievement)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Department)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(achievement.FieldDepartmentID)
+	}
+	query.Where(predicate.Achievement(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(department.AchievementsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.DepartmentID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "department_id" returned %v for node %v`, fk, n.ID)
 		}
 		assign(node, n)
 	}

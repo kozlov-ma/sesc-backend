@@ -10,6 +10,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	uuid "github.com/gofrs/uuid/v5"
+	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievement"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/department"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/user"
 )
@@ -68,6 +69,21 @@ func (dc *DepartmentCreate) AddUsers(u ...*User) *DepartmentCreate {
 		ids[i] = u[i].ID
 	}
 	return dc.AddUserIDs(ids...)
+}
+
+// AddAchievementIDs adds the "achievements" edge to the Achievement entity by IDs.
+func (dc *DepartmentCreate) AddAchievementIDs(ids ...uuid.UUID) *DepartmentCreate {
+	dc.mutation.AddAchievementIDs(ids...)
+	return dc
+}
+
+// AddAchievements adds the "achievements" edges to the Achievement entity.
+func (dc *DepartmentCreate) AddAchievements(a ...*Achievement) *DepartmentCreate {
+	ids := make([]uuid.UUID, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return dc.AddAchievementIDs(ids...)
 }
 
 // Mutation returns the DepartmentMutation object of the builder.
@@ -173,6 +189,22 @@ func (dc *DepartmentCreate) createSpec() (*Department, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := dc.mutation.AchievementsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   department.AchievementsTable,
+			Columns: []string{department.AchievementsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(achievement.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

@@ -14,6 +14,7 @@ var (
 		{Name: "status", Type: field.TypeString, Default: "draft"},
 		{Name: "points", Type: field.TypeInt, Default: 0},
 		{Name: "template_id", Type: field.TypeUUID},
+		{Name: "department_id", Type: field.TypeUUID},
 		{Name: "owner_id", Type: field.TypeUUID},
 	}
 	// AchievementsTable holds the schema information for the "achievements" table.
@@ -29,8 +30,14 @@ var (
 				OnDelete:   schema.NoAction,
 			},
 			{
-				Symbol:     "achievements_users_achievements",
+				Symbol:     "achievements_departments_achievements",
 				Columns:    []*schema.Column{AchievementsColumns[4]},
+				RefColumns: []*schema.Column{DepartmentsColumns[0]},
+				OnDelete:   schema.Restrict,
+			},
+			{
+				Symbol:     "achievements_users_achievements",
+				Columns:    []*schema.Column{AchievementsColumns[5]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
@@ -306,7 +313,8 @@ var (
 
 func init() {
 	AchievementsTable.ForeignKeys[0].RefTable = AchievementTemplatesTable
-	AchievementsTable.ForeignKeys[1].RefTable = UsersTable
+	AchievementsTable.ForeignKeys[1].RefTable = DepartmentsTable
+	AchievementsTable.ForeignKeys[2].RefTable = UsersTable
 	AchievementDocumentsTable.ForeignKeys[0].RefTable = AchievementsTable
 	AchievementDocumentsTable.ForeignKeys[1].RefTable = FilesTable
 	AchievementReviewsTable.ForeignKeys[0].RefTable = AchievementsTable

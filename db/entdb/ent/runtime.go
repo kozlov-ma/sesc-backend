@@ -26,13 +26,13 @@ func init() {
 	achievementFields := schema.Achievement{}.Fields()
 	_ = achievementFields
 	// achievementDescStatus is the schema descriptor for status field.
-	achievementDescStatus := achievementFields[3].Descriptor()
+	achievementDescStatus := achievementFields[4].Descriptor()
 	// achievement.DefaultStatus holds the default value on creation for the status field.
 	achievement.DefaultStatus = achievementDescStatus.Default.(string)
 	// achievement.StatusValidator is a validator for the "status" field. It is called by the builders before save.
 	achievement.StatusValidator = achievementDescStatus.Validators[0].(func(string) error)
 	// achievementDescPoints is the schema descriptor for points field.
-	achievementDescPoints := achievementFields[4].Descriptor()
+	achievementDescPoints := achievementFields[5].Descriptor()
 	// achievement.DefaultPoints holds the default value on creation for the points field.
 	achievement.DefaultPoints = achievementDescPoints.Default.(int)
 	// achievementDescID is the schema descriptor for id field.

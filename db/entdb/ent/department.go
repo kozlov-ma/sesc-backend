@@ -31,9 +31,11 @@ type Department struct {
 type DepartmentEdges struct {
 	// Users holds the value of the users edge.
 	Users []*User `json:"users,omitempty"`
+	// Achievements holds the value of the achievements edge.
+	Achievements []*Achievement `json:"achievements,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [2]bool
 }
 
 // UsersOrErr returns the Users value or an error if the edge
@@ -43,6 +45,15 @@ func (e DepartmentEdges) UsersOrErr() ([]*User, error) {
 		return e.Users, nil
 	}
 	return nil, &NotLoadedError{edge: "users"}
+}
+
+// AchievementsOrErr returns the Achievements value or an error if the edge
+// was not loaded in eager-loading.
+func (e DepartmentEdges) AchievementsOrErr() ([]*Achievement, error) {
+	if e.loadedTypes[1] {
+		return e.Achievements, nil
+	}
+	return nil, &NotLoadedError{edge: "achievements"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -103,6 +114,11 @@ func (d *Department) Value(name string) (ent.Value, error) {
 // QueryUsers queries the "users" edge of the Department entity.
 func (d *Department) QueryUsers() *UserQuery {
 	return NewDepartmentClient(d.config).QueryUsers(d)
+}
+
+// QueryAchievements queries the "achievements" edge of the Department entity.
+func (d *Department) QueryAchievements() *AchievementQuery {
+	return NewDepartmentClient(d.config).QueryAchievements(d)
 }
 
 // Update returns a builder for updating this Department.

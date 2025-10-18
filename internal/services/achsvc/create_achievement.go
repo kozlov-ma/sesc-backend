@@ -52,10 +52,30 @@ func (s *ACS) CreateAchievement(
 			return err
 		}
 
+		var deptID UUID
+		err = rec.Operation("get_author_department", func(_ *event.Record) error {
+			author, err := tx.User.Get(ctx, opt.ForUserID)
+			if err != nil {
+				return fmt.Errorf("failed to get user: %w", err)
+			}
+
+			if id := author.DepartmentID; id == nil {
+				return fmt.Errorf("this user cannot create achievements: %w", achievement.ErrCannotCreateAchievement)
+			}
+
+			deptID = *author.DepartmentID
+
+			return nil
+		})
+		if err != nil {
+			return err
+		}
+
 		err = rec.Operation("create_achievement", func(_ *event.Record) error {
 			start := time.Now()
 			achievement, err := tx.Achievement.Create().
 				SetOwnerID(opt.ForUserID).
+				SetDepartmentID(deptID).
 				SetTemplateID(opt.TemplateID).
 				SetStatus(string(achievement.StatusDraft)).
 				SetPoints(template.PointsLimit).

@@ -19,6 +19,11 @@ var (
 		domerr.KindValidation,
 	)
 
+	ErrCannotCreateAchievement = domerr.New(
+		"вы должны быть прикреплены к кафедре, чтобы иметь возможность создавать достижения",
+		domerr.KindConflict,
+	)
+
 	ErrWrongAchievementStatus = domerr.New(
 		"текущий статус достижения не позволяет работать с ним таким образом",
 		domerr.KindConflict,

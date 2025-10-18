@@ -200,6 +200,7 @@ func CreateTestAchievement(
 		SetPoints(0).
 		SetOwnerID(user.ID).
 		SetTemplateID(template.ID).
+		SetDepartmentID(*user.DepartmentID).
 		Save(ctx)
 	require.NoError(t, err)
 

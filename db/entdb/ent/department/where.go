@@ -227,6 +227,29 @@ func HasUsersWith(preds ...predicate.User) predicate.Department {
 	})
 }
 
+// HasAchievements applies the HasEdge predicate on the "achievements" edge.
+func HasAchievements() predicate.Department {
+	return predicate.Department(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, AchievementsTable, AchievementsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasAchievementsWith applies the HasEdge predicate on the "achievements" edge with a given conditions (other predicates).
+func HasAchievementsWith(preds ...predicate.Achievement) predicate.Department {
+	return predicate.Department(func(s *sql.Selector) {
+		step := newAchievementsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.Department) predicate.Department {
 	return predicate.Department(sql.AndPredicates(predicates...))

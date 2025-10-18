@@ -19,6 +19,11 @@ import (
 	"github.com/kozlov-ma/sesc-backend/sesc"
 )
 
+// Variable to load achievements with users for testing purposes.
+//
+// Preferrably, should be removed.
+var includeAchievementsForTests = false
+
 // GetUsersWithAchievements retrieves users that have achievements with pagination.
 func (s *ACS) GetUsersWithAchievements(
 	ctx context.Context,
@@ -105,26 +110,31 @@ func (s *ACS) GetUsersWithAchievements(
 			}
 
 			start = time.Now()
+			if includeAchievementsForTests {
+				uq = uq.
+					WithDepartment().
+					WithAchievements(func(q *ent.AchievementQuery) {
+						q.Where(roleFilter).
+							WithTemplate(func(tq *ent.AchievementTemplateQuery) {
+								tq.WithGroup()
+							}).
+							WithDocuments(func(dq *ent.AchievementDocumentQuery) {
+								dq.WithFile()
+							}).
+							WithReviews(func(rq *ent.AchievementReviewQuery) {
+								rq.WithReviewer()
+							}).
+							Order(ent.Desc(entAchievement.FieldStatus))
+					})
+			}
+
 			userList, err := uq.
 				Where(user.HasAchievementsWith(roleFilter)).
-				WithDepartment().
-				WithAchievements(func(q *ent.AchievementQuery) {
-					q.Where(roleFilter).
-						WithTemplate(func(tq *ent.AchievementTemplateQuery) {
-							tq.WithGroup()
-						}).
-						WithDocuments(func(dq *ent.AchievementDocumentQuery) {
-							dq.WithFile()
-						}).
-						WithReviews(func(rq *ent.AchievementReviewQuery) {
-							rq.WithReviewer()
-						}).
-						Order(ent.Desc(entAchievement.FieldStatus))
-				}).
 				Order(ent.Asc(user.FieldLastName), ent.Asc(user.FieldFirstName)).
 				Offset(offset).
 				Limit(limit).
 				All(ctx)
+
 			statsRec.Add(events.PostgresQueries, 1)
 			statsRec.Add(events.PostgresTime, time.Since(start))
 

@@ -18,6 +18,7 @@ import (
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievementdocument"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievementreview"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievementtemplate"
+	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/department"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/predicate"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/user"
 )
@@ -25,15 +26,16 @@ import (
 // AchievementQuery is the builder for querying Achievement entities.
 type AchievementQuery struct {
 	config
-	ctx           *QueryContext
-	order         []achievement.OrderOption
-	inters        []Interceptor
-	predicates    []predicate.Achievement
-	withDocuments *AchievementDocumentQuery
-	withReviews   *AchievementReviewQuery
-	withOwner     *UserQuery
-	withTemplate  *AchievementTemplateQuery
-	modifiers     []func(*sql.Selector)
+	ctx             *QueryContext
+	order           []achievement.OrderOption
+	inters          []Interceptor
+	predicates      []predicate.Achievement
+	withDocuments   *AchievementDocumentQuery
+	withReviews     *AchievementReviewQuery
+	withOwner       *UserQuery
+	withDepartments *DepartmentQuery
+	withTemplate    *AchievementTemplateQuery
+	modifiers       []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -129,6 +131,28 @@ func (aq *AchievementQuery) QueryOwner() *UserQuery {
 			sqlgraph.From(achievement.Table, achievement.FieldID, selector),
 			sqlgraph.To(user.Table, user.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, achievement.OwnerTable, achievement.OwnerColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(aq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryDepartments chains the current query on the "departments" edge.
+func (aq *AchievementQuery) QueryDepartments() *DepartmentQuery {
+	query := (&DepartmentClient{config: aq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := aq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := aq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(achievement.Table, achievement.FieldID, selector),
+			sqlgraph.To(department.Table, department.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, achievement.DepartmentsTable, achievement.DepartmentsColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(aq.driver.Dialect(), step)
 		return fromU, nil
@@ -345,15 +369,16 @@ func (aq *AchievementQuery) Clone() *AchievementQuery {
 		return nil
 	}
 	return &AchievementQuery{
-		config:        aq.config,
-		ctx:           aq.ctx.Clone(),
-		order:         append([]achievement.OrderOption{}, aq.order...),
-		inters:        append([]Interceptor{}, aq.inters...),
-		predicates:    append([]predicate.Achievement{}, aq.predicates...),
-		withDocuments: aq.withDocuments.Clone(),
-		withReviews:   aq.withReviews.Clone(),
-		withOwner:     aq.withOwner.Clone(),
-		withTemplate:  aq.withTemplate.Clone(),
+		config:          aq.config,
+		ctx:             aq.ctx.Clone(),
+		order:           append([]achievement.OrderOption{}, aq.order...),
+		inters:          append([]Interceptor{}, aq.inters...),
+		predicates:      append([]predicate.Achievement{}, aq.predicates...),
+		withDocuments:   aq.withDocuments.Clone(),
+		withReviews:     aq.withReviews.Clone(),
+		withOwner:       aq.withOwner.Clone(),
+		withDepartments: aq.withDepartments.Clone(),
+		withTemplate:    aq.withTemplate.Clone(),
 		// clone intermediate query.
 		sql:  aq.sql.Clone(),
 		path: aq.path,
@@ -390,6 +415,17 @@ func (aq *AchievementQuery) WithOwner(opts ...func(*UserQuery)) *AchievementQuer
 		opt(query)
 	}
 	aq.withOwner = query
+	return aq
+}
+
+// WithDepartments tells the query-builder to eager-load the nodes that are connected to
+// the "departments" edge. The optional arguments are used to configure the query builder of the edge.
+func (aq *AchievementQuery) WithDepartments(opts ...func(*DepartmentQuery)) *AchievementQuery {
+	query := (&DepartmentClient{config: aq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	aq.withDepartments = query
 	return aq
 }
 
@@ -482,10 +518,11 @@ func (aq *AchievementQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*
 	var (
 		nodes       = []*Achievement{}
 		_spec       = aq.querySpec()
-		loadedTypes = [4]bool{
+		loadedTypes = [5]bool{
 			aq.withDocuments != nil,
 			aq.withReviews != nil,
 			aq.withOwner != nil,
+			aq.withDepartments != nil,
 			aq.withTemplate != nil,
 		}
 	)
@@ -527,6 +564,12 @@ func (aq *AchievementQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*
 	if query := aq.withOwner; query != nil {
 		if err := aq.loadOwner(ctx, query, nodes, nil,
 			func(n *Achievement, e *User) { n.Edges.Owner = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := aq.withDepartments; query != nil {
+		if err := aq.loadDepartments(ctx, query, nodes, nil,
+			func(n *Achievement, e *Department) { n.Edges.Departments = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -628,6 +671,35 @@ func (aq *AchievementQuery) loadOwner(ctx context.Context, query *UserQuery, nod
 	}
 	return nil
 }
+func (aq *AchievementQuery) loadDepartments(ctx context.Context, query *DepartmentQuery, nodes []*Achievement, init func(*Achievement), assign func(*Achievement, *Department)) error {
+	ids := make([]uuid.UUID, 0, len(nodes))
+	nodeids := make(map[uuid.UUID][]*Achievement)
+	for i := range nodes {
+		fk := nodes[i].DepartmentID
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
+	}
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(department.IDIn(ids...))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nodeids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected foreign-key "department_id" returned %v`, n.ID)
+		}
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
+	}
+	return nil
+}
 func (aq *AchievementQuery) loadTemplate(ctx context.Context, query *AchievementTemplateQuery, nodes []*Achievement, init func(*Achievement), assign func(*Achievement, *AchievementTemplate)) error {
 	ids := make([]uuid.UUID, 0, len(nodes))
 	nodeids := make(map[uuid.UUID][]*Achievement)
@@ -688,6 +760,9 @@ func (aq *AchievementQuery) querySpec() *sqlgraph.QuerySpec {
 		}
 		if aq.withOwner != nil {
 			_spec.Node.AddColumnOnce(achievement.FieldOwnerID)
+		}
+		if aq.withDepartments != nil {
+			_spec.Node.AddColumnOnce(achievement.FieldDepartmentID)
 		}
 		if aq.withTemplate != nil {
 			_spec.Node.AddColumnOnce(achievement.FieldTemplateID)

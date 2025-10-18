@@ -10,6 +10,7 @@ type Achievement struct {
 	ID           uuid.UUID  `json:"id"           example:"550e8400-e29b-41d4-a716-446655440000" validate:"required"`
 	OwnerID      uuid.UUID  `json:"ownerId"      example:"550e8400-e29b-41d4-a716-446655440000" validate:"required"`
 	TemplateID   uuid.UUID  `json:"templateId"   example:"550e8400-e29b-41d4-a716-446655440000" validate:"required"`
+	DepartmentID uuid.UUID  `json:"departmentId" example:"550e8400-e29b-41d4-a716-446655440000" validate:"required"`
 	TemplateName string     `json:"templateName" example:"регионального уровня"                 validate:"required"`
 	Status       string     `json:"status"       example:"draft"                                validate:"required"`
 	Points       int        `json:"points"       example:"7"                                    validate:"required"`
@@ -51,6 +52,7 @@ func WithAchievement(ach *ent.Achievement) Achievement {
 		Status:       ach.Status,
 		Points:       ach.Points,
 		MaxPoints:    template.PointsLimit,
+		DepartmentID: ach.DepartmentID,
 		Documents:    make([]Document, 0, len(ach.Edges.Documents)),
 		Reviews:      make([]Review, 0, len(ach.Edges.Reviews)),
 	}

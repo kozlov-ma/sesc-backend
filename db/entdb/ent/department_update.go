@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	uuid "github.com/gofrs/uuid/v5"
+	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievement"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/department"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/predicate"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/user"
@@ -78,6 +79,21 @@ func (du *DepartmentUpdate) AddUsers(u ...*User) *DepartmentUpdate {
 	return du.AddUserIDs(ids...)
 }
 
+// AddAchievementIDs adds the "achievements" edge to the Achievement entity by IDs.
+func (du *DepartmentUpdate) AddAchievementIDs(ids ...uuid.UUID) *DepartmentUpdate {
+	du.mutation.AddAchievementIDs(ids...)
+	return du
+}
+
+// AddAchievements adds the "achievements" edges to the Achievement entity.
+func (du *DepartmentUpdate) AddAchievements(a ...*Achievement) *DepartmentUpdate {
+	ids := make([]uuid.UUID, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return du.AddAchievementIDs(ids...)
+}
+
 // Mutation returns the DepartmentMutation object of the builder.
 func (du *DepartmentUpdate) Mutation() *DepartmentMutation {
 	return du.mutation
@@ -102,6 +118,27 @@ func (du *DepartmentUpdate) RemoveUsers(u ...*User) *DepartmentUpdate {
 		ids[i] = u[i].ID
 	}
 	return du.RemoveUserIDs(ids...)
+}
+
+// ClearAchievements clears all "achievements" edges to the Achievement entity.
+func (du *DepartmentUpdate) ClearAchievements() *DepartmentUpdate {
+	du.mutation.ClearAchievements()
+	return du
+}
+
+// RemoveAchievementIDs removes the "achievements" edge to Achievement entities by IDs.
+func (du *DepartmentUpdate) RemoveAchievementIDs(ids ...uuid.UUID) *DepartmentUpdate {
+	du.mutation.RemoveAchievementIDs(ids...)
+	return du
+}
+
+// RemoveAchievements removes "achievements" edges to Achievement entities.
+func (du *DepartmentUpdate) RemoveAchievements(a ...*Achievement) *DepartmentUpdate {
+	ids := make([]uuid.UUID, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return du.RemoveAchievementIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -207,6 +244,51 @@ func (du *DepartmentUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if du.mutation.AchievementsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   department.AchievementsTable,
+			Columns: []string{department.AchievementsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(achievement.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := du.mutation.RemovedAchievementsIDs(); len(nodes) > 0 && !du.mutation.AchievementsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   department.AchievementsTable,
+			Columns: []string{department.AchievementsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(achievement.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := du.mutation.AchievementsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   department.AchievementsTable,
+			Columns: []string{department.AchievementsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(achievement.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, du.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{department.Label}
@@ -276,6 +358,21 @@ func (duo *DepartmentUpdateOne) AddUsers(u ...*User) *DepartmentUpdateOne {
 	return duo.AddUserIDs(ids...)
 }
 
+// AddAchievementIDs adds the "achievements" edge to the Achievement entity by IDs.
+func (duo *DepartmentUpdateOne) AddAchievementIDs(ids ...uuid.UUID) *DepartmentUpdateOne {
+	duo.mutation.AddAchievementIDs(ids...)
+	return duo
+}
+
+// AddAchievements adds the "achievements" edges to the Achievement entity.
+func (duo *DepartmentUpdateOne) AddAchievements(a ...*Achievement) *DepartmentUpdateOne {
+	ids := make([]uuid.UUID, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return duo.AddAchievementIDs(ids...)
+}
+
 // Mutation returns the DepartmentMutation object of the builder.
 func (duo *DepartmentUpdateOne) Mutation() *DepartmentMutation {
 	return duo.mutation
@@ -300,6 +397,27 @@ func (duo *DepartmentUpdateOne) RemoveUsers(u ...*User) *DepartmentUpdateOne {
 		ids[i] = u[i].ID
 	}
 	return duo.RemoveUserIDs(ids...)
+}
+
+// ClearAchievements clears all "achievements" edges to the Achievement entity.
+func (duo *DepartmentUpdateOne) ClearAchievements() *DepartmentUpdateOne {
+	duo.mutation.ClearAchievements()
+	return duo
+}
+
+// RemoveAchievementIDs removes the "achievements" edge to Achievement entities by IDs.
+func (duo *DepartmentUpdateOne) RemoveAchievementIDs(ids ...uuid.UUID) *DepartmentUpdateOne {
+	duo.mutation.RemoveAchievementIDs(ids...)
+	return duo
+}
+
+// RemoveAchievements removes "achievements" edges to Achievement entities.
+func (duo *DepartmentUpdateOne) RemoveAchievements(a ...*Achievement) *DepartmentUpdateOne {
+	ids := make([]uuid.UUID, len(a))
+	for i := range a {
+		ids[i] = a[i].ID
+	}
+	return duo.RemoveAchievementIDs(ids...)
 }
 
 // Where appends a list predicates to the DepartmentUpdate builder.
@@ -428,6 +546,51 @@ func (duo *DepartmentUpdateOne) sqlSave(ctx context.Context) (_node *Department,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if duo.mutation.AchievementsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   department.AchievementsTable,
+			Columns: []string{department.AchievementsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(achievement.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := duo.mutation.RemovedAchievementsIDs(); len(nodes) > 0 && !duo.mutation.AchievementsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   department.AchievementsTable,
+			Columns: []string{department.AchievementsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(achievement.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := duo.mutation.AchievementsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   department.AchievementsTable,
+			Columns: []string{department.AchievementsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(achievement.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

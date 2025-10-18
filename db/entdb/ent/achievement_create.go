@@ -14,6 +14,7 @@ import (
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievementdocument"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievementreview"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievementtemplate"
+	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/department"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/user"
 )
 
@@ -33,6 +34,12 @@ func (ac *AchievementCreate) SetOwnerID(u uuid.UUID) *AchievementCreate {
 // SetTemplateID sets the "template_id" field.
 func (ac *AchievementCreate) SetTemplateID(u uuid.UUID) *AchievementCreate {
 	ac.mutation.SetTemplateID(u)
+	return ac
+}
+
+// SetDepartmentID sets the "department_id" field.
+func (ac *AchievementCreate) SetDepartmentID(u uuid.UUID) *AchievementCreate {
+	ac.mutation.SetDepartmentID(u)
 	return ac
 }
 
@@ -113,6 +120,17 @@ func (ac *AchievementCreate) SetOwner(u *User) *AchievementCreate {
 	return ac.SetOwnerID(u.ID)
 }
 
+// SetDepartmentsID sets the "departments" edge to the Department entity by ID.
+func (ac *AchievementCreate) SetDepartmentsID(id uuid.UUID) *AchievementCreate {
+	ac.mutation.SetDepartmentsID(id)
+	return ac
+}
+
+// SetDepartments sets the "departments" edge to the Department entity.
+func (ac *AchievementCreate) SetDepartments(d *Department) *AchievementCreate {
+	return ac.SetDepartmentsID(d.ID)
+}
+
 // SetTemplate sets the "template" edge to the AchievementTemplate entity.
 func (ac *AchievementCreate) SetTemplate(a *AchievementTemplate) *AchievementCreate {
 	return ac.SetTemplateID(a.ID)
@@ -175,6 +193,9 @@ func (ac *AchievementCreate) check() error {
 	if _, ok := ac.mutation.TemplateID(); !ok {
 		return &ValidationError{Name: "template_id", err: errors.New(`ent: missing required field "Achievement.template_id"`)}
 	}
+	if _, ok := ac.mutation.DepartmentID(); !ok {
+		return &ValidationError{Name: "department_id", err: errors.New(`ent: missing required field "Achievement.department_id"`)}
+	}
 	if _, ok := ac.mutation.Status(); !ok {
 		return &ValidationError{Name: "status", err: errors.New(`ent: missing required field "Achievement.status"`)}
 	}
@@ -188,6 +209,9 @@ func (ac *AchievementCreate) check() error {
 	}
 	if len(ac.mutation.OwnerIDs()) == 0 {
 		return &ValidationError{Name: "owner", err: errors.New(`ent: missing required edge "Achievement.owner"`)}
+	}
+	if len(ac.mutation.DepartmentsIDs()) == 0 {
+		return &ValidationError{Name: "departments", err: errors.New(`ent: missing required edge "Achievement.departments"`)}
 	}
 	if len(ac.mutation.TemplateIDs()) == 0 {
 		return &ValidationError{Name: "template", err: errors.New(`ent: missing required edge "Achievement.template"`)}
@@ -282,6 +306,23 @@ func (ac *AchievementCreate) createSpec() (*Achievement, *sqlgraph.CreateSpec) {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.OwnerID = nodes[0]
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := ac.mutation.DepartmentsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: true,
+			Table:   achievement.DepartmentsTable,
+			Columns: []string{achievement.DepartmentsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(department.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_node.DepartmentID = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := ac.mutation.TemplateIDs(); len(nodes) > 0 {

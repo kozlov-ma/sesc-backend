@@ -17,6 +17,8 @@ const (
 	FieldOwnerID = "owner_id"
 	// FieldTemplateID holds the string denoting the template_id field in the database.
 	FieldTemplateID = "template_id"
+	// FieldDepartmentID holds the string denoting the department_id field in the database.
+	FieldDepartmentID = "department_id"
 	// FieldStatus holds the string denoting the status field in the database.
 	FieldStatus = "status"
 	// FieldPoints holds the string denoting the points field in the database.
@@ -27,6 +29,8 @@ const (
 	EdgeReviews = "reviews"
 	// EdgeOwner holds the string denoting the owner edge name in mutations.
 	EdgeOwner = "owner"
+	// EdgeDepartments holds the string denoting the departments edge name in mutations.
+	EdgeDepartments = "departments"
 	// EdgeTemplate holds the string denoting the template edge name in mutations.
 	EdgeTemplate = "template"
 	// Table holds the table name of the achievement in the database.
@@ -52,6 +56,13 @@ const (
 	OwnerInverseTable = "users"
 	// OwnerColumn is the table column denoting the owner relation/edge.
 	OwnerColumn = "owner_id"
+	// DepartmentsTable is the table that holds the departments relation/edge.
+	DepartmentsTable = "achievements"
+	// DepartmentsInverseTable is the table name for the Department entity.
+	// It exists in this package in order to avoid circular dependency with the "department" package.
+	DepartmentsInverseTable = "departments"
+	// DepartmentsColumn is the table column denoting the departments relation/edge.
+	DepartmentsColumn = "department_id"
 	// TemplateTable is the table that holds the template relation/edge.
 	TemplateTable = "achievements"
 	// TemplateInverseTable is the table name for the AchievementTemplate entity.
@@ -66,6 +77,7 @@ var Columns = []string{
 	FieldID,
 	FieldOwnerID,
 	FieldTemplateID,
+	FieldDepartmentID,
 	FieldStatus,
 	FieldPoints,
 }
@@ -107,6 +119,11 @@ func ByOwnerID(opts ...sql.OrderTermOption) OrderOption {
 // ByTemplateID orders the results by the template_id field.
 func ByTemplateID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldTemplateID, opts...).ToFunc()
+}
+
+// ByDepartmentID orders the results by the department_id field.
+func ByDepartmentID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldDepartmentID, opts...).ToFunc()
 }
 
 // ByStatus orders the results by the status field.
@@ -154,6 +171,13 @@ func ByOwnerField(field string, opts ...sql.OrderTermOption) OrderOption {
 	}
 }
 
+// ByDepartmentsField orders the results by departments field.
+func ByDepartmentsField(field string, opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newDepartmentsStep(), sql.OrderByField(field, opts...))
+	}
+}
+
 // ByTemplateField orders the results by template field.
 func ByTemplateField(field string, opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -179,6 +203,13 @@ func newOwnerStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(OwnerInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, true, OwnerTable, OwnerColumn),
+	)
+}
+func newDepartmentsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(DepartmentsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2O, true, DepartmentsTable, DepartmentsColumn),
 	)
 }
 func newTemplateStep() *sqlgraph.Step {

@@ -428,6 +428,22 @@ func (c *AchievementClient) QueryOwner(a *Achievement) *UserQuery {
 	return query
 }
 
+// QueryDepartments queries the departments edge of a Achievement.
+func (c *AchievementClient) QueryDepartments(a *Achievement) *DepartmentQuery {
+	query := (&DepartmentClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := a.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(achievement.Table, achievement.FieldID, id),
+			sqlgraph.To(department.Table, department.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, achievement.DepartmentsTable, achievement.DepartmentsColumn),
+		)
+		fromV = sqlgraph.Neighbors(a.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // QueryTemplate queries the template edge of a Achievement.
 func (c *AchievementClient) QueryTemplate(a *Achievement) *AchievementTemplateQuery {
 	query := (&AchievementTemplateClient{config: c.config}).Query()
@@ -1379,6 +1395,22 @@ func (c *DepartmentClient) QueryUsers(d *Department) *UserQuery {
 			sqlgraph.From(department.Table, department.FieldID, id),
 			sqlgraph.To(user.Table, user.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, department.UsersTable, department.UsersColumn),
+		)
+		fromV = sqlgraph.Neighbors(d.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryAchievements queries the achievements edge of a Department.
+func (c *DepartmentClient) QueryAchievements(d *Department) *AchievementQuery {
+	query := (&AchievementClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := d.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(department.Table, department.FieldID, id),
+			sqlgraph.To(achievement.Table, achievement.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, department.AchievementsTable, department.AchievementsColumn),
 		)
 		fromV = sqlgraph.Neighbors(d.driver.Dialect(), step)
 		return fromV, nil
