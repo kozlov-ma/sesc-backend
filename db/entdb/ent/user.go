@@ -35,8 +35,6 @@ type User struct {
 	DepartmentID *uuid.UUID `json:"department_id,omitempty"`
 	// Role holds the value of the "role" field.
 	Role sesc.Role `json:"role,omitempty"`
-	// Subdivision holds the value of the "subdivision" field.
-	Subdivision string `json:"subdivision,omitempty"`
 	// JobTitle holds the value of the "job_title" field.
 	JobTitle string `json:"job_title,omitempty"`
 	// EmploymentRate holds the value of the "employment_rate" field.
@@ -146,7 +144,7 @@ func (*User) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullFloat64)
 		case user.FieldRole, user.FieldAcademicDegree, user.FieldPersonnelCategory, user.FieldEmploymentType:
 			values[i] = new(sql.NullInt64)
-		case user.FieldFirstName, user.FieldLastName, user.FieldMiddleName, user.FieldPictureURL, user.FieldSubdivision, user.FieldJobTitle, user.FieldAcademicTitle, user.FieldHonors, user.FieldCategory:
+		case user.FieldFirstName, user.FieldLastName, user.FieldMiddleName, user.FieldPictureURL, user.FieldJobTitle, user.FieldAcademicTitle, user.FieldHonors, user.FieldCategory:
 			values[i] = new(sql.NullString)
 		case user.FieldDateOfEmployment, user.FieldUnemploymentDate, user.FieldCreatedAt, user.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -215,12 +213,6 @@ func (u *User) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field role", values[i])
 			} else if value.Valid {
 				u.Role = sesc.Role(value.Int64)
-			}
-		case user.FieldSubdivision:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field subdivision", values[i])
-			} else if value.Valid {
-				u.Subdivision = value.String
 			}
 		case user.FieldJobTitle:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -377,9 +369,6 @@ func (u *User) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("role=")
 	builder.WriteString(fmt.Sprintf("%v", u.Role))
-	builder.WriteString(", ")
-	builder.WriteString("subdivision=")
-	builder.WriteString(u.Subdivision)
 	builder.WriteString(", ")
 	builder.WriteString("job_title=")
 	builder.WriteString(u.JobTitle)

@@ -22,7 +22,14 @@ import { Input } from "@/components/ui/input";
 import type { RespondUser, ApiPatchUserRequest } from "@/lib/api/types.gen";
 import { ErrorMessage } from "@/components/ui/error-message";
 import { Badge } from "@/components/ui/badge";
-import { MoreHorizontal, Search, UserPlus, Key, User, Pencil } from "lucide-react";
+import {
+  MoreHorizontal,
+  Search,
+  UserPlus,
+  Key,
+  User,
+  Pencil,
+} from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { UserFormDialog } from "./user-form-dialog";
 import { UserCredentialsDialog } from "./user-credentials-dialog";
@@ -290,9 +297,8 @@ export function UsersTable() {
           <TableHeader>
             <TableRow>
               <TableHead>Пользователь</TableHead>
-              <TableHead>Кафедра</TableHead>
-              <TableHead>Должность</TableHead>
               <TableHead>Подразделение</TableHead>
+              <TableHead>Должность</TableHead>
               <TableHead>Роль</TableHead>
               <TableHead>Статус</TableHead>
               <TableHead className="text-center w-[150px]">Действия</TableHead>

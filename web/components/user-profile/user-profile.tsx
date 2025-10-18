@@ -104,7 +104,7 @@ export function UserProfile({ user, isLoading, error }: UserProfileProps) {
                 <div className="space-y-2">
                   <div className="flex items-center text-muted-foreground">
                     <Building className="mr-2 h-4 w-4" />
-                    <span className="text-sm">Кафедра</span>
+                    <span className="text-sm">Подразделение</span>
                   </div>
                   {isDepLoading ? (
                     <Skeleton className="w-20 h-5" />

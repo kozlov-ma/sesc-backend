@@ -35,8 +35,8 @@ import {
 import { RespondDepartment } from "@/lib/api";
 
 const departmentFormSchema = z.object({
-  name: z.string().min(1, "Введите название кафедры"),
-  description: z.string().min(1, "Введите описание кафедры"),
+  name: z.string().min(1, "Введите название подразделения"),
+  description: z.string().min(1, "Введите описание подразделения"),
 });
 
 type DepartmentFormValues = z.infer<typeof departmentFormSchema>;
@@ -68,8 +68,8 @@ export function DepartmentFormDialog({
   const createDepartmentMutation = useMutation({
     ...postDepartmentsMutation(),
     onSuccess: () => {
-      toast("Кафедра создана", {
-        description: "Новая кафедра успешно создана.",
+      toast("Подразделение создано", {
+        description: "Новое подразделение успешно создана.",
       });
       onOpenChange(false);
       if (onSuccess) onSuccess();
@@ -87,8 +87,8 @@ export function DepartmentFormDialog({
   const updateDepartmentMutation = useMutation({
     ...putDepartmentsByIdMutation(),
     onSuccess: () => {
-      toast("Кафедра обновлена", {
-        description: "Данные кафедры успешно обновлены.",
+      toast("Подразделение обновлено", {
+        description: "Данные подразделения успешно обновлены.",
       });
       onOpenChange(false);
       if (onSuccess) onSuccess();
@@ -148,12 +148,14 @@ export function DepartmentFormDialog({
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>
-            {department ? "Редактировать кафедру" : "Создать кафедру"}
+            {department
+              ? "Редактировать подразделение"
+              : "Создать подразделение"}
           </DialogTitle>
           <DialogDescription>
             {department
-              ? "Измените данные кафедры и нажмите сохранить."
-              : "Заполните данные новой кафедры."}
+              ? "Измените данные подразделения и нажмите сохранить."
+              : "Заполните данные нового подразделения."}
           </DialogDescription>
         </DialogHeader>
 
@@ -171,7 +173,7 @@ export function DepartmentFormDialog({
                 <FormItem>
                   <FormLabel>Название кафедры</FormLabel>
                   <FormControl>
-                    <Input placeholder="Название кафедры" {...field} />
+                    <Input placeholder="Название подразделения" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -183,10 +185,10 @@ export function DepartmentFormDialog({
               name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Описание кафедры</FormLabel>
+                  <FormLabel>Описание подразделения</FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder="Описание кафедры"
+                      placeholder="Описание подразделения"
                       className="resize-none"
                       {...field}
                     />

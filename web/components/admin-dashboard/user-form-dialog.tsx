@@ -426,7 +426,7 @@ function UserFormDialog({
                 name="departmentId"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Кафедра (необязательно)</FormLabel>
+                    <FormLabel>Подразделение (необязательно)</FormLabel>
                     <Select
                       onValueChange={(value) =>
                         field.onChange(value === "none" ? "" : value)
@@ -435,11 +435,11 @@ function UserFormDialog({
                     >
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Выберите кафедру" />
+                          <SelectValue placeholder="Выберите подразделение" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="none">Нет кафедры</SelectItem>
+                        <SelectItem value="none">Нет подразделения</SelectItem>
                         {departmentsData?.departments.map((dept) => (
                           <SelectItem key={dept.id} value={dept.id}>
                             {dept.name}

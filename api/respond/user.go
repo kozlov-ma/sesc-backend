@@ -17,7 +17,6 @@ func WithUser(u *ent.User) *User {
 		Role:              WithRole(u.Role),
 		Suspended:         u.Suspended,
 		DepartmentID:      u.DepartmentID,
-		Subdivision:       u.Subdivision,
 		JobTitle:          u.JobTitle,
 		EmploymentRate:    u.EmploymentRate,
 		AcademicDegree:    int(u.AcademicDegree),
@@ -52,7 +51,6 @@ type User struct {
 	Suspended    bool       `json:"suspended"                                                   validate:"required"`
 	DepartmentID *uuid.UUID `json:"departmentId"`
 
-	Subdivision       string  `json:"subdivision"       example:"Кафедра информатики"       validate:"required"`
 	JobTitle          string  `json:"jobTitle"          example:"Профессор"                 validate:"required"`
 	EmploymentRate    float64 `json:"employmentRate"    example:"1.0"                       validate:"required"`
 	AcademicDegree    int     `json:"academicDegree"    example:"2"`

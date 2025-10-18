@@ -29,7 +29,6 @@ func (User) Fields() []ent.Field {
 		field.UUID("department_id", uuid.UUID{}).Optional().Nillable(),
 		field.Int("role").GoType(sesc.Role(0)),
 
-		field.String("subdivision").Default(""),
 		field.String("job_title").Default(""),
 		field.Float("employment_rate").Default(1),
 		field.Int("academic_degree").GoType(sesc.AcademicDegree(0)).Optional(),

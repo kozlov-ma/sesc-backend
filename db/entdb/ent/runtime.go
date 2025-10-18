@@ -165,36 +165,32 @@ func init() {
 	userDescSuspended := userFields[5].Descriptor()
 	// user.DefaultSuspended holds the default value on creation for the suspended field.
 	user.DefaultSuspended = userDescSuspended.Default.(bool)
-	// userDescSubdivision is the schema descriptor for subdivision field.
-	userDescSubdivision := userFields[8].Descriptor()
-	// user.DefaultSubdivision holds the default value on creation for the subdivision field.
-	user.DefaultSubdivision = userDescSubdivision.Default.(string)
 	// userDescJobTitle is the schema descriptor for job_title field.
-	userDescJobTitle := userFields[9].Descriptor()
+	userDescJobTitle := userFields[8].Descriptor()
 	// user.DefaultJobTitle holds the default value on creation for the job_title field.
 	user.DefaultJobTitle = userDescJobTitle.Default.(string)
 	// userDescEmploymentRate is the schema descriptor for employment_rate field.
-	userDescEmploymentRate := userFields[10].Descriptor()
+	userDescEmploymentRate := userFields[9].Descriptor()
 	// user.DefaultEmploymentRate holds the default value on creation for the employment_rate field.
 	user.DefaultEmploymentRate = userDescEmploymentRate.Default.(float64)
 	// userDescPersonnelCategory is the schema descriptor for personnel_category field.
-	userDescPersonnelCategory := userFields[12].Descriptor()
+	userDescPersonnelCategory := userFields[11].Descriptor()
 	// user.DefaultPersonnelCategory holds the default value on creation for the personnel_category field.
 	user.DefaultPersonnelCategory = sesc.PersonnelCategory(userDescPersonnelCategory.Default.(int))
 	// userDescEmploymentType is the schema descriptor for employment_type field.
-	userDescEmploymentType := userFields[13].Descriptor()
+	userDescEmploymentType := userFields[12].Descriptor()
 	// user.DefaultEmploymentType holds the default value on creation for the employment_type field.
 	user.DefaultEmploymentType = sesc.EmploymentType(userDescEmploymentType.Default.(int))
 	// userDescDateOfEmployment is the schema descriptor for date_of_employment field.
-	userDescDateOfEmployment := userFields[17].Descriptor()
+	userDescDateOfEmployment := userFields[16].Descriptor()
 	// user.DefaultDateOfEmployment holds the default value on creation for the date_of_employment field.
 	user.DefaultDateOfEmployment = userDescDateOfEmployment.Default.(func() time.Time)
 	// userDescCreatedAt is the schema descriptor for created_at field.
-	userDescCreatedAt := userFields[19].Descriptor()
+	userDescCreatedAt := userFields[18].Descriptor()
 	// user.DefaultCreatedAt holds the default value on creation for the created_at field.
 	user.DefaultCreatedAt = userDescCreatedAt.Default.(func() time.Time)
 	// userDescUpdatedAt is the schema descriptor for updated_at field.
-	userDescUpdatedAt := userFields[20].Descriptor()
+	userDescUpdatedAt := userFields[19].Descriptor()
 	// user.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	user.DefaultUpdatedAt = userDescUpdatedAt.Default.(func() time.Time)
 	// user.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.

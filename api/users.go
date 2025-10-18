@@ -21,7 +21,6 @@ type CreateUserRequest struct {
 	PictureURL   string     `json:"pictureUrl,omitzero"   example:"/images/users/ivan.jpg"`
 	DepartmentID *uuid.UUID `json:"departmentId,omitzero" example:"550e8400-e29b-41d4-a716-446655440000"`
 
-	Subdivision       string  `json:"subdivision"            example:"Кафедра информатики"       validate:"required"`
 	JobTitle          string  `json:"jobTitle"               example:"Профессор"                 validate:"required"`
 	EmploymentRate    float64 `json:"employmentRate"         example:"1.0"                       validate:"required"`
 	AcademicDegree    int     `json:"academicDegree"         example:"2"`
@@ -140,7 +139,6 @@ func (a *API) CreateUser(w http.ResponseWriter, r *http.Request) {
 		PictureURL:        req.PictureURL,
 		DepartmentID:      req.DepartmentID,
 		NewRole:           sesc.Role(req.Role),
-		Subdivision:       req.Subdivision,
 		JobTitle:          req.JobTitle,
 		EmploymentRate:    req.EmploymentRate,
 		AcademicDegree:    sesc.AcademicDegree(req.AcademicDegree),
@@ -234,7 +232,6 @@ func (a *API) PatchUser(w http.ResponseWriter, r *http.Request) {
 		Suspended:         req.Suspended,
 		DepartmentID:      req.DepartmentID,
 		NewRole:           sesc.Role(req.RoleID),
-		Subdivision:       req.Subdivision,
 		JobTitle:          req.JobTitle,
 		EmploymentRate:    req.EmploymentRate,
 		AcademicDegree:    sesc.AcademicDegree(req.AcademicDegree),

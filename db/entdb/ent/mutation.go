@@ -5365,7 +5365,6 @@ type UserMutation struct {
 	suspended             *bool
 	role                  *sesc.Role
 	addrole               *sesc.Role
-	subdivision           *string
 	job_title             *string
 	employment_rate       *float64
 	addemployment_rate    *float64
@@ -5801,42 +5800,6 @@ func (m *UserMutation) AddedRole() (r sesc.Role, exists bool) {
 func (m *UserMutation) ResetRole() {
 	m.role = nil
 	m.addrole = nil
-}
-
-// SetSubdivision sets the "subdivision" field.
-func (m *UserMutation) SetSubdivision(s string) {
-	m.subdivision = &s
-}
-
-// Subdivision returns the value of the "subdivision" field in the mutation.
-func (m *UserMutation) Subdivision() (r string, exists bool) {
-	v := m.subdivision
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldSubdivision returns the old "subdivision" field's value of the User entity.
-// If the User object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *UserMutation) OldSubdivision(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldSubdivision is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldSubdivision requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldSubdivision: %w", err)
-	}
-	return oldValue.Subdivision, nil
-}
-
-// ResetSubdivision resets all changes to the "subdivision" field.
-func (m *UserMutation) ResetSubdivision() {
-	m.subdivision = nil
 }
 
 // SetJobTitle sets the "job_title" field.
@@ -6679,7 +6642,7 @@ func (m *UserMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *UserMutation) Fields() []string {
-	fields := make([]string, 0, 20)
+	fields := make([]string, 0, 19)
 	if m.first_name != nil {
 		fields = append(fields, user.FieldFirstName)
 	}
@@ -6700,9 +6663,6 @@ func (m *UserMutation) Fields() []string {
 	}
 	if m.role != nil {
 		fields = append(fields, user.FieldRole)
-	}
-	if m.subdivision != nil {
-		fields = append(fields, user.FieldSubdivision)
 	}
 	if m.job_title != nil {
 		fields = append(fields, user.FieldJobTitle)
@@ -6762,8 +6722,6 @@ func (m *UserMutation) Field(name string) (ent.Value, bool) {
 		return m.DepartmentID()
 	case user.FieldRole:
 		return m.Role()
-	case user.FieldSubdivision:
-		return m.Subdivision()
 	case user.FieldJobTitle:
 		return m.JobTitle()
 	case user.FieldEmploymentRate:
@@ -6811,8 +6769,6 @@ func (m *UserMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldDepartmentID(ctx)
 	case user.FieldRole:
 		return m.OldRole(ctx)
-	case user.FieldSubdivision:
-		return m.OldSubdivision(ctx)
 	case user.FieldJobTitle:
 		return m.OldJobTitle(ctx)
 	case user.FieldEmploymentRate:
@@ -6894,13 +6850,6 @@ func (m *UserMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetRole(v)
-		return nil
-	case user.FieldSubdivision:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetSubdivision(v)
 		return nil
 	case user.FieldJobTitle:
 		v, ok := value.(string)
@@ -7163,9 +7112,6 @@ func (m *UserMutation) ResetField(name string) error {
 		return nil
 	case user.FieldRole:
 		m.ResetRole()
-		return nil
-	case user.FieldSubdivision:
-		m.ResetSubdivision()
 		return nil
 	case user.FieldJobTitle:
 		m.ResetJobTitle()

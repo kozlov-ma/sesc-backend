@@ -152,20 +152,6 @@ func (uu *UserUpdate) AddRole(s sesc.Role) *UserUpdate {
 	return uu
 }
 
-// SetSubdivision sets the "subdivision" field.
-func (uu *UserUpdate) SetSubdivision(s string) *UserUpdate {
-	uu.mutation.SetSubdivision(s)
-	return uu
-}
-
-// SetNillableSubdivision sets the "subdivision" field if the given value is not nil.
-func (uu *UserUpdate) SetNillableSubdivision(s *string) *UserUpdate {
-	if s != nil {
-		uu.SetSubdivision(*s)
-	}
-	return uu
-}
-
 // SetJobTitle sets the "job_title" field.
 func (uu *UserUpdate) SetJobTitle(s string) *UserUpdate {
 	uu.mutation.SetJobTitle(s)
@@ -588,9 +574,6 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := uu.mutation.AddedRole(); ok {
 		_spec.AddField(user.FieldRole, field.TypeInt, value)
 	}
-	if value, ok := uu.mutation.Subdivision(); ok {
-		_spec.SetField(user.FieldSubdivision, field.TypeString, value)
-	}
 	if value, ok := uu.mutation.JobTitle(); ok {
 		_spec.SetField(user.FieldJobTitle, field.TypeString, value)
 	}
@@ -978,20 +961,6 @@ func (uuo *UserUpdateOne) SetNillableRole(s *sesc.Role) *UserUpdateOne {
 // AddRole adds s to the "role" field.
 func (uuo *UserUpdateOne) AddRole(s sesc.Role) *UserUpdateOne {
 	uuo.mutation.AddRole(s)
-	return uuo
-}
-
-// SetSubdivision sets the "subdivision" field.
-func (uuo *UserUpdateOne) SetSubdivision(s string) *UserUpdateOne {
-	uuo.mutation.SetSubdivision(s)
-	return uuo
-}
-
-// SetNillableSubdivision sets the "subdivision" field if the given value is not nil.
-func (uuo *UserUpdateOne) SetNillableSubdivision(s *string) *UserUpdateOne {
-	if s != nil {
-		uuo.SetSubdivision(*s)
-	}
 	return uuo
 }
 
@@ -1446,9 +1415,6 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 	}
 	if value, ok := uuo.mutation.AddedRole(); ok {
 		_spec.AddField(user.FieldRole, field.TypeInt, value)
-	}
-	if value, ok := uuo.mutation.Subdivision(); ok {
-		_spec.SetField(user.FieldSubdivision, field.TypeString, value)
 	}
 	if value, ok := uuo.mutation.JobTitle(); ok {
 		_spec.SetField(user.FieldJobTitle, field.TypeString, value)

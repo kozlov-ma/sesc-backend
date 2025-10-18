@@ -24,13 +24,17 @@ const groups = [
     name: "Организация",
     routes: [
       { name: "Пользователи", url: "/admin/users", icon: Users },
-      { name: "Кафедры", url: "/admin/departments", icon: Building },
+      { name: "Подразделения", url: "/admin/departments", icon: Building },
     ],
   },
   {
     name: "Достижения",
     routes: [
-      { name: "Шаблоны достижений", url: "/admin/achievement-templates", icon: Award },
+      {
+        name: "Шаблоны достижений",
+        url: "/admin/achievement-templates",
+        icon: Award,
+      },
     ],
   },
   {

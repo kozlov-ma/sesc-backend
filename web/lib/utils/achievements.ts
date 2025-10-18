@@ -4,11 +4,11 @@ export function getStatusLabel(status: string): string {
     case "draft":
       return "Черновик";
     case "dephead_review":
-      return "На проверке зав. кафедрой";
+      return "На проверке зав. подразделением";
     case "inspector_review":
       return "На проверке контролирующего лица";
     case "dephead_requested_changes":
-      return "Зав. кафедрой запросил изменения";
+      return "Зав. подразделением запросил изменения";
     case "inspector_requested_changes":
       return "Контролирующее лицо запросило изменения";
     case "done":

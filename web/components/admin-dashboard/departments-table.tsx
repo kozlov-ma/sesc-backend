@@ -66,8 +66,8 @@ export function DepartmentsTable() {
   const deleteDepartmentMutation = useMutation({
     ...deleteDepartmentsByIdMutation(),
     onSuccess: () => {
-      toast("Кафедра удалена", {
-        description: "Кафедра успешно удалена.",
+      toast("Подразделение удалено", {
+        description: "Подразделение успешно удалено.",
       });
       queryClient.invalidateQueries({
         queryKey: departmentsOpt.queryKey,
@@ -134,7 +134,7 @@ export function DepartmentsTable() {
         <div className="relative w-full md:w-72">
           <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Поиск кафедр..."
+            placeholder="Поиск подразделений..."
             className="pl-8"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -142,7 +142,7 @@ export function DepartmentsTable() {
         </div>
         <Button onClick={openCreateDepartmentDialog}>
           <Building className="h-4 w-4 mr-2" />
-          Добавить кафедру
+          Добавить подразделение
         </Button>
       </div>
 
@@ -150,7 +150,9 @@ export function DepartmentsTable() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-[300px]">Название кафедры</TableHead>
+              <TableHead className="w-[300px]">
+                Название подразделения
+              </TableHead>
               <TableHead>Описание</TableHead>
               <TableHead className="text-center w-[150px]">Действия</TableHead>
             </TableRow>
@@ -196,11 +198,11 @@ export function DepartmentsTable() {
                 <TableCell colSpan={3} className="h-24 text-center">
                   {searchQuery ? (
                     <span className="text-muted-foreground">
-                      Кафедры не найдены
+                      Подразделения не найдены
                     </span>
                   ) : (
                     <span className="text-muted-foreground">
-                      В системе нет кафедр
+                      В системе нет подразделений
                     </span>
                   )}
                 </TableCell>
@@ -227,10 +229,10 @@ export function DepartmentsTable() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Удаление кафедры</AlertDialogTitle>
+            <AlertDialogTitle>Удаление подразделения</AlertDialogTitle>
             <AlertDialogDescription>
-              Вы уверены, что хотите удалить кафедру {departmentToDelete?.name}?
-              Это действие нельзя будет отменить.
+              Вы уверены, что хотите удалить подразделение{" "}
+              {departmentToDelete?.name}? Это действие нельзя будет отменить.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

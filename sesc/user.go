@@ -13,7 +13,6 @@ type UserUpdateOptions struct {
 	Suspended         bool
 	DepartmentID      *UUID
 	NewRole           Role
-	Subdivision       string
 	JobTitle          string
 	EmploymentRate    float64
 	AcademicDegree    AcademicDegree

@@ -210,7 +210,6 @@ func (s *USS) updateUserRecord(
 		SetPictureURL(upd.PictureURL).
 		SetSuspended(upd.Suspended).
 		SetRole(upd.NewRole).
-		SetSubdivision(upd.Subdivision).
 		SetJobTitle(upd.JobTitle).
 		SetEmploymentRate(upd.EmploymentRate).
 		SetPersonnelCategory(upd.PersonnelCategory).
@@ -358,7 +357,6 @@ func (s *USS) createUserRecord(
 		SetMiddleName(opt.MiddleName).
 		SetPictureURL(opt.PictureURL).
 		SetRole(opt.NewRole).
-		SetSubdivision(opt.Subdivision).
 		SetJobTitle(opt.JobTitle).
 		SetEmploymentRate(opt.EmploymentRate).
 		SetPersonnelCategory(opt.PersonnelCategory).

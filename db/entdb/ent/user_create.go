@@ -101,20 +101,6 @@ func (uc *UserCreate) SetRole(s sesc.Role) *UserCreate {
 	return uc
 }
 
-// SetSubdivision sets the "subdivision" field.
-func (uc *UserCreate) SetSubdivision(s string) *UserCreate {
-	uc.mutation.SetSubdivision(s)
-	return uc
-}
-
-// SetNillableSubdivision sets the "subdivision" field if the given value is not nil.
-func (uc *UserCreate) SetNillableSubdivision(s *string) *UserCreate {
-	if s != nil {
-		uc.SetSubdivision(*s)
-	}
-	return uc
-}
-
 // SetJobTitle sets the "job_title" field.
 func (uc *UserCreate) SetJobTitle(s string) *UserCreate {
 	uc.mutation.SetJobTitle(s)
@@ -409,10 +395,6 @@ func (uc *UserCreate) defaults() {
 		v := user.DefaultSuspended
 		uc.mutation.SetSuspended(v)
 	}
-	if _, ok := uc.mutation.Subdivision(); !ok {
-		v := user.DefaultSubdivision
-		uc.mutation.SetSubdivision(v)
-	}
 	if _, ok := uc.mutation.JobTitle(); !ok {
 		v := user.DefaultJobTitle
 		uc.mutation.SetJobTitle(v)
@@ -468,9 +450,6 @@ func (uc *UserCreate) check() error {
 		if err := v.Validate(); err != nil {
 			return &ValidationError{Name: "role", err: fmt.Errorf(`ent: validator failed for field "User.role": %w`, err)}
 		}
-	}
-	if _, ok := uc.mutation.Subdivision(); !ok {
-		return &ValidationError{Name: "subdivision", err: errors.New(`ent: missing required field "User.subdivision"`)}
 	}
 	if _, ok := uc.mutation.JobTitle(); !ok {
 		return &ValidationError{Name: "job_title", err: errors.New(`ent: missing required field "User.job_title"`)}
@@ -551,10 +530,6 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 	if value, ok := uc.mutation.Role(); ok {
 		_spec.SetField(user.FieldRole, field.TypeInt, value)
 		_node.Role = value
-	}
-	if value, ok := uc.mutation.Subdivision(); ok {
-		_spec.SetField(user.FieldSubdivision, field.TypeString, value)
-		_node.Subdivision = value
 	}
 	if value, ok := uc.mutation.JobTitle(); ok {
 		_spec.SetField(user.FieldJobTitle, field.TypeString, value)

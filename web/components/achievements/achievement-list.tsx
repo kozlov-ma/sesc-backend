@@ -49,7 +49,7 @@ export function getStatusLabel(status: string) {
     case "draft":
       return "Черновик";
     case "dephead_review":
-      return "Проверка зав. кафедрой";
+      return "Проверка зав. подразделением";
     case "inspector_review":
       return "Проверка контролирующего лица";
     case "done":
@@ -57,7 +57,7 @@ export function getStatusLabel(status: string) {
     case "accounted":
       return "Начислены баллы";
     case "dephead_requested_changes":
-      return "Требуются изменения (зав. кафедрой)";
+      return "Требуются изменения (зав. подразделением)";
     case "inspector_requested_changes":
       return "Требуются изменения (контролирующее лицо)";
     default:

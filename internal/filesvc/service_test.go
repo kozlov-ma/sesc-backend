@@ -81,7 +81,6 @@ func createTestUser(ctx context.Context, t *testing.T, client *ent.Client) uuid.
 		SetLastName("User").
 		SetRole(1).
 		SetDepartmentID(deptID).
-		SetSubdivision("Test Subdivision").
 		SetJobTitle("Test Position").
 		SetEmploymentRate(1.0).
 		SetPersonnelCategory(1).

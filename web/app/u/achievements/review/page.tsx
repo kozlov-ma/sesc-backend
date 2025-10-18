@@ -394,7 +394,7 @@ function UserRow({
                       {achievement.status === "done"
                         ? "Проверка завершена"
                         : achievement.status === "dephead_requested_changes"
-                          ? "Зав. кафедрой запросил изменения"
+                          ? "Зав. подразделением запросил изменения"
                           : achievement.status === "inspector_requested_changes"
                             ? "Контролирующее лицо запросило изменения"
                             : "Не требует проверки"}

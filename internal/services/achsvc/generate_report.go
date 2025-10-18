@@ -187,10 +187,7 @@ func (s *ACS) formatUserFullName(usr *ent.User) string {
 }
 
 func (s *ACS) getUserSubdivision(usr *ent.User) string {
-	subdivision := usr.Subdivision
-	if subdivision == "" && usr.Edges.Department != nil {
-		subdivision = usr.Edges.Department.Name
-	}
+	subdivision := usr.Edges.Department.Name
 	return subdivision
 }
 

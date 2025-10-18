@@ -93,11 +93,6 @@ func Role(v sesc.Role) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldRole, vc))
 }
 
-// Subdivision applies equality check predicate on the "subdivision" field. It's identical to SubdivisionEQ.
-func Subdivision(v string) predicate.User {
-	return predicate.User(sql.FieldEQ(FieldSubdivision, v))
-}
-
 // JobTitle applies equality check predicate on the "job_title" field. It's identical to JobTitleEQ.
 func JobTitle(v string) predicate.User {
 	return predicate.User(sql.FieldEQ(FieldJobTitle, v))
@@ -523,71 +518,6 @@ func RoleLT(v sesc.Role) predicate.User {
 func RoleLTE(v sesc.Role) predicate.User {
 	vc := int(v)
 	return predicate.User(sql.FieldLTE(FieldRole, vc))
-}
-
-// SubdivisionEQ applies the EQ predicate on the "subdivision" field.
-func SubdivisionEQ(v string) predicate.User {
-	return predicate.User(sql.FieldEQ(FieldSubdivision, v))
-}
-
-// SubdivisionNEQ applies the NEQ predicate on the "subdivision" field.
-func SubdivisionNEQ(v string) predicate.User {
-	return predicate.User(sql.FieldNEQ(FieldSubdivision, v))
-}
-
-// SubdivisionIn applies the In predicate on the "subdivision" field.
-func SubdivisionIn(vs ...string) predicate.User {
-	return predicate.User(sql.FieldIn(FieldSubdivision, vs...))
-}
-
-// SubdivisionNotIn applies the NotIn predicate on the "subdivision" field.
-func SubdivisionNotIn(vs ...string) predicate.User {
-	return predicate.User(sql.FieldNotIn(FieldSubdivision, vs...))
-}
-
-// SubdivisionGT applies the GT predicate on the "subdivision" field.
-func SubdivisionGT(v string) predicate.User {
-	return predicate.User(sql.FieldGT(FieldSubdivision, v))
-}
-
-// SubdivisionGTE applies the GTE predicate on the "subdivision" field.
-func SubdivisionGTE(v string) predicate.User {
-	return predicate.User(sql.FieldGTE(FieldSubdivision, v))
-}
-
-// SubdivisionLT applies the LT predicate on the "subdivision" field.
-func SubdivisionLT(v string) predicate.User {
-	return predicate.User(sql.FieldLT(FieldSubdivision, v))
-}
-
-// SubdivisionLTE applies the LTE predicate on the "subdivision" field.
-func SubdivisionLTE(v string) predicate.User {
-	return predicate.User(sql.FieldLTE(FieldSubdivision, v))
-}
-
-// SubdivisionContains applies the Contains predicate on the "subdivision" field.
-func SubdivisionContains(v string) predicate.User {
-	return predicate.User(sql.FieldContains(FieldSubdivision, v))
-}
-
-// SubdivisionHasPrefix applies the HasPrefix predicate on the "subdivision" field.
-func SubdivisionHasPrefix(v string) predicate.User {
-	return predicate.User(sql.FieldHasPrefix(FieldSubdivision, v))
-}
-
-// SubdivisionHasSuffix applies the HasSuffix predicate on the "subdivision" field.
-func SubdivisionHasSuffix(v string) predicate.User {
-	return predicate.User(sql.FieldHasSuffix(FieldSubdivision, v))
-}
-
-// SubdivisionEqualFold applies the EqualFold predicate on the "subdivision" field.
-func SubdivisionEqualFold(v string) predicate.User {
-	return predicate.User(sql.FieldEqualFold(FieldSubdivision, v))
-}
-
-// SubdivisionContainsFold applies the ContainsFold predicate on the "subdivision" field.
-func SubdivisionContainsFold(v string) predicate.User {
-	return predicate.User(sql.FieldContainsFold(FieldSubdivision, v))
 }
 
 // JobTitleEQ applies the EQ predicate on the "job_title" field.

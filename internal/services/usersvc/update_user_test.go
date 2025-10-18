@@ -147,7 +147,6 @@ func TestUpdateUser(t *testing.T) {
 			Suspended:      old.Suspended,
 			DepartmentID:   old.DepartmentID,
 			NewRole:        old.Role,
-			Subdivision:    old.Subdivision,
 			JobTitle:       old.JobTitle,
 			EmploymentRate: old.EmploymentRate,
 		}

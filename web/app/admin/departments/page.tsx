@@ -19,7 +19,7 @@ export default function DepartmentsPage() {
   return (
     <div className="min-h-screen flex flex-col p-6 bg-background">
       <header className="w-full flex justify-between items-center mb-8">
-        <h1 className="text-2xl font-bold">Управление кафедрами</h1>
+        <h1 className="text-2xl font-bold">Управление подразделениями</h1>
         <div className="flex items-center gap-2"></div>
       </header>
 
@@ -31,7 +31,9 @@ export default function DepartmentsPage() {
       >
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Всего кафедр</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Всего подразделений
+            </CardTitle>
             <Building className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -48,7 +50,7 @@ export default function DepartmentsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-sm text-muted-foreground">
-              Управление кафедрами
+              Управление подразделениями
             </div>
           </CardContent>
         </Card>
@@ -60,7 +62,7 @@ export default function DepartmentsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-sm text-muted-foreground">
-              Добавление, редактирование и удаление кафедр
+              Добавление, редактирование и удаление подразделений
             </div>
           </CardContent>
         </Card>
@@ -74,7 +76,7 @@ export default function DepartmentsPage() {
       >
         <Card className="h-full">
           <CardHeader>
-            <CardTitle>Управление кафедрами</CardTitle>
+            <CardTitle>Управление подразделениями</CardTitle>
           </CardHeader>
           <CardContent>
             <DepartmentsTable />

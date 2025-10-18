@@ -30,8 +30,6 @@ const (
 	FieldDepartmentID = "department_id"
 	// FieldRole holds the string denoting the role field in the database.
 	FieldRole = "role"
-	// FieldSubdivision holds the string denoting the subdivision field in the database.
-	FieldSubdivision = "subdivision"
 	// FieldJobTitle holds the string denoting the job_title field in the database.
 	FieldJobTitle = "job_title"
 	// FieldEmploymentRate holds the string denoting the employment_rate field in the database.
@@ -115,7 +113,6 @@ var Columns = []string{
 	FieldSuspended,
 	FieldDepartmentID,
 	FieldRole,
-	FieldSubdivision,
 	FieldJobTitle,
 	FieldEmploymentRate,
 	FieldAcademicDegree,
@@ -145,8 +142,6 @@ var (
 	DefaultMiddleName string
 	// DefaultSuspended holds the default value on creation for the "suspended" field.
 	DefaultSuspended bool
-	// DefaultSubdivision holds the default value on creation for the "subdivision" field.
-	DefaultSubdivision string
 	// DefaultJobTitle holds the default value on creation for the "job_title" field.
 	DefaultJobTitle string
 	// DefaultEmploymentRate holds the default value on creation for the "employment_rate" field.
@@ -208,11 +203,6 @@ func ByDepartmentID(opts ...sql.OrderTermOption) OrderOption {
 // ByRole orders the results by the role field.
 func ByRole(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldRole, opts...).ToFunc()
-}
-
-// BySubdivision orders the results by the subdivision field.
-func BySubdivision(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldSubdivision, opts...).ToFunc()
 }
 
 // ByJobTitle orders the results by the job_title field.

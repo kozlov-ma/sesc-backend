@@ -47,7 +47,7 @@ func (r Role) Name() string {
 	case Teacher:
 		return "Преподаватель"
 	case Dephead:
-		return "Заведующий кафедрой"
+		return "Заведующий подразделением"
 	case ScientificDeputy:
 		return "Заместитель директора по научной работе"
 	case OlympiadDeputy:

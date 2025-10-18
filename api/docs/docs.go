@@ -3131,6 +3131,7 @@ const docTemplate = `{
         "respond.Achievement": {
             "type": "object",
             "required": [
+                "departmentId",
                 "documents",
                 "id",
                 "maxPoints",
@@ -3142,6 +3143,10 @@ const docTemplate = `{
                 "templateName"
             ],
             "properties": {
+                "departmentId": {
+                    "type": "string",
+                    "example": "550e8400-e29b-41d4-a716-446655440000"
+                },
                 "documents": {
                     "type": "array",
                     "items": {
