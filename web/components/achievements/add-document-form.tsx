@@ -6,16 +6,16 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useErrorHandler } from "@/hooks/use-error-handler";
 import {
-    getAchievementsOptions,
-    getFilesInfiniteOptions,
-    postFilesMutation,
+  getAchievementsOptions,
+  getFilesInfiniteOptions,
+  postFilesMutation,
 } from "@/lib/api/@tanstack/react-query.gen";
 import { postAchievementsByIdDocuments } from "@/lib/api/sdk.gen";
 import type { RespondFile } from "@/lib/api/types.gen";
 import {
-    useInfiniteQuery,
-    useMutation,
-    useQueryClient,
+  useInfiniteQuery,
+  useMutation,
+  useQueryClient,
 } from "@tanstack/react-query";
 import { Upload } from "lucide-react";
 import { useState } from "react";
@@ -147,10 +147,7 @@ export function AddDocumentForm({
   };
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="space-y-4"
-    >
+    <form onSubmit={handleSubmit} className="space-y-4">
       <div className="space-y-2">
         <Label htmlFor="documentName">Название документа</Label>
         <Input
@@ -218,7 +215,7 @@ export function AddDocumentForm({
                       onClick={() => handleFileSelect(file)}
                     >
                       <div
-                        className="text-sm font-medium truncate"
+                        className="text-sm font-medium truncate text-wrap wrap-break-word break-all"
                         title={file.fileName}
                       >
                         {file.fileName}
@@ -245,7 +242,7 @@ export function AddDocumentForm({
                       onClick={() => handleFileSelect(file)}
                     >
                       <div
-                        className="text-sm font-medium truncate"
+                        className="text-sm font-medium truncate text-wrap wrap-break-word break-all"
                         title={file.fileName}
                       >
                         {file.fileName}
@@ -260,11 +257,7 @@ export function AddDocumentForm({
       </div>
 
       <div className="flex justify-end space-x-2">
-        <Button
-          type="button"
-          variant="outline"
-          onClick={onCancel}
-        >
+        <Button type="button" variant="outline" onClick={onCancel}>
           Отмена
         </Button>
         <Button
