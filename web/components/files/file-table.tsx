@@ -88,7 +88,7 @@ export function FileTable({
   } = useInfiniteQuery({
     ...fileOpt,
     getNextPageParam: (lastPage, pages) =>
-      lastPage.files?.length == 20 ? pages?.length || 0 : undefined,
+      lastPage.files?.length === 20 ? pages.length * 20 : undefined,
   });
 
   const uploadFileMutation = useMutation({
