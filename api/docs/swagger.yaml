@@ -58,9 +58,6 @@ definitions:
       role:
         example: 2
         type: integer
-      subdivision:
-        example: Кафедра информатики
-        type: string
       unemploymentDate:
         example: "2023-12-31T00:00:00Z"
         type: string
@@ -72,7 +69,6 @@ definitions:
     - lastName
     - personnelCategory
     - role
-    - subdivision
     type: object
   api.CredentialsRequest:
     properties:
@@ -583,9 +579,6 @@ definitions:
         type: string
       role:
         $ref: '#/definitions/respond.Role'
-      subdivision:
-        example: Кафедра информатики
-        type: string
       suspended:
         type: boolean
       unemploymentDate:
@@ -601,7 +594,6 @@ definitions:
     - personnelCategory
     - pictureUrl
     - role
-    - subdivision
     - suspended
     type: object
   respond.Users:

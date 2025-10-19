@@ -86,11 +86,6 @@ type APICreateUserRequest struct {
 	// Required: true
 	Role *int64 `json:"role"`
 
-	// subdivision
-	// Example: Кафедра информатики
-	// Required: true
-	Subdivision *string `json:"subdivision"`
-
 	// unemployment date
 	// Example: 2023-12-31T00:00:00Z
 	UnemploymentDate string `json:"unemploymentDate,omitempty"`
@@ -125,10 +120,6 @@ func (m *APICreateUserRequest) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := m.validateRole(formats); err != nil {
-		res = append(res, err)
-	}
-
-	if err := m.validateSubdivision(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -195,15 +186,6 @@ func (m *APICreateUserRequest) validatePersonnelCategory(formats strfmt.Registry
 func (m *APICreateUserRequest) validateRole(formats strfmt.Registry) error {
 
 	if err := validate.Required("role", "body", m.Role); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (m *APICreateUserRequest) validateSubdivision(formats strfmt.Registry) error {
-
-	if err := validate.Required("subdivision", "body", m.Subdivision); err != nil {
 		return err
 	}
 

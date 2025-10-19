@@ -2717,8 +2717,7 @@ const docTemplate = `{
                 "jobTitle",
                 "lastName",
                 "personnelCategory",
-                "role",
-                "subdivision"
+                "role"
             ],
             "properties": {
                 "academicDegree": {
@@ -2780,10 +2779,6 @@ const docTemplate = `{
                 "role": {
                     "type": "integer",
                     "example": 2
-                },
-                "subdivision": {
-                    "type": "string",
-                    "example": "Кафедра информатики"
                 },
                 "unemploymentDate": {
                     "type": "string",
@@ -3445,7 +3440,6 @@ const docTemplate = `{
                 "personnelCategory",
                 "pictureUrl",
                 "role",
-                "subdivision",
                 "suspended"
             ],
             "properties": {
@@ -3510,10 +3504,6 @@ const docTemplate = `{
                 },
                 "role": {
                     "$ref": "#/definitions/respond.Role"
-                },
-                "subdivision": {
-                    "type": "string",
-                    "example": "Кафедра информатики"
                 },
                 "suspended": {
                     "type": "boolean"

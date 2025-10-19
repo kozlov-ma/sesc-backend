@@ -90,11 +90,6 @@ type RespondUser struct {
 	// Required: true
 	Role *RespondRole `json:"role"`
 
-	// subdivision
-	// Example: Кафедра информатики
-	// Required: true
-	Subdivision *string `json:"subdivision"`
-
 	// suspended
 	// Required: true
 	Suspended *bool `json:"suspended"`
@@ -141,10 +136,6 @@ func (m *RespondUser) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := m.validateRole(formats); err != nil {
-		res = append(res, err)
-	}
-
-	if err := m.validateSubdivision(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -245,15 +236,6 @@ func (m *RespondUser) validateRole(formats strfmt.Registry) error {
 			}
 			return err
 		}
-	}
-
-	return nil
-}
-
-func (m *RespondUser) validateSubdivision(formats strfmt.Registry) error {
-
-	if err := validate.Required("subdivision", "body", m.Subdivision); err != nil {
-		return err
 	}
 
 	return nil
