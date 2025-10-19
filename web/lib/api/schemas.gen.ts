@@ -25,7 +25,6 @@ export const api_CreateUserRequestSchema = {
     "lastName",
     "personnelCategory",
     "role",
-    "subdivision",
   ],
   properties: {
     academicDegree: {
@@ -87,10 +86,6 @@ export const api_CreateUserRequestSchema = {
     role: {
       type: "integer",
       example: 2,
-    },
-    subdivision: {
-      type: "string",
-      example: "Кафедра информатики",
     },
     unemploymentDate: {
       type: "string",
@@ -412,6 +407,7 @@ export const param_UpdateAchievementPointsRequestSchema = {
 export const respond_AchievementSchema = {
   type: "object",
   required: [
+    "departmentId",
     "documents",
     "id",
     "maxPoints",
@@ -423,6 +419,10 @@ export const respond_AchievementSchema = {
     "templateName",
   ],
   properties: {
+    departmentId: {
+      type: "string",
+      example: "550e8400-e29b-41d4-a716-446655440000",
+    },
     documents: {
       type: "array",
       items: {
@@ -706,7 +706,6 @@ export const respond_UserSchema = {
     "personnelCategory",
     "pictureUrl",
     "role",
-    "subdivision",
     "suspended",
   ],
   properties: {
@@ -771,10 +770,6 @@ export const respond_UserSchema = {
     },
     role: {
       $ref: "#/definitions/respond.Role",
-    },
-    subdivision: {
-      type: "string",
-      example: "Кафедра информатики",
     },
     suspended: {
       type: "boolean",

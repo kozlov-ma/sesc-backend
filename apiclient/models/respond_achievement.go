@@ -20,6 +20,11 @@ import (
 // swagger:model respond.Achievement
 type RespondAchievement struct {
 
+	// department Id
+	// Example: 550e8400-e29b-41d4-a716-446655440000
+	// Required: true
+	DepartmentID *string `json:"departmentId"`
+
 	// documents
 	// Required: true
 	Documents []*RespondDocument `json:"documents"`
@@ -68,6 +73,10 @@ type RespondAchievement struct {
 func (m *RespondAchievement) Validate(formats strfmt.Registry) error {
 	var res []error
 
+	if err := m.validateDepartmentID(formats); err != nil {
+		res = append(res, err)
+	}
+
 	if err := m.validateDocuments(formats); err != nil {
 		res = append(res, err)
 	}
@@ -107,6 +116,15 @@ func (m *RespondAchievement) Validate(formats strfmt.Registry) error {
 	if len(res) > 0 {
 		return errors.CompositeValidationError(res...)
 	}
+	return nil
+}
+
+func (m *RespondAchievement) validateDepartmentID(formats strfmt.Registry) error {
+
+	if err := validate.Required("departmentId", "body", m.DepartmentID); err != nil {
+		return err
+	}
+
 	return nil
 }
 

@@ -2709,8 +2709,7 @@
                 "jobTitle",
                 "lastName",
                 "personnelCategory",
-                "role",
-                "subdivision"
+                "role"
             ],
             "properties": {
                 "academicDegree": {
@@ -2772,10 +2771,6 @@
                 "role": {
                     "type": "integer",
                     "example": 2
-                },
-                "subdivision": {
-                    "type": "string",
-                    "example": "Кафедра информатики"
                 },
                 "unemploymentDate": {
                     "type": "string",
@@ -3437,7 +3432,6 @@
                 "personnelCategory",
                 "pictureUrl",
                 "role",
-                "subdivision",
                 "suspended"
             ],
             "properties": {
@@ -3502,10 +3496,6 @@
                 },
                 "role": {
                     "$ref": "#/definitions/respond.Role"
-                },
-                "subdivision": {
-                    "type": "string",
-                    "example": "Кафедра информатики"
                 },
                 "suspended": {
                     "type": "boolean"
