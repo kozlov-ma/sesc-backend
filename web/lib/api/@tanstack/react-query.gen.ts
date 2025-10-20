@@ -12,15 +12,12 @@ import { client } from "../client.gen";
 import {
   deleteAchievementsById,
   deleteAchievementsByIdDocumentsByDocumentId,
-  deleteAuthCredentialsById,
-  deleteDepartmentsById,
   deleteFilesById,
   getAchievementGroups,
   getAchievements,
   getAchievementsById,
   getAchievementsUsers,
   getAchievementTemplates,
-  getAuthCredentialsById,
   getAuthValidate,
   getDepartments,
   getDepartmentsById,
@@ -35,7 +32,6 @@ import {
   type Options,
   patchAchievementGroupsById,
   patchAchievementTemplatesById,
-  patchUsersById,
   postAchievementGroups,
   postAchievements,
   postAchievementsByIdDocuments,
@@ -43,24 +39,15 @@ import {
   postAchievementsByIdSubmit,
   postAchievementsByIdSubmitWithNewPoints,
   postAchievementTemplates,
-  postAuthAdminLogin,
   postAuthLogin,
-  postDepartments,
   postFiles,
   postReportsMarkAllAccounted,
-  postUsers,
-  putDepartmentsById,
-  putUsersByIdCredentials,
 } from "../sdk.gen";
 import type {
   DeleteAchievementsByIdData,
   DeleteAchievementsByIdDocumentsByDocumentIdData,
   DeleteAchievementsByIdDocumentsByDocumentIdError,
   DeleteAchievementsByIdError,
-  DeleteAuthCredentialsByIdData,
-  DeleteAuthCredentialsByIdError,
-  DeleteDepartmentsByIdData,
-  DeleteDepartmentsByIdError,
   DeleteFilesByIdData,
   DeleteFilesByIdError,
   GetAchievementGroupsData,
@@ -72,7 +59,6 @@ import type {
   GetAchievementsUsersError,
   GetAchievementsUsersResponse,
   GetAchievementTemplatesData,
-  GetAuthCredentialsByIdData,
   GetAuthValidateData,
   GetDepartmentsByIdData,
   GetDepartmentsData,
@@ -85,18 +71,13 @@ import type {
   GetRolesData,
   GetUsersByIdData,
   GetUsersData,
-  GetUsersError,
   GetUsersMeData,
-  GetUsersResponse,
   PatchAchievementGroupsByIdData,
   PatchAchievementGroupsByIdError,
   PatchAchievementGroupsByIdResponse,
   PatchAchievementTemplatesByIdData,
   PatchAchievementTemplatesByIdError,
   PatchAchievementTemplatesByIdResponse,
-  PatchUsersByIdData,
-  PatchUsersByIdError,
-  PatchUsersByIdResponse,
   PostAchievementGroupsData,
   PostAchievementGroupsError,
   PostAchievementGroupsResponse,
@@ -118,30 +99,15 @@ import type {
   PostAchievementTemplatesData,
   PostAchievementTemplatesError,
   PostAchievementTemplatesResponse,
-  PostAuthAdminLoginData,
-  PostAuthAdminLoginError,
-  PostAuthAdminLoginResponse,
   PostAuthLoginData,
   PostAuthLoginError,
   PostAuthLoginResponse,
-  PostDepartmentsData,
-  PostDepartmentsError,
-  PostDepartmentsResponse,
   PostFilesData,
   PostFilesError,
   PostFilesResponse,
   PostReportsMarkAllAccountedData,
   PostReportsMarkAllAccountedError,
   PostReportsMarkAllAccountedResponse,
-  PostUsersData,
-  PostUsersError,
-  PostUsersResponse,
-  PutDepartmentsByIdData,
-  PutDepartmentsByIdError,
-  PutDepartmentsByIdResponse,
-  PutUsersByIdCredentialsData,
-  PutUsersByIdCredentialsError,
-  PutUsersByIdCredentialsResponse,
 } from "../types.gen";
 
 export type QueryKey<TOptions extends Options> = [
@@ -758,87 +724,6 @@ export const postAchievementsByIdSubmitWithNewPointsMutation = (
 };
 
 /**
- * Admin login
- * Verifies admin token and returns a JWT token with admin privileges
- */
-export const postAuthAdminLoginMutation = (
-  options?: Partial<Options<PostAuthAdminLoginData>>,
-): UseMutationOptions<
-  PostAuthAdminLoginResponse,
-  AxiosError<PostAuthAdminLoginError>,
-  Options<PostAuthAdminLoginData>
-> => {
-  const mutationOptions: UseMutationOptions<
-    PostAuthAdminLoginResponse,
-    AxiosError<PostAuthAdminLoginError>,
-    Options<PostAuthAdminLoginData>
-  > = {
-    mutationFn: async (fnOptions) => {
-      const { data } = await postAuthAdminLogin({
-        ...options,
-        ...fnOptions,
-        throwOnError: true,
-      });
-      return data;
-    },
-  };
-  return mutationOptions;
-};
-
-/**
- * Delete user credentials
- * Deletes credentials for a user
- */
-export const deleteAuthCredentialsByIdMutation = (
-  options?: Partial<Options<DeleteAuthCredentialsByIdData>>,
-): UseMutationOptions<
-  unknown,
-  AxiosError<DeleteAuthCredentialsByIdError>,
-  Options<DeleteAuthCredentialsByIdData>
-> => {
-  const mutationOptions: UseMutationOptions<
-    unknown,
-    AxiosError<DeleteAuthCredentialsByIdError>,
-    Options<DeleteAuthCredentialsByIdData>
-  > = {
-    mutationFn: async (fnOptions) => {
-      const { data } = await deleteAuthCredentialsById({
-        ...options,
-        ...fnOptions,
-        throwOnError: true,
-      });
-      return data;
-    },
-  };
-  return mutationOptions;
-};
-
-export const getAuthCredentialsByIdQueryKey = (
-  options: Options<GetAuthCredentialsByIdData>,
-) => createQueryKey("getAuthCredentialsById", options);
-
-/**
- * Get user credentials
- * Retrieves credentials for a user
- */
-export const getAuthCredentialsByIdOptions = (
-  options: Options<GetAuthCredentialsByIdData>,
-) => {
-  return queryOptions({
-    queryFn: async ({ queryKey, signal }) => {
-      const { data } = await getAuthCredentialsById({
-        ...options,
-        ...queryKey[0],
-        signal,
-        throwOnError: true,
-      });
-      return data;
-    },
-    queryKey: getAuthCredentialsByIdQueryKey(options),
-  });
-};
-
-/**
  * User login
  * Verifies user credentials and returns a JWT token
  */
@@ -915,62 +800,6 @@ export const getDepartmentsOptions = (
   });
 };
 
-/**
- * Create a new department
- * Creates a new department with the given details
- */
-export const postDepartmentsMutation = (
-  options?: Partial<Options<PostDepartmentsData>>,
-): UseMutationOptions<
-  PostDepartmentsResponse,
-  AxiosError<PostDepartmentsError>,
-  Options<PostDepartmentsData>
-> => {
-  const mutationOptions: UseMutationOptions<
-    PostDepartmentsResponse,
-    AxiosError<PostDepartmentsError>,
-    Options<PostDepartmentsData>
-  > = {
-    mutationFn: async (fnOptions) => {
-      const { data } = await postDepartments({
-        ...options,
-        ...fnOptions,
-        throwOnError: true,
-      });
-      return data;
-    },
-  };
-  return mutationOptions;
-};
-
-/**
- * Delete a department
- * Deletes a department by its ID
- */
-export const deleteDepartmentsByIdMutation = (
-  options?: Partial<Options<DeleteDepartmentsByIdData>>,
-): UseMutationOptions<
-  unknown,
-  AxiosError<DeleteDepartmentsByIdError>,
-  Options<DeleteDepartmentsByIdData>
-> => {
-  const mutationOptions: UseMutationOptions<
-    unknown,
-    AxiosError<DeleteDepartmentsByIdError>,
-    Options<DeleteDepartmentsByIdData>
-  > = {
-    mutationFn: async (fnOptions) => {
-      const { data } = await deleteDepartmentsById({
-        ...options,
-        ...fnOptions,
-        throwOnError: true,
-      });
-      return data;
-    },
-  };
-  return mutationOptions;
-};
-
 export const getDepartmentsByIdQueryKey = (
   options: Options<GetDepartmentsByIdData>,
 ) => createQueryKey("getDepartmentsById", options);
@@ -994,34 +823,6 @@ export const getDepartmentsByIdOptions = (
     },
     queryKey: getDepartmentsByIdQueryKey(options),
   });
-};
-
-/**
- * Update department details
- * Updates an existing department with new details
- */
-export const putDepartmentsByIdMutation = (
-  options?: Partial<Options<PutDepartmentsByIdData>>,
-): UseMutationOptions<
-  PutDepartmentsByIdResponse,
-  AxiosError<PutDepartmentsByIdError>,
-  Options<PutDepartmentsByIdData>
-> => {
-  const mutationOptions: UseMutationOptions<
-    PutDepartmentsByIdResponse,
-    AxiosError<PutDepartmentsByIdError>,
-    Options<PutDepartmentsByIdData>
-  > = {
-    mutationFn: async (fnOptions) => {
-      const { data } = await putDepartmentsById({
-        ...options,
-        ...fnOptions,
-        throwOnError: true,
-      });
-      return data;
-    },
-  };
-  return mutationOptions;
 };
 
 export const getFilesQueryKey = (options?: Options<GetFilesData>) =>
@@ -1295,83 +1096,6 @@ export const getUsersOptions = (options?: Options<GetUsersData>) => {
   });
 };
 
-export const getUsersInfiniteQueryKey = (
-  options?: Options<GetUsersData>,
-): QueryKey<Options<GetUsersData>> => createQueryKey("getUsers", options, true);
-
-/**
- * Get all users registered in the system
- * Retrieves detailed information about all users
- */
-export const getUsersInfiniteOptions = (options?: Options<GetUsersData>) => {
-  return infiniteQueryOptions<
-    GetUsersResponse,
-    AxiosError<GetUsersError>,
-    InfiniteData<GetUsersResponse>,
-    QueryKey<Options<GetUsersData>>,
-    | number
-    | Pick<
-        QueryKey<Options<GetUsersData>>[0],
-        "body" | "headers" | "path" | "query"
-      >
-  >(
-    // @ts-ignore
-    {
-      queryFn: async ({ pageParam, queryKey, signal }) => {
-        // @ts-ignore
-        const page: Pick<
-          QueryKey<Options<GetUsersData>>[0],
-          "body" | "headers" | "path" | "query"
-        > =
-          typeof pageParam === "object"
-            ? pageParam
-            : {
-                query: {
-                  offset: pageParam,
-                },
-              };
-        const params = createInfiniteParams(queryKey, page);
-        const { data } = await getUsers({
-          ...options,
-          ...params,
-          signal,
-          throwOnError: true,
-        });
-        return data;
-      },
-      queryKey: getUsersInfiniteQueryKey(options),
-    },
-  );
-};
-
-/**
- * Create new user
- * Creates a new user with specified role (non-teacher)
- */
-export const postUsersMutation = (
-  options?: Partial<Options<PostUsersData>>,
-): UseMutationOptions<
-  PostUsersResponse,
-  AxiosError<PostUsersError>,
-  Options<PostUsersData>
-> => {
-  const mutationOptions: UseMutationOptions<
-    PostUsersResponse,
-    AxiosError<PostUsersError>,
-    Options<PostUsersData>
-  > = {
-    mutationFn: async (fnOptions) => {
-      const { data } = await postUsers({
-        ...options,
-        ...fnOptions,
-        throwOnError: true,
-      });
-      return data;
-    },
-  };
-  return mutationOptions;
-};
-
 export const getUsersMeQueryKey = (options?: Options<GetUsersMeData>) =>
   createQueryKey("getUsersMe", options);
 
@@ -1414,60 +1138,4 @@ export const getUsersByIdOptions = (options: Options<GetUsersByIdData>) => {
     },
     queryKey: getUsersByIdQueryKey(options),
   });
-};
-
-/**
- * Partially update user
- * Applies a partial update to the user identified by {id}. Only non-nil fields in the request are applied.
- */
-export const patchUsersByIdMutation = (
-  options?: Partial<Options<PatchUsersByIdData>>,
-): UseMutationOptions<
-  PatchUsersByIdResponse,
-  AxiosError<PatchUsersByIdError>,
-  Options<PatchUsersByIdData>
-> => {
-  const mutationOptions: UseMutationOptions<
-    PatchUsersByIdResponse,
-    AxiosError<PatchUsersByIdError>,
-    Options<PatchUsersByIdData>
-  > = {
-    mutationFn: async (fnOptions) => {
-      const { data } = await patchUsersById({
-        ...options,
-        ...fnOptions,
-        throwOnError: true,
-      });
-      return data;
-    },
-  };
-  return mutationOptions;
-};
-
-/**
- * Register user credentials
- * Assigns username/password credentials to an existing user
- */
-export const putUsersByIdCredentialsMutation = (
-  options?: Partial<Options<PutUsersByIdCredentialsData>>,
-): UseMutationOptions<
-  PutUsersByIdCredentialsResponse,
-  AxiosError<PutUsersByIdCredentialsError>,
-  Options<PutUsersByIdCredentialsData>
-> => {
-  const mutationOptions: UseMutationOptions<
-    PutUsersByIdCredentialsResponse,
-    AxiosError<PutUsersByIdCredentialsError>,
-    Options<PutUsersByIdCredentialsData>
-  > = {
-    mutationFn: async (fnOptions) => {
-      const { data } = await putUsersByIdCredentials({
-        ...options,
-        ...fnOptions,
-        throwOnError: true,
-      });
-      return data;
-    },
-  };
-  return mutationOptions;
 };

@@ -16,7 +16,6 @@ import (
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievement"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievementreview"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/predicate"
-	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/user"
 )
 
 // AchievementReviewQuery is the builder for querying AchievementReview entities.
@@ -27,7 +26,6 @@ type AchievementReviewQuery struct {
 	inters          []Interceptor
 	predicates      []predicate.AchievementReview
 	withAchievement *AchievementQuery
-	withReviewer    *UserQuery
 	modifiers       []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -80,28 +78,6 @@ func (arq *AchievementReviewQuery) QueryAchievement() *AchievementQuery {
 			sqlgraph.From(achievementreview.Table, achievementreview.FieldID, selector),
 			sqlgraph.To(achievement.Table, achievement.FieldID),
 			sqlgraph.Edge(sqlgraph.M2O, true, achievementreview.AchievementTable, achievementreview.AchievementColumn),
-		)
-		fromU = sqlgraph.SetNeighbors(arq.driver.Dialect(), step)
-		return fromU, nil
-	}
-	return query
-}
-
-// QueryReviewer chains the current query on the "reviewer" edge.
-func (arq *AchievementReviewQuery) QueryReviewer() *UserQuery {
-	query := (&UserClient{config: arq.config}).Query()
-	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
-		if err := arq.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		selector := arq.sqlQuery(ctx)
-		if err := selector.Err(); err != nil {
-			return nil, err
-		}
-		step := sqlgraph.NewStep(
-			sqlgraph.From(achievementreview.Table, achievementreview.FieldID, selector),
-			sqlgraph.To(user.Table, user.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, achievementreview.ReviewerTable, achievementreview.ReviewerColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(arq.driver.Dialect(), step)
 		return fromU, nil
@@ -302,7 +278,6 @@ func (arq *AchievementReviewQuery) Clone() *AchievementReviewQuery {
 		inters:          append([]Interceptor{}, arq.inters...),
 		predicates:      append([]predicate.AchievementReview{}, arq.predicates...),
 		withAchievement: arq.withAchievement.Clone(),
-		withReviewer:    arq.withReviewer.Clone(),
 		// clone intermediate query.
 		sql:  arq.sql.Clone(),
 		path: arq.path,
@@ -317,17 +292,6 @@ func (arq *AchievementReviewQuery) WithAchievement(opts ...func(*AchievementQuer
 		opt(query)
 	}
 	arq.withAchievement = query
-	return arq
-}
-
-// WithReviewer tells the query-builder to eager-load the nodes that are connected to
-// the "reviewer" edge. The optional arguments are used to configure the query builder of the edge.
-func (arq *AchievementReviewQuery) WithReviewer(opts ...func(*UserQuery)) *AchievementReviewQuery {
-	query := (&UserClient{config: arq.config}).Query()
-	for _, opt := range opts {
-		opt(query)
-	}
-	arq.withReviewer = query
 	return arq
 }
 
@@ -409,9 +373,8 @@ func (arq *AchievementReviewQuery) sqlAll(ctx context.Context, hooks ...queryHoo
 	var (
 		nodes       = []*AchievementReview{}
 		_spec       = arq.querySpec()
-		loadedTypes = [2]bool{
+		loadedTypes = [1]bool{
 			arq.withAchievement != nil,
-			arq.withReviewer != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -441,12 +404,6 @@ func (arq *AchievementReviewQuery) sqlAll(ctx context.Context, hooks ...queryHoo
 			return nil, err
 		}
 	}
-	if query := arq.withReviewer; query != nil {
-		if err := arq.loadReviewer(ctx, query, nodes, nil,
-			func(n *AchievementReview, e *User) { n.Edges.Reviewer = e }); err != nil {
-			return nil, err
-		}
-	}
 	return nodes, nil
 }
 
@@ -472,35 +429,6 @@ func (arq *AchievementReviewQuery) loadAchievement(ctx context.Context, query *A
 		nodes, ok := nodeids[n.ID]
 		if !ok {
 			return fmt.Errorf(`unexpected foreign-key "achievement_id" returned %v`, n.ID)
-		}
-		for i := range nodes {
-			assign(nodes[i], n)
-		}
-	}
-	return nil
-}
-func (arq *AchievementReviewQuery) loadReviewer(ctx context.Context, query *UserQuery, nodes []*AchievementReview, init func(*AchievementReview), assign func(*AchievementReview, *User)) error {
-	ids := make([]uuid.UUID, 0, len(nodes))
-	nodeids := make(map[uuid.UUID][]*AchievementReview)
-	for i := range nodes {
-		fk := nodes[i].ReviewerID
-		if _, ok := nodeids[fk]; !ok {
-			ids = append(ids, fk)
-		}
-		nodeids[fk] = append(nodeids[fk], nodes[i])
-	}
-	if len(ids) == 0 {
-		return nil
-	}
-	query.Where(user.IDIn(ids...))
-	neighbors, err := query.All(ctx)
-	if err != nil {
-		return err
-	}
-	for _, n := range neighbors {
-		nodes, ok := nodeids[n.ID]
-		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "reviewer_id" returned %v`, n.ID)
 		}
 		for i := range nodes {
 			assign(nodes[i], n)
@@ -539,9 +467,6 @@ func (arq *AchievementReviewQuery) querySpec() *sqlgraph.QuerySpec {
 		}
 		if arq.withAchievement != nil {
 			_spec.Node.AddColumnOnce(achievementreview.FieldAchievementID)
-		}
-		if arq.withReviewer != nil {
-			_spec.Node.AddColumnOnce(achievementreview.FieldReviewerID)
 		}
 	}
 	if ps := arq.predicates; len(ps) > 0 {

@@ -55,7 +55,7 @@ func IDLTE(id uuid.UUID) predicate.File {
 }
 
 // OwnerID applies equality check predicate on the "owner_id" field. It's identical to OwnerIDEQ.
-func OwnerID(v uuid.UUID) predicate.File {
+func OwnerID(v string) predicate.File {
 	return predicate.File(sql.FieldEQ(FieldOwnerID, v))
 }
 
@@ -75,23 +75,58 @@ func Size(v int) predicate.File {
 }
 
 // OwnerIDEQ applies the EQ predicate on the "owner_id" field.
-func OwnerIDEQ(v uuid.UUID) predicate.File {
+func OwnerIDEQ(v string) predicate.File {
 	return predicate.File(sql.FieldEQ(FieldOwnerID, v))
 }
 
 // OwnerIDNEQ applies the NEQ predicate on the "owner_id" field.
-func OwnerIDNEQ(v uuid.UUID) predicate.File {
+func OwnerIDNEQ(v string) predicate.File {
 	return predicate.File(sql.FieldNEQ(FieldOwnerID, v))
 }
 
 // OwnerIDIn applies the In predicate on the "owner_id" field.
-func OwnerIDIn(vs ...uuid.UUID) predicate.File {
+func OwnerIDIn(vs ...string) predicate.File {
 	return predicate.File(sql.FieldIn(FieldOwnerID, vs...))
 }
 
 // OwnerIDNotIn applies the NotIn predicate on the "owner_id" field.
-func OwnerIDNotIn(vs ...uuid.UUID) predicate.File {
+func OwnerIDNotIn(vs ...string) predicate.File {
 	return predicate.File(sql.FieldNotIn(FieldOwnerID, vs...))
+}
+
+// OwnerIDGT applies the GT predicate on the "owner_id" field.
+func OwnerIDGT(v string) predicate.File {
+	return predicate.File(sql.FieldGT(FieldOwnerID, v))
+}
+
+// OwnerIDGTE applies the GTE predicate on the "owner_id" field.
+func OwnerIDGTE(v string) predicate.File {
+	return predicate.File(sql.FieldGTE(FieldOwnerID, v))
+}
+
+// OwnerIDLT applies the LT predicate on the "owner_id" field.
+func OwnerIDLT(v string) predicate.File {
+	return predicate.File(sql.FieldLT(FieldOwnerID, v))
+}
+
+// OwnerIDLTE applies the LTE predicate on the "owner_id" field.
+func OwnerIDLTE(v string) predicate.File {
+	return predicate.File(sql.FieldLTE(FieldOwnerID, v))
+}
+
+// OwnerIDContains applies the Contains predicate on the "owner_id" field.
+func OwnerIDContains(v string) predicate.File {
+	return predicate.File(sql.FieldContains(FieldOwnerID, v))
+}
+
+// OwnerIDHasPrefix applies the HasPrefix predicate on the "owner_id" field.
+func OwnerIDHasPrefix(v string) predicate.File {
+	return predicate.File(sql.FieldHasPrefix(FieldOwnerID, v))
+}
+
+// OwnerIDHasSuffix applies the HasSuffix predicate on the "owner_id" field.
+func OwnerIDHasSuffix(v string) predicate.File {
+	return predicate.File(sql.FieldHasSuffix(FieldOwnerID, v))
 }
 
 // OwnerIDIsNil applies the IsNil predicate on the "owner_id" field.
@@ -102,6 +137,16 @@ func OwnerIDIsNil() predicate.File {
 // OwnerIDNotNil applies the NotNil predicate on the "owner_id" field.
 func OwnerIDNotNil() predicate.File {
 	return predicate.File(sql.FieldNotNull(FieldOwnerID))
+}
+
+// OwnerIDEqualFold applies the EqualFold predicate on the "owner_id" field.
+func OwnerIDEqualFold(v string) predicate.File {
+	return predicate.File(sql.FieldEqualFold(FieldOwnerID, v))
+}
+
+// OwnerIDContainsFold applies the ContainsFold predicate on the "owner_id" field.
+func OwnerIDContainsFold(v string) predicate.File {
+	return predicate.File(sql.FieldContainsFold(FieldOwnerID, v))
 }
 
 // S3ObjectKeyEQ applies the EQ predicate on the "s3_object_key" field.
@@ -272,29 +317,6 @@ func SizeLT(v int) predicate.File {
 // SizeLTE applies the LTE predicate on the "size" field.
 func SizeLTE(v int) predicate.File {
 	return predicate.File(sql.FieldLTE(FieldSize, v))
-}
-
-// HasOwner applies the HasEdge predicate on the "owner" edge.
-func HasOwner() predicate.File {
-	return predicate.File(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, OwnerTable, OwnerColumn),
-		)
-		sqlgraph.HasNeighbors(s, step)
-	})
-}
-
-// HasOwnerWith applies the HasEdge predicate on the "owner" edge with a given conditions (other predicates).
-func HasOwnerWith(preds ...predicate.User) predicate.File {
-	return predicate.File(func(s *sql.Selector) {
-		step := newOwnerStep()
-		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
-			for _, p := range preds {
-				p(s)
-			}
-		})
-	})
 }
 
 // HasAchievementDocuments applies the HasEdge predicate on the "achievement_documents" edge.

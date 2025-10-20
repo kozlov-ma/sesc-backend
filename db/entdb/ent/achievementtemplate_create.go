@@ -10,10 +10,10 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	uuid "github.com/gofrs/uuid/v5"
+	"github.com/kozlov-ma/sesc-backend/company"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievement"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievementgroup"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievementtemplate"
-	"github.com/kozlov-ma/sesc-backend/sesc"
 )
 
 // AchievementTemplateCreate is the builder for creating a AchievementTemplate entity.
@@ -70,8 +70,8 @@ func (atc *AchievementTemplateCreate) SetNillableActive(b *bool) *AchievementTem
 }
 
 // SetReviewerRole sets the "reviewer_role" field.
-func (atc *AchievementTemplateCreate) SetReviewerRole(s sesc.Role) *AchievementTemplateCreate {
-	atc.mutation.SetReviewerRole(s)
+func (atc *AchievementTemplateCreate) SetReviewerRole(c company.Role) *AchievementTemplateCreate {
+	atc.mutation.SetReviewerRole(c)
 	return atc
 }
 
@@ -181,11 +181,6 @@ func (atc *AchievementTemplateCreate) check() error {
 	if _, ok := atc.mutation.ReviewerRole(); !ok {
 		return &ValidationError{Name: "reviewer_role", err: errors.New(`ent: missing required field "AchievementTemplate.reviewer_role"`)}
 	}
-	if v, ok := atc.mutation.ReviewerRole(); ok {
-		if err := v.Validate(); err != nil {
-			return &ValidationError{Name: "reviewer_role", err: fmt.Errorf(`ent: validator failed for field "AchievementTemplate.reviewer_role": %w`, err)}
-		}
-	}
 	if len(atc.mutation.GroupIDs()) == 0 {
 		return &ValidationError{Name: "group", err: errors.New(`ent: missing required edge "AchievementTemplate.group"`)}
 	}
@@ -241,7 +236,7 @@ func (atc *AchievementTemplateCreate) createSpec() (*AchievementTemplate, *sqlgr
 		_node.Active = value
 	}
 	if value, ok := atc.mutation.ReviewerRole(); ok {
-		_spec.SetField(achievementtemplate.FieldReviewerRole, field.TypeInt, value)
+		_spec.SetField(achievementtemplate.FieldReviewerRole, field.TypeString, value)
 		_node.ReviewerRole = value
 	}
 	if nodes := atc.mutation.GroupIDs(); len(nodes) > 0 {

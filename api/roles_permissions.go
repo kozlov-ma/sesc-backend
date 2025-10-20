@@ -3,17 +3,13 @@ package api
 import (
 	"net/http"
 
+	"github.com/kozlov-ma/sesc-backend/api/respond"
+	"github.com/kozlov-ma/sesc-backend/company"
 	"github.com/kozlov-ma/sesc-backend/sesc"
 )
 
 type RolesResponse struct {
-	Roles []Role `json:"roles"`
-}
-
-type Role struct {
-	ID       int    `json:"id"       example:"1"             validate:"required"`
-	Name     string `json:"name"     example:"Преподаватель" validate:"required"`
-	CodeName string `json:"codeName" example:"teacher"       validate:"required"`
+	Roles []respond.Role `json:"roles"`
 }
 
 // Roles godoc
@@ -27,19 +23,11 @@ type Role struct {
 func (a *API) Roles(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	response := RolesResponse{
-		Roles: make([]Role, len(sesc.Roles)),
+		Roles: make([]respond.Role, len(sesc.Roles)),
 	}
-	for i, role := range sesc.Roles {
-		response.Roles[i] = convertRole(role)
+	for i, role := range company.Roles {
+		response.Roles[i] = respond.WithRole(role)
 	}
 
 	a.writeJSON(ctx, w, response)
-}
-
-func convertRole(r sesc.Role) Role {
-	return Role{
-		ID:       int(r),
-		Name:     r.Name(),
-		CodeName: r.String(),
-	}
 }

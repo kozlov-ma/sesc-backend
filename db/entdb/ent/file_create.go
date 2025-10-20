@@ -12,7 +12,6 @@ import (
 	uuid "github.com/gofrs/uuid/v5"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievementdocument"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/file"
-	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/user"
 )
 
 // FileCreate is the builder for creating a File entity.
@@ -23,15 +22,15 @@ type FileCreate struct {
 }
 
 // SetOwnerID sets the "owner_id" field.
-func (fc *FileCreate) SetOwnerID(u uuid.UUID) *FileCreate {
-	fc.mutation.SetOwnerID(u)
+func (fc *FileCreate) SetOwnerID(s string) *FileCreate {
+	fc.mutation.SetOwnerID(s)
 	return fc
 }
 
 // SetNillableOwnerID sets the "owner_id" field if the given value is not nil.
-func (fc *FileCreate) SetNillableOwnerID(u *uuid.UUID) *FileCreate {
-	if u != nil {
-		fc.SetOwnerID(*u)
+func (fc *FileCreate) SetNillableOwnerID(s *string) *FileCreate {
+	if s != nil {
+		fc.SetOwnerID(*s)
 	}
 	return fc
 }
@@ -66,11 +65,6 @@ func (fc *FileCreate) SetNillableID(u *uuid.UUID) *FileCreate {
 		fc.SetID(*u)
 	}
 	return fc
-}
-
-// SetOwner sets the "owner" edge to the User entity.
-func (fc *FileCreate) SetOwner(u *User) *FileCreate {
-	return fc.SetOwnerID(u.ID)
 }
 
 // AddAchievementDocumentIDs adds the "achievement_documents" edge to the AchievementDocument entity by IDs.
@@ -175,6 +169,10 @@ func (fc *FileCreate) createSpec() (*File, *sqlgraph.CreateSpec) {
 		_node.ID = id
 		_spec.ID.Value = &id
 	}
+	if value, ok := fc.mutation.OwnerID(); ok {
+		_spec.SetField(file.FieldOwnerID, field.TypeString, value)
+		_node.OwnerID = &value
+	}
 	if value, ok := fc.mutation.S3ObjectKey(); ok {
 		_spec.SetField(file.FieldS3ObjectKey, field.TypeString, value)
 		_node.S3ObjectKey = value
@@ -186,23 +184,6 @@ func (fc *FileCreate) createSpec() (*File, *sqlgraph.CreateSpec) {
 	if value, ok := fc.mutation.Size(); ok {
 		_spec.SetField(file.FieldSize, field.TypeInt, value)
 		_node.Size = value
-	}
-	if nodes := fc.mutation.OwnerIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   file.OwnerTable,
-			Columns: []string{file.OwnerColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_node.OwnerID = &nodes[0]
-		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := fc.mutation.AchievementDocumentsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

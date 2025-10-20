@@ -6,8 +6,8 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	uuid "github.com/gofrs/uuid/v5"
+	"github.com/kozlov-ma/sesc-backend/company"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/predicate"
-	"github.com/kozlov-ma/sesc-backend/sesc"
 )
 
 // ID filters vertices based on their ID field.
@@ -81,8 +81,8 @@ func Active(v bool) predicate.AchievementTemplate {
 }
 
 // ReviewerRole applies equality check predicate on the "reviewer_role" field. It's identical to ReviewerRoleEQ.
-func ReviewerRole(v sesc.Role) predicate.AchievementTemplate {
-	vc := int(v)
+func ReviewerRole(v company.Role) predicate.AchievementTemplate {
+	vc := string(v)
 	return predicate.AchievementTemplate(sql.FieldEQ(FieldReviewerRole, vc))
 }
 
@@ -297,57 +297,87 @@ func ActiveNEQ(v bool) predicate.AchievementTemplate {
 }
 
 // ReviewerRoleEQ applies the EQ predicate on the "reviewer_role" field.
-func ReviewerRoleEQ(v sesc.Role) predicate.AchievementTemplate {
-	vc := int(v)
+func ReviewerRoleEQ(v company.Role) predicate.AchievementTemplate {
+	vc := string(v)
 	return predicate.AchievementTemplate(sql.FieldEQ(FieldReviewerRole, vc))
 }
 
 // ReviewerRoleNEQ applies the NEQ predicate on the "reviewer_role" field.
-func ReviewerRoleNEQ(v sesc.Role) predicate.AchievementTemplate {
-	vc := int(v)
+func ReviewerRoleNEQ(v company.Role) predicate.AchievementTemplate {
+	vc := string(v)
 	return predicate.AchievementTemplate(sql.FieldNEQ(FieldReviewerRole, vc))
 }
 
 // ReviewerRoleIn applies the In predicate on the "reviewer_role" field.
-func ReviewerRoleIn(vs ...sesc.Role) predicate.AchievementTemplate {
+func ReviewerRoleIn(vs ...company.Role) predicate.AchievementTemplate {
 	v := make([]any, len(vs))
 	for i := range v {
-		v[i] = int(vs[i])
+		v[i] = string(vs[i])
 	}
 	return predicate.AchievementTemplate(sql.FieldIn(FieldReviewerRole, v...))
 }
 
 // ReviewerRoleNotIn applies the NotIn predicate on the "reviewer_role" field.
-func ReviewerRoleNotIn(vs ...sesc.Role) predicate.AchievementTemplate {
+func ReviewerRoleNotIn(vs ...company.Role) predicate.AchievementTemplate {
 	v := make([]any, len(vs))
 	for i := range v {
-		v[i] = int(vs[i])
+		v[i] = string(vs[i])
 	}
 	return predicate.AchievementTemplate(sql.FieldNotIn(FieldReviewerRole, v...))
 }
 
 // ReviewerRoleGT applies the GT predicate on the "reviewer_role" field.
-func ReviewerRoleGT(v sesc.Role) predicate.AchievementTemplate {
-	vc := int(v)
+func ReviewerRoleGT(v company.Role) predicate.AchievementTemplate {
+	vc := string(v)
 	return predicate.AchievementTemplate(sql.FieldGT(FieldReviewerRole, vc))
 }
 
 // ReviewerRoleGTE applies the GTE predicate on the "reviewer_role" field.
-func ReviewerRoleGTE(v sesc.Role) predicate.AchievementTemplate {
-	vc := int(v)
+func ReviewerRoleGTE(v company.Role) predicate.AchievementTemplate {
+	vc := string(v)
 	return predicate.AchievementTemplate(sql.FieldGTE(FieldReviewerRole, vc))
 }
 
 // ReviewerRoleLT applies the LT predicate on the "reviewer_role" field.
-func ReviewerRoleLT(v sesc.Role) predicate.AchievementTemplate {
-	vc := int(v)
+func ReviewerRoleLT(v company.Role) predicate.AchievementTemplate {
+	vc := string(v)
 	return predicate.AchievementTemplate(sql.FieldLT(FieldReviewerRole, vc))
 }
 
 // ReviewerRoleLTE applies the LTE predicate on the "reviewer_role" field.
-func ReviewerRoleLTE(v sesc.Role) predicate.AchievementTemplate {
-	vc := int(v)
+func ReviewerRoleLTE(v company.Role) predicate.AchievementTemplate {
+	vc := string(v)
 	return predicate.AchievementTemplate(sql.FieldLTE(FieldReviewerRole, vc))
+}
+
+// ReviewerRoleContains applies the Contains predicate on the "reviewer_role" field.
+func ReviewerRoleContains(v company.Role) predicate.AchievementTemplate {
+	vc := string(v)
+	return predicate.AchievementTemplate(sql.FieldContains(FieldReviewerRole, vc))
+}
+
+// ReviewerRoleHasPrefix applies the HasPrefix predicate on the "reviewer_role" field.
+func ReviewerRoleHasPrefix(v company.Role) predicate.AchievementTemplate {
+	vc := string(v)
+	return predicate.AchievementTemplate(sql.FieldHasPrefix(FieldReviewerRole, vc))
+}
+
+// ReviewerRoleHasSuffix applies the HasSuffix predicate on the "reviewer_role" field.
+func ReviewerRoleHasSuffix(v company.Role) predicate.AchievementTemplate {
+	vc := string(v)
+	return predicate.AchievementTemplate(sql.FieldHasSuffix(FieldReviewerRole, vc))
+}
+
+// ReviewerRoleEqualFold applies the EqualFold predicate on the "reviewer_role" field.
+func ReviewerRoleEqualFold(v company.Role) predicate.AchievementTemplate {
+	vc := string(v)
+	return predicate.AchievementTemplate(sql.FieldEqualFold(FieldReviewerRole, vc))
+}
+
+// ReviewerRoleContainsFold applies the ContainsFold predicate on the "reviewer_role" field.
+func ReviewerRoleContainsFold(v company.Role) predicate.AchievementTemplate {
+	vc := string(v)
+	return predicate.AchievementTemplate(sql.FieldContainsFold(FieldReviewerRole, vc))
 }
 
 // HasGroup applies the HasEdge predicate on the "group" edge.

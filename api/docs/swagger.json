@@ -1192,187 +1192,6 @@
                 }
             }
         },
-        "/auth/admin/login": {
-            "post": {
-                "description": "Verifies admin token and returns a JWT token with admin privileges",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "authentication"
-                ],
-                "summary": "Admin login",
-                "parameters": [
-                    {
-                        "description": "Admin credentials",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/api.CredentialsRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/api.TokenResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request format",
-                        "schema": {
-                            "$ref": "#/definitions/respond.Error"
-                        }
-                    },
-                    "401": {
-                        "description": "Invalid admin token or not recognized",
-                        "schema": {
-                            "$ref": "#/definitions/respond.Error"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "$ref": "#/definitions/respond.Error"
-                        }
-                    }
-                }
-            }
-        },
-        "/auth/credentials/{id}": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Retrieves credentials for a user",
-                "tags": [
-                    "authentication"
-                ],
-                "summary": "Get user credentials",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer JWT token",
-                        "name": "Authorization",
-                        "in": "header"
-                    },
-                    {
-                        "type": "string",
-                        "description": "User UUID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/api.CredentialsRequest"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid UUID format",
-                        "schema": {
-                            "$ref": "#/definitions/respond.Error"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/respond.Error"
-                        }
-                    },
-                    "403": {
-                        "description": "Forbidden - admin role required",
-                        "schema": {
-                            "$ref": "#/definitions/respond.Error"
-                        }
-                    },
-                    "404": {
-                        "description": "User not found or does not exist",
-                        "schema": {
-                            "$ref": "#/definitions/respond.Error"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "$ref": "#/definitions/respond.Error"
-                        }
-                    }
-                }
-            },
-            "delete": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Deletes credentials for a user",
-                "tags": [
-                    "authentication"
-                ],
-                "summary": "Delete user credentials",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer JWT token",
-                        "name": "Authorization",
-                        "in": "header"
-                    },
-                    {
-                        "type": "string",
-                        "description": "User UUID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "204": {
-                        "description": "No content"
-                    },
-                    "400": {
-                        "description": "Invalid UUID format",
-                        "schema": {
-                            "$ref": "#/definitions/respond.Error"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/respond.Error"
-                        }
-                    },
-                    "403": {
-                        "description": "Forbidden - admin role required",
-                        "schema": {
-                            "$ref": "#/definitions/respond.Error"
-                        }
-                    },
-                    "404": {
-                        "description": "User credentials not found",
-                        "schema": {
-                            "$ref": "#/definitions/respond.Error"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "$ref": "#/definitions/respond.Error"
-                        }
-                    }
-                }
-            }
-        },
         "/auth/login": {
             "post": {
                 "description": "Verifies user credentials and returns a JWT token",
@@ -1452,7 +1271,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/api.IdentityResponse"
+                            "$ref": "#/definitions/respond.User"
                         }
                     },
                     "401": {
@@ -1494,79 +1313,6 @@
                         }
                     }
                 }
-            },
-            "post": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Creates a new department with the given details",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "departments"
-                ],
-                "summary": "Create a new department",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer JWT token",
-                        "name": "Authorization",
-                        "in": "header"
-                    },
-                    {
-                        "description": "Department details",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/api.CreateDepartmentRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "Created",
-                        "schema": {
-                            "$ref": "#/definitions/respond.Department"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request format",
-                        "schema": {
-                            "$ref": "#/definitions/respond.Error"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/respond.Error"
-                        }
-                    },
-                    "403": {
-                        "description": "Forbidden - admin role required",
-                        "schema": {
-                            "$ref": "#/definitions/respond.Error"
-                        }
-                    },
-                    "409": {
-                        "description": "Department with this name already exists",
-                        "schema": {
-                            "$ref": "#/definitions/respond.Error"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "$ref": "#/definitions/respond.Error"
-                        }
-                    }
-                }
             }
         },
         "/departments/{id}": {
@@ -1593,7 +1339,7 @@
                     },
                     {
                         "type": "string",
-                        "description": "User UUID",
+                        "description": "Department ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -1614,160 +1360,6 @@
                     },
                     "404": {
                         "description": "Department not found",
-                        "schema": {
-                            "$ref": "#/definitions/respond.Error"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "$ref": "#/definitions/respond.Error"
-                        }
-                    }
-                }
-            },
-            "put": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Updates an existing department with new details",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "departments"
-                ],
-                "summary": "Update department details",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer JWT token",
-                        "name": "Authorization",
-                        "in": "header"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Department UUID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "Updated department details",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/api.UpdateDepartmentRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/respond.Department"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid request format",
-                        "schema": {
-                            "$ref": "#/definitions/respond.Error"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/respond.Error"
-                        }
-                    },
-                    "403": {
-                        "description": "Forbidden - admin role required",
-                        "schema": {
-                            "$ref": "#/definitions/respond.Error"
-                        }
-                    },
-                    "404": {
-                        "description": "Department not found",
-                        "schema": {
-                            "$ref": "#/definitions/respond.Error"
-                        }
-                    },
-                    "409": {
-                        "description": "Department with this name already exists",
-                        "schema": {
-                            "$ref": "#/definitions/respond.Error"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "$ref": "#/definitions/respond.Error"
-                        }
-                    }
-                }
-            },
-            "delete": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Deletes a department by its ID",
-                "tags": [
-                    "departments"
-                ],
-                "summary": "Delete a department",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer JWT token",
-                        "name": "Authorization",
-                        "in": "header"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Department UUID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "204": {
-                        "description": "No content"
-                    },
-                    "400": {
-                        "description": "Invalid UUID format",
-                        "schema": {
-                            "$ref": "#/definitions/respond.Error"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/respond.Error"
-                        }
-                    },
-                    "403": {
-                        "description": "Forbidden - admin role required",
-                        "schema": {
-                            "$ref": "#/definitions/respond.Error"
-                        }
-                    },
-                    "404": {
-                        "description": "Department not found",
-                        "schema": {
-                            "$ref": "#/definitions/respond.Error"
-                        }
-                    },
-                    "409": {
-                        "description": "Cannot remove department, it still has some users",
                         "schema": {
                             "$ref": "#/definitions/respond.Error"
                         }
@@ -2277,23 +1869,6 @@
                 "summary": "Get all users registered in the system",
                 "parameters": [
                     {
-                        "minimum": 0,
-                        "type": "integer",
-                        "default": 0,
-                        "description": "Pagination offset",
-                        "name": "offset",
-                        "in": "query"
-                    },
-                    {
-                        "maximum": 100,
-                        "minimum": 1,
-                        "type": "integer",
-                        "default": 10,
-                        "description": "Pagination limit",
-                        "name": "limit",
-                        "in": "query"
-                    },
-                    {
                         "type": "string",
                         "description": "Search by name",
                         "name": "search",
@@ -2315,73 +1890,6 @@
                     },
                     "401": {
                         "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/respond.Error"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "$ref": "#/definitions/respond.Error"
-                        }
-                    }
-                }
-            },
-            "post": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Creates a new user with specified role (non-teacher)",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "users"
-                ],
-                "summary": "Create new user",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer JWT token",
-                        "name": "Authorization",
-                        "in": "header"
-                    },
-                    {
-                        "description": "User details",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/api.CreateUserRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "Created",
-                        "schema": {
-                            "$ref": "#/definitions/respond.User"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid name specified",
-                        "schema": {
-                            "$ref": "#/definitions/respond.Error"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/respond.Error"
-                        }
-                    },
-                    "403": {
-                        "description": "Forbidden - admin role required",
                         "schema": {
                             "$ref": "#/definitions/respond.Error"
                         }
@@ -2470,7 +1978,7 @@
                     },
                     {
                         "type": "string",
-                        "description": "User UUID",
+                        "description": "User ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -2508,276 +2016,10 @@
                         }
                     }
                 }
-            },
-            "patch": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Applies a partial update to the user identified by {id}. Only non-nil fields in the request are applied.",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "users"
-                ],
-                "summary": "Partially update user",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer JWT token",
-                        "name": "Authorization",
-                        "in": "header"
-                    },
-                    {
-                        "type": "string",
-                        "description": "User UUID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "User fields to update",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/api.PatchUserRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/respond.User"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid name",
-                        "schema": {
-                            "$ref": "#/definitions/respond.Error"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/respond.Error"
-                        }
-                    },
-                    "403": {
-                        "description": "Forbidden - admin role required",
-                        "schema": {
-                            "$ref": "#/definitions/respond.Error"
-                        }
-                    },
-                    "404": {
-                        "description": "User not found",
-                        "schema": {
-                            "$ref": "#/definitions/respond.Error"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "$ref": "#/definitions/respond.Error"
-                        }
-                    }
-                }
-            }
-        },
-        "/users/{id}/credentials": {
-            "put": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "description": "Assigns username/password credentials to an existing user",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "authentication"
-                ],
-                "summary": "Register user credentials",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer JWT token",
-                        "name": "Authorization",
-                        "in": "header"
-                    },
-                    {
-                        "type": "string",
-                        "description": "User UUID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "User credentials",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/api.CredentialsRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "AuthID",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid credentials format",
-                        "schema": {
-                            "$ref": "#/definitions/respond.Error"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/respond.Error"
-                        }
-                    },
-                    "403": {
-                        "description": "Forbidden - admin role required",
-                        "schema": {
-                            "$ref": "#/definitions/respond.Error"
-                        }
-                    },
-                    "404": {
-                        "description": "User does not exist",
-                        "schema": {
-                            "$ref": "#/definitions/respond.Error"
-                        }
-                    },
-                    "409": {
-                        "description": "User already exists",
-                        "schema": {
-                            "$ref": "#/definitions/respond.Error"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "$ref": "#/definitions/respond.Error"
-                        }
-                    }
-                }
             }
         }
     },
     "definitions": {
-        "api.CreateDepartmentRequest": {
-            "type": "object",
-            "required": [
-                "description",
-                "name"
-            ],
-            "properties": {
-                "description": {
-                    "type": "string",
-                    "example": "Math department"
-                },
-                "name": {
-                    "type": "string",
-                    "example": "Mathematics"
-                }
-            }
-        },
-        "api.CreateUserRequest": {
-            "type": "object",
-            "required": [
-                "employmentRate",
-                "employmentType",
-                "firstName",
-                "jobTitle",
-                "lastName",
-                "personnelCategory",
-                "role"
-            ],
-            "properties": {
-                "academicDegree": {
-                    "type": "integer",
-                    "example": 2
-                },
-                "academicTitle": {
-                    "type": "string",
-                    "example": "Профессор"
-                },
-                "category": {
-                    "type": "string",
-                    "example": "Высшая"
-                },
-                "dateOfEmployment": {
-                    "type": "string",
-                    "example": "2020-01-15T00:00:00Z"
-                },
-                "departmentId": {
-                    "type": "string",
-                    "example": "550e8400-e29b-41d4-a716-446655440000"
-                },
-                "employmentRate": {
-                    "type": "number",
-                    "example": 1
-                },
-                "employmentType": {
-                    "type": "integer",
-                    "example": 1
-                },
-                "firstName": {
-                    "type": "string",
-                    "example": "Anna"
-                },
-                "honors": {
-                    "type": "string",
-                    "example": "Заслуженный деятель науки"
-                },
-                "jobTitle": {
-                    "type": "string",
-                    "example": "Профессор"
-                },
-                "lastName": {
-                    "type": "string",
-                    "example": "Smirnova"
-                },
-                "middleName": {
-                    "type": "string",
-                    "example": "Olegovna"
-                },
-                "personnelCategory": {
-                    "type": "integer",
-                    "example": 1
-                },
-                "pictureUrl": {
-                    "type": "string",
-                    "example": "/images/users/ivan.jpg"
-                },
-                "role": {
-                    "type": "integer",
-                    "example": 2
-                },
-                "unemploymentDate": {
-                    "type": "string",
-                    "example": "2023-12-31T00:00:00Z"
-                }
-            }
-        },
         "api.CredentialsRequest": {
             "type": "object",
             "required": [
@@ -2795,135 +2037,13 @@
                 }
             }
         },
-        "api.IdentityResponse": {
-            "type": "object",
-            "required": [
-                "id",
-                "role"
-            ],
-            "properties": {
-                "id": {
-                    "type": "string",
-                    "example": "550e8400-e29b-41d4-a716-446655440000"
-                },
-                "role": {
-                    "type": "string",
-                    "example": "user"
-                }
-            }
-        },
-        "api.PatchUserRequest": {
-            "type": "object",
-            "required": [
-                "firstName",
-                "lastName",
-                "roleId",
-                "suspended"
-            ],
-            "properties": {
-                "academicDegree": {
-                    "type": "integer",
-                    "example": 2
-                },
-                "academicTitle": {
-                    "type": "string",
-                    "example": "Профессор"
-                },
-                "category": {
-                    "type": "string",
-                    "example": "Высшая"
-                },
-                "dateOfEmployment": {
-                    "type": "string",
-                    "example": "2020-01-15T00:00:00Z"
-                },
-                "departmentId": {
-                    "type": "string",
-                    "example": "550e8400-e29b-41d4-a716-446655440000"
-                },
-                "employmentRate": {
-                    "type": "number",
-                    "example": 1
-                },
-                "employmentType": {
-                    "type": "integer",
-                    "example": 1
-                },
-                "firstName": {
-                    "type": "string",
-                    "example": "Ivan"
-                },
-                "honors": {
-                    "type": "string",
-                    "example": "Заслуженный деятель науки"
-                },
-                "jobTitle": {
-                    "type": "string",
-                    "example": "Профессор"
-                },
-                "lastName": {
-                    "type": "string",
-                    "example": "Petrov"
-                },
-                "middleName": {
-                    "type": "string",
-                    "example": "Sergeevich"
-                },
-                "personnelCategory": {
-                    "type": "integer",
-                    "example": 1
-                },
-                "pictureUrl": {
-                    "type": "string",
-                    "example": "/images/users/ivan.jpg"
-                },
-                "roleId": {
-                    "type": "integer",
-                    "example": 1
-                },
-                "subdivision": {
-                    "type": "string",
-                    "example": "Кафедра информатики"
-                },
-                "suspended": {
-                    "type": "boolean",
-                    "example": false
-                },
-                "unemploymentDate": {
-                    "type": "string",
-                    "example": "2023-12-31T00:00:00Z"
-                }
-            }
-        },
-        "api.Role": {
-            "type": "object",
-            "required": [
-                "codeName",
-                "id",
-                "name"
-            ],
-            "properties": {
-                "codeName": {
-                    "type": "string",
-                    "example": "teacher"
-                },
-                "id": {
-                    "type": "integer",
-                    "example": 1
-                },
-                "name": {
-                    "type": "string",
-                    "example": "Преподаватель"
-                }
-            }
-        },
         "api.RolesResponse": {
             "type": "object",
             "properties": {
                 "roles": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/api.Role"
+                        "$ref": "#/definitions/respond.Role"
                     }
                 }
             }
@@ -2937,23 +2057,6 @@
                 "token": {
                     "type": "string",
                     "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-                }
-            }
-        },
-        "api.UpdateDepartmentRequest": {
-            "type": "object",
-            "required": [
-                "description",
-                "name"
-            ],
-            "properties": {
-                "description": {
-                    "type": "string",
-                    "example": "Math department"
-                },
-                "name": {
-                    "type": "string",
-                    "example": "Mathematics"
                 }
             }
         },
@@ -3030,8 +2133,8 @@
                     "example": 10
                 },
                 "reviewerRole": {
-                    "type": "integer",
-                    "example": 3
+                    "type": "string",
+                    "example": "dephead"
                 }
             }
         },
@@ -3072,8 +2175,8 @@
                     "example": 10
                 },
                 "reviewerRole": {
-                    "type": "integer",
-                    "example": 3
+                    "type": "string",
+                    "example": "dephead"
                 }
             }
         },
@@ -3132,7 +2235,7 @@
             "properties": {
                 "departmentId": {
                     "type": "string",
-                    "example": "550e8400-e29b-41d4-a716-446655440000"
+                    "example": "kaf_bio"
                 },
                 "documents": {
                     "type": "array",
@@ -3150,7 +2253,7 @@
                 },
                 "ownerId": {
                     "type": "string",
-                    "example": "550e8400-e29b-41d4-a716-446655440000"
+                    "example": "ivanivanov"
                 },
                 "points": {
                     "type": "integer",
@@ -3212,7 +2315,7 @@
                 "id",
                 "name",
                 "pointsLimit",
-                "reviewerRole"
+                "reviewerRoleID"
             ],
             "properties": {
                 "active": {
@@ -3239,8 +2342,8 @@
                     "type": "integer",
                     "example": 10
                 },
-                "reviewerRole": {
-                    "$ref": "#/definitions/respond.Role"
+                "reviewerRoleID": {
+                    "type": "string"
                 }
             }
         },
@@ -3272,15 +2375,15 @@
             "properties": {
                 "description": {
                     "type": "string",
-                    "example": "Math department"
+                    "example": "Мы в сунце очень любим делать string id. Потому что зачем нам uuid?"
                 },
                 "id": {
                     "type": "string",
-                    "example": "550e8400-e29b-41d4-a716-446655440000"
+                    "example": "kaf_bio"
                 },
                 "name": {
                     "type": "string",
-                    "example": "Mathematics"
+                    "example": "Кафедра Химии и Биологии"
                 }
             }
         },
@@ -3394,7 +2497,7 @@
                 },
                 "reviewerId": {
                     "type": "string",
-                    "example": "550e8400-e29b-41d4-a716-446655440000"
+                    "example": "ivanivanov"
                 }
             }
         },
@@ -3402,17 +2505,12 @@
             "type": "object",
             "required": [
                 "codeName",
-                "id",
                 "name"
             ],
             "properties": {
                 "codeName": {
                     "type": "string",
                     "example": "teacher"
-                },
-                "id": {
-                    "type": "integer",
-                    "example": 1
                 },
                 "name": {
                     "type": "string",
@@ -3425,19 +2523,17 @@
             "required": [
                 "employmentRate",
                 "employmentType",
-                "firstName",
+                "fullName",
                 "id",
                 "jobTitle",
-                "lastName",
                 "personnelCategory",
                 "pictureUrl",
-                "role",
-                "suspended"
+                "role"
             ],
             "properties": {
                 "academicDegree": {
-                    "type": "integer",
-                    "example": 2
+                    "type": "string",
+                    "example": "Доктор наук"
                 },
                 "academicTitle": {
                     "type": "string",
@@ -3449,22 +2545,22 @@
                 },
                 "dateOfEmployment": {
                     "type": "string",
-                    "example": "2020-01-15T00:00:00Z"
+                    "example": "24.02.2022"
                 },
                 "departmentId": {
                     "type": "string"
                 },
                 "employmentRate": {
-                    "type": "number",
-                    "example": 1
+                    "type": "string",
+                    "example": "1.0"
                 },
                 "employmentType": {
-                    "type": "integer",
-                    "example": 1
-                },
-                "firstName": {
                     "type": "string",
-                    "example": "Ivan"
+                    "example": "Внешнее совместительство"
+                },
+                "fullName": {
+                    "type": "string",
+                    "example": "Ivanov Ivan Ivanovich"
                 },
                 "honors": {
                     "type": "string",
@@ -3472,23 +2568,15 @@
                 },
                 "id": {
                     "type": "string",
-                    "example": "550e8400-e29b-41d4-a716-446655440000"
+                    "example": "ivanivanov"
                 },
                 "jobTitle": {
                     "type": "string",
                     "example": "Профессор"
                 },
-                "lastName": {
-                    "type": "string",
-                    "example": "Petrov"
-                },
-                "middleName": {
-                    "type": "string",
-                    "example": "Sergeevich"
-                },
                 "personnelCategory": {
-                    "type": "integer",
-                    "example": 1
+                    "type": "string",
+                    "example": "Административно-управленческий персонал"
                 },
                 "pictureUrl": {
                     "type": "string",
@@ -3496,13 +2584,6 @@
                 },
                 "role": {
                     "$ref": "#/definitions/respond.Role"
-                },
-                "suspended": {
-                    "type": "boolean"
-                },
-                "unemploymentDate": {
-                    "type": "string",
-                    "example": "2023-12-31T00:00:00Z"
                 }
             }
         },

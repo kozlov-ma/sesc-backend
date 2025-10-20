@@ -5,118 +5,12 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/gofrs/uuid/v5"
 	"github.com/kozlov-ma/sesc-backend/api/param"
 	"github.com/kozlov-ma/sesc-backend/api/respond"
-	"github.com/kozlov-ma/sesc-backend/iam"
 	"github.com/kozlov-ma/sesc-backend/pkg/event"
 	"github.com/kozlov-ma/sesc-backend/pkg/event/events"
 	"github.com/kozlov-ma/sesc-backend/sesc"
 )
-
-// FileAccessMiddleware checks if the user has access to the requested file
-func (a *API) FileAccessMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		ctx := r.Context()
-		rec := event.Get(ctx).Sub("file_access_check")
-
-		// Extract file ID from URL
-
-		fileID, err := param.PathUUID(r, "id")
-
-		if err != nil {
-			a.writeJSON(ctx, w, respond.WithError(ctx, err))
-			return
-		}
-
-		// Get identity from context
-		identity, identityOk := GetIdentityFromContext(ctx)
-		if !identityOk {
-			a.writeJSON(ctx, w, respond.WithError(ctx, err))
-			return
-		}
-
-		// Get file details to check ownership
-		file, err := a.file.ByID(ctx, fileID)
-		if err != nil {
-			if errors.Is(err, sesc.ErrFileNotFound) {
-				a.writeJSON(ctx, w, respond.WithError(ctx, err))
-				return
-			}
-			rec.Add(events.Error, err)
-			a.writeJSON(ctx, w, respond.WithError(ctx, err))
-			return
-		}
-
-		// Check access permissions:
-		// 1. Common files can be accessed by anyone
-		isCommonFile := file.OwnerID == nil
-		// 2. Admin users can access any file
-		isAdmin := identity.Role == iam.Role("admin")
-		// 3. File owners can access their own files
-		isOwner := file.OwnerID != nil && identity.ID == *file.OwnerID
-
-		if isCommonFile || isAdmin || isOwner {
-			// User has access, continue to the actual handler
-			next.ServeHTTP(w, r)
-			return
-		}
-
-		// Access denied
-		rec.Add("access_denied", true)
-		rec.Add("reason", "user is not owner, not admin, and file is not common")
-		a.writeJSON(ctx, w, respond.WithError(ctx, err))
-	})
-}
-
-func (a *API) FileEditAccessMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		ctx := r.Context()
-		rec := event.Get(ctx).Sub("file_access_check")
-
-		// Extract file ID from URL
-
-		fileID, err := param.PathUUID(r, "id")
-
-		if err != nil {
-			a.writeJSON(ctx, w, respond.WithError(ctx, err))
-			return
-		}
-
-		// Get identity from context
-		identity, identityOk := GetIdentityFromContext(ctx)
-		if !identityOk {
-			a.writeJSON(ctx, w, respond.WithError(ctx, err))
-			return
-		}
-
-		// Get file details to check ownership
-		file, err := a.file.ByID(ctx, fileID)
-		if err != nil {
-			if errors.Is(err, sesc.ErrFileNotFound) {
-				a.writeJSON(ctx, w, respond.WithError(ctx, err))
-				return
-			}
-			rec.Add(events.Error, err)
-			a.writeJSON(ctx, w, respond.WithError(ctx, err))
-			return
-		}
-
-		isAdmin := identity.Role == iam.Role("admin")
-		isOwner := file.OwnerID != nil && identity.ID == *file.OwnerID
-
-		if isAdmin || isOwner {
-			// User has access, continue to the actual handler
-			next.ServeHTTP(w, r)
-			return
-		}
-
-		// Access denied
-		rec.Add("access_denied", true)
-		rec.Add("reason", "user is not owner, not admin, and file is not common")
-		a.writeJSON(ctx, w, respond.WithError(ctx, err))
-	})
-}
 
 // SearchFiles returns a list of files matching the search criteria
 // @Summary Search files
@@ -146,16 +40,7 @@ func (a *API) SearchFiles(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if ownerIDStr := query.Get("owner_id"); ownerIDStr != "" {
-		if ide, ok := GetIdentityFromContext(ctx); ok && ownerIDStr == "me" {
-			opts.OwnerID = &ide.ID
-		} else {
-			ownerID, err := uuid.FromString(ownerIDStr)
-			if err != nil {
-				a.writeJSON(ctx, w, respond.WithError(ctx, err))
-				return
-			}
-			opts.OwnerID = &ownerID
-		}
+		opts.OwnerID = &ownerIDStr
 	}
 
 	if commonStr := query.Get("common"); commonStr != "" {
@@ -218,13 +103,6 @@ func (a *API) UploadFile(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	rec := event.Get(ctx).Sub("api/upload_file")
 
-	// Get identity from context
-	identity, ok := GetIdentityFromContext(ctx)
-	if !ok {
-		a.writeJSON(ctx, w, respond.WithError(ctx, iam.ErrUnauthorized))
-		return
-	}
-
 	// Parse multipart form
 	err := r.ParseMultipartForm(maxFormSizeBytes)
 	if err != nil {
@@ -243,15 +121,6 @@ func (a *API) UploadFile(w http.ResponseWriter, r *http.Request) {
 	opts := sesc.FileCreateOptions{
 		FileName: header.Filename,
 		FileSize: int(header.Size),
-	}
-
-	// Set owner ID based on user role:
-	// - Admin users create common files (no owner)
-	// - Regular users create files with themselves as owner
-	isAdmin := identity.Role == iam.Role("admin")
-	if !isAdmin {
-		// Regular user - set owner to current user
-		opts.OwnerID = &identity.ID
 	}
 
 	// Create the file

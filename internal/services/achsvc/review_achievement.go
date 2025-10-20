@@ -8,6 +8,8 @@ import (
 
 	"github.com/gofrs/uuid/v5"
 	"github.com/kozlov-ma/sesc-backend/achievement"
+	"github.com/kozlov-ma/sesc-backend/company"
+	"github.com/kozlov-ma/sesc-backend/company/companyquery"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent"
 	entAchievement "github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievement"
 	"github.com/kozlov-ma/sesc-backend/internal/services/txwrapper"
@@ -19,7 +21,7 @@ import (
 // validateReviewRequest validates that the review request is valid
 func (s *ACS) validateReviewRequest(
 	ach *ent.Achievement,
-	reviewer *ent.User,
+	reviewer company.User,
 	action achievement.ReviewAction,
 ) error {
 	currentStatus := achievement.Status(ach.Status)
@@ -34,7 +36,7 @@ func (s *ACS) validateReviewRequest(
 	var validReviewer bool
 	switch currentStatus {
 	case achievement.StatusDepheadReview:
-		validReviewer = reviewerRole == sesc.Dephead
+		validReviewer = reviewerRole == company.Dephead
 	case achievement.StatusInspectorReview:
 		validReviewer = reviewerRole == needReviewerRole
 	}
@@ -139,21 +141,12 @@ func (s *ACS) ReviewAchievement(
 			return err
 		}
 
-		var reviewer *ent.User
+		var reviewer company.User
 		err = rec.Operation("get_reviewer", func(_ *event.Record) error {
-			start := time.Now()
-			user, err := tx.User.Get(ctx, opt.ReviewerID)
-			statsRec.Add(events.PostgresQueries, 1)
-			statsRec.Add(events.PostgresTime, time.Since(start))
-
-			if ent.IsNotFound(err) {
-				return sesc.ErrUserNotFound
-			}
+			reviewer, err = s.company.User(ctx, companyquery.User{ID: opt.ReviewerID})
 			if err != nil {
-				return fmt.Errorf("failed to get reviewer: %w", err)
+				return fmt.Errorf("failed to get reviewer user: %w", err)
 			}
-
-			reviewer = user
 			return nil
 		})
 		if err != nil {
@@ -232,7 +225,6 @@ func (s *ACS) ReviewAchievement(
 			updatedAch, err = tx.Achievement.Query().
 				Where(entAchievement.ID(ach.ID)).
 				WithDocuments().
-				WithOwner().
 				WithReviews().
 				WithTemplate().
 				Only(ctx)

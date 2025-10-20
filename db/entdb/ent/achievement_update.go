@@ -15,9 +15,7 @@ import (
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievementdocument"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievementreview"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievementtemplate"
-	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/department"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/predicate"
-	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/user"
 )
 
 // AchievementUpdate is the builder for updating Achievement entities.
@@ -34,15 +32,15 @@ func (au *AchievementUpdate) Where(ps ...predicate.Achievement) *AchievementUpda
 }
 
 // SetOwnerID sets the "owner_id" field.
-func (au *AchievementUpdate) SetOwnerID(u uuid.UUID) *AchievementUpdate {
-	au.mutation.SetOwnerID(u)
+func (au *AchievementUpdate) SetOwnerID(s string) *AchievementUpdate {
+	au.mutation.SetOwnerID(s)
 	return au
 }
 
 // SetNillableOwnerID sets the "owner_id" field if the given value is not nil.
-func (au *AchievementUpdate) SetNillableOwnerID(u *uuid.UUID) *AchievementUpdate {
-	if u != nil {
-		au.SetOwnerID(*u)
+func (au *AchievementUpdate) SetNillableOwnerID(s *string) *AchievementUpdate {
+	if s != nil {
+		au.SetOwnerID(*s)
 	}
 	return au
 }
@@ -62,15 +60,15 @@ func (au *AchievementUpdate) SetNillableTemplateID(u *uuid.UUID) *AchievementUpd
 }
 
 // SetDepartmentID sets the "department_id" field.
-func (au *AchievementUpdate) SetDepartmentID(u uuid.UUID) *AchievementUpdate {
-	au.mutation.SetDepartmentID(u)
+func (au *AchievementUpdate) SetDepartmentID(s string) *AchievementUpdate {
+	au.mutation.SetDepartmentID(s)
 	return au
 }
 
 // SetNillableDepartmentID sets the "department_id" field if the given value is not nil.
-func (au *AchievementUpdate) SetNillableDepartmentID(u *uuid.UUID) *AchievementUpdate {
-	if u != nil {
-		au.SetDepartmentID(*u)
+func (au *AchievementUpdate) SetNillableDepartmentID(s *string) *AchievementUpdate {
+	if s != nil {
+		au.SetDepartmentID(*s)
 	}
 	return au
 }
@@ -140,22 +138,6 @@ func (au *AchievementUpdate) AddReviews(a ...*AchievementReview) *AchievementUpd
 	return au.AddReviewIDs(ids...)
 }
 
-// SetOwner sets the "owner" edge to the User entity.
-func (au *AchievementUpdate) SetOwner(u *User) *AchievementUpdate {
-	return au.SetOwnerID(u.ID)
-}
-
-// SetDepartmentsID sets the "departments" edge to the Department entity by ID.
-func (au *AchievementUpdate) SetDepartmentsID(id uuid.UUID) *AchievementUpdate {
-	au.mutation.SetDepartmentsID(id)
-	return au
-}
-
-// SetDepartments sets the "departments" edge to the Department entity.
-func (au *AchievementUpdate) SetDepartments(d *Department) *AchievementUpdate {
-	return au.SetDepartmentsID(d.ID)
-}
-
 // SetTemplate sets the "template" edge to the AchievementTemplate entity.
 func (au *AchievementUpdate) SetTemplate(a *AchievementTemplate) *AchievementUpdate {
 	return au.SetTemplateID(a.ID)
@@ -208,18 +190,6 @@ func (au *AchievementUpdate) RemoveReviews(a ...*AchievementReview) *Achievement
 	return au.RemoveReviewIDs(ids...)
 }
 
-// ClearOwner clears the "owner" edge to the User entity.
-func (au *AchievementUpdate) ClearOwner() *AchievementUpdate {
-	au.mutation.ClearOwner()
-	return au
-}
-
-// ClearDepartments clears the "departments" edge to the Department entity.
-func (au *AchievementUpdate) ClearDepartments() *AchievementUpdate {
-	au.mutation.ClearDepartments()
-	return au
-}
-
 // ClearTemplate clears the "template" edge to the AchievementTemplate entity.
 func (au *AchievementUpdate) ClearTemplate() *AchievementUpdate {
 	au.mutation.ClearTemplate()
@@ -260,12 +230,6 @@ func (au *AchievementUpdate) check() error {
 			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "Achievement.status": %w`, err)}
 		}
 	}
-	if au.mutation.OwnerCleared() && len(au.mutation.OwnerIDs()) > 0 {
-		return errors.New(`ent: clearing a required unique edge "Achievement.owner"`)
-	}
-	if au.mutation.DepartmentsCleared() && len(au.mutation.DepartmentsIDs()) > 0 {
-		return errors.New(`ent: clearing a required unique edge "Achievement.departments"`)
-	}
 	if au.mutation.TemplateCleared() && len(au.mutation.TemplateIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "Achievement.template"`)
 	}
@@ -283,6 +247,12 @@ func (au *AchievementUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				ps[i](selector)
 			}
 		}
+	}
+	if value, ok := au.mutation.OwnerID(); ok {
+		_spec.SetField(achievement.FieldOwnerID, field.TypeString, value)
+	}
+	if value, ok := au.mutation.DepartmentID(); ok {
+		_spec.SetField(achievement.FieldDepartmentID, field.TypeString, value)
 	}
 	if value, ok := au.mutation.Status(); ok {
 		_spec.SetField(achievement.FieldStatus, field.TypeString, value)
@@ -383,64 +353,6 @@ func (au *AchievementUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if au.mutation.OwnerCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   achievement.OwnerTable,
-			Columns: []string{achievement.OwnerColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := au.mutation.OwnerIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   achievement.OwnerTable,
-			Columns: []string{achievement.OwnerColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
-	if au.mutation.DepartmentsCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   achievement.DepartmentsTable,
-			Columns: []string{achievement.DepartmentsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(department.FieldID, field.TypeUUID),
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := au.mutation.DepartmentsIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   achievement.DepartmentsTable,
-			Columns: []string{achievement.DepartmentsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(department.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
 	if au.mutation.TemplateCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.M2O,
@@ -491,15 +403,15 @@ type AchievementUpdateOne struct {
 }
 
 // SetOwnerID sets the "owner_id" field.
-func (auo *AchievementUpdateOne) SetOwnerID(u uuid.UUID) *AchievementUpdateOne {
-	auo.mutation.SetOwnerID(u)
+func (auo *AchievementUpdateOne) SetOwnerID(s string) *AchievementUpdateOne {
+	auo.mutation.SetOwnerID(s)
 	return auo
 }
 
 // SetNillableOwnerID sets the "owner_id" field if the given value is not nil.
-func (auo *AchievementUpdateOne) SetNillableOwnerID(u *uuid.UUID) *AchievementUpdateOne {
-	if u != nil {
-		auo.SetOwnerID(*u)
+func (auo *AchievementUpdateOne) SetNillableOwnerID(s *string) *AchievementUpdateOne {
+	if s != nil {
+		auo.SetOwnerID(*s)
 	}
 	return auo
 }
@@ -519,15 +431,15 @@ func (auo *AchievementUpdateOne) SetNillableTemplateID(u *uuid.UUID) *Achievemen
 }
 
 // SetDepartmentID sets the "department_id" field.
-func (auo *AchievementUpdateOne) SetDepartmentID(u uuid.UUID) *AchievementUpdateOne {
-	auo.mutation.SetDepartmentID(u)
+func (auo *AchievementUpdateOne) SetDepartmentID(s string) *AchievementUpdateOne {
+	auo.mutation.SetDepartmentID(s)
 	return auo
 }
 
 // SetNillableDepartmentID sets the "department_id" field if the given value is not nil.
-func (auo *AchievementUpdateOne) SetNillableDepartmentID(u *uuid.UUID) *AchievementUpdateOne {
-	if u != nil {
-		auo.SetDepartmentID(*u)
+func (auo *AchievementUpdateOne) SetNillableDepartmentID(s *string) *AchievementUpdateOne {
+	if s != nil {
+		auo.SetDepartmentID(*s)
 	}
 	return auo
 }
@@ -597,22 +509,6 @@ func (auo *AchievementUpdateOne) AddReviews(a ...*AchievementReview) *Achievemen
 	return auo.AddReviewIDs(ids...)
 }
 
-// SetOwner sets the "owner" edge to the User entity.
-func (auo *AchievementUpdateOne) SetOwner(u *User) *AchievementUpdateOne {
-	return auo.SetOwnerID(u.ID)
-}
-
-// SetDepartmentsID sets the "departments" edge to the Department entity by ID.
-func (auo *AchievementUpdateOne) SetDepartmentsID(id uuid.UUID) *AchievementUpdateOne {
-	auo.mutation.SetDepartmentsID(id)
-	return auo
-}
-
-// SetDepartments sets the "departments" edge to the Department entity.
-func (auo *AchievementUpdateOne) SetDepartments(d *Department) *AchievementUpdateOne {
-	return auo.SetDepartmentsID(d.ID)
-}
-
 // SetTemplate sets the "template" edge to the AchievementTemplate entity.
 func (auo *AchievementUpdateOne) SetTemplate(a *AchievementTemplate) *AchievementUpdateOne {
 	return auo.SetTemplateID(a.ID)
@@ -663,18 +559,6 @@ func (auo *AchievementUpdateOne) RemoveReviews(a ...*AchievementReview) *Achieve
 		ids[i] = a[i].ID
 	}
 	return auo.RemoveReviewIDs(ids...)
-}
-
-// ClearOwner clears the "owner" edge to the User entity.
-func (auo *AchievementUpdateOne) ClearOwner() *AchievementUpdateOne {
-	auo.mutation.ClearOwner()
-	return auo
-}
-
-// ClearDepartments clears the "departments" edge to the Department entity.
-func (auo *AchievementUpdateOne) ClearDepartments() *AchievementUpdateOne {
-	auo.mutation.ClearDepartments()
-	return auo
 }
 
 // ClearTemplate clears the "template" edge to the AchievementTemplate entity.
@@ -730,12 +614,6 @@ func (auo *AchievementUpdateOne) check() error {
 			return &ValidationError{Name: "status", err: fmt.Errorf(`ent: validator failed for field "Achievement.status": %w`, err)}
 		}
 	}
-	if auo.mutation.OwnerCleared() && len(auo.mutation.OwnerIDs()) > 0 {
-		return errors.New(`ent: clearing a required unique edge "Achievement.owner"`)
-	}
-	if auo.mutation.DepartmentsCleared() && len(auo.mutation.DepartmentsIDs()) > 0 {
-		return errors.New(`ent: clearing a required unique edge "Achievement.departments"`)
-	}
 	if auo.mutation.TemplateCleared() && len(auo.mutation.TemplateIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "Achievement.template"`)
 	}
@@ -770,6 +648,12 @@ func (auo *AchievementUpdateOne) sqlSave(ctx context.Context) (_node *Achievemen
 				ps[i](selector)
 			}
 		}
+	}
+	if value, ok := auo.mutation.OwnerID(); ok {
+		_spec.SetField(achievement.FieldOwnerID, field.TypeString, value)
+	}
+	if value, ok := auo.mutation.DepartmentID(); ok {
+		_spec.SetField(achievement.FieldDepartmentID, field.TypeString, value)
 	}
 	if value, ok := auo.mutation.Status(); ok {
 		_spec.SetField(achievement.FieldStatus, field.TypeString, value)
@@ -863,64 +747,6 @@ func (auo *AchievementUpdateOne) sqlSave(ctx context.Context) (_node *Achievemen
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(achievementreview.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
-	if auo.mutation.OwnerCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   achievement.OwnerTable,
-			Columns: []string{achievement.OwnerColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := auo.mutation.OwnerIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   achievement.OwnerTable,
-			Columns: []string{achievement.OwnerColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
-	if auo.mutation.DepartmentsCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   achievement.DepartmentsTable,
-			Columns: []string{achievement.DepartmentsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(department.FieldID, field.TypeUUID),
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := auo.mutation.DepartmentsIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   achievement.DepartmentsTable,
-			Columns: []string{achievement.DepartmentsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(department.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

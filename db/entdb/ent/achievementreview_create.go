@@ -12,7 +12,6 @@ import (
 	uuid "github.com/gofrs/uuid/v5"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievement"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievementreview"
-	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/user"
 )
 
 // AchievementReviewCreate is the builder for creating a AchievementReview entity.
@@ -29,8 +28,8 @@ func (arc *AchievementReviewCreate) SetAchievementID(u uuid.UUID) *AchievementRe
 }
 
 // SetReviewerID sets the "reviewer_id" field.
-func (arc *AchievementReviewCreate) SetReviewerID(u uuid.UUID) *AchievementReviewCreate {
-	arc.mutation.SetReviewerID(u)
+func (arc *AchievementReviewCreate) SetReviewerID(s string) *AchievementReviewCreate {
+	arc.mutation.SetReviewerID(s)
 	return arc
 }
 
@@ -71,11 +70,6 @@ func (arc *AchievementReviewCreate) SetNillableID(u *uuid.UUID) *AchievementRevi
 // SetAchievement sets the "achievement" edge to the Achievement entity.
 func (arc *AchievementReviewCreate) SetAchievement(a *Achievement) *AchievementReviewCreate {
 	return arc.SetAchievementID(a.ID)
-}
-
-// SetReviewer sets the "reviewer" edge to the User entity.
-func (arc *AchievementReviewCreate) SetReviewer(u *User) *AchievementReviewCreate {
-	return arc.SetReviewerID(u.ID)
 }
 
 // Mutation returns the AchievementReviewMutation object of the builder.
@@ -133,9 +127,6 @@ func (arc *AchievementReviewCreate) check() error {
 	if len(arc.mutation.AchievementIDs()) == 0 {
 		return &ValidationError{Name: "achievement", err: errors.New(`ent: missing required edge "AchievementReview.achievement"`)}
 	}
-	if len(arc.mutation.ReviewerIDs()) == 0 {
-		return &ValidationError{Name: "reviewer", err: errors.New(`ent: missing required edge "AchievementReview.reviewer"`)}
-	}
 	return nil
 }
 
@@ -171,6 +162,10 @@ func (arc *AchievementReviewCreate) createSpec() (*AchievementReview, *sqlgraph.
 		_node.ID = id
 		_spec.ID.Value = &id
 	}
+	if value, ok := arc.mutation.ReviewerID(); ok {
+		_spec.SetField(achievementreview.FieldReviewerID, field.TypeString, value)
+		_node.ReviewerID = value
+	}
 	if value, ok := arc.mutation.PointsAssigned(); ok {
 		_spec.SetField(achievementreview.FieldPointsAssigned, field.TypeInt, value)
 		_node.PointsAssigned = value
@@ -194,23 +189,6 @@ func (arc *AchievementReviewCreate) createSpec() (*AchievementReview, *sqlgraph.
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
 		_node.AchievementID = nodes[0]
-		_spec.Edges = append(_spec.Edges, edge)
-	}
-	if nodes := arc.mutation.ReviewerIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   achievementreview.ReviewerTable,
-			Columns: []string{achievementreview.ReviewerColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_node.ReviewerID = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

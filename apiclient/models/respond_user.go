@@ -20,8 +20,8 @@ import (
 type RespondUser struct {
 
 	// academic degree
-	// Example: 2
-	AcademicDegree int64 `json:"academicDegree,omitempty"`
+	// Example: Доктор наук
+	AcademicDegree string `json:"academicDegree,omitempty"`
 
 	// academic title
 	// Example: Профессор
@@ -32,33 +32,33 @@ type RespondUser struct {
 	Category string `json:"category,omitempty"`
 
 	// date of employment
-	// Example: 2020-01-15T00:00:00Z
+	// Example: 24.02.2022
 	DateOfEmployment string `json:"dateOfEmployment,omitempty"`
 
 	// department Id
 	DepartmentID string `json:"departmentId,omitempty"`
 
 	// employment rate
-	// Example: 1
+	// Example: 1.0
 	// Required: true
-	EmploymentRate *float64 `json:"employmentRate"`
+	EmploymentRate *string `json:"employmentRate"`
 
 	// employment type
-	// Example: 1
+	// Example: Внешнее совместительство
 	// Required: true
-	EmploymentType *int64 `json:"employmentType"`
+	EmploymentType *string `json:"employmentType"`
 
-	// first name
-	// Example: Ivan
+	// full name
+	// Example: Ivanov Ivan Ivanovich
 	// Required: true
-	FirstName *string `json:"firstName"`
+	FullName *string `json:"fullName"`
 
 	// honors
 	// Example: Заслуженный деятель науки
 	Honors string `json:"honors,omitempty"`
 
 	// id
-	// Example: 550e8400-e29b-41d4-a716-446655440000
+	// Example: ivanivanov
 	// Required: true
 	ID *string `json:"id"`
 
@@ -67,19 +67,10 @@ type RespondUser struct {
 	// Required: true
 	JobTitle *string `json:"jobTitle"`
 
-	// last name
-	// Example: Petrov
-	// Required: true
-	LastName *string `json:"lastName"`
-
-	// middle name
-	// Example: Sergeevich
-	MiddleName string `json:"middleName,omitempty"`
-
 	// personnel category
-	// Example: 1
+	// Example: Административно-управленческий персонал
 	// Required: true
-	PersonnelCategory *int64 `json:"personnelCategory"`
+	PersonnelCategory *string `json:"personnelCategory"`
 
 	// picture Url
 	// Example: /images/users/ivan.jpg
@@ -89,14 +80,6 @@ type RespondUser struct {
 	// role
 	// Required: true
 	Role *RespondRole `json:"role"`
-
-	// suspended
-	// Required: true
-	Suspended *bool `json:"suspended"`
-
-	// unemployment date
-	// Example: 2023-12-31T00:00:00Z
-	UnemploymentDate string `json:"unemploymentDate,omitempty"`
 }
 
 // Validate validates this respond user
@@ -111,7 +94,7 @@ func (m *RespondUser) Validate(formats strfmt.Registry) error {
 		res = append(res, err)
 	}
 
-	if err := m.validateFirstName(formats); err != nil {
+	if err := m.validateFullName(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -120,10 +103,6 @@ func (m *RespondUser) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := m.validateJobTitle(formats); err != nil {
-		res = append(res, err)
-	}
-
-	if err := m.validateLastName(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -136,10 +115,6 @@ func (m *RespondUser) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := m.validateRole(formats); err != nil {
-		res = append(res, err)
-	}
-
-	if err := m.validateSuspended(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -167,9 +142,9 @@ func (m *RespondUser) validateEmploymentType(formats strfmt.Registry) error {
 	return nil
 }
 
-func (m *RespondUser) validateFirstName(formats strfmt.Registry) error {
+func (m *RespondUser) validateFullName(formats strfmt.Registry) error {
 
-	if err := validate.Required("firstName", "body", m.FirstName); err != nil {
+	if err := validate.Required("fullName", "body", m.FullName); err != nil {
 		return err
 	}
 
@@ -188,15 +163,6 @@ func (m *RespondUser) validateID(formats strfmt.Registry) error {
 func (m *RespondUser) validateJobTitle(formats strfmt.Registry) error {
 
 	if err := validate.Required("jobTitle", "body", m.JobTitle); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (m *RespondUser) validateLastName(formats strfmt.Registry) error {
-
-	if err := validate.Required("lastName", "body", m.LastName); err != nil {
 		return err
 	}
 
@@ -236,15 +202,6 @@ func (m *RespondUser) validateRole(formats strfmt.Registry) error {
 			}
 			return err
 		}
-	}
-
-	return nil
-}
-
-func (m *RespondUser) validateSuspended(formats strfmt.Registry) error {
-
-	if err := validate.Required("suspended", "body", m.Suspended); err != nil {
-		return err
 	}
 
 	return nil

@@ -34,7 +34,7 @@ func (a *API) AchievementMiddleware(next http.Handler) http.Handler {
 		rec := event.Get(ctx)
 		rec.Sub("http").Set("route_requires_achievement", true)
 
-		_, ok := GetUserFromContext(ctx)
+		_, ok := CurrentUser(ctx)
 		if !ok {
 			a.writeJSON(ctx, w, respond.WithError(ctx, sesc.ErrUserNotFound))
 			return
@@ -79,13 +79,13 @@ func (a *API) GetUserAchievements(w http.ResponseWriter, r *http.Request) {
 	rec := event.Get(ctx)
 
 	// Get viewer from context
-	viewer, ok := GetUserFromContext(ctx)
+	viewer, ok := CurrentUser(ctx)
 	if !ok {
 		a.writeJSON(ctx, w, respond.WithError(ctx, sesc.ErrUserNotFound))
 		return
 	}
 
-	userID, err := param.QueryUUID(r, "id")
+	userID, err := param.QueryString(r, "id")
 	if err != nil {
 		userID = viewer.ID
 	}
@@ -151,7 +151,7 @@ func (a *API) SubmitAchievementWithNewPoints(w http.ResponseWriter, r *http.Requ
 	}
 
 	// Get current user from context
-	user, ok := GetUserFromContext(ctx)
+	user, ok := CurrentUser(ctx)
 	if !ok {
 		a.writeJSON(ctx, w, respond.WithError(ctx, sesc.ErrUserNotFound))
 		return
@@ -232,7 +232,7 @@ func (a *API) CreateAchievement(w http.ResponseWriter, r *http.Request) {
 	rec := event.Get(ctx)
 
 	// Get user from context
-	user, ok := GetUserFromContext(ctx)
+	user, ok := CurrentUser(ctx)
 	if !ok {
 		a.writeJSON(ctx, w, respond.WithError(ctx, sesc.ErrUserNotFound))
 		return
@@ -496,7 +496,7 @@ func (a *API) ReviewAchievement(w http.ResponseWriter, r *http.Request) {
 	rec := event.Get(ctx)
 
 	// Get user from context
-	reviewer, ok := GetUserFromContext(ctx)
+	reviewer, ok := CurrentUser(ctx)
 	if !ok {
 		a.writeJSON(ctx, w, respond.WithError(ctx, sesc.ErrUserNotFound))
 		return
@@ -561,7 +561,7 @@ func (a *API) SubmitWithNewPoints(w http.ResponseWriter, r *http.Request) {
 	rec := event.Get(ctx)
 
 	// Get user from context
-	user, ok := GetUserFromContext(ctx)
+	user, ok := CurrentUser(ctx)
 	if !ok {
 		a.writeJSON(ctx, w, respond.WithError(ctx, sesc.ErrUserNotFound))
 		return

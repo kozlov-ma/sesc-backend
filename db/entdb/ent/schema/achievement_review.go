@@ -20,7 +20,7 @@ func (AchievementReview) Fields() []ent.Field {
 			Unique().
 			Immutable(),
 		field.UUID("achievement_id", uuid.UUID{}),
-		field.UUID("reviewer_id", uuid.UUID{}),
+		field.String("reviewer_id"),
 		field.Int("points_assigned"),
 		field.Text("comment").
 			Optional(),
@@ -33,11 +33,6 @@ func (AchievementReview) Edges() []ent.Edge {
 		edge.From("achievement", Achievement.Type).
 			Ref("reviews").
 			Field("achievement_id").
-			Unique().
-			Required(),
-		edge.From("reviewer", User.Type).
-			Ref("reviews").
-			Field("reviewer_id").
 			Unique().
 			Required(),
 	}

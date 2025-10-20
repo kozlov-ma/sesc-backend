@@ -153,7 +153,6 @@ func (s *ACS) UpdateAchievementPoints(
 			updatedAch, err = tx.Achievement.Query().
 				Where(entAchievement.ID(ach.ID)).
 				WithDocuments().
-				WithOwner().
 				WithReviews().
 				WithTemplate().
 				Only(ctx)

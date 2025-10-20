@@ -31,24 +31,9 @@ func (a *API) GetUsersWithAchievements(w http.ResponseWriter, r *http.Request) {
 	rec := event.Get(ctx).Sub("http/get_users_with_achievements")
 
 	// Get user from context
-	user, ok := GetUserFromContext(ctx)
+	user, ok := CurrentUser(ctx)
 	if !ok {
 		a.writeJSON(ctx, w, respond.WithError(ctx, sesc.ErrUserNotFound))
-		return
-	}
-
-	// Check if user has permission to view users with achievements
-	// Only department heads and deputies should have access
-	//nolint:exhaustive // cuz fuck it here.
-	switch user.Role {
-	case sesc.Dephead,
-		sesc.OlympiadDeputy,
-		sesc.DevelopmentDeputy,
-		sesc.ScientificDeputy,
-		sesc.AcademicDirector,
-		sesc.ChiefEconomist:
-	default:
-		a.writeJSON(ctx, w, respond.WithError(ctx, sesc.ErrInvalidRole))
 		return
 	}
 

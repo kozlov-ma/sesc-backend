@@ -15,6 +15,7 @@ import (
 	"github.com/kozlov-ma/sesc-backend/pkg/event/events"
 )
 
+// ACCESSTODO
 // RemoveDocument removes a document from an achievement.
 // Returns achievement.ErrAchievementNotFound if the achievement does not exist.
 // Returns achievement.ErrDocumentNotFound if the document does not exist.

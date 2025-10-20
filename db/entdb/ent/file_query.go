@@ -17,7 +17,6 @@ import (
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievementdocument"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/file"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/predicate"
-	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/user"
 )
 
 // FileQuery is the builder for querying File entities.
@@ -27,7 +26,6 @@ type FileQuery struct {
 	order                    []file.OrderOption
 	inters                   []Interceptor
 	predicates               []predicate.File
-	withOwner                *UserQuery
 	withAchievementDocuments *AchievementDocumentQuery
 	modifiers                []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
@@ -64,28 +62,6 @@ func (fq *FileQuery) Unique(unique bool) *FileQuery {
 func (fq *FileQuery) Order(o ...file.OrderOption) *FileQuery {
 	fq.order = append(fq.order, o...)
 	return fq
-}
-
-// QueryOwner chains the current query on the "owner" edge.
-func (fq *FileQuery) QueryOwner() *UserQuery {
-	query := (&UserClient{config: fq.config}).Query()
-	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
-		if err := fq.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		selector := fq.sqlQuery(ctx)
-		if err := selector.Err(); err != nil {
-			return nil, err
-		}
-		step := sqlgraph.NewStep(
-			sqlgraph.From(file.Table, file.FieldID, selector),
-			sqlgraph.To(user.Table, user.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, file.OwnerTable, file.OwnerColumn),
-		)
-		fromU = sqlgraph.SetNeighbors(fq.driver.Dialect(), step)
-		return fromU, nil
-	}
-	return query
 }
 
 // QueryAchievementDocuments chains the current query on the "achievement_documents" edge.
@@ -302,23 +278,11 @@ func (fq *FileQuery) Clone() *FileQuery {
 		order:                    append([]file.OrderOption{}, fq.order...),
 		inters:                   append([]Interceptor{}, fq.inters...),
 		predicates:               append([]predicate.File{}, fq.predicates...),
-		withOwner:                fq.withOwner.Clone(),
 		withAchievementDocuments: fq.withAchievementDocuments.Clone(),
 		// clone intermediate query.
 		sql:  fq.sql.Clone(),
 		path: fq.path,
 	}
-}
-
-// WithOwner tells the query-builder to eager-load the nodes that are connected to
-// the "owner" edge. The optional arguments are used to configure the query builder of the edge.
-func (fq *FileQuery) WithOwner(opts ...func(*UserQuery)) *FileQuery {
-	query := (&UserClient{config: fq.config}).Query()
-	for _, opt := range opts {
-		opt(query)
-	}
-	fq.withOwner = query
-	return fq
 }
 
 // WithAchievementDocuments tells the query-builder to eager-load the nodes that are connected to
@@ -338,7 +302,7 @@ func (fq *FileQuery) WithAchievementDocuments(opts ...func(*AchievementDocumentQ
 // Example:
 //
 //	var v []struct {
-//		OwnerID uuid.UUID `json:"owner_id,omitempty"`
+//		OwnerID string `json:"owner_id,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
@@ -361,7 +325,7 @@ func (fq *FileQuery) GroupBy(field string, fields ...string) *FileGroupBy {
 // Example:
 //
 //	var v []struct {
-//		OwnerID uuid.UUID `json:"owner_id,omitempty"`
+//		OwnerID string `json:"owner_id,omitempty"`
 //	}
 //
 //	client.File.Query().
@@ -410,8 +374,7 @@ func (fq *FileQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*File, e
 	var (
 		nodes       = []*File{}
 		_spec       = fq.querySpec()
-		loadedTypes = [2]bool{
-			fq.withOwner != nil,
+		loadedTypes = [1]bool{
 			fq.withAchievementDocuments != nil,
 		}
 	)
@@ -436,12 +399,6 @@ func (fq *FileQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*File, e
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
-	if query := fq.withOwner; query != nil {
-		if err := fq.loadOwner(ctx, query, nodes, nil,
-			func(n *File, e *User) { n.Edges.Owner = e }); err != nil {
-			return nil, err
-		}
-	}
 	if query := fq.withAchievementDocuments; query != nil {
 		if err := fq.loadAchievementDocuments(ctx, query, nodes,
 			func(n *File) { n.Edges.AchievementDocuments = []*AchievementDocument{} },
@@ -454,38 +411,6 @@ func (fq *FileQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*File, e
 	return nodes, nil
 }
 
-func (fq *FileQuery) loadOwner(ctx context.Context, query *UserQuery, nodes []*File, init func(*File), assign func(*File, *User)) error {
-	ids := make([]uuid.UUID, 0, len(nodes))
-	nodeids := make(map[uuid.UUID][]*File)
-	for i := range nodes {
-		if nodes[i].OwnerID == nil {
-			continue
-		}
-		fk := *nodes[i].OwnerID
-		if _, ok := nodeids[fk]; !ok {
-			ids = append(ids, fk)
-		}
-		nodeids[fk] = append(nodeids[fk], nodes[i])
-	}
-	if len(ids) == 0 {
-		return nil
-	}
-	query.Where(user.IDIn(ids...))
-	neighbors, err := query.All(ctx)
-	if err != nil {
-		return err
-	}
-	for _, n := range neighbors {
-		nodes, ok := nodeids[n.ID]
-		if !ok {
-			return fmt.Errorf(`unexpected foreign-key "owner_id" returned %v`, n.ID)
-		}
-		for i := range nodes {
-			assign(nodes[i], n)
-		}
-	}
-	return nil
-}
 func (fq *FileQuery) loadAchievementDocuments(ctx context.Context, query *AchievementDocumentQuery, nodes []*File, init func(*File), assign func(*File, *AchievementDocument)) error {
 	fks := make([]driver.Value, 0, len(nodes))
 	nodeids := make(map[uuid.UUID]*File)
@@ -544,9 +469,6 @@ func (fq *FileQuery) querySpec() *sqlgraph.QuerySpec {
 			if fields[i] != file.FieldID {
 				_spec.Node.Columns = append(_spec.Node.Columns, fields[i])
 			}
-		}
-		if fq.withOwner != nil {
-			_spec.Node.AddColumnOnce(file.FieldOwnerID)
 		}
 	}
 	if ps := fq.predicates; len(ps) > 0 {

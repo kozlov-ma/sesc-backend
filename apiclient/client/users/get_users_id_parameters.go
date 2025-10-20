@@ -69,7 +69,7 @@ type GetUsersIDParams struct {
 
 	/* ID.
 
-	   User UUID
+	   User ID
 	*/
 	ID string
 

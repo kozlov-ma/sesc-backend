@@ -11,7 +11,6 @@ import (
 	uuid "github.com/gofrs/uuid/v5"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievement"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievementreview"
-	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/user"
 )
 
 // AchievementReview is the model entity for the AchievementReview schema.
@@ -22,7 +21,7 @@ type AchievementReview struct {
 	// AchievementID holds the value of the "achievement_id" field.
 	AchievementID uuid.UUID `json:"achievement_id,omitempty"`
 	// ReviewerID holds the value of the "reviewer_id" field.
-	ReviewerID uuid.UUID `json:"reviewer_id,omitempty"`
+	ReviewerID string `json:"reviewer_id,omitempty"`
 	// PointsAssigned holds the value of the "points_assigned" field.
 	PointsAssigned int `json:"points_assigned,omitempty"`
 	// Comment holds the value of the "comment" field.
@@ -37,11 +36,9 @@ type AchievementReview struct {
 type AchievementReviewEdges struct {
 	// Achievement holds the value of the achievement edge.
 	Achievement *Achievement `json:"achievement,omitempty"`
-	// Reviewer holds the value of the reviewer edge.
-	Reviewer *User `json:"reviewer,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [2]bool
+	loadedTypes [1]bool
 }
 
 // AchievementOrErr returns the Achievement value or an error if the edge
@@ -55,17 +52,6 @@ func (e AchievementReviewEdges) AchievementOrErr() (*Achievement, error) {
 	return nil, &NotLoadedError{edge: "achievement"}
 }
 
-// ReviewerOrErr returns the Reviewer value or an error if the edge
-// was not loaded in eager-loading, or loaded but was not found.
-func (e AchievementReviewEdges) ReviewerOrErr() (*User, error) {
-	if e.Reviewer != nil {
-		return e.Reviewer, nil
-	} else if e.loadedTypes[1] {
-		return nil, &NotFoundError{label: user.Label}
-	}
-	return nil, &NotLoadedError{edge: "reviewer"}
-}
-
 // scanValues returns the types for scanning values from sql.Rows.
 func (*AchievementReview) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
@@ -73,9 +59,9 @@ func (*AchievementReview) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case achievementreview.FieldPointsAssigned:
 			values[i] = new(sql.NullInt64)
-		case achievementreview.FieldComment:
+		case achievementreview.FieldReviewerID, achievementreview.FieldComment:
 			values[i] = new(sql.NullString)
-		case achievementreview.FieldID, achievementreview.FieldAchievementID, achievementreview.FieldReviewerID:
+		case achievementreview.FieldID, achievementreview.FieldAchievementID:
 			values[i] = new(uuid.UUID)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -105,10 +91,10 @@ func (ar *AchievementReview) assignValues(columns []string, values []any) error 
 				ar.AchievementID = *value
 			}
 		case achievementreview.FieldReviewerID:
-			if value, ok := values[i].(*uuid.UUID); !ok {
+			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field reviewer_id", values[i])
-			} else if value != nil {
-				ar.ReviewerID = *value
+			} else if value.Valid {
+				ar.ReviewerID = value.String
 			}
 		case achievementreview.FieldPointsAssigned:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
@@ -140,11 +126,6 @@ func (ar *AchievementReview) QueryAchievement() *AchievementQuery {
 	return NewAchievementReviewClient(ar.config).QueryAchievement(ar)
 }
 
-// QueryReviewer queries the "reviewer" edge of the AchievementReview entity.
-func (ar *AchievementReview) QueryReviewer() *UserQuery {
-	return NewAchievementReviewClient(ar.config).QueryReviewer(ar)
-}
-
 // Update returns a builder for updating this AchievementReview.
 // Note that you need to call AchievementReview.Unwrap() before calling this method if this AchievementReview
 // was returned from a transaction, and the transaction was committed or rolled back.
@@ -172,7 +153,7 @@ func (ar *AchievementReview) String() string {
 	builder.WriteString(fmt.Sprintf("%v", ar.AchievementID))
 	builder.WriteString(", ")
 	builder.WriteString("reviewer_id=")
-	builder.WriteString(fmt.Sprintf("%v", ar.ReviewerID))
+	builder.WriteString(ar.ReviewerID)
 	builder.WriteString(", ")
 	builder.WriteString("points_assigned=")
 	builder.WriteString(fmt.Sprintf("%v", ar.PointsAssigned))

@@ -2,16 +2,17 @@ package achsvc
 
 import (
 	"bytes"
+	"cmp"
 	"context"
 	"database/sql"
 	"fmt"
 	"time"
 
-	"github.com/gofrs/uuid/v5"
 	"github.com/kozlov-ma/sesc-backend/achievement"
+	"github.com/kozlov-ma/sesc-backend/company"
+	"github.com/kozlov-ma/sesc-backend/company/companyquery"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent"
 	entAchievement "github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievement"
-	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/user"
 	"github.com/kozlov-ma/sesc-backend/internal/services/txwrapper"
 	"github.com/kozlov-ma/sesc-backend/pkg/event"
 	"github.com/kozlov-ma/sesc-backend/pkg/event/events"
@@ -19,12 +20,13 @@ import (
 )
 
 type userReport struct {
-	FullName    string
-	Subdivision string
-	JobTitle    string
-	TotalPoints int
+	FullName       string
+	DepartmentName string
+	JobTitle       string
+	TotalPoints    int
 }
 
+// ACCESSTODO
 func (s *ACS) GenerateUserPointsReport(ctx context.Context) (*bytes.Buffer, error) {
 	rec := event.Get(ctx).Sub("sesc/generate_user_points_report")
 
@@ -34,13 +36,23 @@ func (s *ACS) GenerateUserPointsReport(ctx context.Context) (*bytes.Buffer, erro
 	startTime := time.Now()
 	var excelBuffer *bytes.Buffer
 
-	err := txwrapper.WithTx(ctx, s.client, sql.LevelRepeatableRead, rec, func(tx *ent.Tx) error {
-		users, err := s.queryAllUsersForReport(ctx, tx, rec, &queryCount)
-		if err != nil {
-			return err
-		}
+	deps, err := s.company.Departments(ctx, companyquery.Departments{})
+	if err != nil {
+		return nil, fmt.Errorf("failed to query all departments: %w", err)
+	}
 
-		reportData, err := s.calculateUserPointsData(ctx, tx, rec, users, &queryCount)
+	departmentNames := make(map[string]string)
+	for _, d := range deps {
+		departmentNames[d.ID] = d.Name
+	}
+
+	users, err := s.company.Users(ctx, companyquery.Users{})
+	if err != nil {
+		return nil, fmt.Errorf("failed to query all users: %w", err)
+	}
+
+	err = txwrapper.WithTx(ctx, s.client, sql.LevelRepeatableRead, rec, func(tx *ent.Tx) error {
+		reportData, err := s.calculateUserPointsData(ctx, tx, rec, users, departmentNames, &queryCount)
 		if err != nil {
 			return err
 		}
@@ -67,39 +79,12 @@ func (s *ACS) GenerateUserPointsReport(ctx context.Context) (*bytes.Buffer, erro
 	return excelBuffer, nil
 }
 
-func (s *ACS) queryAllUsersForReport(
-	ctx context.Context,
-	tx *ent.Tx,
-	rec *event.Record,
-	queryCount *int,
-) ([]*ent.User, error) {
-	var users []*ent.User
-	err := rec.Operation("query_all_users", func(opRec *event.Record) error {
-		queryStart := time.Now()
-		userList, err := tx.User.Query().
-			WithDepartment().
-			Order(ent.Asc(user.FieldLastName), ent.Asc(user.FieldFirstName)).
-			All(ctx)
-		*queryCount++
-		opRec.Add("query_time_ms", time.Since(queryStart).Milliseconds())
-
-		if err != nil {
-			opRec.Add(events.Error, fmt.Errorf("failed to query all users: %w", err))
-			return err
-		}
-
-		users = userList
-		opRec.Set("users_count", len(users))
-		return nil
-	})
-	return users, err
-}
-
 func (s *ACS) calculateUserPointsData(
 	ctx context.Context,
 	tx *ent.Tx,
 	rec *event.Record,
-	users []*ent.User,
+	users []company.User,
+	departmentNames map[string]string,
 	queryCount *int,
 ) ([]userReport, error) {
 	var reportData []userReport
@@ -114,14 +99,11 @@ func (s *ACS) calculateUserPointsData(
 				return err
 			}
 
-			fullName := s.formatUserFullName(usr)
-			subdivision := s.getUserSubdivision(usr)
-
 			reportData = append(reportData, userReport{
-				FullName:    fullName,
-				Subdivision: subdivision,
-				JobTitle:    usr.JobTitle,
-				TotalPoints: pointsSum,
+				FullName:       usr.FullName,
+				DepartmentName: cmp.Or(departmentNames[usr.DepartmentID], "неизвестный отдел"),
+				JobTitle:       usr.Extras.JobTitle,
+				TotalPoints:    pointsSum,
 			})
 
 			userRec.Set("total_points", pointsSum)
@@ -133,7 +115,7 @@ func (s *ACS) calculateUserPointsData(
 
 func (s *ACS) getUserTotalPoints(
 	ctx context.Context,
-	userID uuid.UUID,
+	userID string,
 	tx *ent.Tx,
 	userRec *event.Record,
 	queryCount *int,
@@ -173,22 +155,6 @@ func (s *ACS) getUserTotalPoints(
 	}
 
 	return pointsSum, nil
-}
-
-func (s *ACS) formatUserFullName(usr *ent.User) string {
-	fullName := usr.LastName
-	if usr.FirstName != "" {
-		fullName += " " + usr.FirstName
-	}
-	if usr.MiddleName != "" {
-		fullName += " " + usr.MiddleName
-	}
-	return fullName
-}
-
-func (s *ACS) getUserSubdivision(usr *ent.User) string {
-	subdivision := usr.Edges.Department.Name
-	return subdivision
 }
 
 func (s *ACS) createExcelReport(
@@ -256,7 +222,7 @@ func (s *ACS) setExcelData(file *excelize.File, sheetName string, reportData []u
 			opRec.Add(events.Error, fmt.Errorf("failed to set full name cell value: %w", err))
 			return err
 		}
-		if err := file.SetCellValue(sheetName, fmt.Sprintf("B%d", row), data.Subdivision); err != nil {
+		if err := file.SetCellValue(sheetName, fmt.Sprintf("B%d", row), data.DepartmentName); err != nil {
 			opRec.Add(events.Error, fmt.Errorf("failed to set subdivision cell value: %w", err))
 			return err
 		}

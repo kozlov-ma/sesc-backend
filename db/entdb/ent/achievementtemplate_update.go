@@ -11,11 +11,11 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	uuid "github.com/gofrs/uuid/v5"
+	"github.com/kozlov-ma/sesc-backend/company"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievement"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievementgroup"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievementtemplate"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/predicate"
-	"github.com/kozlov-ma/sesc-backend/sesc"
 )
 
 // AchievementTemplateUpdate is the builder for updating AchievementTemplate entities.
@@ -115,23 +115,16 @@ func (atu *AchievementTemplateUpdate) SetNillableActive(b *bool) *AchievementTem
 }
 
 // SetReviewerRole sets the "reviewer_role" field.
-func (atu *AchievementTemplateUpdate) SetReviewerRole(s sesc.Role) *AchievementTemplateUpdate {
-	atu.mutation.ResetReviewerRole()
-	atu.mutation.SetReviewerRole(s)
+func (atu *AchievementTemplateUpdate) SetReviewerRole(c company.Role) *AchievementTemplateUpdate {
+	atu.mutation.SetReviewerRole(c)
 	return atu
 }
 
 // SetNillableReviewerRole sets the "reviewer_role" field if the given value is not nil.
-func (atu *AchievementTemplateUpdate) SetNillableReviewerRole(s *sesc.Role) *AchievementTemplateUpdate {
-	if s != nil {
-		atu.SetReviewerRole(*s)
+func (atu *AchievementTemplateUpdate) SetNillableReviewerRole(c *company.Role) *AchievementTemplateUpdate {
+	if c != nil {
+		atu.SetReviewerRole(*c)
 	}
-	return atu
-}
-
-// AddReviewerRole adds s to the "reviewer_role" field.
-func (atu *AchievementTemplateUpdate) AddReviewerRole(s sesc.Role) *AchievementTemplateUpdate {
-	atu.mutation.AddReviewerRole(s)
 	return atu
 }
 
@@ -226,11 +219,6 @@ func (atu *AchievementTemplateUpdate) check() error {
 			return &ValidationError{Name: "points_limit", err: fmt.Errorf(`ent: validator failed for field "AchievementTemplate.points_limit": %w`, err)}
 		}
 	}
-	if v, ok := atu.mutation.ReviewerRole(); ok {
-		if err := v.Validate(); err != nil {
-			return &ValidationError{Name: "reviewer_role", err: fmt.Errorf(`ent: validator failed for field "AchievementTemplate.reviewer_role": %w`, err)}
-		}
-	}
 	if atu.mutation.GroupCleared() && len(atu.mutation.GroupIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "AchievementTemplate.group"`)
 	}
@@ -268,10 +256,7 @@ func (atu *AchievementTemplateUpdate) sqlSave(ctx context.Context) (n int, err e
 		_spec.SetField(achievementtemplate.FieldActive, field.TypeBool, value)
 	}
 	if value, ok := atu.mutation.ReviewerRole(); ok {
-		_spec.SetField(achievementtemplate.FieldReviewerRole, field.TypeInt, value)
-	}
-	if value, ok := atu.mutation.AddedReviewerRole(); ok {
-		_spec.AddField(achievementtemplate.FieldReviewerRole, field.TypeInt, value)
+		_spec.SetField(achievementtemplate.FieldReviewerRole, field.TypeString, value)
 	}
 	if atu.mutation.GroupCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -451,23 +436,16 @@ func (atuo *AchievementTemplateUpdateOne) SetNillableActive(b *bool) *Achievemen
 }
 
 // SetReviewerRole sets the "reviewer_role" field.
-func (atuo *AchievementTemplateUpdateOne) SetReviewerRole(s sesc.Role) *AchievementTemplateUpdateOne {
-	atuo.mutation.ResetReviewerRole()
-	atuo.mutation.SetReviewerRole(s)
+func (atuo *AchievementTemplateUpdateOne) SetReviewerRole(c company.Role) *AchievementTemplateUpdateOne {
+	atuo.mutation.SetReviewerRole(c)
 	return atuo
 }
 
 // SetNillableReviewerRole sets the "reviewer_role" field if the given value is not nil.
-func (atuo *AchievementTemplateUpdateOne) SetNillableReviewerRole(s *sesc.Role) *AchievementTemplateUpdateOne {
-	if s != nil {
-		atuo.SetReviewerRole(*s)
+func (atuo *AchievementTemplateUpdateOne) SetNillableReviewerRole(c *company.Role) *AchievementTemplateUpdateOne {
+	if c != nil {
+		atuo.SetReviewerRole(*c)
 	}
-	return atuo
-}
-
-// AddReviewerRole adds s to the "reviewer_role" field.
-func (atuo *AchievementTemplateUpdateOne) AddReviewerRole(s sesc.Role) *AchievementTemplateUpdateOne {
-	atuo.mutation.AddReviewerRole(s)
 	return atuo
 }
 
@@ -575,11 +553,6 @@ func (atuo *AchievementTemplateUpdateOne) check() error {
 			return &ValidationError{Name: "points_limit", err: fmt.Errorf(`ent: validator failed for field "AchievementTemplate.points_limit": %w`, err)}
 		}
 	}
-	if v, ok := atuo.mutation.ReviewerRole(); ok {
-		if err := v.Validate(); err != nil {
-			return &ValidationError{Name: "reviewer_role", err: fmt.Errorf(`ent: validator failed for field "AchievementTemplate.reviewer_role": %w`, err)}
-		}
-	}
 	if atuo.mutation.GroupCleared() && len(atuo.mutation.GroupIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "AchievementTemplate.group"`)
 	}
@@ -634,10 +607,7 @@ func (atuo *AchievementTemplateUpdateOne) sqlSave(ctx context.Context) (_node *A
 		_spec.SetField(achievementtemplate.FieldActive, field.TypeBool, value)
 	}
 	if value, ok := atuo.mutation.ReviewerRole(); ok {
-		_spec.SetField(achievementtemplate.FieldReviewerRole, field.TypeInt, value)
-	}
-	if value, ok := atuo.mutation.AddedReviewerRole(); ok {
-		_spec.AddField(achievementtemplate.FieldReviewerRole, field.TypeInt, value)
+		_spec.SetField(achievementtemplate.FieldReviewerRole, field.TypeString, value)
 	}
 	if atuo.mutation.GroupCleared() {
 		edge := &sqlgraph.EdgeSpec{

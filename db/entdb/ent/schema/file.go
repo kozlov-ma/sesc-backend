@@ -17,7 +17,7 @@ type File struct {
 func (File) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("id", uuid.UUID{}).Default(func() uuid.UUID { return uuid.Must(uuid.NewV7()) }).Unique(),
-		field.UUID("owner_id", uuid.UUID{}).Optional().Nillable(),
+		field.String("owner_id").Optional().Nillable(),
 		field.String("s3_object_key").Unique(),
 		field.String("name"),
 		field.Int("size"),
@@ -27,10 +27,6 @@ func (File) Fields() []ent.Field {
 // Edges of the File.
 func (File) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.From("owner", User.Type).
-			Ref("files").
-			Field("owner_id").
-			Unique(),
 		edge.To("achievement_documents", AchievementDocument.Type),
 	}
 }

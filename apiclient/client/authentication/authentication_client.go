@@ -56,101 +56,11 @@ type ClientOption func(*runtime.ClientOperation)
 
 // ClientService is the interface for Client methods
 type ClientService interface {
-	DeleteAuthCredentialsID(params *DeleteAuthCredentialsIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*DeleteAuthCredentialsIDNoContent, error)
-
-	GetAuthCredentialsID(params *GetAuthCredentialsIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetAuthCredentialsIDOK, error)
-
 	GetAuthValidate(params *GetAuthValidateParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetAuthValidateOK, error)
-
-	PostAuthAdminLogin(params *PostAuthAdminLoginParams, opts ...ClientOption) (*PostAuthAdminLoginOK, error)
 
 	PostAuthLogin(params *PostAuthLoginParams, opts ...ClientOption) (*PostAuthLoginOK, error)
 
-	PutUsersIDCredentials(params *PutUsersIDCredentialsParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PutUsersIDCredentialsCreated, error)
-
 	SetTransport(transport runtime.ClientTransport)
-}
-
-/*
-DeleteAuthCredentialsID deletes user credentials
-
-Deletes credentials for a user
-*/
-func (a *Client) DeleteAuthCredentialsID(params *DeleteAuthCredentialsIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*DeleteAuthCredentialsIDNoContent, error) {
-	// TODO: Validate the params before sending
-	if params == nil {
-		params = NewDeleteAuthCredentialsIDParams()
-	}
-	op := &runtime.ClientOperation{
-		ID:                 "DeleteAuthCredentialsID",
-		Method:             "DELETE",
-		PathPattern:        "/auth/credentials/{id}",
-		ProducesMediaTypes: []string{"application/json"},
-		ConsumesMediaTypes: []string{"application/json"},
-		Schemes:            []string{"http"},
-		Params:             params,
-		Reader:             &DeleteAuthCredentialsIDReader{formats: a.formats},
-		AuthInfo:           authInfo,
-		Context:            params.Context,
-		Client:             params.HTTPClient,
-	}
-	for _, opt := range opts {
-		opt(op)
-	}
-
-	result, err := a.transport.Submit(op)
-	if err != nil {
-		return nil, err
-	}
-	success, ok := result.(*DeleteAuthCredentialsIDNoContent)
-	if ok {
-		return success, nil
-	}
-	// unexpected success response
-	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
-	msg := fmt.Sprintf("unexpected success response for DeleteAuthCredentialsID: API contract not enforced by server. Client expected to get an error, but got: %T", result)
-	panic(msg)
-}
-
-/*
-GetAuthCredentialsID gets user credentials
-
-Retrieves credentials for a user
-*/
-func (a *Client) GetAuthCredentialsID(params *GetAuthCredentialsIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetAuthCredentialsIDOK, error) {
-	// TODO: Validate the params before sending
-	if params == nil {
-		params = NewGetAuthCredentialsIDParams()
-	}
-	op := &runtime.ClientOperation{
-		ID:                 "GetAuthCredentialsID",
-		Method:             "GET",
-		PathPattern:        "/auth/credentials/{id}",
-		ProducesMediaTypes: []string{"application/json"},
-		ConsumesMediaTypes: []string{"application/json"},
-		Schemes:            []string{"http"},
-		Params:             params,
-		Reader:             &GetAuthCredentialsIDReader{formats: a.formats},
-		AuthInfo:           authInfo,
-		Context:            params.Context,
-		Client:             params.HTTPClient,
-	}
-	for _, opt := range opts {
-		opt(op)
-	}
-
-	result, err := a.transport.Submit(op)
-	if err != nil {
-		return nil, err
-	}
-	success, ok := result.(*GetAuthCredentialsIDOK)
-	if ok {
-		return success, nil
-	}
-	// unexpected success response
-	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
-	msg := fmt.Sprintf("unexpected success response for GetAuthCredentialsID: API contract not enforced by server. Client expected to get an error, but got: %T", result)
-	panic(msg)
 }
 
 /*
@@ -195,46 +105,6 @@ func (a *Client) GetAuthValidate(params *GetAuthValidateParams, authInfo runtime
 }
 
 /*
-PostAuthAdminLogin admins login
-
-Verifies admin token and returns a JWT token with admin privileges
-*/
-func (a *Client) PostAuthAdminLogin(params *PostAuthAdminLoginParams, opts ...ClientOption) (*PostAuthAdminLoginOK, error) {
-	// TODO: Validate the params before sending
-	if params == nil {
-		params = NewPostAuthAdminLoginParams()
-	}
-	op := &runtime.ClientOperation{
-		ID:                 "PostAuthAdminLogin",
-		Method:             "POST",
-		PathPattern:        "/auth/admin/login",
-		ProducesMediaTypes: []string{"application/json"},
-		ConsumesMediaTypes: []string{"application/json"},
-		Schemes:            []string{"http"},
-		Params:             params,
-		Reader:             &PostAuthAdminLoginReader{formats: a.formats},
-		Context:            params.Context,
-		Client:             params.HTTPClient,
-	}
-	for _, opt := range opts {
-		opt(op)
-	}
-
-	result, err := a.transport.Submit(op)
-	if err != nil {
-		return nil, err
-	}
-	success, ok := result.(*PostAuthAdminLoginOK)
-	if ok {
-		return success, nil
-	}
-	// unexpected success response
-	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
-	msg := fmt.Sprintf("unexpected success response for PostAuthAdminLogin: API contract not enforced by server. Client expected to get an error, but got: %T", result)
-	panic(msg)
-}
-
-/*
 PostAuthLogin users login
 
 Verifies user credentials and returns a JWT token
@@ -271,47 +141,6 @@ func (a *Client) PostAuthLogin(params *PostAuthLoginParams, opts ...ClientOption
 	// unexpected success response
 	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
 	msg := fmt.Sprintf("unexpected success response for PostAuthLogin: API contract not enforced by server. Client expected to get an error, but got: %T", result)
-	panic(msg)
-}
-
-/*
-PutUsersIDCredentials registers user credentials
-
-Assigns username/password credentials to an existing user
-*/
-func (a *Client) PutUsersIDCredentials(params *PutUsersIDCredentialsParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PutUsersIDCredentialsCreated, error) {
-	// TODO: Validate the params before sending
-	if params == nil {
-		params = NewPutUsersIDCredentialsParams()
-	}
-	op := &runtime.ClientOperation{
-		ID:                 "PutUsersIDCredentials",
-		Method:             "PUT",
-		PathPattern:        "/users/{id}/credentials",
-		ProducesMediaTypes: []string{"application/json"},
-		ConsumesMediaTypes: []string{"application/json"},
-		Schemes:            []string{"http"},
-		Params:             params,
-		Reader:             &PutUsersIDCredentialsReader{formats: a.formats},
-		AuthInfo:           authInfo,
-		Context:            params.Context,
-		Client:             params.HTTPClient,
-	}
-	for _, opt := range opts {
-		opt(op)
-	}
-
-	result, err := a.transport.Submit(op)
-	if err != nil {
-		return nil, err
-	}
-	success, ok := result.(*PutUsersIDCredentialsCreated)
-	if ok {
-		return success, nil
-	}
-	// unexpected success response
-	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
-	msg := fmt.Sprintf("unexpected success response for PutUsersIDCredentials: API contract not enforced by server. Client expected to get an error, but got: %T", result)
 	panic(msg)
 }
 

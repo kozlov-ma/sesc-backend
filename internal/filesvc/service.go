@@ -241,7 +241,7 @@ func buildFilePredicates(opts sesc.FileSearchOptions, rec *event.Record) []predi
 	if opts.OwnerID != nil {
 		predicates = append(predicates, file.OwnerID(*opts.OwnerID))
 		buildRec.Set("owner_filter", true)
-		buildRec.Set("owner_id", opts.OwnerID.String())
+		buildRec.Set("owner_id", opts.OwnerID)
 	} else if opts.Common {
 		predicates = append(predicates, file.OwnerIDIsNil())
 		buildRec.Set("common_filter", true)

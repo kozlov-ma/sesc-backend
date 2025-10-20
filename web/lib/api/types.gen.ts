@@ -4,78 +4,17 @@ export type ClientOptions = {
   baseURL: string;
 };
 
-export type ApiCreateDepartmentRequest = {
-  description: string;
-  name: string;
-};
-
-export type ApiCreateUserRequest = {
-  academicDegree?: number;
-  academicTitle?: string;
-  category?: string;
-  dateOfEmployment?: string;
-  departmentId?: string;
-  employmentRate: number;
-  employmentType: number;
-  firstName: string;
-  honors?: string;
-  jobTitle: string;
-  lastName: string;
-  middleName?: string;
-  personnelCategory: number;
-  pictureUrl?: string;
-  role: number;
-  unemploymentDate?: string;
-};
-
 export type ApiCredentialsRequest = {
   password: string;
   username: string;
 };
 
-export type ApiIdentityResponse = {
-  id: string;
-  role: string;
-};
-
-export type ApiPatchUserRequest = {
-  academicDegree?: number;
-  academicTitle?: string;
-  category?: string;
-  dateOfEmployment?: string;
-  departmentId?: string;
-  employmentRate?: number;
-  employmentType?: number;
-  firstName: string;
-  honors?: string;
-  jobTitle?: string;
-  lastName: string;
-  middleName?: string;
-  personnelCategory?: number;
-  pictureUrl?: string;
-  roleId: number;
-  subdivision?: string;
-  suspended: boolean;
-  unemploymentDate?: string;
-};
-
-export type ApiRole = {
-  codeName: string;
-  id: number;
-  name: string;
-};
-
 export type ApiRolesResponse = {
-  roles?: Array<ApiRole>;
+  roles?: Array<RespondRole>;
 };
 
 export type ApiTokenResponse = {
   token: string;
-};
-
-export type ApiUpdateDepartmentRequest = {
-  description: string;
-  name: string;
 };
 
 export type ParamAddDocumentRequest = {
@@ -97,7 +36,7 @@ export type ParamCreateAchievementTemplateRequest = {
   groupId: string;
   name: string;
   pointsLimit: number;
-  reviewerRole: number;
+  reviewerRole: string;
 };
 
 export type ParamPatchAchievementGroupRequest = {
@@ -111,7 +50,7 @@ export type ParamPatchAchievementTemplateRequest = {
   description?: string;
   name?: string;
   pointsLimit?: number;
-  reviewerRole?: number;
+  reviewerRole?: string;
 };
 
 export type ParamReviewAchievementRequest = {
@@ -151,7 +90,7 @@ export type RespondAchievementTemplate = {
   id: string;
   name: string;
   pointsLimit: number;
-  reviewerRole: RespondRole;
+  reviewerRoleID: string;
 };
 
 export type RespondAchievements = {
@@ -204,29 +143,24 @@ export type RespondReview = {
 
 export type RespondRole = {
   codeName: string;
-  id: number;
   name: string;
 };
 
 export type RespondUser = {
-  academicDegree?: number;
+  academicDegree?: string;
   academicTitle?: string;
   category?: string;
   dateOfEmployment?: string;
   departmentId?: string;
-  employmentRate: number;
-  employmentType: number;
-  firstName: string;
+  employmentRate: string;
+  employmentType: string;
+  fullName: string;
   honors?: string;
   id: string;
   jobTitle: string;
-  lastName: string;
-  middleName?: string;
-  personnelCategory: number;
+  personnelCategory: string;
   pictureUrl: string;
   role: RespondRole;
-  suspended: boolean;
-  unemploymentDate?: string;
 };
 
 export type RespondUsers = {
@@ -1093,149 +1027,6 @@ export type PostAchievementsByIdSubmitWithNewPointsResponses = {
 export type PostAchievementsByIdSubmitWithNewPointsResponse =
   PostAchievementsByIdSubmitWithNewPointsResponses[keyof PostAchievementsByIdSubmitWithNewPointsResponses];
 
-export type PostAuthAdminLoginData = {
-  /**
-   * Admin credentials
-   */
-  body: ApiCredentialsRequest;
-  path?: never;
-  query?: never;
-  url: "/auth/admin/login";
-};
-
-export type PostAuthAdminLoginErrors = {
-  /**
-   * Invalid request format
-   */
-  400: RespondError;
-  /**
-   * Invalid admin token or not recognized
-   */
-  401: RespondError;
-  /**
-   * Internal server error
-   */
-  500: RespondError;
-};
-
-export type PostAuthAdminLoginError =
-  PostAuthAdminLoginErrors[keyof PostAuthAdminLoginErrors];
-
-export type PostAuthAdminLoginResponses = {
-  /**
-   * OK
-   */
-  200: ApiTokenResponse;
-};
-
-export type PostAuthAdminLoginResponse =
-  PostAuthAdminLoginResponses[keyof PostAuthAdminLoginResponses];
-
-export type DeleteAuthCredentialsByIdData = {
-  body?: never;
-  headers?: {
-    /**
-     * Bearer JWT token
-     */
-    Authorization?: string;
-  };
-  path: {
-    /**
-     * User UUID
-     */
-    id: string;
-  };
-  query?: never;
-  url: "/auth/credentials/{id}";
-};
-
-export type DeleteAuthCredentialsByIdErrors = {
-  /**
-   * Invalid UUID format
-   */
-  400: RespondError;
-  /**
-   * Unauthorized
-   */
-  401: RespondError;
-  /**
-   * Forbidden - admin role required
-   */
-  403: RespondError;
-  /**
-   * User credentials not found
-   */
-  404: RespondError;
-  /**
-   * Internal server error
-   */
-  500: RespondError;
-};
-
-export type DeleteAuthCredentialsByIdError =
-  DeleteAuthCredentialsByIdErrors[keyof DeleteAuthCredentialsByIdErrors];
-
-export type DeleteAuthCredentialsByIdResponses = {
-  /**
-   * No content
-   */
-  204: unknown;
-};
-
-export type GetAuthCredentialsByIdData = {
-  body?: never;
-  headers?: {
-    /**
-     * Bearer JWT token
-     */
-    Authorization?: string;
-  };
-  path: {
-    /**
-     * User UUID
-     */
-    id: string;
-  };
-  query?: never;
-  url: "/auth/credentials/{id}";
-};
-
-export type GetAuthCredentialsByIdErrors = {
-  /**
-   * Invalid UUID format
-   */
-  400: RespondError;
-  /**
-   * Unauthorized
-   */
-  401: RespondError;
-  /**
-   * Forbidden - admin role required
-   */
-  403: RespondError;
-  /**
-   * User not found or does not exist
-   */
-  404: RespondError;
-  /**
-   * Internal server error
-   */
-  500: RespondError;
-};
-
-export type GetAuthCredentialsByIdError =
-  GetAuthCredentialsByIdErrors[keyof GetAuthCredentialsByIdErrors];
-
-export type GetAuthCredentialsByIdResponses = {
-  /**
-   * OK
-   */
-  200: ApiCredentialsRequest;
-};
-
-export type GetAuthCredentialsByIdResponse =
-  GetAuthCredentialsByIdResponses[keyof GetAuthCredentialsByIdResponses];
-
 export type PostAuthLoginData = {
   /**
    * User credentials
@@ -1304,7 +1095,7 @@ export type GetAuthValidateResponses = {
   /**
    * OK
    */
-  200: ApiIdentityResponse;
+  200: RespondUser;
 };
 
 export type GetAuthValidateResponse =
@@ -1337,113 +1128,6 @@ export type GetDepartmentsResponses = {
 export type GetDepartmentsResponse =
   GetDepartmentsResponses[keyof GetDepartmentsResponses];
 
-export type PostDepartmentsData = {
-  /**
-   * Department details
-   */
-  body: ApiCreateDepartmentRequest;
-  headers?: {
-    /**
-     * Bearer JWT token
-     */
-    Authorization?: string;
-  };
-  path?: never;
-  query?: never;
-  url: "/departments";
-};
-
-export type PostDepartmentsErrors = {
-  /**
-   * Invalid request format
-   */
-  400: RespondError;
-  /**
-   * Unauthorized
-   */
-  401: RespondError;
-  /**
-   * Forbidden - admin role required
-   */
-  403: RespondError;
-  /**
-   * Department with this name already exists
-   */
-  409: RespondError;
-  /**
-   * Internal server error
-   */
-  500: RespondError;
-};
-
-export type PostDepartmentsError =
-  PostDepartmentsErrors[keyof PostDepartmentsErrors];
-
-export type PostDepartmentsResponses = {
-  /**
-   * Created
-   */
-  201: RespondDepartment;
-};
-
-export type PostDepartmentsResponse =
-  PostDepartmentsResponses[keyof PostDepartmentsResponses];
-
-export type DeleteDepartmentsByIdData = {
-  body?: never;
-  headers?: {
-    /**
-     * Bearer JWT token
-     */
-    Authorization?: string;
-  };
-  path: {
-    /**
-     * Department UUID
-     */
-    id: string;
-  };
-  query?: never;
-  url: "/departments/{id}";
-};
-
-export type DeleteDepartmentsByIdErrors = {
-  /**
-   * Invalid UUID format
-   */
-  400: RespondError;
-  /**
-   * Unauthorized
-   */
-  401: RespondError;
-  /**
-   * Forbidden - admin role required
-   */
-  403: RespondError;
-  /**
-   * Department not found
-   */
-  404: RespondError;
-  /**
-   * Cannot remove department, it still has some users
-   */
-  409: RespondError;
-  /**
-   * Internal server error
-   */
-  500: RespondError;
-};
-
-export type DeleteDepartmentsByIdError =
-  DeleteDepartmentsByIdErrors[keyof DeleteDepartmentsByIdErrors];
-
-export type DeleteDepartmentsByIdResponses = {
-  /**
-   * No content
-   */
-  204: unknown;
-};
-
 export type GetDepartmentsByIdData = {
   body?: never;
   headers?: {
@@ -1454,7 +1138,7 @@ export type GetDepartmentsByIdData = {
   };
   path: {
     /**
-     * User UUID
+     * Department ID
      */
     id: string;
   };
@@ -1489,67 +1173,6 @@ export type GetDepartmentsByIdResponses = {
 
 export type GetDepartmentsByIdResponse =
   GetDepartmentsByIdResponses[keyof GetDepartmentsByIdResponses];
-
-export type PutDepartmentsByIdData = {
-  /**
-   * Updated department details
-   */
-  body: ApiUpdateDepartmentRequest;
-  headers?: {
-    /**
-     * Bearer JWT token
-     */
-    Authorization?: string;
-  };
-  path: {
-    /**
-     * Department UUID
-     */
-    id: string;
-  };
-  query?: never;
-  url: "/departments/{id}";
-};
-
-export type PutDepartmentsByIdErrors = {
-  /**
-   * Invalid request format
-   */
-  400: RespondError;
-  /**
-   * Unauthorized
-   */
-  401: RespondError;
-  /**
-   * Forbidden - admin role required
-   */
-  403: RespondError;
-  /**
-   * Department not found
-   */
-  404: RespondError;
-  /**
-   * Department with this name already exists
-   */
-  409: RespondError;
-  /**
-   * Internal server error
-   */
-  500: RespondError;
-};
-
-export type PutDepartmentsByIdError =
-  PutDepartmentsByIdErrors[keyof PutDepartmentsByIdErrors];
-
-export type PutDepartmentsByIdResponses = {
-  /**
-   * OK
-   */
-  200: RespondDepartment;
-};
-
-export type PutDepartmentsByIdResponse =
-  PutDepartmentsByIdResponses[keyof PutDepartmentsByIdResponses];
 
 export type GetFilesData = {
   body?: never;
@@ -1912,14 +1535,6 @@ export type GetUsersData = {
   path?: never;
   query?: {
     /**
-     * Pagination offset
-     */
-    offset?: number;
-    /**
-     * Pagination limit
-     */
-    limit?: number;
-    /**
      * Search by name
      */
     search?: string;
@@ -1948,52 +1563,6 @@ export type GetUsersResponses = {
 };
 
 export type GetUsersResponse = GetUsersResponses[keyof GetUsersResponses];
-
-export type PostUsersData = {
-  /**
-   * User details
-   */
-  body: ApiCreateUserRequest;
-  headers?: {
-    /**
-     * Bearer JWT token
-     */
-    Authorization?: string;
-  };
-  path?: never;
-  query?: never;
-  url: "/users";
-};
-
-export type PostUsersErrors = {
-  /**
-   * Invalid name specified
-   */
-  400: RespondError;
-  /**
-   * Unauthorized
-   */
-  401: RespondError;
-  /**
-   * Forbidden - admin role required
-   */
-  403: RespondError;
-  /**
-   * Internal server error
-   */
-  500: RespondError;
-};
-
-export type PostUsersError = PostUsersErrors[keyof PostUsersErrors];
-
-export type PostUsersResponses = {
-  /**
-   * Created
-   */
-  201: RespondUser;
-};
-
-export type PostUsersResponse = PostUsersResponses[keyof PostUsersResponses];
 
 export type GetUsersMeData = {
   body?: never;
@@ -2044,7 +1613,7 @@ export type GetUsersByIdData = {
   };
   path: {
     /**
-     * User UUID
+     * User ID
      */
     id: string;
   };
@@ -2082,123 +1651,3 @@ export type GetUsersByIdResponses = {
 
 export type GetUsersByIdResponse =
   GetUsersByIdResponses[keyof GetUsersByIdResponses];
-
-export type PatchUsersByIdData = {
-  /**
-   * User fields to update
-   */
-  body: ApiPatchUserRequest;
-  headers?: {
-    /**
-     * Bearer JWT token
-     */
-    Authorization?: string;
-  };
-  path: {
-    /**
-     * User UUID
-     */
-    id: string;
-  };
-  query?: never;
-  url: "/users/{id}";
-};
-
-export type PatchUsersByIdErrors = {
-  /**
-   * Invalid name
-   */
-  400: RespondError;
-  /**
-   * Unauthorized
-   */
-  401: RespondError;
-  /**
-   * Forbidden - admin role required
-   */
-  403: RespondError;
-  /**
-   * User not found
-   */
-  404: RespondError;
-  /**
-   * Internal server error
-   */
-  500: RespondError;
-};
-
-export type PatchUsersByIdError =
-  PatchUsersByIdErrors[keyof PatchUsersByIdErrors];
-
-export type PatchUsersByIdResponses = {
-  /**
-   * OK
-   */
-  200: RespondUser;
-};
-
-export type PatchUsersByIdResponse =
-  PatchUsersByIdResponses[keyof PatchUsersByIdResponses];
-
-export type PutUsersByIdCredentialsData = {
-  /**
-   * User credentials
-   */
-  body: ApiCredentialsRequest;
-  headers?: {
-    /**
-     * Bearer JWT token
-     */
-    Authorization?: string;
-  };
-  path: {
-    /**
-     * User UUID
-     */
-    id: string;
-  };
-  query?: never;
-  url: "/users/{id}/credentials";
-};
-
-export type PutUsersByIdCredentialsErrors = {
-  /**
-   * Invalid credentials format
-   */
-  400: RespondError;
-  /**
-   * Unauthorized
-   */
-  401: RespondError;
-  /**
-   * Forbidden - admin role required
-   */
-  403: RespondError;
-  /**
-   * User does not exist
-   */
-  404: RespondError;
-  /**
-   * User already exists
-   */
-  409: RespondError;
-  /**
-   * Internal server error
-   */
-  500: RespondError;
-};
-
-export type PutUsersByIdCredentialsError =
-  PutUsersByIdCredentialsErrors[keyof PutUsersByIdCredentialsErrors];
-
-export type PutUsersByIdCredentialsResponses = {
-  /**
-   * AuthID
-   */
-  201: {
-    [key: string]: string;
-  };
-};
-
-export type PutUsersByIdCredentialsResponse =
-  PutUsersByIdCredentialsResponses[keyof PutUsersByIdCredentialsResponses];

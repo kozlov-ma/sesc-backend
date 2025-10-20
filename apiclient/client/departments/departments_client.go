@@ -56,56 +56,9 @@ type ClientOption func(*runtime.ClientOperation)
 
 // ClientService is the interface for Client methods
 type ClientService interface {
-	DeleteDepartmentsID(params *DeleteDepartmentsIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*DeleteDepartmentsIDNoContent, error)
-
 	GetDepartments(params *GetDepartmentsParams, opts ...ClientOption) (*GetDepartmentsOK, error)
 
-	PostDepartments(params *PostDepartmentsParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostDepartmentsCreated, error)
-
-	PutDepartmentsID(params *PutDepartmentsIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PutDepartmentsIDOK, error)
-
 	SetTransport(transport runtime.ClientTransport)
-}
-
-/*
-DeleteDepartmentsID deletes a department
-
-Deletes a department by its ID
-*/
-func (a *Client) DeleteDepartmentsID(params *DeleteDepartmentsIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*DeleteDepartmentsIDNoContent, error) {
-	// TODO: Validate the params before sending
-	if params == nil {
-		params = NewDeleteDepartmentsIDParams()
-	}
-	op := &runtime.ClientOperation{
-		ID:                 "DeleteDepartmentsID",
-		Method:             "DELETE",
-		PathPattern:        "/departments/{id}",
-		ProducesMediaTypes: []string{"application/json"},
-		ConsumesMediaTypes: []string{"application/json"},
-		Schemes:            []string{"http"},
-		Params:             params,
-		Reader:             &DeleteDepartmentsIDReader{formats: a.formats},
-		AuthInfo:           authInfo,
-		Context:            params.Context,
-		Client:             params.HTTPClient,
-	}
-	for _, opt := range opts {
-		opt(op)
-	}
-
-	result, err := a.transport.Submit(op)
-	if err != nil {
-		return nil, err
-	}
-	success, ok := result.(*DeleteDepartmentsIDNoContent)
-	if ok {
-		return success, nil
-	}
-	// unexpected success response
-	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
-	msg := fmt.Sprintf("unexpected success response for DeleteDepartmentsID: API contract not enforced by server. Client expected to get an error, but got: %T", result)
-	panic(msg)
 }
 
 /*
@@ -145,88 +98,6 @@ func (a *Client) GetDepartments(params *GetDepartmentsParams, opts ...ClientOpti
 	// unexpected success response
 	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
 	msg := fmt.Sprintf("unexpected success response for GetDepartments: API contract not enforced by server. Client expected to get an error, but got: %T", result)
-	panic(msg)
-}
-
-/*
-PostDepartments creates a new department
-
-Creates a new department with the given details
-*/
-func (a *Client) PostDepartments(params *PostDepartmentsParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostDepartmentsCreated, error) {
-	// TODO: Validate the params before sending
-	if params == nil {
-		params = NewPostDepartmentsParams()
-	}
-	op := &runtime.ClientOperation{
-		ID:                 "PostDepartments",
-		Method:             "POST",
-		PathPattern:        "/departments",
-		ProducesMediaTypes: []string{"application/json"},
-		ConsumesMediaTypes: []string{"application/json"},
-		Schemes:            []string{"http"},
-		Params:             params,
-		Reader:             &PostDepartmentsReader{formats: a.formats},
-		AuthInfo:           authInfo,
-		Context:            params.Context,
-		Client:             params.HTTPClient,
-	}
-	for _, opt := range opts {
-		opt(op)
-	}
-
-	result, err := a.transport.Submit(op)
-	if err != nil {
-		return nil, err
-	}
-	success, ok := result.(*PostDepartmentsCreated)
-	if ok {
-		return success, nil
-	}
-	// unexpected success response
-	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
-	msg := fmt.Sprintf("unexpected success response for PostDepartments: API contract not enforced by server. Client expected to get an error, but got: %T", result)
-	panic(msg)
-}
-
-/*
-PutDepartmentsID updates department details
-
-Updates an existing department with new details
-*/
-func (a *Client) PutDepartmentsID(params *PutDepartmentsIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PutDepartmentsIDOK, error) {
-	// TODO: Validate the params before sending
-	if params == nil {
-		params = NewPutDepartmentsIDParams()
-	}
-	op := &runtime.ClientOperation{
-		ID:                 "PutDepartmentsID",
-		Method:             "PUT",
-		PathPattern:        "/departments/{id}",
-		ProducesMediaTypes: []string{"application/json"},
-		ConsumesMediaTypes: []string{"application/json"},
-		Schemes:            []string{"http"},
-		Params:             params,
-		Reader:             &PutDepartmentsIDReader{formats: a.formats},
-		AuthInfo:           authInfo,
-		Context:            params.Context,
-		Client:             params.HTTPClient,
-	}
-	for _, opt := range opts {
-		opt(op)
-	}
-
-	result, err := a.transport.Submit(op)
-	if err != nil {
-		return nil, err
-	}
-	success, ok := result.(*PutDepartmentsIDOK)
-	if ok {
-		return success, nil
-	}
-	// unexpected success response
-	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
-	msg := fmt.Sprintf("unexpected success response for PutDepartmentsID: API contract not enforced by server. Client expected to get an error, but got: %T", result)
 	panic(msg)
 }
 

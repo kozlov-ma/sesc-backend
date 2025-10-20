@@ -23,8 +23,6 @@ const (
 	FieldComment = "comment"
 	// EdgeAchievement holds the string denoting the achievement edge name in mutations.
 	EdgeAchievement = "achievement"
-	// EdgeReviewer holds the string denoting the reviewer edge name in mutations.
-	EdgeReviewer = "reviewer"
 	// Table holds the table name of the achievementreview in the database.
 	Table = "achievement_reviews"
 	// AchievementTable is the table that holds the achievement relation/edge.
@@ -34,13 +32,6 @@ const (
 	AchievementInverseTable = "achievements"
 	// AchievementColumn is the table column denoting the achievement relation/edge.
 	AchievementColumn = "achievement_id"
-	// ReviewerTable is the table that holds the reviewer relation/edge.
-	ReviewerTable = "achievement_reviews"
-	// ReviewerInverseTable is the table name for the User entity.
-	// It exists in this package in order to avoid circular dependency with the "user" package.
-	ReviewerInverseTable = "users"
-	// ReviewerColumn is the table column denoting the reviewer relation/edge.
-	ReviewerColumn = "reviewer_id"
 )
 
 // Columns holds all SQL columns for achievementreview fields.
@@ -101,24 +92,10 @@ func ByAchievementField(field string, opts ...sql.OrderTermOption) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newAchievementStep(), sql.OrderByField(field, opts...))
 	}
 }
-
-// ByReviewerField orders the results by reviewer field.
-func ByReviewerField(field string, opts ...sql.OrderTermOption) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newReviewerStep(), sql.OrderByField(field, opts...))
-	}
-}
 func newAchievementStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(AchievementInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.M2O, true, AchievementTable, AchievementColumn),
-	)
-}
-func newReviewerStep() *sqlgraph.Step {
-	return sqlgraph.NewStep(
-		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(ReviewerInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.M2O, true, ReviewerTable, ReviewerColumn),
 	)
 }

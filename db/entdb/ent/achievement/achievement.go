@@ -27,10 +27,6 @@ const (
 	EdgeDocuments = "documents"
 	// EdgeReviews holds the string denoting the reviews edge name in mutations.
 	EdgeReviews = "reviews"
-	// EdgeOwner holds the string denoting the owner edge name in mutations.
-	EdgeOwner = "owner"
-	// EdgeDepartments holds the string denoting the departments edge name in mutations.
-	EdgeDepartments = "departments"
 	// EdgeTemplate holds the string denoting the template edge name in mutations.
 	EdgeTemplate = "template"
 	// Table holds the table name of the achievement in the database.
@@ -49,20 +45,6 @@ const (
 	ReviewsInverseTable = "achievement_reviews"
 	// ReviewsColumn is the table column denoting the reviews relation/edge.
 	ReviewsColumn = "achievement_id"
-	// OwnerTable is the table that holds the owner relation/edge.
-	OwnerTable = "achievements"
-	// OwnerInverseTable is the table name for the User entity.
-	// It exists in this package in order to avoid circular dependency with the "user" package.
-	OwnerInverseTable = "users"
-	// OwnerColumn is the table column denoting the owner relation/edge.
-	OwnerColumn = "owner_id"
-	// DepartmentsTable is the table that holds the departments relation/edge.
-	DepartmentsTable = "achievements"
-	// DepartmentsInverseTable is the table name for the Department entity.
-	// It exists in this package in order to avoid circular dependency with the "department" package.
-	DepartmentsInverseTable = "departments"
-	// DepartmentsColumn is the table column denoting the departments relation/edge.
-	DepartmentsColumn = "department_id"
 	// TemplateTable is the table that holds the template relation/edge.
 	TemplateTable = "achievements"
 	// TemplateInverseTable is the table name for the AchievementTemplate entity.
@@ -164,20 +146,6 @@ func ByReviews(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	}
 }
 
-// ByOwnerField orders the results by owner field.
-func ByOwnerField(field string, opts ...sql.OrderTermOption) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newOwnerStep(), sql.OrderByField(field, opts...))
-	}
-}
-
-// ByDepartmentsField orders the results by departments field.
-func ByDepartmentsField(field string, opts ...sql.OrderTermOption) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newDepartmentsStep(), sql.OrderByField(field, opts...))
-	}
-}
-
 // ByTemplateField orders the results by template field.
 func ByTemplateField(field string, opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -196,20 +164,6 @@ func newReviewsStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(ReviewsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, ReviewsTable, ReviewsColumn),
-	)
-}
-func newOwnerStep() *sqlgraph.Step {
-	return sqlgraph.NewStep(
-		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(OwnerInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.M2O, true, OwnerTable, OwnerColumn),
-	)
-}
-func newDepartmentsStep() *sqlgraph.Step {
-	return sqlgraph.NewStep(
-		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(DepartmentsInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.M2O, true, DepartmentsTable, DepartmentsColumn),
 	)
 }
 func newTemplateStep() *sqlgraph.Step {

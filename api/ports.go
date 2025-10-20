@@ -7,64 +7,31 @@ import (
 
 	"github.com/gofrs/uuid/v5"
 	"github.com/kozlov-ma/sesc-backend/achievement"
+	"github.com/kozlov-ma/sesc-backend/company"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent"
-	"github.com/kozlov-ma/sesc-backend/iam"
 	"github.com/kozlov-ma/sesc-backend/pkg/event"
 	"github.com/kozlov-ma/sesc-backend/sesc"
 )
 
 type (
 
-	// IAMService defines the authentication interface required by the API
-	IAMService interface {
-		// RegisterCredentials assigns username/password to an existing userID, returns authID.
-		// Returns ErrUserDoesNotExist if user does not exist, ErrUserAlreadyExists if username exists,
-		// or ErrInvalidCredentials if credentials are invalid.
-		RegisterCredentials(
-			ctx context.Context,
-			userID uuid.UUID,
-			creds iam.Credentials,
-		) (uuid.UUID, error)
+	// AuthService defines the authentication interface required by the API
+	AuthService interface {
 		// Login verifies credentials and returns signed JWT token string
-		Login(ctx context.Context, creds iam.Credentials) (string, error)
-		// LoginAdmin checks token for being an admin token
-		LoginAdmin(ctx context.Context, creds iam.Credentials) (string, error)
-		// ImWatermelon parses tokenString, returns Identity or error
-		ImWatermelon(ctx context.Context, tokenString string) (iam.Identity, error)
-		// DropCredentials deletes credentials by userID
-		DropCredentials(ctx context.Context, userID uuid.UUID) error
-		// Credentials returns username/password for a userID
-		Credentials(ctx context.Context, userID uuid.UUID) (iam.Credentials, error)
+		Login(ctx context.Context, id, password string) (string, error)
+		// ImWatermelon parses tokenString, returns company.User or error
+		ImWatermelon(ctx context.Context, tokenString string) (company.User, error)
 	}
 
 	// SESC defines the business logic interface required by the API
 	SESC interface {
 		// Department operations
-		Departments(ctx context.Context) (ent.Departments, error)
-		DepartmentByID(ctx context.Context, id uuid.UUID) (*ent.Department, error)
-		CreateDepartment(
-			ctx context.Context,
-			name string,
-			description string,
-		) (*ent.Department, error)
-		UpdateDepartment(
-			ctx context.Context,
-			id uuid.UUID,
-			name string,
-			description string,
-		) (*ent.Department, error)
-		DeleteDepartment(ctx context.Context, id uuid.UUID) error
+		Departments(ctx context.Context) ([]company.Department, error)
+		DepartmentByID(ctx context.Context, id string) (company.Department, error)
 
 		// User operations
-		Users(ctx context.Context, offset, limit int, search string) (ent.Users, int, error)
-		User(ctx context.Context, id uuid.UUID) (*ent.User, error)
-		CreateUser(ctx context.Context, options sesc.UserUpdateOptions) (*ent.User, error)
-		UpdateUser(
-			ctx context.Context,
-			id uuid.UUID,
-			options sesc.UserUpdateOptions,
-		) (*ent.User, error)
-		UpdateProfilePicture(ctx context.Context, id uuid.UUID, pictureURL string) error
+		Users(ctx context.Context, search string) ([]company.User, error)
+		User(ctx context.Context, id string) (company.User, error)
 
 		// Achievement group operations
 		AchievementGroups(
@@ -101,17 +68,17 @@ type (
 		GetAchievement(ctx context.Context, id uuid.UUID) (*ent.Achievement, error)
 		GetUserAchievements(
 			ctx context.Context,
-			userID uuid.UUID,
-			whosAsking uuid.UUID,
+			userID string,
+			whosAsking string,
 			offset, limit int,
 			requireChanges bool,
 		) (ent.Achievements, int, error)
 		GetUsersWithAchievements(
 			ctx context.Context,
-			whosAsking uuid.UUID,
+			whosAsking string,
 			offset, limit int,
 			search string,
-		) (ent.Users, int, error)
+		) ([]company.User, int, error)
 
 		CreateAchievement(
 			ctx context.Context,

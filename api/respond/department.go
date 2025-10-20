@@ -1,14 +1,13 @@
 package respond
 
 import (
-	"github.com/gofrs/uuid/v5"
-	"github.com/kozlov-ma/sesc-backend/db/entdb/ent"
+	"github.com/kozlov-ma/sesc-backend/company"
 )
 
 type Department struct {
-	ID          uuid.UUID `json:"id"          example:"550e8400-e29b-41d4-a716-446655440000" validate:"required"`
-	Name        string    `json:"name"        example:"Mathematics"                          validate:"required"`
-	Description string    `json:"description" example:"Math department"                      validate:"required"`
+	ID          string `json:"id"          example:"kaf_bio"                                                             validate:"required"`
+	Name        string `json:"name"        example:"Кафедра Химии и Биологии"                                            validate:"required"`
+	Description string `json:"description" example:"Мы в сунце очень любим делать string id. Потому что зачем нам uuid?" validate:"required"`
 }
 
 type Departments struct {
@@ -16,8 +15,8 @@ type Departments struct {
 	Total       int           `json:"total"       validate:"required"`
 }
 
-func WithDepartment(d *ent.Department) *Department {
-	if d == nil {
+func WithDepartment(d company.Department) *Department {
+	if d == (company.Department{}) {
 		return nil
 	}
 	return &Department{
@@ -27,7 +26,7 @@ func WithDepartment(d *ent.Department) *Department {
 	}
 }
 
-func WithDepartments(dd ent.Departments, total int) Departments {
+func WithDepartments(dd []company.Department, total int) Departments {
 	deps := make([]*Department, len(dd))
 	for i, d := range dd {
 		deps[i] = WithDepartment(d)

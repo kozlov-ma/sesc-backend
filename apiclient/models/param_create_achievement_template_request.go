@@ -40,9 +40,9 @@ type ParamCreateAchievementTemplateRequest struct {
 	PointsLimit *int64 `json:"pointsLimit"`
 
 	// reviewer role
-	// Example: 3
+	// Example: dephead
 	// Required: true
-	ReviewerRole *int64 `json:"reviewerRole"`
+	ReviewerRole *string `json:"reviewerRole"`
 }
 
 // Validate validates this param create achievement template request

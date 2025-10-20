@@ -8,9 +8,9 @@ import (
 // Achievement represents a single achievement response
 type Achievement struct {
 	ID           uuid.UUID  `json:"id"           example:"550e8400-e29b-41d4-a716-446655440000" validate:"required"`
-	OwnerID      uuid.UUID  `json:"ownerId"      example:"550e8400-e29b-41d4-a716-446655440000" validate:"required"`
+	OwnerID      string     `json:"ownerId"      example:"ivanivanov"                           validate:"required"`
 	TemplateID   uuid.UUID  `json:"templateId"   example:"550e8400-e29b-41d4-a716-446655440000" validate:"required"`
-	DepartmentID uuid.UUID  `json:"departmentId" example:"550e8400-e29b-41d4-a716-446655440000" validate:"required"`
+	DepartmentID string     `json:"departmentId" example:"kaf_bio"                              validate:"required"`
 	TemplateName string     `json:"templateName" example:"регионального уровня"                 validate:"required"`
 	Status       string     `json:"status"       example:"draft"                                validate:"required"`
 	Points       int        `json:"points"       example:"7"                                    validate:"required"`
@@ -29,7 +29,7 @@ type Document struct {
 // Review represents a review response
 type Review struct {
 	ID             uuid.UUID `json:"id"             example:"550e8400-e29b-41d4-a716-446655440000" validate:"required"`
-	ReviewerID     uuid.UUID `json:"reviewerId"     example:"550e8400-e29b-41d4-a716-446655440000" validate:"required"`
+	ReviewerID     string    `json:"reviewerId"     example:"ivanivanov"                           validate:"required"`
 	PointsAssigned int       `json:"pointsAssigned" example:"8"                                    validate:"required"`
 	Comment        string    `json:"comment"        example:"Good job, but could be better"        validate:"omitempty"`
 }

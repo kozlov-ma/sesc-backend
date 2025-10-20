@@ -21,7 +21,7 @@ import (
 type RespondAchievement struct {
 
 	// department Id
-	// Example: 550e8400-e29b-41d4-a716-446655440000
+	// Example: kaf_bio
 	// Required: true
 	DepartmentID *string `json:"departmentId"`
 
@@ -40,7 +40,7 @@ type RespondAchievement struct {
 	MaxPoints *int64 `json:"maxPoints"`
 
 	// owner Id
-	// Example: 550e8400-e29b-41d4-a716-446655440000
+	// Example: ivanivanov
 	// Required: true
 	OwnerID *string `json:"ownerId"`
 

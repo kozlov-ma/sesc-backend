@@ -14,7 +14,6 @@ import (
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievementdocument"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/file"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/predicate"
-	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/user"
 )
 
 // FileUpdate is the builder for updating File entities.
@@ -31,15 +30,15 @@ func (fu *FileUpdate) Where(ps ...predicate.File) *FileUpdate {
 }
 
 // SetOwnerID sets the "owner_id" field.
-func (fu *FileUpdate) SetOwnerID(u uuid.UUID) *FileUpdate {
-	fu.mutation.SetOwnerID(u)
+func (fu *FileUpdate) SetOwnerID(s string) *FileUpdate {
+	fu.mutation.SetOwnerID(s)
 	return fu
 }
 
 // SetNillableOwnerID sets the "owner_id" field if the given value is not nil.
-func (fu *FileUpdate) SetNillableOwnerID(u *uuid.UUID) *FileUpdate {
-	if u != nil {
-		fu.SetOwnerID(*u)
+func (fu *FileUpdate) SetNillableOwnerID(s *string) *FileUpdate {
+	if s != nil {
+		fu.SetOwnerID(*s)
 	}
 	return fu
 }
@@ -99,11 +98,6 @@ func (fu *FileUpdate) AddSize(i int) *FileUpdate {
 	return fu
 }
 
-// SetOwner sets the "owner" edge to the User entity.
-func (fu *FileUpdate) SetOwner(u *User) *FileUpdate {
-	return fu.SetOwnerID(u.ID)
-}
-
 // AddAchievementDocumentIDs adds the "achievement_documents" edge to the AchievementDocument entity by IDs.
 func (fu *FileUpdate) AddAchievementDocumentIDs(ids ...uuid.UUID) *FileUpdate {
 	fu.mutation.AddAchievementDocumentIDs(ids...)
@@ -122,12 +116,6 @@ func (fu *FileUpdate) AddAchievementDocuments(a ...*AchievementDocument) *FileUp
 // Mutation returns the FileMutation object of the builder.
 func (fu *FileUpdate) Mutation() *FileMutation {
 	return fu.mutation
-}
-
-// ClearOwner clears the "owner" edge to the User entity.
-func (fu *FileUpdate) ClearOwner() *FileUpdate {
-	fu.mutation.ClearOwner()
-	return fu
 }
 
 // ClearAchievementDocuments clears all "achievement_documents" edges to the AchievementDocument entity.
@@ -187,6 +175,12 @@ func (fu *FileUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 		}
 	}
+	if value, ok := fu.mutation.OwnerID(); ok {
+		_spec.SetField(file.FieldOwnerID, field.TypeString, value)
+	}
+	if fu.mutation.OwnerIDCleared() {
+		_spec.ClearField(file.FieldOwnerID, field.TypeString)
+	}
 	if value, ok := fu.mutation.S3ObjectKey(); ok {
 		_spec.SetField(file.FieldS3ObjectKey, field.TypeString, value)
 	}
@@ -198,35 +192,6 @@ func (fu *FileUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := fu.mutation.AddedSize(); ok {
 		_spec.AddField(file.FieldSize, field.TypeInt, value)
-	}
-	if fu.mutation.OwnerCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   file.OwnerTable,
-			Columns: []string{file.OwnerColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := fu.mutation.OwnerIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   file.OwnerTable,
-			Columns: []string{file.OwnerColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if fu.mutation.AchievementDocumentsCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -294,15 +259,15 @@ type FileUpdateOne struct {
 }
 
 // SetOwnerID sets the "owner_id" field.
-func (fuo *FileUpdateOne) SetOwnerID(u uuid.UUID) *FileUpdateOne {
-	fuo.mutation.SetOwnerID(u)
+func (fuo *FileUpdateOne) SetOwnerID(s string) *FileUpdateOne {
+	fuo.mutation.SetOwnerID(s)
 	return fuo
 }
 
 // SetNillableOwnerID sets the "owner_id" field if the given value is not nil.
-func (fuo *FileUpdateOne) SetNillableOwnerID(u *uuid.UUID) *FileUpdateOne {
-	if u != nil {
-		fuo.SetOwnerID(*u)
+func (fuo *FileUpdateOne) SetNillableOwnerID(s *string) *FileUpdateOne {
+	if s != nil {
+		fuo.SetOwnerID(*s)
 	}
 	return fuo
 }
@@ -362,11 +327,6 @@ func (fuo *FileUpdateOne) AddSize(i int) *FileUpdateOne {
 	return fuo
 }
 
-// SetOwner sets the "owner" edge to the User entity.
-func (fuo *FileUpdateOne) SetOwner(u *User) *FileUpdateOne {
-	return fuo.SetOwnerID(u.ID)
-}
-
 // AddAchievementDocumentIDs adds the "achievement_documents" edge to the AchievementDocument entity by IDs.
 func (fuo *FileUpdateOne) AddAchievementDocumentIDs(ids ...uuid.UUID) *FileUpdateOne {
 	fuo.mutation.AddAchievementDocumentIDs(ids...)
@@ -385,12 +345,6 @@ func (fuo *FileUpdateOne) AddAchievementDocuments(a ...*AchievementDocument) *Fi
 // Mutation returns the FileMutation object of the builder.
 func (fuo *FileUpdateOne) Mutation() *FileMutation {
 	return fuo.mutation
-}
-
-// ClearOwner clears the "owner" edge to the User entity.
-func (fuo *FileUpdateOne) ClearOwner() *FileUpdateOne {
-	fuo.mutation.ClearOwner()
-	return fuo
 }
 
 // ClearAchievementDocuments clears all "achievement_documents" edges to the AchievementDocument entity.
@@ -480,6 +434,12 @@ func (fuo *FileUpdateOne) sqlSave(ctx context.Context) (_node *File, err error) 
 			}
 		}
 	}
+	if value, ok := fuo.mutation.OwnerID(); ok {
+		_spec.SetField(file.FieldOwnerID, field.TypeString, value)
+	}
+	if fuo.mutation.OwnerIDCleared() {
+		_spec.ClearField(file.FieldOwnerID, field.TypeString)
+	}
 	if value, ok := fuo.mutation.S3ObjectKey(); ok {
 		_spec.SetField(file.FieldS3ObjectKey, field.TypeString, value)
 	}
@@ -491,35 +451,6 @@ func (fuo *FileUpdateOne) sqlSave(ctx context.Context) (_node *File, err error) 
 	}
 	if value, ok := fuo.mutation.AddedSize(); ok {
 		_spec.AddField(file.FieldSize, field.TypeInt, value)
-	}
-	if fuo.mutation.OwnerCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   file.OwnerTable,
-			Columns: []string{file.OwnerColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := fuo.mutation.OwnerIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   file.OwnerTable,
-			Columns: []string{file.OwnerColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if fuo.mutation.AchievementDocumentsCleared() {
 		edge := &sqlgraph.EdgeSpec{

@@ -55,7 +55,7 @@ func IDLTE(id uuid.UUID) predicate.Achievement {
 }
 
 // OwnerID applies equality check predicate on the "owner_id" field. It's identical to OwnerIDEQ.
-func OwnerID(v uuid.UUID) predicate.Achievement {
+func OwnerID(v string) predicate.Achievement {
 	return predicate.Achievement(sql.FieldEQ(FieldOwnerID, v))
 }
 
@@ -65,7 +65,7 @@ func TemplateID(v uuid.UUID) predicate.Achievement {
 }
 
 // DepartmentID applies equality check predicate on the "department_id" field. It's identical to DepartmentIDEQ.
-func DepartmentID(v uuid.UUID) predicate.Achievement {
+func DepartmentID(v string) predicate.Achievement {
 	return predicate.Achievement(sql.FieldEQ(FieldDepartmentID, v))
 }
 
@@ -80,23 +80,68 @@ func Points(v int) predicate.Achievement {
 }
 
 // OwnerIDEQ applies the EQ predicate on the "owner_id" field.
-func OwnerIDEQ(v uuid.UUID) predicate.Achievement {
+func OwnerIDEQ(v string) predicate.Achievement {
 	return predicate.Achievement(sql.FieldEQ(FieldOwnerID, v))
 }
 
 // OwnerIDNEQ applies the NEQ predicate on the "owner_id" field.
-func OwnerIDNEQ(v uuid.UUID) predicate.Achievement {
+func OwnerIDNEQ(v string) predicate.Achievement {
 	return predicate.Achievement(sql.FieldNEQ(FieldOwnerID, v))
 }
 
 // OwnerIDIn applies the In predicate on the "owner_id" field.
-func OwnerIDIn(vs ...uuid.UUID) predicate.Achievement {
+func OwnerIDIn(vs ...string) predicate.Achievement {
 	return predicate.Achievement(sql.FieldIn(FieldOwnerID, vs...))
 }
 
 // OwnerIDNotIn applies the NotIn predicate on the "owner_id" field.
-func OwnerIDNotIn(vs ...uuid.UUID) predicate.Achievement {
+func OwnerIDNotIn(vs ...string) predicate.Achievement {
 	return predicate.Achievement(sql.FieldNotIn(FieldOwnerID, vs...))
+}
+
+// OwnerIDGT applies the GT predicate on the "owner_id" field.
+func OwnerIDGT(v string) predicate.Achievement {
+	return predicate.Achievement(sql.FieldGT(FieldOwnerID, v))
+}
+
+// OwnerIDGTE applies the GTE predicate on the "owner_id" field.
+func OwnerIDGTE(v string) predicate.Achievement {
+	return predicate.Achievement(sql.FieldGTE(FieldOwnerID, v))
+}
+
+// OwnerIDLT applies the LT predicate on the "owner_id" field.
+func OwnerIDLT(v string) predicate.Achievement {
+	return predicate.Achievement(sql.FieldLT(FieldOwnerID, v))
+}
+
+// OwnerIDLTE applies the LTE predicate on the "owner_id" field.
+func OwnerIDLTE(v string) predicate.Achievement {
+	return predicate.Achievement(sql.FieldLTE(FieldOwnerID, v))
+}
+
+// OwnerIDContains applies the Contains predicate on the "owner_id" field.
+func OwnerIDContains(v string) predicate.Achievement {
+	return predicate.Achievement(sql.FieldContains(FieldOwnerID, v))
+}
+
+// OwnerIDHasPrefix applies the HasPrefix predicate on the "owner_id" field.
+func OwnerIDHasPrefix(v string) predicate.Achievement {
+	return predicate.Achievement(sql.FieldHasPrefix(FieldOwnerID, v))
+}
+
+// OwnerIDHasSuffix applies the HasSuffix predicate on the "owner_id" field.
+func OwnerIDHasSuffix(v string) predicate.Achievement {
+	return predicate.Achievement(sql.FieldHasSuffix(FieldOwnerID, v))
+}
+
+// OwnerIDEqualFold applies the EqualFold predicate on the "owner_id" field.
+func OwnerIDEqualFold(v string) predicate.Achievement {
+	return predicate.Achievement(sql.FieldEqualFold(FieldOwnerID, v))
+}
+
+// OwnerIDContainsFold applies the ContainsFold predicate on the "owner_id" field.
+func OwnerIDContainsFold(v string) predicate.Achievement {
+	return predicate.Achievement(sql.FieldContainsFold(FieldOwnerID, v))
 }
 
 // TemplateIDEQ applies the EQ predicate on the "template_id" field.
@@ -120,23 +165,68 @@ func TemplateIDNotIn(vs ...uuid.UUID) predicate.Achievement {
 }
 
 // DepartmentIDEQ applies the EQ predicate on the "department_id" field.
-func DepartmentIDEQ(v uuid.UUID) predicate.Achievement {
+func DepartmentIDEQ(v string) predicate.Achievement {
 	return predicate.Achievement(sql.FieldEQ(FieldDepartmentID, v))
 }
 
 // DepartmentIDNEQ applies the NEQ predicate on the "department_id" field.
-func DepartmentIDNEQ(v uuid.UUID) predicate.Achievement {
+func DepartmentIDNEQ(v string) predicate.Achievement {
 	return predicate.Achievement(sql.FieldNEQ(FieldDepartmentID, v))
 }
 
 // DepartmentIDIn applies the In predicate on the "department_id" field.
-func DepartmentIDIn(vs ...uuid.UUID) predicate.Achievement {
+func DepartmentIDIn(vs ...string) predicate.Achievement {
 	return predicate.Achievement(sql.FieldIn(FieldDepartmentID, vs...))
 }
 
 // DepartmentIDNotIn applies the NotIn predicate on the "department_id" field.
-func DepartmentIDNotIn(vs ...uuid.UUID) predicate.Achievement {
+func DepartmentIDNotIn(vs ...string) predicate.Achievement {
 	return predicate.Achievement(sql.FieldNotIn(FieldDepartmentID, vs...))
+}
+
+// DepartmentIDGT applies the GT predicate on the "department_id" field.
+func DepartmentIDGT(v string) predicate.Achievement {
+	return predicate.Achievement(sql.FieldGT(FieldDepartmentID, v))
+}
+
+// DepartmentIDGTE applies the GTE predicate on the "department_id" field.
+func DepartmentIDGTE(v string) predicate.Achievement {
+	return predicate.Achievement(sql.FieldGTE(FieldDepartmentID, v))
+}
+
+// DepartmentIDLT applies the LT predicate on the "department_id" field.
+func DepartmentIDLT(v string) predicate.Achievement {
+	return predicate.Achievement(sql.FieldLT(FieldDepartmentID, v))
+}
+
+// DepartmentIDLTE applies the LTE predicate on the "department_id" field.
+func DepartmentIDLTE(v string) predicate.Achievement {
+	return predicate.Achievement(sql.FieldLTE(FieldDepartmentID, v))
+}
+
+// DepartmentIDContains applies the Contains predicate on the "department_id" field.
+func DepartmentIDContains(v string) predicate.Achievement {
+	return predicate.Achievement(sql.FieldContains(FieldDepartmentID, v))
+}
+
+// DepartmentIDHasPrefix applies the HasPrefix predicate on the "department_id" field.
+func DepartmentIDHasPrefix(v string) predicate.Achievement {
+	return predicate.Achievement(sql.FieldHasPrefix(FieldDepartmentID, v))
+}
+
+// DepartmentIDHasSuffix applies the HasSuffix predicate on the "department_id" field.
+func DepartmentIDHasSuffix(v string) predicate.Achievement {
+	return predicate.Achievement(sql.FieldHasSuffix(FieldDepartmentID, v))
+}
+
+// DepartmentIDEqualFold applies the EqualFold predicate on the "department_id" field.
+func DepartmentIDEqualFold(v string) predicate.Achievement {
+	return predicate.Achievement(sql.FieldEqualFold(FieldDepartmentID, v))
+}
+
+// DepartmentIDContainsFold applies the ContainsFold predicate on the "department_id" field.
+func DepartmentIDContainsFold(v string) predicate.Achievement {
+	return predicate.Achievement(sql.FieldContainsFold(FieldDepartmentID, v))
 }
 
 // StatusEQ applies the EQ predicate on the "status" field.
@@ -282,52 +372,6 @@ func HasReviews() predicate.Achievement {
 func HasReviewsWith(preds ...predicate.AchievementReview) predicate.Achievement {
 	return predicate.Achievement(func(s *sql.Selector) {
 		step := newReviewsStep()
-		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
-			for _, p := range preds {
-				p(s)
-			}
-		})
-	})
-}
-
-// HasOwner applies the HasEdge predicate on the "owner" edge.
-func HasOwner() predicate.Achievement {
-	return predicate.Achievement(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, OwnerTable, OwnerColumn),
-		)
-		sqlgraph.HasNeighbors(s, step)
-	})
-}
-
-// HasOwnerWith applies the HasEdge predicate on the "owner" edge with a given conditions (other predicates).
-func HasOwnerWith(preds ...predicate.User) predicate.Achievement {
-	return predicate.Achievement(func(s *sql.Selector) {
-		step := newOwnerStep()
-		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
-			for _, p := range preds {
-				p(s)
-			}
-		})
-	})
-}
-
-// HasDepartments applies the HasEdge predicate on the "departments" edge.
-func HasDepartments() predicate.Achievement {
-	return predicate.Achievement(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, DepartmentsTable, DepartmentsColumn),
-		)
-		sqlgraph.HasNeighbors(s, step)
-	})
-}
-
-// HasDepartmentsWith applies the HasEdge predicate on the "departments" edge with a given conditions (other predicates).
-func HasDepartmentsWith(preds ...predicate.Department) predicate.Achievement {
-	return predicate.Achievement(func(s *sql.Selector) {
-		step := newDepartmentsStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

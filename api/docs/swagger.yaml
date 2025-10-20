@@ -1,75 +1,4 @@
 definitions:
-  api.CreateDepartmentRequest:
-    properties:
-      description:
-        example: Math department
-        type: string
-      name:
-        example: Mathematics
-        type: string
-    required:
-    - description
-    - name
-    type: object
-  api.CreateUserRequest:
-    properties:
-      academicDegree:
-        example: 2
-        type: integer
-      academicTitle:
-        example: Профессор
-        type: string
-      category:
-        example: Высшая
-        type: string
-      dateOfEmployment:
-        example: "2020-01-15T00:00:00Z"
-        type: string
-      departmentId:
-        example: 550e8400-e29b-41d4-a716-446655440000
-        type: string
-      employmentRate:
-        example: 1
-        type: number
-      employmentType:
-        example: 1
-        type: integer
-      firstName:
-        example: Anna
-        type: string
-      honors:
-        example: Заслуженный деятель науки
-        type: string
-      jobTitle:
-        example: Профессор
-        type: string
-      lastName:
-        example: Smirnova
-        type: string
-      middleName:
-        example: Olegovna
-        type: string
-      personnelCategory:
-        example: 1
-        type: integer
-      pictureUrl:
-        example: /images/users/ivan.jpg
-        type: string
-      role:
-        example: 2
-        type: integer
-      unemploymentDate:
-        example: "2023-12-31T00:00:00Z"
-        type: string
-    required:
-    - employmentRate
-    - employmentType
-    - firstName
-    - jobTitle
-    - lastName
-    - personnelCategory
-    - role
-    type: object
   api.CredentialsRequest:
     properties:
       password:
@@ -82,101 +11,11 @@ definitions:
     - password
     - username
     type: object
-  api.IdentityResponse:
-    properties:
-      id:
-        example: 550e8400-e29b-41d4-a716-446655440000
-        type: string
-      role:
-        example: user
-        type: string
-    required:
-    - id
-    - role
-    type: object
-  api.PatchUserRequest:
-    properties:
-      academicDegree:
-        example: 2
-        type: integer
-      academicTitle:
-        example: Профессор
-        type: string
-      category:
-        example: Высшая
-        type: string
-      dateOfEmployment:
-        example: "2020-01-15T00:00:00Z"
-        type: string
-      departmentId:
-        example: 550e8400-e29b-41d4-a716-446655440000
-        type: string
-      employmentRate:
-        example: 1
-        type: number
-      employmentType:
-        example: 1
-        type: integer
-      firstName:
-        example: Ivan
-        type: string
-      honors:
-        example: Заслуженный деятель науки
-        type: string
-      jobTitle:
-        example: Профессор
-        type: string
-      lastName:
-        example: Petrov
-        type: string
-      middleName:
-        example: Sergeevich
-        type: string
-      personnelCategory:
-        example: 1
-        type: integer
-      pictureUrl:
-        example: /images/users/ivan.jpg
-        type: string
-      roleId:
-        example: 1
-        type: integer
-      subdivision:
-        example: Кафедра информатики
-        type: string
-      suspended:
-        example: false
-        type: boolean
-      unemploymentDate:
-        example: "2023-12-31T00:00:00Z"
-        type: string
-    required:
-    - firstName
-    - lastName
-    - roleId
-    - suspended
-    type: object
-  api.Role:
-    properties:
-      codeName:
-        example: teacher
-        type: string
-      id:
-        example: 1
-        type: integer
-      name:
-        example: Преподаватель
-        type: string
-    required:
-    - codeName
-    - id
-    - name
-    type: object
   api.RolesResponse:
     properties:
       roles:
         items:
-          $ref: '#/definitions/api.Role'
+          $ref: '#/definitions/respond.Role'
         type: array
     type: object
   api.TokenResponse:
@@ -186,18 +25,6 @@ definitions:
         type: string
     required:
     - token
-    type: object
-  api.UpdateDepartmentRequest:
-    properties:
-      description:
-        example: Math department
-        type: string
-      name:
-        example: Mathematics
-        type: string
-    required:
-    - description
-    - name
     type: object
   param.AddDocumentRequest:
     properties:
@@ -246,8 +73,8 @@ definitions:
         example: 10
         type: integer
       reviewerRole:
-        example: 3
-        type: integer
+        example: dephead
+        type: string
     required:
     - description
     - groupId
@@ -282,8 +109,8 @@ definitions:
         example: 10
         type: integer
       reviewerRole:
-        example: 3
-        type: integer
+        example: dephead
+        type: string
     type: object
   param.ReviewAchievementRequest:
     properties:
@@ -315,7 +142,7 @@ definitions:
   respond.Achievement:
     properties:
       departmentId:
-        example: 550e8400-e29b-41d4-a716-446655440000
+        example: kaf_bio
         type: string
       documents:
         items:
@@ -328,7 +155,7 @@ definitions:
         example: 10
         type: integer
       ownerId:
-        example: 550e8400-e29b-41d4-a716-446655440000
+        example: ivanivanov
         type: string
       points:
         example: 7
@@ -398,8 +225,8 @@ definitions:
       pointsLimit:
         example: 10
         type: integer
-      reviewerRole:
-        $ref: '#/definitions/respond.Role'
+      reviewerRoleID:
+        type: string
     required:
     - active
     - description
@@ -407,7 +234,7 @@ definitions:
     - id
     - name
     - pointsLimit
-    - reviewerRole
+    - reviewerRoleID
     type: object
   respond.Achievements:
     properties:
@@ -424,13 +251,13 @@ definitions:
   respond.Department:
     properties:
       description:
-        example: Math department
+        example: Мы в сунце очень любим делать string id. Потому что зачем нам uuid?
         type: string
       id:
-        example: 550e8400-e29b-41d4-a716-446655440000
+        example: kaf_bio
         type: string
       name:
-        example: Mathematics
+        example: Кафедра Химии и Биологии
         type: string
     required:
     - description
@@ -508,7 +335,7 @@ definitions:
         example: 8
         type: integer
       reviewerId:
-        example: 550e8400-e29b-41d4-a716-446655440000
+        example: ivanivanov
         type: string
     required:
     - id
@@ -520,22 +347,18 @@ definitions:
       codeName:
         example: teacher
         type: string
-      id:
-        example: 1
-        type: integer
       name:
         example: Преподаватель
         type: string
     required:
     - codeName
-    - id
     - name
     type: object
   respond.User:
     properties:
       academicDegree:
-        example: 2
-        type: integer
+        example: Доктор наук
+        type: string
       academicTitle:
         example: Профессор
         type: string
@@ -543,58 +366,45 @@ definitions:
         example: Высшая
         type: string
       dateOfEmployment:
-        example: "2020-01-15T00:00:00Z"
+        example: 24.02.2022
         type: string
       departmentId:
         type: string
       employmentRate:
-        example: 1
-        type: number
+        example: "1.0"
+        type: string
       employmentType:
-        example: 1
-        type: integer
-      firstName:
-        example: Ivan
+        example: Внешнее совместительство
+        type: string
+      fullName:
+        example: Ivanov Ivan Ivanovich
         type: string
       honors:
         example: Заслуженный деятель науки
         type: string
       id:
-        example: 550e8400-e29b-41d4-a716-446655440000
+        example: ivanivanov
         type: string
       jobTitle:
         example: Профессор
         type: string
-      lastName:
-        example: Petrov
-        type: string
-      middleName:
-        example: Sergeevich
-        type: string
       personnelCategory:
-        example: 1
-        type: integer
+        example: Административно-управленческий персонал
+        type: string
       pictureUrl:
         example: /images/users/ivan.jpg
         type: string
       role:
         $ref: '#/definitions/respond.Role'
-      suspended:
-        type: boolean
-      unemploymentDate:
-        example: "2023-12-31T00:00:00Z"
-        type: string
     required:
     - employmentRate
     - employmentType
-    - firstName
+    - fullName
     - id
     - jobTitle
-    - lastName
     - personnelCategory
     - pictureUrl
     - role
-    - suspended
     type: object
   respond.Users:
     properties:
@@ -1383,123 +1193,6 @@ paths:
       summary: Get users with achievements
       tags:
       - achievements
-  /auth/admin/login:
-    post:
-      consumes:
-      - application/json
-      description: Verifies admin token and returns a JWT token with admin privileges
-      parameters:
-      - description: Admin credentials
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/api.CredentialsRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/api.TokenResponse'
-        "400":
-          description: Invalid request format
-          schema:
-            $ref: '#/definitions/respond.Error'
-        "401":
-          description: Invalid admin token or not recognized
-          schema:
-            $ref: '#/definitions/respond.Error'
-        "500":
-          description: Internal server error
-          schema:
-            $ref: '#/definitions/respond.Error'
-      summary: Admin login
-      tags:
-      - authentication
-  /auth/credentials/{id}:
-    delete:
-      description: Deletes credentials for a user
-      parameters:
-      - description: Bearer JWT token
-        in: header
-        name: Authorization
-        type: string
-      - description: User UUID
-        in: path
-        name: id
-        required: true
-        type: string
-      responses:
-        "204":
-          description: No content
-        "400":
-          description: Invalid UUID format
-          schema:
-            $ref: '#/definitions/respond.Error'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/respond.Error'
-        "403":
-          description: Forbidden - admin role required
-          schema:
-            $ref: '#/definitions/respond.Error'
-        "404":
-          description: User credentials not found
-          schema:
-            $ref: '#/definitions/respond.Error'
-        "500":
-          description: Internal server error
-          schema:
-            $ref: '#/definitions/respond.Error'
-      security:
-      - BearerAuth: []
-      summary: Delete user credentials
-      tags:
-      - authentication
-    get:
-      description: Retrieves credentials for a user
-      parameters:
-      - description: Bearer JWT token
-        in: header
-        name: Authorization
-        type: string
-      - description: User UUID
-        in: path
-        name: id
-        required: true
-        type: string
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/api.CredentialsRequest'
-        "400":
-          description: Invalid UUID format
-          schema:
-            $ref: '#/definitions/respond.Error'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/respond.Error'
-        "403":
-          description: Forbidden - admin role required
-          schema:
-            $ref: '#/definitions/respond.Error'
-        "404":
-          description: User not found or does not exist
-          schema:
-            $ref: '#/definitions/respond.Error'
-        "500":
-          description: Internal server error
-          schema:
-            $ref: '#/definitions/respond.Error'
-      security:
-      - BearerAuth: []
-      summary: Get user credentials
-      tags:
-      - authentication
   /auth/login:
     post:
       consumes:
@@ -1548,7 +1241,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/api.IdentityResponse'
+            $ref: '#/definitions/respond.User'
         "401":
           description: Invalid token
           schema:
@@ -1579,98 +1272,7 @@ paths:
       summary: List all departments
       tags:
       - departments
-    post:
-      consumes:
-      - application/json
-      description: Creates a new department with the given details
-      parameters:
-      - description: Bearer JWT token
-        in: header
-        name: Authorization
-        type: string
-      - description: Department details
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/api.CreateDepartmentRequest'
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
-          schema:
-            $ref: '#/definitions/respond.Department'
-        "400":
-          description: Invalid request format
-          schema:
-            $ref: '#/definitions/respond.Error'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/respond.Error'
-        "403":
-          description: Forbidden - admin role required
-          schema:
-            $ref: '#/definitions/respond.Error'
-        "409":
-          description: Department with this name already exists
-          schema:
-            $ref: '#/definitions/respond.Error'
-        "500":
-          description: Internal server error
-          schema:
-            $ref: '#/definitions/respond.Error'
-      security:
-      - BearerAuth: []
-      summary: Create a new department
-      tags:
-      - departments
   /departments/{id}:
-    delete:
-      description: Deletes a department by its ID
-      parameters:
-      - description: Bearer JWT token
-        in: header
-        name: Authorization
-        type: string
-      - description: Department UUID
-        in: path
-        name: id
-        required: true
-        type: string
-      responses:
-        "204":
-          description: No content
-        "400":
-          description: Invalid UUID format
-          schema:
-            $ref: '#/definitions/respond.Error'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/respond.Error'
-        "403":
-          description: Forbidden - admin role required
-          schema:
-            $ref: '#/definitions/respond.Error'
-        "404":
-          description: Department not found
-          schema:
-            $ref: '#/definitions/respond.Error'
-        "409":
-          description: Cannot remove department, it still has some users
-          schema:
-            $ref: '#/definitions/respond.Error'
-        "500":
-          description: Internal server error
-          schema:
-            $ref: '#/definitions/respond.Error'
-      security:
-      - BearerAuth: []
-      summary: Delete a department
-      tags:
-      - departments
     get:
       description: Retrieves detailed information about a department
       parameters:
@@ -1678,7 +1280,7 @@ paths:
         in: header
         name: Authorization
         type: string
-      - description: User UUID
+      - description: Department ID
         in: path
         name: id
         required: true
@@ -1707,62 +1309,6 @@ paths:
       summary: Get department details
       tags:
       - users
-    put:
-      consumes:
-      - application/json
-      description: Updates an existing department with new details
-      parameters:
-      - description: Bearer JWT token
-        in: header
-        name: Authorization
-        type: string
-      - description: Department UUID
-        in: path
-        name: id
-        required: true
-        type: string
-      - description: Updated department details
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/api.UpdateDepartmentRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/respond.Department'
-        "400":
-          description: Invalid request format
-          schema:
-            $ref: '#/definitions/respond.Error'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/respond.Error'
-        "403":
-          description: Forbidden - admin role required
-          schema:
-            $ref: '#/definitions/respond.Error'
-        "404":
-          description: Department not found
-          schema:
-            $ref: '#/definitions/respond.Error'
-        "409":
-          description: Department with this name already exists
-          schema:
-            $ref: '#/definitions/respond.Error'
-        "500":
-          description: Internal server error
-          schema:
-            $ref: '#/definitions/respond.Error'
-      security:
-      - BearerAuth: []
-      summary: Update department details
-      tags:
-      - departments
   /files:
     get:
       consumes:
@@ -2078,19 +1624,6 @@ paths:
     get:
       description: Retrieves detailed information about all users
       parameters:
-      - default: 0
-        description: Pagination offset
-        in: query
-        minimum: 0
-        name: offset
-        type: integer
-      - default: 10
-        description: Pagination limit
-        in: query
-        maximum: 100
-        minimum: 1
-        name: limit
-        type: integer
       - description: Search by name
         in: query
         name: search
@@ -2119,49 +1652,6 @@ paths:
       summary: Get all users registered in the system
       tags:
       - users
-    post:
-      consumes:
-      - application/json
-      description: Creates a new user with specified role (non-teacher)
-      parameters:
-      - description: Bearer JWT token
-        in: header
-        name: Authorization
-        type: string
-      - description: User details
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/api.CreateUserRequest'
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
-          schema:
-            $ref: '#/definitions/respond.User'
-        "400":
-          description: Invalid name specified
-          schema:
-            $ref: '#/definitions/respond.Error'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/respond.Error'
-        "403":
-          description: Forbidden - admin role required
-          schema:
-            $ref: '#/definitions/respond.Error'
-        "500":
-          description: Internal server error
-          schema:
-            $ref: '#/definitions/respond.Error'
-      security:
-      - BearerAuth: []
-      summary: Create new user
-      tags:
-      - users
   /users/{id}:
     get:
       description: Retrieves detailed information about a user
@@ -2170,7 +1660,7 @@ paths:
         in: header
         name: Authorization
         type: string
-      - description: User UUID
+      - description: User ID
         in: path
         name: id
         required: true
@@ -2203,118 +1693,6 @@ paths:
       summary: Get user details
       tags:
       - users
-    patch:
-      consumes:
-      - application/json
-      description: Applies a partial update to the user identified by {id}. Only non-nil
-        fields in the request are applied.
-      parameters:
-      - description: Bearer JWT token
-        in: header
-        name: Authorization
-        type: string
-      - description: User UUID
-        in: path
-        name: id
-        required: true
-        type: string
-      - description: User fields to update
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/api.PatchUserRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/respond.User'
-        "400":
-          description: Invalid name
-          schema:
-            $ref: '#/definitions/respond.Error'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/respond.Error'
-        "403":
-          description: Forbidden - admin role required
-          schema:
-            $ref: '#/definitions/respond.Error'
-        "404":
-          description: User not found
-          schema:
-            $ref: '#/definitions/respond.Error'
-        "500":
-          description: Internal server error
-          schema:
-            $ref: '#/definitions/respond.Error'
-      security:
-      - BearerAuth: []
-      summary: Partially update user
-      tags:
-      - users
-  /users/{id}/credentials:
-    put:
-      consumes:
-      - application/json
-      description: Assigns username/password credentials to an existing user
-      parameters:
-      - description: Bearer JWT token
-        in: header
-        name: Authorization
-        type: string
-      - description: User UUID
-        in: path
-        name: id
-        required: true
-        type: string
-      - description: User credentials
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/api.CredentialsRequest'
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: AuthID
-          schema:
-            additionalProperties:
-              type: string
-            type: object
-        "400":
-          description: Invalid credentials format
-          schema:
-            $ref: '#/definitions/respond.Error'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/respond.Error'
-        "403":
-          description: Forbidden - admin role required
-          schema:
-            $ref: '#/definitions/respond.Error'
-        "404":
-          description: User does not exist
-          schema:
-            $ref: '#/definitions/respond.Error'
-        "409":
-          description: User already exists
-          schema:
-            $ref: '#/definitions/respond.Error'
-        "500":
-          description: Internal server error
-          schema:
-            $ref: '#/definitions/respond.Error'
-      security:
-      - BearerAuth: []
-      summary: Register user credentials
-      tags:
-      - authentication
   /users/me:
     get:
       description: Returns information about the current authenticated user

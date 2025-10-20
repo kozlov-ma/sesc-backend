@@ -6,21 +6,22 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/kozlov-ma/sesc-backend/company"
+	"github.com/kozlov-ma/sesc-backend/company/companyquery"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent"
 	entAchievement "github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievement"
-	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/user"
 	"github.com/kozlov-ma/sesc-backend/internal/services/txwrapper"
 	"github.com/kozlov-ma/sesc-backend/pkg/event"
 	"github.com/kozlov-ma/sesc-backend/pkg/event/events"
-	"github.com/kozlov-ma/sesc-backend/sesc"
 )
 
+// ACCESSTODO
 // GetUserAchievements retrieves all achievements for the current user with pagination.
 // Results are ordered based on the asking user's role and review responsibilities.
 func (s *ACS) GetUserAchievements(
 	ctx context.Context,
-	userID UUID,
-	whosAsking UUID,
+	userID string,
+	whosAsking string,
 	offset, limit int,
 	requireChanges bool,
 ) (ent.Achievements, int, error) {
@@ -39,40 +40,29 @@ func (s *ACS) GetUserAchievements(
 	var totalAchievements int
 	var achievementEntities []*ent.Achievement
 
-	err := txwrapper.WithTx(ctx, s.client, sql.LevelReadCommitted, rec, func(tx *ent.Tx) error {
-		var askingUser *ent.User
-		err := rec.Operation("query_asking_user", func(rec *event.Record) (err error) {
-			rec.Sub("params").Set(
-				"asking_user_id", whosAsking,
-			)
+	var askingUser company.User
+	err := rec.Operation("query_asking_user", func(rec *event.Record) (err error) {
+		rec.Sub("params").Set(
+			"asking_user_id", whosAsking,
+		)
 
-			start := time.Now()
-			askingUser, err = tx.User.Query().
-				Where(user.ID(whosAsking)).
-				WithDepartment().
-				Only(ctx)
-			statsRec.Add(events.PostgresQueries, 1)
-			statsRec.Add(events.PostgresTime, time.Since(start))
-
-			if ent.IsNotFound(err) {
-				return sesc.ErrUserNotFound
-			}
-
-			if err != nil {
-				return fmt.Errorf("failed to get asking user: %w", err)
-			}
-
-			rec.Set("asking_user", askingUser)
-
-			return nil
-		})
+		askingUser, err = s.company.User(ctx, companyquery.User{ID: whosAsking})
 		if err != nil {
-			return err
+			return fmt.Errorf("failed to get asking user: %w", err)
 		}
 
-		err = rec.Operation("count_achievements", func(rec *event.Record) error {
+		rec.Set("asking_user", askingUser)
+
+		return nil
+	})
+	if err != nil {
+		return nil, 0, err
+	}
+
+	err = txwrapper.WithTx(ctx, s.client, sql.LevelReadCommitted, rec, func(tx *ent.Tx) error {
+		err := rec.Operation("count_achievements", func(rec *event.Record) error {
 			rec.Sub("params").Set(
-				"asking_user_role", askingUser.Role.String(),
+				"asking_user_role", askingUser.Role,
 				"owner_id", userID,
 			)
 			roleFilter := s.buildRoleBasedFilters(askingUser, requireChanges)
@@ -115,7 +105,6 @@ func (s *ACS) GetUserAchievements(
 				Offset(offset).
 				Limit(limit).
 				WithDocuments().
-				WithOwner().
 				WithReviews().
 				WithTemplate().
 				All(ctx)

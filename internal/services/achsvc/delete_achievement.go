@@ -15,6 +15,7 @@ import (
 	"github.com/kozlov-ma/sesc-backend/pkg/event/events"
 )
 
+// ACCESSTODO
 // DeleteAchievement deletes an achievement.
 // Returns achievement.ErrAchievementNotFound if the achievement does not exist.
 // Returns achievement.ErrWrongAchievementStatus if the achievement is not in draft status.

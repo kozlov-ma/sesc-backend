@@ -21,14 +21,5 @@ type AchievementReview func(*sql.Selector)
 // AchievementTemplate is the predicate function for achievementtemplate builders.
 type AchievementTemplate func(*sql.Selector)
 
-// AuthUser is the predicate function for authuser builders.
-type AuthUser func(*sql.Selector)
-
-// Department is the predicate function for department builders.
-type Department func(*sql.Selector)
-
 // File is the predicate function for file builders.
 type File func(*sql.Selector)
-
-// User is the predicate function for user builders.
-type User func(*sql.Selector)

@@ -3,12 +3,15 @@ package atsvc
 import (
 	"context"
 	"fmt"
+	"slices"
 	"strings"
 
 	"github.com/gofrs/uuid/v5"
 	"github.com/kozlov-ma/sesc-backend/achievement"
+	"github.com/kozlov-ma/sesc-backend/company"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievementtemplate"
+	"github.com/kozlov-ma/sesc-backend/pkg/domerr"
 	"github.com/kozlov-ma/sesc-backend/pkg/event"
 	"github.com/kozlov-ma/sesc-backend/pkg/event/events"
 )
@@ -160,10 +163,17 @@ func (s *ATS) CreateAchievementTemplate(
 	rec.Add("template_name", options.Name)
 	rec.Add("group_id", options.GroupID)
 
-	// Validate the kind
-	if err := options.ReviewerRole.ValidateReviewer(); err != nil {
-		rec.Add(events.Error, fmt.Errorf("invalid reviewer role: %w", err))
-		return nil, err
+	if !slices.Contains(
+		[]company.Role{
+			company.AcademicDirector,
+			company.DevelopmentDeputy,
+			company.OlympiadDeputy,
+			company.ScientificDeputy,
+		},
+		options.InspectorRole,
+	) {
+		rec.Add(events.Error, fmt.Errorf("invalid reviewer role: %s", options.InspectorRole))
+		return nil, domerr.New("некорректная роль контролирующего лица", domerr.KindConflict)
 	}
 
 	template, err := s.client.AchievementTemplate.Create().
@@ -171,7 +181,7 @@ func (s *ATS) CreateAchievementTemplate(
 		SetDescription(options.Description).
 		SetPointsLimit(options.PointsLimit).
 		SetGroupID(options.GroupID).
-		SetReviewerRole(options.ReviewerRole).
+		SetReviewerRole(options.InspectorRole).
 		Save(ctx)
 	switch {
 	case ent.IsConstraintError(err):
@@ -211,13 +221,21 @@ func (s *ATS) UpdateAchievementTemplate(
 	if options.Active != nil {
 		update = update.SetActive(*options.Active)
 	}
-	if options.ReviewerRole != nil {
+	if options.InspectorRole != nil {
 		// Validate the kind
-		if err := options.ReviewerRole.ValidateReviewer(); err != nil {
-			rec.Add(events.Error, fmt.Errorf("invalid achievement kind: %w", err))
-			return nil, err
+		if !slices.Contains(
+			[]company.Role{
+				company.AcademicDirector,
+				company.DevelopmentDeputy,
+				company.OlympiadDeputy,
+				company.ScientificDeputy,
+			},
+			*options.InspectorRole,
+		) {
+			rec.Add(events.Error, fmt.Errorf("invalid reviewer role: %s", options.InspectorRole))
+			return nil, domerr.New("некорректная роль контролирующего лица", domerr.KindConflict)
 		}
-		update = update.SetReviewerRole(*options.ReviewerRole)
+		update = update.SetReviewerRole(*options.InspectorRole)
 	}
 
 	template, err := update.Save(ctx)

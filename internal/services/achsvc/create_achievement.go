@@ -7,12 +7,14 @@ import (
 	"time"
 
 	"github.com/kozlov-ma/sesc-backend/achievement"
+	"github.com/kozlov-ma/sesc-backend/company/companyquery"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent"
 	"github.com/kozlov-ma/sesc-backend/internal/services/txwrapper"
 	"github.com/kozlov-ma/sesc-backend/pkg/event"
 	"github.com/kozlov-ma/sesc-backend/pkg/event/events"
 )
 
+// ACCESSTODO
 // CreateAchievement creates a new achievement for a user based on a template.
 // Returns achievement.ErrAchievementTemplateNotFound if the template does not exist.
 func (s *ACS) CreateAchievement(
@@ -27,8 +29,30 @@ func (s *ACS) CreateAchievement(
 
 	statsRec := event.Root(ctx).Sub("stats")
 
+	var deptID string
+	err := rec.Operation("get_author_department", func(_ *event.Record) error {
+		author, err := s.company.User(ctx, companyquery.User{ID: opt.ForUserID})
+		if err != nil {
+			return fmt.Errorf("failed to get user: %w", err)
+		}
+
+		if id := author.DepartmentID; id == "" {
+			return fmt.Errorf(
+				"user must be assigned to a department to create achievements: %w",
+				achievement.ErrCannotCreateAchievement,
+			)
+		}
+
+		deptID = author.DepartmentID
+
+		return nil
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to get achievement author: %w", err)
+	}
+
 	var ach *ent.Achievement
-	err := txwrapper.WithTx(ctx, s.client, sql.LevelReadCommitted, rec, func(tx *ent.Tx) error {
+	err = txwrapper.WithTx(ctx, s.client, sql.LevelReadCommitted, rec, func(tx *ent.Tx) error {
 		var template *ent.AchievementTemplate
 		err := rec.Operation("get_template", func(rec *event.Record) error {
 			rec.Sub("params").Set("template_id", opt.TemplateID)
@@ -46,25 +70,6 @@ func (s *ACS) CreateAchievement(
 
 			template = tmpl
 			rec.Set("template", template)
-			return nil
-		})
-		if err != nil {
-			return err
-		}
-
-		var deptID UUID
-		err = rec.Operation("get_author_department", func(_ *event.Record) error {
-			author, err := tx.User.Get(ctx, opt.ForUserID)
-			if err != nil {
-				return fmt.Errorf("failed to get user: %w", err)
-			}
-
-			if id := author.DepartmentID; id == nil {
-				return fmt.Errorf("this user cannot create achievements: %w", achievement.ErrCannotCreateAchievement)
-			}
-
-			deptID = *author.DepartmentID
-
 			return nil
 		})
 		if err != nil {
