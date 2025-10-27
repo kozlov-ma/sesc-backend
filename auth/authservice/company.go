@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -61,12 +62,12 @@ func (c *Company) generateUserToken(
 	rec := event.Get(ctx).Sub("generate_token")
 	rec.Set(
 		"user_id", u.ID,
-		"role", u.Role,
+		"roles", strings.Join(u.RoleStrings(), "+"),
 	)
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"user_id":   u.ID,
-		"role":      u.Role,
+		"role":      strings.Join(u.RoleStrings(), "+"),
 		"exp":       time.Now().Add(c.tokenDuration).Unix(),
 		"user_hash": u.Hash(),
 	})
@@ -106,7 +107,7 @@ func (c *Company) ImWatermelon(ctx context.Context, tokenString string) (company
 		return company.User{}, fmt.Errorf("failed to query a company user: %w", err)
 	}
 
-	if u.ID != userID || u.Role.String() != role || u.Hash() != hash {
+	if u.ID != userID || strings.Join(u.RoleStrings(), "+") != role || u.Hash() != hash {
 		return company.User{}, fmt.Errorf("%w: user info changed, a re-login is required", auth.ErrInvalidToken)
 	}
 

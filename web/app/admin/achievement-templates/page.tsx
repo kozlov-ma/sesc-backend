@@ -6,10 +6,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AchievementTemplatesTable } from "@/components/admin-dashboard/achievement-templates-table";
 
 export default function AchievementTemplatesPage() {
-  const { isAuthenticated, role, isLoading } = useAuth();
+  const { isAuthenticated, roles, isLoading } = useAuth();
 
   // Only render if user is admin, otherwise return null
-  if (!isAuthenticated || isLoading || role !== "admin") {
+  if (!isAuthenticated || isLoading || !roles.includes("admin")) {
     return null;
   }
 

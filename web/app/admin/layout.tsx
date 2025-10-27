@@ -1,86 +1,188 @@
 "use client";
 
 import {
-  Computer,
-  Building,
-  FolderPlus,
-  FolderOpen,
-  Users,
   Award,
+  Building,
+  FileText,
+  FolderOpen,
+  FolderPlus,
+  Home,
+  User,
+  Users,
 } from "lucide-react";
 
+import { AppSidebar } from "@/components/app-sidebar";
 import { Separator } from "@/components/ui/separator";
 import {
-  SidebarProvider,
   SidebarInset,
+  SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { useAuth } from "@/hooks/use-auth";
+import { getUsersMeOptions } from "@/lib/api/@tanstack/react-query.gen";
+import { useQuery } from "@tanstack/react-query";
 import React from "react";
-import { AppSidebar } from "@/components/app-sidebar";
 
-const groups = [
-  {
-    name: "Организация",
-    routes: [
-      { name: "Пользователи", url: "/admin/users", icon: Users },
-      { name: "Подразделения", url: "/admin/departments", icon: Building },
-    ],
-  },
-  {
-    name: "Достижения",
-    routes: [
-      {
-        name: "Шаблоны достижений",
-        url: "/admin/achievement-templates",
-        icon: Award,
-      },
-    ],
-  },
-  {
-    name: "Документы",
-    routes: [
-      {
-        name: "Общие Документы",
-        url: "/admin/documents/shared",
-        icon: FolderOpen,
-      },
-      {
-        name: "Документы Пользователей",
-        url: "/admin/documents/users",
-        icon: FolderPlus,
-      },
-    ],
-  },
-];
-
-export default function AdminLayout({
+export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const { isAuthenticated, role, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, roles } = useAuth();
 
-  if (!isAuthenticated || isLoading || role !== "admin") {
+  const { data: user } = useQuery({
+    ...getUsersMeOptions(),
+    enabled: isAuthenticated,
+  });
+
+  if (!isAuthenticated || isLoading) {
     return null;
+  }
+
+  let groups: any[] = [
+    {
+      name: "Личный кабинет",
+      routes: [{ name: "Обо мне", url: "/u/users/me", icon: User }],
+    },
+  ];
+
+  if (roles.some((r) => r === "admin")) {
+    groups.push(
+      ...[
+        {
+          name: "Организация",
+          routes: [
+            { name: "Пользователи", url: "/admin/users", icon: Users },
+            {
+              name: "Подразделения",
+              url: "/admin/departments",
+              icon: Building,
+            },
+          ],
+        },
+        {
+          name: "Управление достижениями",
+          routes: [
+            {
+              name: "Шаблоны достижений",
+              url: "/admin/achievement-templates",
+              icon: Award,
+            },
+          ],
+        },
+        {
+          name: "Документы",
+          routes: [
+            {
+              name: "Управление общими документами",
+              url: "/admin/documents/shared",
+              icon: FolderOpen,
+            },
+            {
+              name: "Документы пользователей",
+              url: "/admin/documents/users",
+              icon: FolderPlus,
+            },
+          ],
+        },
+      ],
+    );
+  }
+
+  if (!roles.some((r) => r === "admin")) {
+    groups.push({
+      name: "Документы",
+      routes: [
+        { name: "Мои документы", url: "/u/documents/my", icon: FolderPlus },
+        {
+          name: "Общие документы",
+          url: "/u/documents/shared",
+          icon: FolderOpen,
+        },
+      ],
+    });
+  }
+
+  let achGroupRoutes: { name: string; url: string; icon: any }[] = [];
+
+  if (
+    roles.some((r) =>
+      [
+        "teacher",
+        "dephead",
+        "scientific_deputy",
+        "development_deputy",
+        "olympiad_deputy",
+        "academic_director",
+      ].includes(r),
+    )
+  ) {
+    groups.push({
+      name: "Достижения",
+      routes: achGroupRoutes,
+    });
+  }
+
+  if (roles.some((r) => r === "teacher")) {
+    achGroupRoutes.push({
+      name: "Лист Достижений",
+      url: "/u/achievements/draft",
+      icon: FolderPlus,
+    });
+    achGroupRoutes.push({
+      name: "Мои Достижения",
+      url: "/u/achievements/my",
+      icon: FolderOpen,
+    });
+  }
+
+  if (
+    roles.some((r) =>
+      [
+        "dephead",
+        "scientific_deputy",
+        "development_deputy",
+        "olympiad_deputy",
+        "academic_director",
+      ].includes(r),
+    )
+  ) {
+    achGroupRoutes.push({
+      name: "Проверка Достижений",
+      url: "/u/achievements/review",
+      icon: FolderOpen,
+    });
+  }
+
+  if (roles.some((r) => r === "chief_economist")) {
+    groups.push({
+      name: "Отчеты",
+      routes: [
+        {
+          name: "Отчет по баллам",
+          url: "/u/reports/user-points",
+          icon: FileText,
+        },
+      ],
+    });
   }
 
   return (
     <SidebarProvider>
       <AppSidebar
-        title={"Панель Управления"}
+        title={"Личный кабинет"}
         groups={groups}
         user={{
-          name: "Администратор",
-          email: "",
-          avatar: "",
+          name: user?.fullName || "Пользователь",
+          email: user?.jobTitle || "",
+          avatar: user?.pictureUrl || "",
         }}
         ico={{
-          icon: Computer,
+          icon: Home,
         }}
       />
       <SidebarInset>
-        <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
+        <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
           <div className="flex items-center gap-2 px-4">
             <SidebarTrigger className="-ml-1" />
             <Separator orientation="vertical" className="mr-2 h-4" />

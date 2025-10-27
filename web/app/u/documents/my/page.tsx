@@ -1,9 +1,9 @@
 "use client";
 
-import { useAuth } from "@/hooks/use-auth";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { FileText } from "lucide-react";
 import { FileTable } from "@/components/files/file-table";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useAuth } from "@/hooks/use-auth";
+import { FileText } from "lucide-react";
 
 export default function MyDocumentsPage() {
   const { isAuthenticated, isLoading } = useAuth();

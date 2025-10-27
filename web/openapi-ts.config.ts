@@ -10,7 +10,7 @@ export default defineConfig({
   plugins: [
     {
       name: "@hey-api/client-axios",
-      runtimeConfigPath: "./lib/api-config.ts",
+      runtimeConfigPath: "../api-config",
     },
     {
       dates: true,

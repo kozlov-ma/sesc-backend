@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"runtime/debug"
 	"strings"
 	"time"
 
@@ -64,7 +65,7 @@ func (a *API) CurrentUserMiddleware(next http.Handler) http.Handler {
 		rec.Sub("user").Set(
 			"authorized", true,
 			"id", u.ID,
-			"role", u.Role,
+			"roles", u.Roles,
 		)
 
 		ctx = context.WithValue(ctx, userCtxKey, u)
@@ -81,8 +82,9 @@ func (a *API) EventMiddleware(next http.Handler) http.Handler {
 			if r := recover(); r != nil {
 				rec.Set("panic", r)
 				rec.Set("panic_message", fmt.Sprintf("%v", r))
+				rec.Set("debug_stacktrace", string(debug.Stack()))
 				a.eventSink.RecordHTTPRequest(ctx, rec)
-				panic(r)
+				// panic(r)
 			}
 		}()
 

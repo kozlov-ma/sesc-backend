@@ -29,11 +29,14 @@ export const api_RolesResponseSchema = {
 
 export const api_TokenResponseSchema = {
   type: "object",
-  required: ["token"],
+  required: ["token", "user"],
   properties: {
     token: {
       type: "string",
       example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    },
+    user: {
+      $ref: "#/definitions/respond.User",
     },
   },
 } as const;
@@ -479,7 +482,7 @@ export const respond_UserSchema = {
     "jobTitle",
     "personnelCategory",
     "pictureUrl",
-    "role",
+    "roles",
   ],
   properties: {
     academicDegree: {
@@ -533,8 +536,11 @@ export const respond_UserSchema = {
       type: "string",
       example: "/images/users/ivan.jpg",
     },
-    role: {
-      $ref: "#/definitions/respond.Role",
+    roles: {
+      type: "array",
+      items: {
+        $ref: "#/definitions/respond.Role",
+      },
     },
   },
 } as const;

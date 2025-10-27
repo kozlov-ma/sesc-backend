@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -8,7 +9,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -17,10 +17,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { RespondAchievementTemplate } from "@/lib/api";
+import { postAchievements } from "@/lib/api/sdk.gen";
 import { useState } from "react";
 import { toast } from "sonner";
-import { postAchievements } from "@/lib/api/sdk.gen";
-import { RespondAchievementTemplate } from "@/lib/api";
 
 interface CreateAchievementDialogProps {
   templates: RespondAchievementTemplate[] | undefined;

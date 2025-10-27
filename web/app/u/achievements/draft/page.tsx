@@ -1,7 +1,9 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { PlusCircle, Trash2, Send, X, FilePlus } from "lucide-react";
+import { AchievementsPageLayout } from "@/components/achievements/achievements-page-layout";
+import { AddAchievementDialog } from "@/components/achievements/add-achievement-dialog";
+import { AddDocumentDialog } from "@/components/achievements/add-document-dialog";
+import { FileNameByIdDisplay } from "@/components/files/file-name-display";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -12,27 +14,25 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { RespondAchievement, RespondAchievementTemplate } from "@/lib/api";
 import {
-  getAchievementsOptions,
-  postAchievementsMutation,
-  deleteAchievementsByIdMutation,
-  postAchievementsByIdSubmitMutation,
   deleteAchievementsByIdDocumentsByDocumentIdMutation,
+  deleteAchievementsByIdMutation,
+  getAchievementsOptions,
+  postAchievementsByIdSubmitMutation,
+  postAchievementsMutation,
 } from "@/lib/api/@tanstack/react-query.gen";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { FilePlus, PlusCircle, Send, Trash2, X } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
-import { AchievementsPageLayout } from "@/components/achievements/achievements-page-layout";
-import { AddAchievementDialog } from "@/components/achievements/add-achievement-dialog";
-import { AddDocumentDialog } from "@/components/achievements/add-document-dialog";
-import { FileNameByIdDisplay } from "@/components/files/file-name-display";
-import { RespondAchievement, RespondAchievementTemplate } from "@/lib/api";
 
 export default function DraftAchievementsPage() {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);

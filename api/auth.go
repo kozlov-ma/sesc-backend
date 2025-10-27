@@ -15,7 +15,8 @@ type CredentialsRequest struct {
 }
 
 type TokenResponse struct {
-	Token string `json:"token" example:"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." validate:"required"`
+	Token string        `json:"token" example:"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." validate:"required"`
+	User  *respond.User `json:"user"                                                    validate:"required"`
 }
 
 // Login godoc
@@ -47,7 +48,14 @@ func (a *API) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	a.writeJSON(ctx, w, TokenResponse{Token: token})
+	user, err := a.iam.ImWatermelon(ctx, token)
+	if err != nil {
+		rec.Add(events.Error, err)
+		a.writeJSON(ctx, w, respond.WithError(ctx, err))
+		return
+	}
+
+	a.writeJSON(ctx, w, TokenResponse{Token: token, User: respond.WithUser(user)})
 }
 
 // ValidateToken godoc

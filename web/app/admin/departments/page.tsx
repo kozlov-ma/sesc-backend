@@ -9,10 +9,10 @@ import { useQuery } from "@tanstack/react-query";
 import { getDepartmentsOptions } from "@/lib/api/@tanstack/react-query.gen";
 
 export default function DepartmentsPage() {
-  const { isAuthenticated, role, isLoading } = useAuth();
+  const { isAuthenticated, roles, isLoading } = useAuth();
 
   // Only render if user is admin, otherwise return null
-  if (!isAuthenticated || isLoading || role !== "admin") {
+  if (!isAuthenticated || isLoading || !roles.includes("admin")) {
     return null;
   }
 

@@ -15,6 +15,7 @@ export type ApiRolesResponse = {
 
 export type ApiTokenResponse = {
   token: string;
+  user: RespondUser;
 };
 
 export type ParamAddDocumentRequest = {
@@ -160,7 +161,7 @@ export type RespondUser = {
   jobTitle: string;
   personnelCategory: string;
   pictureUrl: string;
-  role: RespondRole;
+  roles: Array<RespondRole>;
 };
 
 export type RespondUsers = {

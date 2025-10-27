@@ -2,6 +2,7 @@ package company
 
 import (
 	"fmt"
+	"slices"
 	"strconv"
 
 	"github.com/mitchellh/hashstructure"
@@ -102,12 +103,49 @@ type User struct {
 	FullName     string
 	PictureURL   string
 	DepartmentID string
-	Role         Role
+	Roles        []Role
 	Extras       UserExtras
 }
 
 type Action interface {
 	AllowsUser(u User) bool
+}
+
+func (u User) HasRole(rr ...Role) bool {
+	for _, r := range rr {
+		if slices.Contains(u.Roles, r) {
+			return true
+		}
+	}
+	return false
+}
+
+func (u User) RolesIn(rr ...Role) []Role {
+	var res []Role
+	for _, r := range rr {
+		if slices.Contains(u.Roles, r) {
+			res = append(res, r)
+		}
+	}
+	return res
+}
+
+func (u User) HasAllRoles(rr ...Role) bool {
+	for _, r := range rr {
+		if !slices.Contains(u.Roles, r) {
+			return false
+		}
+	}
+	return true
+}
+
+func (u User) RoleStrings() []string {
+	var ss []string
+	for _, r := range u.Roles {
+		ss = append(ss, string(r))
+	}
+	slices.Sort(ss)
+	return ss
 }
 
 func (u User) Can(do Action) bool {

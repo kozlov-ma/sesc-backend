@@ -2059,12 +2059,16 @@ const docTemplate = `{
         "api.TokenResponse": {
             "type": "object",
             "required": [
-                "token"
+                "token",
+                "user"
             ],
             "properties": {
                 "token": {
                     "type": "string",
                     "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                },
+                "user": {
+                    "$ref": "#/definitions/respond.User"
                 }
             }
         },
@@ -2536,7 +2540,7 @@ const docTemplate = `{
                 "jobTitle",
                 "personnelCategory",
                 "pictureUrl",
-                "role"
+                "roles"
             ],
             "properties": {
                 "academicDegree": {
@@ -2590,8 +2594,11 @@ const docTemplate = `{
                     "type": "string",
                     "example": "/images/users/ivan.jpg"
                 },
-                "role": {
-                    "$ref": "#/definitions/respond.Role"
+                "roles": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/respond.Role"
+                    }
                 }
             }
         },

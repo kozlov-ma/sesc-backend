@@ -1,37 +1,28 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useAuthStore } from "@/store/auth-store";
-import { getUsersMe, type ApiCredentialsRequest } from "@/lib/api";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { type ApiCredentialsRequest } from "@/lib/api";
 import {
-  postAuthLoginMutation,
-  postAuthAdminLoginMutation,
   getAuthValidateOptions,
-  getUsersMeQueryKey,
   getUsersMeOptions,
+  postAuthLoginMutation,
 } from "@/lib/api/@tanstack/react-query.gen";
-import type {
-  ApiIdentityResponse,
-  ApiTokenResponse,
-} from "@/lib/api/types.gen";
+import type { ApiTokenResponse } from "@/lib/api/types.gen";
+import { useAuthStore } from "@/store/auth-store";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
 
 export function useAuth() {
   const { push } = useRouter();
-  const { token, role, setAuth, clearAuth } = useAuthStore();
+  const { token, roles, setAuth, clearAuth } = useAuthStore();
   const queryClient = useQueryClient();
 
   const loginUserMutation = useMutation({
     ...postAuthLoginMutation(),
     onSuccess: (response: ApiTokenResponse) => {
-      setAuth(response.token, "user");
-    },
-  });
-
-  const loginAdminMutation = useMutation({
-    ...postAuthAdminLoginMutation(),
-    onSuccess: (response: ApiTokenResponse) => {
-      setAuth(response.token, "admin");
+      setAuth(
+        response.token,
+        response.user.roles.map((r) => r.codeName),
+      );
     },
   });
 
@@ -44,7 +35,6 @@ export function useAuth() {
     enabled: !!token,
   });
 
-  // Handle validation errors
   if (validateTokenQuery.isError) {
     clearAuth();
   }
@@ -70,23 +60,16 @@ export function useAuth() {
 
   return {
     token,
-    role,
-    isAuthenticated: !!token,
-    isLoading:
-      loginUserMutation.isPending ||
-      loginAdminMutation.isPending ||
-      validateTokenQuery.isLoading,
+    roles,
+    isAuthenticated: !!(token?.length && token?.length > 0),
+    isLoading: validateTokenQuery.isLoading,
     loginUserError: loginUserMutation.error,
-    loginAdminError: loginAdminMutation.error,
     validateError: validateTokenQuery.error,
     loginUser: (credentials: ApiCredentialsRequest) =>
       loginUserMutation.mutate({ body: credentials }),
-    loginAdmin: (credentials: ApiCredentialsRequest) =>
-      loginAdminMutation.mutate({ body: credentials }),
     logout,
     validateToken: validateTokenQuery.refetch,
     resetLoginUserError: loginUserMutation.reset,
-    resetLoginAdminError: loginAdminMutation.reset,
     checkAuth,
     setAuth,
   };

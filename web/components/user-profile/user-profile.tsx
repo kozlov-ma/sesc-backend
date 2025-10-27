@@ -72,16 +72,12 @@ export function UserProfile({ user, isLoading, error }: UserProfileProps) {
             <div className="flex flex-col items-center gap-4">
               <Avatar className="h-24 w-24">
                 {user.pictureUrl ? (
-                  <AvatarImage src={user.pictureUrl} alt={user.lastName} />
+                  <AvatarImage src={user.pictureUrl} alt={user.fullName} />
                 ) : null}
                 <AvatarFallback className="text-2xl">
-                  {user.firstName?.[0]}
-                  {user.lastName?.[0]}
+                  {user.fullName}
                 </AvatarFallback>
               </Avatar>
-              <Badge variant={user.suspended ? "destructive" : "secondary"}>
-                {user.suspended ? "Заблокирован" : "Активен"}
-              </Badge>
             </div>
 
             <div className="flex-1 space-y-4">
@@ -91,10 +87,7 @@ export function UserProfile({ user, isLoading, error }: UserProfileProps) {
                     <User className="mr-2 h-4 w-4" />
                     <span className="text-sm">ФИО</span>
                   </div>
-                  <p className="font-medium">
-                    {user.lastName || "—"} {user.firstName || "—"}{" "}
-                    {user.middleName || "—"}
-                  </p>
+                  <p className="font-medium">{user.fullName || "—"}</p>
                 </div>
               </div>
 
@@ -118,7 +111,9 @@ export function UserProfile({ user, isLoading, error }: UserProfileProps) {
                     <Shield className="mr-2 h-4 w-4" />
                     <span className="text-sm">Роль</span>
                   </div>
-                  <p className="font-medium">{user.role?.name || "—"}</p>
+                  <p className="font-medium">
+                    {user.roles.map((r) => r.name).join(", ") || "—"}
+                  </p>
                 </div>
               </div>
 
@@ -139,7 +134,7 @@ export function UserProfile({ user, isLoading, error }: UserProfileProps) {
                     <Building2 className="mr-2 h-4 w-4" />
                     <span className="text-sm">Подразделение</span>
                   </div>
-                  <p className="font-medium">{user.subdivision || "—"}</p>
+                  <p className="font-medium">{user.departmentId || "—"}</p>
                 </div>
 
                 <div className="space-y-2">
@@ -155,16 +150,7 @@ export function UserProfile({ user, isLoading, error }: UserProfileProps) {
                     <Users className="mr-2 h-4 w-4" />
                     <span className="text-sm">Категория персонала</span>
                   </div>
-                  <p className="font-medium">
-                    {user.personnelCategory === 1 &&
-                      "Профессорско-педагогический состав"}
-                    {user.personnelCategory === 2 && "Педагогический состав"}
-                    {user.personnelCategory === 3 &&
-                      "Учебно-вспомогательный персонал"}
-                    {user.personnelCategory === 4 &&
-                      "Административно-управленческий персонал"}
-                    {!user.personnelCategory && "—"}
-                  </p>
+                  <p className="font-medium">{user.personnelCategory || "—"}</p>
                 </div>
 
                 <div className="space-y-2">
@@ -172,12 +158,7 @@ export function UserProfile({ user, isLoading, error }: UserProfileProps) {
                     <Clock className="mr-2 h-4 w-4" />
                     <span className="text-sm">Тип занятости</span>
                   </div>
-                  <p className="font-medium">
-                    {user.employmentType === 1 && "Основное место работы"}
-                    {user.employmentType === 2 && "Внутреннее совместительство"}
-                    {user.employmentType === 3 && "Внешнее совместительство"}
-                    {!user.employmentType && "—"}
-                  </p>
+                  <p className="font-medium">{user.employmentType || "—"}</p>
                 </div>
               </div>
 
@@ -190,12 +171,7 @@ export function UserProfile({ user, isLoading, error }: UserProfileProps) {
                     <GraduationCap className="mr-2 h-4 w-4" />
                     <span className="text-sm">Ученая степень</span>
                   </div>
-                  <p className="font-medium">
-                    {user.academicDegree === 1 && "Кандидат наук"}
-                    {user.academicDegree === 2 && "Доктор наук"}
-                    {user.academicDegree === 0 && "Нет"}
-                    {user.academicDegree === null && "—"}
-                  </p>
+                  <p className="font-medium">{user.academicDegree || "—"}</p>
                 </div>
 
                 <div className="space-y-2">
@@ -235,21 +211,7 @@ export function UserProfile({ user, isLoading, error }: UserProfileProps) {
                     <span className="text-sm">Дата приема на работу</span>
                   </div>
                   <p className="font-medium">
-                    {user.dateOfEmployment
-                      ? format(new Date(user.dateOfEmployment), "dd.MM.yyyy")
-                      : "—"}
-                  </p>
-                </div>
-
-                <div className="space-y-2">
-                  <div className="flex items-center text-muted-foreground">
-                    <CalendarX className="mr-2 h-4 w-4" />
-                    <span className="text-sm">Дата увольнения</span>
-                  </div>
-                  <p className="font-medium">
-                    {user.unemploymentDate
-                      ? format(new Date(user.unemploymentDate), "dd.MM.yyyy")
-                      : "—"}
+                    {user.dateOfEmployment ? user.dateOfEmployment : "—"}
                   </p>
                 </div>
               </div>

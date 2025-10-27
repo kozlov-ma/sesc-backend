@@ -62,7 +62,7 @@ func (s *ACS) GetUserAchievements(
 	err = txwrapper.WithTx(ctx, s.client, sql.LevelReadCommitted, rec, func(tx *ent.Tx) error {
 		err := rec.Operation("count_achievements", func(rec *event.Record) error {
 			rec.Sub("params").Set(
-				"asking_user_role", askingUser.Role,
+				"asking_user_roles", askingUser.Roles,
 				"owner_id", userID,
 			)
 			roleFilter := s.buildRoleBasedFilters(askingUser, requireChanges)
@@ -90,7 +90,7 @@ func (s *ACS) GetUserAchievements(
 
 		err = rec.Operation("query_achievements", func(rec *event.Record) error {
 			rec.Sub("params").Set(
-				"asking_user_role", askingUser.Role.String(),
+				"asking_user_roles", askingUser.Roles,
 				"limit", limit,
 				"offset", offset,
 				"owner_id", userID,

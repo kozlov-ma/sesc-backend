@@ -1,31 +1,31 @@
 "use client";
 
-import { useEffect } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogDescription,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { toast } from "sonner";
 import { useErrorHandler } from "@/hooks/use-error-handler";
-import { getErrorMessage } from "@/lib/error-handler";
-import { Loader2 } from "lucide-react";
-import {
-  postAchievementGroupsMutation,
-  patchAchievementGroupsByIdMutation,
-  getAchievementGroupsOptions,
-} from "@/lib/api/@tanstack/react-query.gen";
 import { RespondAchievementGroup } from "@/lib/api";
+import {
+  getAchievementGroupsOptions,
+  patchAchievementGroupsByIdMutation,
+  postAchievementGroupsMutation,
+} from "@/lib/api/@tanstack/react-query.gen";
+import { getErrorMessage } from "@/lib/error-handler";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { Loader2 } from "lucide-react";
+import { useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import { z } from "zod";
 
 const formSchema = z.object({
   name: z.string().min(1, "Название обязательно"),

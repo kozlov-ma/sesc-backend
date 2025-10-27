@@ -1,6 +1,16 @@
 "use client";
 
-import { useState, useCallback, useMemo } from "react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { ErrorMessage } from "@/components/ui/error-message";
+import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -9,47 +19,15 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuTrigger,
-  DropdownMenuSeparator,
-} from "@/components/ui/dropdown-menu";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import type { RespondUser, ApiPatchUserRequest } from "@/lib/api/types.gen";
-import { ErrorMessage } from "@/components/ui/error-message";
-import { Badge } from "@/components/ui/badge";
-import {
-  MoreHorizontal,
-  Search,
-  UserPlus,
-  Key,
-  User,
-  Pencil,
-} from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { UserFormDialog } from "./user-form-dialog";
-import { UserCredentialsDialog } from "./user-credentials-dialog";
-import { toast } from "sonner";
-import { useErrorHandler } from "@/hooks/use-error-handler";
-import { getErrorMessage } from "@/lib/error-handler";
-import {
-  useInfiniteQuery,
-  useMutation,
-  useQueryClient,
-} from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
-import {
-  getUsersInfiniteOptions,
-  patchUsersByIdMutation,
-} from "@/lib/api/@tanstack/react-query.gen";
-import type { InfiniteData } from "@tanstack/react-query";
-import { DepartmentCell } from "./department-cell";
 import { useDebounce } from "@/hooks/use-debounce";
-import { Loader2 } from "lucide-react";
+import { useErrorHandler } from "@/hooks/use-error-handler";
+import { getUsersOptions } from "@/lib/api/@tanstack/react-query.gen";
+import type { RespondUser } from "@/lib/api/types.gen";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Loader2, MoreHorizontal, Search, User } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useCallback, useMemo, useState } from "react";
+import { DepartmentCell } from "./department-cell";
 
 const PAGE_SIZE = 20;
 
@@ -77,8 +55,6 @@ function SearchInput({
 export function UsersTable() {
   const [searchInput, setSearchInput] = useState("");
   const debouncedSearchTerm = useDebounce(searchInput, 300);
-  const [userFormOpen, setUserFormOpen] = useState(false);
-  const [userCredentialsOpen, setUserCredentialsOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<RespondUser | undefined>();
 
   const { error: tableError, handleError, clearError } = useErrorHandler();
@@ -90,104 +66,13 @@ export function UsersTable() {
     [debouncedSearchTerm],
   );
 
-  const {
-    data,
-    error,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage,
-    isLoading,
-  } = useInfiniteQuery({
-    ...getUsersInfiniteOptions({
+  const { data, error, isLoading } = useQuery({
+    ...getUsersOptions({
       query: {
         search: debouncedSearchTerm,
-        limit: PAGE_SIZE,
       },
     }),
-    getNextPageParam: (lastPage, pages) =>
-      lastPage?.users.length === PAGE_SIZE
-        ? pages.length * PAGE_SIZE
-        : undefined,
   });
-
-  const toggleSuspendMutation = useMutation({
-    ...patchUsersByIdMutation(),
-    onMutate: async (variables) => {
-      clearError();
-      await queryClient.cancelQueries({ queryKey });
-
-      const previousUsers =
-        queryClient.getQueryData<InfiniteData<{ users: RespondUser[] }>>(
-          queryKey,
-        );
-
-      if (previousUsers) {
-        const updatedPages = previousUsers.pages.map((page) => ({
-          ...page,
-          users: page.users.map((user) =>
-            user.id === variables.path.id
-              ? { ...user, suspended: variables.body.suspended }
-              : user,
-          ),
-        }));
-
-        queryClient.setQueryData(queryKey, {
-          ...previousUsers,
-          pages: updatedPages,
-        });
-      }
-
-      return { previousUsers };
-    },
-    onError: (err, _, context) => {
-      if (context?.previousUsers) {
-        queryClient.setQueryData(queryKey, context.previousUsers);
-      }
-
-      handleError(err);
-      toast.error("Ошибка", {
-        description: getErrorMessage(err),
-      });
-    },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey });
-    },
-  });
-
-  const handleToggleSuspend = useCallback(
-    (user: RespondUser) => {
-      const userData: ApiPatchUserRequest = {
-        firstName: user.firstName,
-        lastName: user.lastName,
-        middleName: user.middleName,
-        roleId: user.role.id,
-        departmentId: user.departmentId,
-        pictureUrl: user.pictureUrl,
-        suspended: !user.suspended,
-      };
-
-      toggleSuspendMutation.mutate({
-        path: { id: user.id },
-        body: userData,
-      });
-    },
-    [toggleSuspendMutation],
-  );
-
-  const openCreateUserDialog = useCallback(() => {
-    setSelectedUser(undefined);
-    setUserFormOpen(true);
-  }, []);
-
-  const openEditUserDialog = useCallback((user: RespondUser) => {
-    setSelectedUser(user);
-    setUserFormOpen(true);
-  }, []);
-
-  const openCredentialsDialog = useCallback((user: RespondUser) => {
-    setSelectedUser(user);
-    setUserCredentialsOpen(true);
-  }, []);
 
   const viewUserProfile = useCallback(
     (user: RespondUser) => {
@@ -197,10 +82,7 @@ export function UsersTable() {
   );
 
   // Memoize flattened users array
-  const allUsers = useMemo(
-    () => data?.pages.flatMap((page) => page.users) || [],
-    [data],
-  );
+  const allUsers = useMemo(() => data?.users || [], [data]);
 
   // Memoize user row rendering
   const renderUserRow = useCallback(
@@ -210,17 +92,12 @@ export function UsersTable() {
           <div className="flex items-center gap-3">
             <Avatar className="h-8 w-8">
               {user.pictureUrl && (
-                <AvatarImage src={user.pictureUrl} alt={user.lastName} />
+                <AvatarImage src={user.pictureUrl} alt={user.fullName} />
               )}
-              <AvatarFallback>
-                {user.firstName?.[0]}
-                {user.lastName?.[0]}
-              </AvatarFallback>
+              <AvatarFallback>{user.fullName}</AvatarFallback>
             </Avatar>
             <div>
-              <div className="font-medium text-pretty">
-                {user.lastName} {user.firstName} {user.middleName}
-              </div>
+              <div className="font-medium text-pretty">{user.fullName}</div>
             </div>
           </div>
         </TableCell>
@@ -228,15 +105,8 @@ export function UsersTable() {
           <DepartmentCell departmentId={user.departmentId} />
         </TableCell>
         <TableCell>{user.jobTitle || "-"}</TableCell>
-        <TableCell>{user.subdivision || "-"}</TableCell>
-        <TableCell>{user.role?.name || "-"}</TableCell>
-        <TableCell>
-          {user.suspended ? (
-            <Badge variant="destructive">Заблокирован</Badge>
-          ) : (
-            <Badge>Активен</Badge>
-          )}
-        </TableCell>
+        <TableCell>{user.departmentId || "-"}</TableCell>
+        <TableCell>{user.roles.map((r) => r.name).join(", ") || "-"}</TableCell>
         <TableCell className="text-center">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -250,32 +120,12 @@ export function UsersTable() {
                 <User className="h-4 w-4 mr-2" />
                 Просмотр профиля
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => openEditUserDialog(user)}>
-                <Pencil className="h-4 w-4 mr-2" />
-                Редактировать
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => openCredentialsDialog(user)}>
-                <Key className="h-4 w-4 mr-2" />
-                Учетные данные
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                className={user.suspended ? "text-success" : "text-destructive"}
-                onClick={() => handleToggleSuspend(user)}
-              >
-                {user.suspended ? "Разблокировать" : "Заблокировать"}
-              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </TableCell>
       </TableRow>
     ),
-    [
-      handleToggleSuspend,
-      openCredentialsDialog,
-      openEditUserDialog,
-      viewUserProfile,
-    ],
+    [viewUserProfile],
   );
 
   return (
@@ -285,11 +135,6 @@ export function UsersTable() {
       <div className="flex justify-between">
         {/* Use extracted SearchInput component */}
         <SearchInput value={searchInput} onChange={setSearchInput} />
-
-        <Button onClick={openCreateUserDialog}>
-          <UserPlus className="h-4 w-4 mr-2" />
-          Добавить пользователя
-        </Button>
       </div>
 
       <div className="rounded-md border">
@@ -299,8 +144,7 @@ export function UsersTable() {
               <TableHead>Пользователь</TableHead>
               <TableHead>Подразделение</TableHead>
               <TableHead>Должность</TableHead>
-              <TableHead>Роль</TableHead>
-              <TableHead>Статус</TableHead>
+              <TableHead>Роли</TableHead>
               <TableHead className="text-center w-[150px]">Действия</TableHead>
             </TableRow>
           </TableHeader>
@@ -321,46 +165,13 @@ export function UsersTable() {
       </div>
 
       <div className="flex flex-col items-center gap-4">
-        {(isFetchingNextPage || isLoading) && (
+        {isLoading && (
           <div className="flex items-center justify-center p-4">
             <Loader2 className="mr-2 h-6 w-6 animate-spin" />
             <span>Загрузка...</span>
           </div>
         )}
-
-        {hasNextPage && !isFetchingNextPage && (
-          <Button
-            onClick={() => fetchNextPage()}
-            variant="outline"
-            className="px-8"
-          >
-            Загрузить еще
-          </Button>
-        )}
-
-        {!hasNextPage && allUsers.length > 0 && (
-          <p className="text-sm text-muted-foreground py-4">
-            Все пользователи загружены
-          </p>
-        )}
       </div>
-
-      <UserFormDialog
-        open={userFormOpen}
-        onOpenChange={setUserFormOpen}
-        user={selectedUser}
-        onSuccess={() => {
-          queryClient.invalidateQueries({ queryKey });
-        }}
-      />
-
-      {selectedUser && (
-        <UserCredentialsDialog
-          open={userCredentialsOpen}
-          onOpenChange={setUserCredentialsOpen}
-          user={selectedUser}
-        />
-      )}
     </div>
   );
 }

@@ -1,10 +1,10 @@
 "use client";
 
-import { useAuth } from "@/hooks/use-auth";
-import { motion } from "framer-motion";
-import { useQuery } from "@tanstack/react-query";
-import { getUsersByIdOptions } from "@/lib/api/@tanstack/react-query.gen";
 import { UserProfile } from "@/components/user-profile/user-profile";
+import { useAuth } from "@/hooks/use-auth";
+import { getUsersByIdOptions } from "@/lib/api/@tanstack/react-query.gen";
+import { useQuery } from "@tanstack/react-query";
+import { motion } from "framer-motion";
 import { useParams } from "next/navigation";
 
 export default function UserProfilePage() {

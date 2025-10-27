@@ -23,8 +23,11 @@ definitions:
       token:
         example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
         type: string
+      user:
+        $ref: '#/definitions/respond.User'
     required:
     - token
+    - user
     type: object
   param.AddDocumentRequest:
     properties:
@@ -394,8 +397,10 @@ definitions:
       pictureUrl:
         example: /images/users/ivan.jpg
         type: string
-      role:
-        $ref: '#/definitions/respond.Role'
+      roles:
+        items:
+          $ref: '#/definitions/respond.Role'
+        type: array
     required:
     - employmentRate
     - employmentType
@@ -404,7 +409,7 @@ definitions:
     - jobTitle
     - personnelCategory
     - pictureUrl
-    - role
+    - roles
     type: object
   respond.Users:
     properties:

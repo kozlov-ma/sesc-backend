@@ -1,24 +1,11 @@
 "use client";
 
-import { useState, useCallback } from "react";
-import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { ReviewPageLayout } from "@/components/achievements/review-page-layout";
 import { AchievementDetailsDialog } from "@/components/achievements/achievement-details-dialog";
 import { ReviewAchievementDialog } from "@/components/achievements/review-achievement-dialog";
-import { RespondAchievement, RespondUser } from "@/lib/api/types.gen";
-import { Search } from "lucide-react";
+import { ReviewPageLayout } from "@/components/achievements/review-page-layout";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  getAchievementsUsersInfiniteOptions,
-  getAchievementsInfiniteOptions,
-  getUsersMeOptions,
-} from "@/lib/api/@tanstack/react-query.gen";
-import {
-  getStatusLabel,
-  getStatusBadgeVariant,
-} from "@/lib/utils/achievements";
 import {
   Table,
   TableBody,
@@ -27,17 +14,29 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { UserAvatar } from "@/components/ui/user-avatar";
+import { useAuth } from "@/hooks/use-auth";
+import { useDebounce } from "@/hooks/use-debounce";
+import {
+  getAchievementsInfiniteOptions,
+  getAchievementsUsersInfiniteOptions,
+  getUsersMeOptions,
+} from "@/lib/api/@tanstack/react-query.gen";
+import { RespondAchievement, RespondUser } from "@/lib/api/types.gen";
+import {
+  getStatusBadgeVariant,
+  getStatusLabel,
+} from "@/lib/utils/achievements";
+import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import {
   ChevronDown,
   ChevronRight,
-  Loader2,
   ClipboardCheck,
+  Loader2,
+  Search,
 } from "lucide-react";
-import { useAuth } from "@/hooks/use-auth";
-import { UserAvatar } from "@/components/ui/user-avatar";
 import Link from "next/link";
-import React from "react";
-import { useDebounce } from "@/hooks/use-debounce";
+import { useCallback, useState } from "react";
 
 type ApiAchievement = RespondAchievement;
 
@@ -128,15 +127,17 @@ export default function ReviewAchievementsPage() {
       if (!currentUser) return false;
 
       if (
-        currentUser.role.id === 2 &&
+        currentUser.roles.find((r) => r.codeName === "dephead") &&
         achievement.status === "dephead_review"
       ) {
         return true;
       }
 
       if (
-        currentUser.role.id >= 3 &&
-        currentUser.role.id <= 6 &&
+        (currentUser.roles.find((r) => r.codeName === "academic_director") ||
+          currentUser.roles.find((r) => r.codeName === "development_deputy") ||
+          currentUser.roles.find((r) => r.codeName === "scientific_deputy") ||
+          currentUser.roles.find((r) => r.codeName === "olympiad_deputy")) &&
         achievement.status === "inspector_review"
       ) {
         return true;
@@ -303,9 +304,7 @@ function UserRow({
             <Link href={`/u/users/${user.id}`}>
               <UserAvatar userId={user.id} size="sm" />
             </Link>
-            <span className="ml-2">
-              {user.lastName} {user.firstName} {user.middleName}
-            </span>
+            <span className="ml-2">{user.fullName}</span>
           </div>
         </TableCell>
         <TableCell>

@@ -9,7 +9,7 @@ func WithUser(u company.User) *User {
 		ID:                u.ID,
 		FullName:          u.FullName,
 		PictureURL:        u.PictureURL,
-		Role:              WithRole(u.Role),
+		Roles:             WithRoles(u.Roles),
 		DepartmentID:      u.DepartmentID,
 		JobTitle:          u.Extras.JobTitle,
 		EmploymentRate:    u.Extras.EmploymentRate,
@@ -38,7 +38,7 @@ type User struct {
 	ID           string `json:"id"           example:"ivanivanov"             validate:"required"`
 	FullName     string `json:"fullName"     example:"Ivanov Ivan Ivanovich"  validate:"required"`
 	PictureURL   string `json:"pictureUrl"   example:"/images/users/ivan.jpg" validate:"required"`
-	Role         Role   `json:"role"                                          validate:"required"`
+	Roles        []Role `json:"roles"                                         validate:"required"`
 	DepartmentID string `json:"departmentId"`
 
 	JobTitle          string `json:"jobTitle"          example:"Профессор"                               validate:"required"`

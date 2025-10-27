@@ -95,7 +95,7 @@ func (l *localDS) Users(ctx context.Context, q companyquery.Users) ([]company.Us
 			accepted = accepted && u.DepartmentID == depID
 		}
 		if roleID := q.RoleID; roleID != "" {
-			accepted = accepted && u.Role.String() == roleID
+			accepted = accepted && u.HasRole(company.Role(roleID))
 		}
 
 		if dep := strings.ToLower(q.Department); dep != "" {
@@ -112,7 +112,7 @@ func (l *localDS) Users(ctx context.Context, q companyquery.Users) ([]company.Us
 
 		accepted = accepted || strings.Contains(strings.ToLower(u.FullName), strings.ToLower(q.FullName))
 
-		accepted = accepted || slices.Contains(roles, u.Role)
+		accepted = accepted || u.HasRole(roles...)
 
 		if accepted {
 			uu = append(uu, u)

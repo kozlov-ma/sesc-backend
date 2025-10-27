@@ -20,8 +20,9 @@ type SESC struct {
 
 func New(client *ent.Client, c companyservice.S) *SESC {
 	return &SESC{
-		ACS: achsvc.New(client, c),
-		ATS: atsvc.New(client),
+		ACS:     achsvc.New(client, c),
+		ATS:     atsvc.New(client),
+		company: c,
 	}
 }
 

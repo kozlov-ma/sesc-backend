@@ -30,15 +30,14 @@ func (s *ACS) validateReviewRequest(
 		return achievement.ErrWrongAchievementStatus
 	}
 
-	reviewerRole := reviewer.Role
 	needReviewerRole := ach.Edges.Template.ReviewerRole
 
 	var validReviewer bool
 	switch currentStatus {
 	case achievement.StatusDepheadReview:
-		validReviewer = reviewerRole == company.Dephead
+		validReviewer = reviewer.HasRole(company.Dephead)
 	case achievement.StatusInspectorReview:
-		validReviewer = reviewerRole == needReviewerRole
+		validReviewer = reviewer.HasRole(needReviewerRole)
 	}
 
 	if !validReviewer {
@@ -155,7 +154,7 @@ func (s *ACS) ReviewAchievement(
 
 		err = rec.Operation("validate_review", func(rec *event.Record) error {
 			rec.Sub("params").Set(
-				"reviewer_role", reviewer.Role.String(),
+				"reviewer_roles", reviewer.Roles,
 				"ach_status", ach.Status,
 			)
 

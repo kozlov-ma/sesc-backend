@@ -54,7 +54,10 @@ export default function QuickLoginPage({
   const loginMutation = useMutation({
     ...postAuthLoginMutation(),
     onSuccess: (response) => {
-      setAuth(response.token, "user");
+      setAuth(
+        response.token,
+        response.user.roles.map((r) => r.codeName),
+      );
       toast.success("Вход выполнен успешно");
       push("/u/users/me");
     },

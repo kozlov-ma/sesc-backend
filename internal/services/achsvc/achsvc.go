@@ -56,36 +56,45 @@ func (s *ACS) buildRoleBasedFilters(
 
 // buildBaseRoleFilter creates base filters based on the asking user's role
 func (s *ACS) buildBaseRoleFilter(askingUser company.User) predicate.Achievement {
-	switch askingUser.Role {
-	case company.Teacher:
-		return entAchievement.OwnerID(askingUser.ID)
-	case company.Dephead:
-		if askingUser.DepartmentID != "" {
-			return entAchievement.And(
-				entAchievement.DepartmentID(askingUser.DepartmentID),
-				entAchievement.StatusNotIn(
-					achievement.StatusDraft,
-					achievement.StatusAccounted,
-				),
-			)
-		}
-	case company.ScientificDeputy, company.OlympiadDeputy, company.DevelopmentDeputy, company.AcademicDirector:
-		return entAchievement.And(
+	var filters []predicate.Achievement
+	if askingUser.HasRole(company.Teacher) {
+		filters = append(filters, entAchievement.OwnerID(askingUser.ID))
+	}
+
+	if askingUser.HasRole(company.Dephead) && askingUser.DepartmentID != "" {
+		filters = append(filters, entAchievement.And(
+			entAchievement.DepartmentID(askingUser.DepartmentID),
 			entAchievement.StatusNotIn(
 				achievement.StatusDraft,
 				achievement.StatusAccounted,
-				achievement.StatusDepheadReview,
 			),
-			entAchievement.HasTemplateWith(achievementtemplate.ReviewerRole(askingUser.Role)),
-		)
-	case company.ChiefEconomist:
-		return entAchievement.Or(
-			entAchievement.Status(achievement.StatusDone),
-			entAchievement.Status(achievement.StatusAccounted),
-		)
-	case company.Admin:
-		return entAchievement.StatusNEQ(achievement.StatusDraft)
+		))
 	}
 
-	panic("invalid role")
+	if rr := askingUser.RolesIn(company.ScientificDeputy, company.OlympiadDeputy, company.DevelopmentDeputy, company.AcademicDirector); len(
+		rr,
+	) > 0 {
+		for _, r := range rr {
+			filters = append(filters,
+				entAchievement.And(
+					entAchievement.StatusNotIn(
+						achievement.StatusDraft,
+						achievement.StatusAccounted,
+						achievement.StatusDepheadReview,
+					),
+					entAchievement.HasTemplateWith(achievementtemplate.ReviewerRole(r)),
+				),
+			)
+		}
+	}
+
+	if askingUser.HasRole(company.ChiefEconomist) {
+		filters = append(filters, entAchievement.Or(
+			entAchievement.Status(achievement.StatusDone),
+			entAchievement.Status(achievement.StatusAccounted),
+		),
+		)
+	}
+
+	return entAchievement.Or(filters...)
 }

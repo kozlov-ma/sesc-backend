@@ -45,7 +45,12 @@ const formSchema = z
       .min(0, "Количество баллов не может быть отрицательным"),
     isUnlimitedPoints: z.boolean(),
     kind: z
-      .enum(["olympiad", "development", "scientific", "academic"])
+      .enum([
+        "olympiad_deputy",
+        "development_deputy",
+        "scientific_deputy",
+        "academic_director",
+      ])
       .refine((val) => val !== undefined, {
         message: "Выберите контролирующее лицо",
       }),
@@ -73,36 +78,22 @@ interface AchievementTemplateFormDialogProps {
   onSuccess?: () => void;
 }
 
-function kindToRole(
-  kind: "scientific" | "development" | "olympiad" | "academic",
-): number {
-  switch (kind) {
-    case "scientific":
-      return 3;
-    case "development":
-      return 4;
-    case "olympiad":
-      return 5;
-    case "academic":
-      return 6;
-  }
-}
-
 function roleToKind(
-  role: number,
-): "scientific" | "development" | "olympiad" | "academic" {
-  switch (role) {
-    case 3:
-      return "scientific";
-    case 4:
-      return "development";
-    case 5:
-      return "olympiad";
-    case 6:
-      return "academic";
+  role: string,
+):
+  | "scientific_deputy"
+  | "development_deputy"
+  | "olympiad_deputy"
+  | "academic_director" {
+  if (
+    role != "scientific_deputy" &&
+    role != "development_deputy" &&
+    role != "olympiad_deputy" &&
+    role != "academic_director"
+  ) {
+    throw new Error("Invalid role " + role);
   }
-
-  return "scientific";
+  return role;
 }
 
 export function AchievementTemplateFormDialog({
@@ -118,7 +109,7 @@ export function AchievementTemplateFormDialog({
       name: "",
       description: "",
       pointsLimit: 0,
-      kind: "development",
+      kind: "development_deputy",
     },
   });
 
@@ -132,7 +123,7 @@ export function AchievementTemplateFormDialog({
           name: template.name,
           description: template.description,
           pointsLimit: template.pointsLimit,
-          kind: roleToKind(template.reviewerRole.id),
+          kind: roleToKind(template.reviewerRoleID),
         });
       } else {
         form.reset({
@@ -140,7 +131,7 @@ export function AchievementTemplateFormDialog({
           description: "",
           pointsLimit: 0,
           isUnlimitedPoints: false,
-          kind: "development",
+          kind: "development_deputy",
         });
       }
     }
@@ -185,7 +176,6 @@ export function AchievementTemplateFormDialog({
   });
 
   const onSubmit = async (data: FormValues) => {
-    console.log("Form submitted with data:", data);
     try {
       if (template) {
         await updateTemplateMutation.mutateAsync({
@@ -196,7 +186,7 @@ export function AchievementTemplateFormDialog({
             name: data.name,
             description: data.description,
             pointsLimit: data.isUnlimitedPoints ? 0 : data.pointsLimit,
-            reviewerRole: kindToRole(data.kind),
+            reviewerRole: data.kind,
           },
         });
       } else {
@@ -209,7 +199,7 @@ export function AchievementTemplateFormDialog({
             description: data.description,
             pointsLimit: data.isUnlimitedPoints ? 0 : data.pointsLimit,
             groupId,
-            reviewerRole: kindToRole(data.kind),
+            reviewerRole: data.kind,
           },
         });
       }
@@ -280,14 +270,18 @@ export function AchievementTemplateFormDialog({
                 <SelectValue placeholder="Выберите контролирующее лицо" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="olympiad">
+                <SelectItem value="olympiad_deputy">
                   з.д. по Олимпиадной работе
                 </SelectItem>
-                <SelectItem value="development">з.д. по Развитию</SelectItem>
-                <SelectItem value="scientific">
+                <SelectItem value="development_deputy">
+                  з.д. по Развитию
+                </SelectItem>
+                <SelectItem value="scientific_deputy">
                   з.д. по Научной работе
                 </SelectItem>
-                <SelectItem value="academic">Академический директор</SelectItem>
+                <SelectItem value="academic_director">
+                  Академический директор
+                </SelectItem>
               </SelectContent>
             </Select>
             {form.formState.errors.kind && (
