@@ -39,7 +39,14 @@ func (a *API) SearchFiles(w http.ResponseWriter, r *http.Request) {
 		Name: query.Get("name"),
 	}
 
+	user := CurrentUser(ctx)
+
+
 	if ownerIDStr := query.Get("owner_id"); ownerIDStr != "" {
+		if ownerIDStr == "me" {
+			ownerIDStr = user.ID
+		}
+
 		opts.OwnerID = &ownerIDStr
 	}
 
@@ -73,7 +80,6 @@ func (a *API) SearchFiles(w http.ResponseWriter, r *http.Request) {
 		opts.Limit = limit
 	}
 
-	user := CurrentUser(ctx)
 
 	files, totalCount, err := a.file.SearchWithCheckAccess(ctx, user, opts)
 	if err != nil {
@@ -95,7 +101,7 @@ const maxFormSizeBytes = 32 << 20 // 32 megabytes
 // @Produce json
 // @Param Authorization header string false "Bearer JWT token"
 // @Param file formData file true "File to upload"
-// @Param isCommon query bool false "If true, upload as a common file (admin only)"
+// @Param common query bool false "If true, upload as a common file (admin only)"
 // @Success 201 {object} respond.File
 // @Failure 400 {object} respond.Error
 // @Failure 401 {object} respond.Error "Unauthorized"

@@ -32,7 +32,7 @@ func (s *FileService) CreateWithCheckAccess(
 			"acting_user", user)
 		return nil, sesc.ErrForbidden
 	}
-	rec.Sub("access-control").Set(
+	rec.Sub("access_control").Set(
 		"allowed", true,
 		"acting_user", user)
 	return s.create(ctx, reader, opts)
@@ -48,12 +48,12 @@ func (s *FileService) DeleteWithCheckAccess(ctx context.Context, user company.Us
 
 	if !user.Can(NewDeleteFileAction(f.OwnerID)) {
 		rec.Add(events.Error, sesc.ErrForbidden)
-		rec.Sub("access-control").Set(
+		rec.Sub("access_control").Set(
 			"allowed", false,
 			"acting_user", user)
 		return sesc.ErrForbidden
 	}
-	rec.Sub("access-control").Set(
+	rec.Sub("access_control").Set(
 		"allowed", true,
 		"acting_user", user)
 	return s.delete(ctx, id)
@@ -65,20 +65,30 @@ func (s *FileService) SearchWithCheckAccess(
 	opts sesc.FileSearchOptions,
 ) (ent.Files, int, error) {
 	rec := event.Get(ctx).Sub("file/search_with_access")
+	files, count, err := s.search(ctx, opts)
 
-	if !user.Can(NewSearchFileAction(opts.OwnerID)) {
-		rec.Add(events.Error, sesc.ErrForbidden)
 
-		rec.Sub("access-control").Set(
-			"allowed", false,
-			"acting_user", user)
-		return nil, -1, sesc.ErrForbidden
+	if err != nil {
+		rec.Add(events.Error, err)
+		return nil, -1, err
 	}
 
-	rec.Sub("access-control").Set(
+	for _, f := range files {
+		if !user.Can(NewViewFileAction(f.OwnerID)) {
+			rec.Add(events.Error, sesc.ErrForbidden)
+			rec.Sub("access_control").Set(
+				"allowed", false,
+				"acting_user", user)
+			return nil, -1, sesc.ErrForbidden
+		}
+	}
+
+	rec.Sub("access_control").Set(
 		"allowed", true,
 		"acting_user", user)
-	return s.search(ctx, opts)
+
+
+	return files, count, nil
 }
 
 func (s *FileService) ByIDWithCheckAccess(ctx context.Context, user company.User, id UUID) (*ent.File, error) {
@@ -87,7 +97,7 @@ func (s *FileService) ByIDWithCheckAccess(ctx context.Context, user company.User
 	f, err := s.byID(ctx, id)
 	if err != nil {
 		rec.Add(events.Error, err)
-		rec.Sub("access-control").Set(
+		rec.Sub("access_control").Set(
 			"allowed", false,
 			"acting_user", user)
 		return nil, err
@@ -95,13 +105,13 @@ func (s *FileService) ByIDWithCheckAccess(ctx context.Context, user company.User
 
 	if !user.Can(NewViewFileAction(f.OwnerID)) {
 		rec.Add(events.Error, sesc.ErrForbidden)
-		rec.Sub("access-control").Set(
+		rec.Sub("access_control").Set(
 			"allowed", false,
 			"acting_user", user)
 		return nil, sesc.ErrForbidden
 	}
 
-	rec.Sub("access-control").Set(
+	rec.Sub("access_control").Set(
 		"allowed", true,
 		"acting_user", user)
 	return f, nil
@@ -113,7 +123,7 @@ func (s *FileService) DownloadURLWithCheckAccess(ctx context.Context, user compa
 	f, err := s.byID(ctx, id)
 	if err != nil {
 		rec.Add(events.Error, err)
-		rec.Sub("access-control").Set(
+		rec.Sub("access_control").Set(
 			"allowed", false,
 			"acting_user", user)
 		return "", err
@@ -121,13 +131,13 @@ func (s *FileService) DownloadURLWithCheckAccess(ctx context.Context, user compa
 
 	if !user.Can(NewViewFileAction(f.OwnerID)) {
 		rec.Add(events.Error, sesc.ErrForbidden)
-		rec.Sub("access-control").Set(
+		rec.Sub("access_control").Set(
 			"allowed", false,
 			"acting_user", user)
 		return "", sesc.ErrForbidden
 	}
 
-	rec.Sub("access-control").Set(
+	rec.Sub("access_control").Set(
 		"allowed", true,
 		"acting_user", user)
 	return s.downloadURL(ctx, id)
