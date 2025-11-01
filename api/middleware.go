@@ -24,12 +24,16 @@ var (
 	userCtxKey = ctxKey("user")
 )
 
-// CurrentUser retrieves the user from the request context if it exists
-func CurrentUser(ctx context.Context) (company.User, bool) {
+// CurrentUser retrieves the user from the request context.
+// Panics if the user is not found in context (CurrentUserMiddleware was not applied).
+func CurrentUser(ctx context.Context) company.User {
 	uv := ctx.Value(userCtxKey)
 	u, ok := uv.(company.User)
+	if !ok {
+		panic("user not found in context - CurrentUserMiddleware was not applied")
+	}
 
-	return u, ok
+	return u
 }
 
 func (a *API) CurrentUserMiddleware(next http.Handler) http.Handler {
@@ -58,7 +62,7 @@ func (a *API) CurrentUserMiddleware(next http.Handler) http.Handler {
 		u, err := a.iam.ImWatermelon(ctx, token)
 		if err != nil {
 			rec.Add(events.Error, err)
-			next.ServeHTTP(w, r)
+			a.writeJSON(ctx, w, respond.WithError(ctx, fmt.Errorf("%w: %w", auth.ErrInvalidToken, err)))
 			return
 		}
 

@@ -31,6 +31,7 @@ export default function MyDocumentsPage() {
             showOwner={false}
             emptyMessage="У вас пока нет файлов"
             initialFilters={{ ownerId: "me" }}
+            isCommon={false}
           />
         </CardContent>
       </Card>

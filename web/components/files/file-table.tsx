@@ -30,6 +30,7 @@ import {
   getFilesInfiniteOptions,
   postFilesMutation,
 } from "@/lib/api/@tanstack/react-query.gen";
+import { usePathname } from 'next/navigation';
 import type { RespondFile } from "@/lib/api/types.gen";
 import { getErrorMessage } from "@/lib/error-handler";
 import { cn, formatFileSize } from "@/lib/utils";
@@ -51,6 +52,7 @@ interface FileTableProps {
     ownerId?: string;
     common?: boolean;
   };
+  isCommon?: boolean;
   allowDeleteCommon?: boolean;
   allowUpload?: boolean;
 }
@@ -60,6 +62,7 @@ export function FileTable({
   className,
   emptyMessage = "Файлов не найдено",
   initialFilters = {},
+  isCommon = false,
   allowDeleteCommon = false,
   allowUpload = true,
 }: FileTableProps) {
@@ -151,6 +154,7 @@ export function FileTable({
     try {
       await uploadFileMutation.mutateAsync({
         body: { file },
+        query: { common: isCommon }
       });
     } catch {
       // Ошибка уже обработана в onError мутации

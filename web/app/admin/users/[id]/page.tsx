@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 
 export default function UserProfilePage() {
-  const { isAuthenticated, isLoading, role } = useAuth();
+  const { isAuthenticated, isLoading, roles } = useAuth();
   const params = useParams();
   const router = useRouter();
   const userId = params.id as string;
@@ -29,7 +29,7 @@ export default function UserProfilePage() {
   }
 
   // Only admins can view this page
-  if (role !== "admin") {
+  if (!roles.includes("admin")) {
     router.push("/");
     return null;
   }
