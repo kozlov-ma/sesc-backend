@@ -5,8 +5,6 @@ import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useErrorHandler } from "@/hooks/use-error-handler";
-import { useAuth } from "@/hooks/use-auth";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   getAchievementsOptions,
   getFilesInfiniteOptions,
@@ -37,9 +35,6 @@ export function AddDocumentForm({
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedFile, setSelectedFile] = useState<RespondFile | null>(null);
   const [documentName, setDocumentName] = useState("");
-  const { roles } = useAuth();
-  const [isCommon, setIsCommon] = useState(false);
-  const [ownerId, setOwnerId] = useState("");
   const queryClient = useQueryClient();
   const { clearError } = useErrorHandler();
 
@@ -135,23 +130,10 @@ export function AddDocumentForm({
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // If user is admin-only, require ownerId
-    const isTeacherOnly = roles?.length === 1 && roles[0] === "teacher";
-    const isAdminOnly = roles?.length === 1 && roles[0] === "admin";
-
-    if (isAdminOnly && !ownerId) {
-      toast.error("Требуется выбрать владельца (OwnerID) перед загрузкой");
-      return;
-    }
-
     uploadFileMutation.mutate({
-      // SDK expects form data; allow extra fields through any cast
-      body: ({
-        file,
-        // send 'common' only when admin can set it
-        ...(roles?.includes("admin") ? { common: isCommon } : {}),
-        ...(isAdminOnly ? { owner_id: ownerId } : {}),
-      } as any),
+      body: {
+        file: file,
+      },
     });
   };
 
@@ -204,36 +186,8 @@ export function AddDocumentForm({
                   id="fileUpload"
                   className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
                   onChange={handleFileUpload}
-                  disabled={
-                    uploadFileMutation.isPending ||
-                    (roles?.length === 1 && roles[0] === "admin" && !ownerId)
-                  }
+                  disabled={uploadFileMutation.isPending}
                 />
-
-                {/* role-dependent controls: show 'is common' to admins, require ownerId for admin-only */}
-                <div className="mb-2 flex items-center justify-between gap-2">
-                  {roles?.includes("admin") && (
-                    <label className="flex items-center gap-2">
-                      <Checkbox
-                        checked={isCommon}
-                        onCheckedChange={(v) => setIsCommon(!!v)}
-                      />
-                      <span className="text-sm">Общий (is common)</span>
-                    </label>
-                  )}
-
-                  {roles?.length === 1 && roles[0] === "admin" && (
-                    <div className="flex-1">
-                      <Input
-                        placeholder="OwnerID"
-                        value={ownerId}
-                        onChange={(e) => setOwnerId(e.target.value)}
-                        className="w-full"
-                      />
-                    </div>
-                  )}
-                </div>
-
                 <Button
                   type="button"
                   variant="outline"

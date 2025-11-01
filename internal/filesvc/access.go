@@ -56,22 +56,8 @@ func NewViewFileAction(ownerID *string) ViewFileAction {
 	return ViewFileAction{OwnerID: ownerID}
 }
 
-func (a ViewFileAction) AllowsUser(u company.User) bool {
-	if u.HasRole(company.Admin) {
-		return true
-	}
-
-	// Common files (no owner)
-	if a.OwnerID == nil {
-		return true
-	}
-
-	// User's own files
-	if *a.OwnerID == u.ID {
-		return true
-	}
-
-	return false
+func (a ViewFileAction) AllowsUser(_ company.User) bool {
+	return true
 }
 
 type DeleteFileAction struct {
@@ -89,32 +75,6 @@ func (a DeleteFileAction) AllowsUser(u company.User) bool {
 
 	// User can delete their own files
 	if a.OwnerID != nil && *a.OwnerID == u.ID {
-		return true
-	}
-
-	return false
-}
-
-type SearchFileAction struct {
-	OwnerID *string
-}
-
-func NewSearchFileAction(ownerID *string) SearchFileAction {
-	return SearchFileAction{OwnerID: ownerID}
-}
-
-func (a SearchFileAction) AllowsUser(u company.User) bool {
-	if u.HasRole(company.Admin) {
-		return true
-	}
-
-	// User's own files
-	if a.OwnerID != nil && *a.OwnerID == u.ID {
-		return true
-	}
-
-	// Common files (no owner)
-	if a.OwnerID == nil {
 		return true
 	}
 

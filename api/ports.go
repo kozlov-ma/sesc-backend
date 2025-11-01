@@ -135,23 +135,23 @@ type (
 	// FileService defines the file operations interface required by the API
 	FileService interface {
 		// Search searches for files with the given options
-		SearchWithCheckAccess(
+		Search(
 			ctx context.Context,
 			user company.User,
 			opts sesc.FileSearchOptions,
 		) (ent.Files, int, error)
 		// Create uploads a new file
-		CreateWithCheckAccess(
+		Create(
 			ctx context.Context,
 			user company.User,
 			reader io.Reader,
 			opts sesc.FileCreateOptions,
 		) (*ent.File, error)
 		// Delete deletes a file
-		DeleteWithCheckAccess(ctx context.Context, user company.User, id uuid.UUID) error
+		Delete(ctx context.Context, user company.User, id uuid.UUID) error
 		// ByID returns a file by its ID
-		ByIDWithCheckAccess(ctx context.Context, user company.User, id uuid.UUID) (*ent.File, error)
-		DownloadURLWithCheckAccess(ctx context.Context, user company.User, id uuid.UUID) (string, error)
+		ByID(ctx context.Context, user company.User, id uuid.UUID) (*ent.File, error)
+		DownloadURL(ctx context.Context, user company.User, id uuid.UUID) (string, error)
 	}
 
 	// EventSink is used by the API to log events

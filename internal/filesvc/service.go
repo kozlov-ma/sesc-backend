@@ -76,13 +76,13 @@ func (s *FileService) generateSecureObjectKey() (string, error) {
 }
 
 // Create creates a new file entry and stores the file in the storage.
-func (s *FileService) create(ctx context.Context, reader io.Reader, opts FileOpts) (*ent.File, error) {
+func (s *FileService) create(ctx context.Context, ownerID string, reader io.Reader, opts FileOpts) (*ent.File, error) {
 	rec := event.Get(ctx).Sub("file/create")
 
 	rec.Sub("params").Set(
 		"name", opts.FileName,
 		"size", opts.FileSize,
-		"owner_id", opts.OwnerID,
+		"common", opts.Common,
 		"start_time", time.Now(),
 	)
 
@@ -142,6 +142,13 @@ func (s *FileService) create(ctx context.Context, reader io.Reader, opts FileOpt
 		return nil, uploadErr
 	}
 
+	var queryOwnerId *string
+	if opts.Common {
+		queryOwnerId = nil
+	} else {
+		queryOwnerId = &ownerID
+	}
+
 	// Step 2: insert into DB
 	var f *ent.File
 	dbErr := recordDBOperation(ctx, rec, "db_create_file", func() error {
@@ -150,7 +157,7 @@ func (s *FileService) create(ctx context.Context, reader io.Reader, opts FileOpt
 			SetS3ObjectKey(objectKey).
 			SetName(opts.FileName).
 			SetSize(opts.FileSize).
-			SetNillableOwnerID(opts.OwnerID).
+			SetNillableOwnerID(queryOwnerId).
 			Save(ctx)
 
 		if err == nil {

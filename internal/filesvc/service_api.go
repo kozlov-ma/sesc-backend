@@ -11,7 +11,7 @@ import (
 	"github.com/kozlov-ma/sesc-backend/sesc"
 )
 
-func (s *FileService) CreateWithCheckAccess(
+func (s *FileService) Create(
 	ctx context.Context,
 	user company.User,
 	reader io.Reader,
@@ -19,10 +19,10 @@ func (s *FileService) CreateWithCheckAccess(
 ) (*ent.File, error) {
 	rec := event.Get(ctx).Sub("file/create_with_access")
 	var allowed bool
-	if opts.OwnerID == nil {
+	if opts.Common {
 		allowed = user.Can(NewCommonCreateFileAction())
 	} else {
-		allowed = user.Can(NewCreateFileAction(*opts.OwnerID))
+		allowed = user.Can(NewCreateFileAction(user.ID))
 	}
 
 	if !allowed {
@@ -35,10 +35,10 @@ func (s *FileService) CreateWithCheckAccess(
 	rec.Sub("access_control").Set(
 		"allowed", true,
 		"acting_user", user)
-	return s.create(ctx, reader, opts)
+	return s.create(ctx, user.ID, reader, opts)
 }
 
-func (s *FileService) DeleteWithCheckAccess(ctx context.Context, user company.User, id UUID) error {
+func (s *FileService) Delete(ctx context.Context, user company.User, id UUID) error {
 	rec := event.Get(ctx).Sub("file/delete_with_access")
 	f, err := s.byID(ctx, id)
 	if err != nil {
@@ -59,14 +59,13 @@ func (s *FileService) DeleteWithCheckAccess(ctx context.Context, user company.Us
 	return s.delete(ctx, id)
 }
 
-func (s *FileService) SearchWithCheckAccess(
+func (s *FileService) Search(
 	ctx context.Context,
 	user company.User,
 	opts sesc.FileSearchOptions,
 ) (ent.Files, int, error) {
 	rec := event.Get(ctx).Sub("file/search_with_access")
 	files, count, err := s.search(ctx, opts)
-
 
 	if err != nil {
 		rec.Add(events.Error, err)
@@ -87,11 +86,10 @@ func (s *FileService) SearchWithCheckAccess(
 		"allowed", true,
 		"acting_user", user)
 
-
 	return files, count, nil
 }
 
-func (s *FileService) ByIDWithCheckAccess(ctx context.Context, user company.User, id UUID) (*ent.File, error) {
+func (s *FileService) ByID(ctx context.Context, user company.User, id UUID) (*ent.File, error) {
 	rec := event.Get(ctx).Sub("file/by_id_with_access")
 
 	f, err := s.byID(ctx, id)
@@ -117,7 +115,7 @@ func (s *FileService) ByIDWithCheckAccess(ctx context.Context, user company.User
 	return f, nil
 }
 
-func (s *FileService) DownloadURLWithCheckAccess(ctx context.Context, user company.User, id UUID) (string, error) {
+func (s *FileService) DownloadURL(ctx context.Context, user company.User, id UUID) (string, error) {
 	rec := event.Get(ctx).Sub("file/download_url_with_access")
 
 	f, err := s.byID(ctx, id)

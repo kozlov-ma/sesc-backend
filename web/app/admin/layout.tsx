@@ -71,10 +71,10 @@ export default function DashboardLayout({
           ],
         },
         {
-          name: "Документы",
+          name: "Управление документами",
           routes: [
             {
-              name: "Управление общими документами",
+              name: "Общие документы",
               url: "/admin/documents/shared",
               icon: FolderOpen,
             },
@@ -89,7 +89,7 @@ export default function DashboardLayout({
     );
   }
 
-  if (!roles.some((r) => r === "admin")) {
+  if (roles.some((r) => r !== "admin")) {
     groups.push({
       name: "Документы",
       routes: [

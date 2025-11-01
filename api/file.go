@@ -41,7 +41,6 @@ func (a *API) SearchFiles(w http.ResponseWriter, r *http.Request) {
 
 	user := CurrentUser(ctx)
 
-
 	if ownerIDStr := query.Get("owner_id"); ownerIDStr != "" {
 		if ownerIDStr == "me" {
 			ownerIDStr = user.ID
@@ -80,8 +79,7 @@ func (a *API) SearchFiles(w http.ResponseWriter, r *http.Request) {
 		opts.Limit = limit
 	}
 
-
-	files, totalCount, err := a.file.SearchWithCheckAccess(ctx, user, opts)
+	files, totalCount, err := a.file.Search(ctx, user, opts)
 	if err != nil {
 		rec.Add(events.Error, err)
 		a.writeJSON(ctx, w, respond.WithError(ctx, err))
@@ -101,7 +99,7 @@ const maxFormSizeBytes = 32 << 20 // 32 megabytes
 // @Produce json
 // @Param Authorization header string false "Bearer JWT token"
 // @Param file formData file true "File to upload"
-// @Param common query bool false "If true, upload as a common file (admin only)"
+// @Param common query bool false "If true, upload as a common file"
 // @Success 201 {object} respond.File
 // @Failure 400 {object} respond.Error
 // @Failure 401 {object} respond.Error "Unauthorized"
@@ -121,6 +119,7 @@ func (a *API) UploadFile(w http.ResponseWriter, r *http.Request) {
 		}
 		isCommon = common
 	}
+	rec.Set("common_param", isCommon)
 
 	// Parse multipart form
 	err := r.ParseMultipartForm(maxFormSizeBytes)
@@ -139,21 +138,14 @@ func (a *API) UploadFile(w http.ResponseWriter, r *http.Request) {
 
 	user := CurrentUser(ctx)
 
-	var ownerIfPresents *string
-	if isCommon {
-		ownerIfPresents = nil
-	} else {
-		ownerIfPresents = &user.ID
-	}
-
 	opts := sesc.FileCreateOptions{
 		FileName: header.Filename,
 		FileSize: int(header.Size),
-		OwnerID:  ownerIfPresents,
+		Common:   isCommon,
 	}
 
 	// Create the file
-	newFile, err := a.file.CreateWithCheckAccess(ctx, user, file, opts)
+	newFile, err := a.file.Create(ctx, user, file, opts)
 	if err != nil {
 		rec.Add(events.Error, err)
 		a.writeJSON(ctx, w, respond.WithError(ctx, err))
@@ -190,7 +182,7 @@ func (a *API) GetFileByID(w http.ResponseWriter, r *http.Request) {
 	}
 	user := CurrentUser(ctx)
 
-	file, err := a.file.ByIDWithCheckAccess(ctx, user, fileID)
+	file, err := a.file.ByID(ctx, user, fileID)
 	if err != nil {
 		rec.Add(events.Error, err)
 		a.writeJSON(ctx, w, respond.WithError(ctx, err))
@@ -228,7 +220,7 @@ func (a *API) DeleteFile(w http.ResponseWriter, r *http.Request) {
 	}
 
 	user := CurrentUser(ctx)
-	err = a.file.DeleteWithCheckAccess(ctx, user, fileID)
+	err = a.file.Delete(ctx, user, fileID)
 	if err != nil {
 		rec.Add(events.Error, err)
 		a.writeJSON(ctx, w, respond.WithError(ctx, err))
@@ -267,7 +259,7 @@ func (a *API) DownloadFile(w http.ResponseWriter, r *http.Request) {
 
 	user := CurrentUser(ctx)
 	// Get pre-signed download URL
-	downloadURL, err := a.file.DownloadURLWithCheckAccess(ctx, user, fileID)
+	downloadURL, err := a.file.DownloadURL(ctx, user, fileID)
 	if err != nil {
 		if errors.Is(err, sesc.ErrFileNotFound) {
 			a.writeJSON(ctx, w, respond.WithError(ctx, err))

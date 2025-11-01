@@ -23,4 +23,5 @@ var (
 	ErrInvalidEmploymentRate = domerr.New("некорректная доля ставки", domerr.KindValidation)
 
 	ErrSuspended = apperr.New("действие вашего аккаунта приостановлено", apperr.KindForbidden)
+	ErrForbidden = apperr.New("доступ запрещён", apperr.KindForbidden)
 )
