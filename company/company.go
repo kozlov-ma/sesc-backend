@@ -21,7 +21,7 @@ const (
 	Admin             Role = "admin"
 )
 
-var Roles []Role = []Role{
+var Roles = []Role{
 	Teacher,
 	Dephead,
 	ScientificDeputy,
@@ -48,6 +48,8 @@ func AsRole(s string) (Role, error) {
 		return AcademicDirector, nil
 	case ChiefEconomist:
 		return ChiefEconomist, nil
+	case Admin:
+		return Admin, nil
 	default:
 		return "", ErrInvalidRole
 	}
@@ -69,6 +71,8 @@ func (r Role) Name() string {
 		return "Академический директор"
 	case ChiefEconomist:
 		return "Ведущий экономист"
+	case Admin:
+		return "Администратор"
 	case "":
 		return "Нет роли"
 	}

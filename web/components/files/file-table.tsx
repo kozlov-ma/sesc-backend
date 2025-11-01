@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/table";
 import { UserAvatar } from "@/components/ui/user-avatar";
 import { useAuth } from "@/hooks/use-auth";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useErrorHandler } from "@/hooks/use-error-handler";
 import { useInfiniteScroll } from "@/hooks/use-infinite-scroll";
 import {
@@ -67,6 +68,9 @@ export function FileTable({
   const [fileToDelete, setFileToDelete] = useState<RespondFile | null>(null);
   const queryClient = useQueryClient();
   const { token } = useAuth();
+  const { roles } = useAuth();
+  const [isCommon, setIsCommon] = useState(false);
+  const [ownerId, setOwnerId] = useState("");
   const { handleError, clearError } = useErrorHandler();
 
   const fileOpt = getFilesInfiniteOptions({
@@ -148,9 +152,20 @@ export function FileTable({
     const file = event.target.files?.[0];
     if (!file) return;
 
+    // If user is admin-only, require ownerId
+    const isAdminOnly = roles?.length === 1 && roles[0] === "admin";
+    if (isAdminOnly && !ownerId) {
+      toast.error("Требуется выбрать владельца (OwnerID) перед загрузкой");
+      return;
+    }
+
     try {
       await uploadFileMutation.mutateAsync({
-        body: { file },
+        body: ({
+          file,
+          ...(roles?.includes("admin") ? { common: isCommon } : {}),
+          ...(isAdminOnly ? { owner_id: ownerId } : {}),
+        } as any),
       });
     } catch {
       // Ошибка уже обработана в onError мутации
@@ -275,8 +290,33 @@ export function FileTable({
               id="fileUpload"
               className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
               onChange={handleFileChange}
-              disabled={uploadFileMutation.isPending}
+              disabled={
+                uploadFileMutation.isPending ||
+                (roles?.length === 1 && roles[0] === "admin" && !ownerId)
+              }
             />
+
+            {/* role-dependent controls: show 'is common' to admins, require ownerId for admin-only */}
+            <div className="mb-2 flex items-center gap-2">
+              {roles?.includes("admin") && (
+                <label className="flex items-center gap-2">
+                  <Checkbox
+                    checked={isCommon}
+                    onCheckedChange={(v) => setIsCommon(!!v)}
+                  />
+                  <span className="text-sm">Общий (is common)</span>
+                </label>
+              )}
+
+              {roles?.length === 1 && roles[0] === "admin" && (
+                <Input
+                  placeholder="OwnerID"
+                  value={ownerId}
+                  onChange={(e) => setOwnerId(e.target.value)}
+                  className="w-40"
+                />
+              )}
+
             {allowUpload && (
               <Button
                 className="flex items-center gap-2"
@@ -288,6 +328,7 @@ export function FileTable({
                   : "Загрузить файл"}
               </Button>
             )}
+            </div>
           </div>
         </div>
       </div>

@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/gofrs/uuid/v5"
+	"github.com/kozlov-ma/sesc-backend/api"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/file"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/predicate"
@@ -23,6 +24,8 @@ type (
 	UUID     = uuid.UUID
 	FileOpts = sesc.FileCreateOptions
 )
+
+var _ api.FileService = (*FileService)(nil)
 
 // FileService provides methods for managing files.
 type FileService struct {
@@ -73,7 +76,7 @@ func (s *FileService) generateSecureObjectKey() (string, error) {
 }
 
 // Create creates a new file entry and stores the file in the storage.
-func (s *FileService) Create(ctx context.Context, reader io.Reader, opts FileOpts) (*ent.File, error) {
+func (s *FileService) create(ctx context.Context, reader io.Reader, opts FileOpts) (*ent.File, error) {
 	rec := event.Get(ctx).Sub("file/create")
 
 	rec.Sub("params").Set(
@@ -176,7 +179,7 @@ func (s *FileService) Create(ctx context.Context, reader io.Reader, opts FileOpt
 }
 
 // Delete deletes a file by ID.
-func (s *FileService) Delete(ctx context.Context, id UUID) error {
+func (s *FileService) delete(ctx context.Context, id UUID) error {
 	rec := event.Get(ctx).Sub("file/delete")
 
 	rec.Sub("params").Set(
@@ -265,7 +268,7 @@ func buildFilePredicates(opts sesc.FileSearchOptions, rec *event.Record) []predi
 }
 
 // Search returns a paginated list of files filtered by the given options.
-func (s *FileService) Search(ctx context.Context, opts sesc.FileSearchOptions) (ent.Files, int, error) {
+func (s *FileService) search(ctx context.Context, opts sesc.FileSearchOptions) (ent.Files, int, error) {
 	rec := event.Get(ctx).Sub("file/search")
 
 	rec.Sub("params").Set(
@@ -340,7 +343,7 @@ func (s *FileService) Search(ctx context.Context, opts sesc.FileSearchOptions) (
 }
 
 // ByID returns a file by ID.
-func (s *FileService) ByID(ctx context.Context, id UUID) (*ent.File, error) {
+func (s *FileService) byID(ctx context.Context, id UUID) (*ent.File, error) {
 	rec := event.Get(ctx).Sub("file/by_id")
 
 	rec.Sub("params").Set(
@@ -387,7 +390,7 @@ func (s *FileService) getFile(ctx context.Context, rec *event.Record, id UUID) (
 	return file, err
 }
 
-func (s *FileService) DownloadURL(ctx context.Context, id UUID) (string, error) {
+func (s *FileService) downloadURL(ctx context.Context, id UUID) (string, error) {
 	rec := event.Get(ctx).Sub("file/download_url")
 
 	rec.Sub("params").Set(

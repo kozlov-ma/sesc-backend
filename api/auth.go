@@ -72,10 +72,7 @@ func (a *API) Login(w http.ResponseWriter, r *http.Request) {
 func (a *API) ValidateToken(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	u, ok := CurrentUser(ctx)
-	if !ok {
-		panic("must be a user")
-	}
+	u := CurrentUser(ctx)
 
 	a.writeJSON(ctx, w, respond.WithUser(u))
 }
