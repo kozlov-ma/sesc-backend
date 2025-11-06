@@ -81,10 +81,7 @@ func (a *API) GetUsers(w http.ResponseWriter, r *http.Request) {
 func (a *API) GetCurrentUser(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	user, ok := CurrentUser(ctx)
-	if !ok {
-		panic("must be a user")
-	}
+	user := CurrentUser(ctx)
 
 	a.writeJSON(ctx, w, respond.WithUser(user))
 }

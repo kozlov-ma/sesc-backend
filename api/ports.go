@@ -30,8 +30,8 @@ type (
 		DepartmentByID(ctx context.Context, id string) (company.Department, error)
 
 		// User operations
-		UsersWithAccessCheck(ctx context.Context, actingUser company.User, search string) ([]company.User, error)
-		UserWithAccessCheck(ctx context.Context, actingUser company.User, id string) (company.User, error)
+		Users(ctx context.Context, search string) ([]company.User, error)
+		User(ctx context.Context, id string) (company.User, error)
 
 		// Achievement group operations
 		AchievementGroups(
@@ -75,7 +75,7 @@ type (
 			options achievement.TemplateUpdateOptions,
 		) (*ent.AchievementTemplate, error)
 
-		GetAchievementWithAccessCheck(
+		GetAchievement(
 			ctx context.Context,
 			actingUser company.User,
 			id uuid.UUID,
@@ -83,7 +83,6 @@ type (
 		GetUserAchievements(
 			ctx context.Context,
 			actingUser company.User,
-			userID string,
 			offset, limit int,
 			requireChanges bool,
 		) (ent.Achievements, int, error)
