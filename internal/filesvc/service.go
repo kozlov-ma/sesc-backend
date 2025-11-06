@@ -142,11 +142,11 @@ func (s *FileService) create(ctx context.Context, ownerID string, reader io.Read
 		return nil, uploadErr
 	}
 
-	var queryOwnerId *string
+	var queryOwnerID *string
 	if opts.Common {
-		queryOwnerId = nil
+		queryOwnerID = nil
 	} else {
-		queryOwnerId = &ownerID
+		queryOwnerID = &ownerID
 	}
 
 	// Step 2: insert into DB
@@ -157,7 +157,7 @@ func (s *FileService) create(ctx context.Context, ownerID string, reader io.Read
 			SetS3ObjectKey(objectKey).
 			SetName(opts.FileName).
 			SetSize(opts.FileSize).
-			SetNillableOwnerID(queryOwnerId).
+			SetNillableOwnerID(queryOwnerID).
 			Save(ctx)
 
 		if err == nil {
