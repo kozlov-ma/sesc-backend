@@ -12,10 +12,9 @@ import (
 	"github.com/kozlov-ma/sesc-backend/pkg/event/events"
 )
 
-// ACCESSTODO
-// GetAchievement retrieves an achievement by ID.
+// getAchievement retrieves an achievement by ID.
 // Returns achievement.ErrAchievementNotFound if the achievement does not exist.
-func (s *ACS) GetAchievement(
+func (s *ACS) getAchievement(
 	ctx context.Context,
 	achievementID UUID,
 ) (*ent.Achievement, error) {

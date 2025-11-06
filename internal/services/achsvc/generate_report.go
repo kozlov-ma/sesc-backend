@@ -26,8 +26,7 @@ type userReport struct {
 	TotalPoints    int
 }
 
-// ACCESSTODO
-func (s *ACS) GenerateUserPointsReport(ctx context.Context) (*bytes.Buffer, error) {
+func (s *ACS) generateUserPointsReport(ctx context.Context) (*bytes.Buffer, error) {
 	rec := event.Get(ctx).Sub("sesc/generate_user_points_report")
 
 	statsRec := event.Get(ctx).Sub("stats")
