@@ -19,7 +19,6 @@ import (
 	"github.com/kozlov-ma/sesc-backend/internal/s3svc"
 	"github.com/kozlov-ma/sesc-backend/internal/sescsvc"
 	"github.com/kozlov-ma/sesc-backend/internal/slogsink"
-
 	// database driver
 	_ "github.com/lib/pq"
 	// database driver

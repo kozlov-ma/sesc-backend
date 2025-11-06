@@ -12,8 +12,8 @@ import (
 	"github.com/kozlov-ma/sesc-backend/pkg/event/events"
 )
 
-// AchievementGroups gets all achievement groups with optional filtering.
-func (s *ATS) AchievementGroups(
+// achievementGroups gets all achievement groups with optional filtering.
+func (s *ATS) achievementGroups(
 	ctx context.Context,
 	options achievement.GroupSearchOptions,
 ) (ent.AchievementGroups, error) {
