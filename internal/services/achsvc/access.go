@@ -46,9 +46,9 @@ func (a ViewAchievementAction) AllowsUser(u company.User) bool {
 		return u.ID == a.OwnerID
 	}
 
-	if a.Status == achievement.StatusDepheadReview || 
-	a.Status == achievement.StatusInspectorRequestedChanges ||
-	a.Status == achievement.StatusDepheadRequestedChanges {
+	if a.Status == achievement.StatusDepheadReview ||
+		a.Status == achievement.StatusInspectorRequestedChanges ||
+		a.Status == achievement.StatusDepheadRequestedChanges {
 		return u.HasRole(company.Dephead)
 	}
 
