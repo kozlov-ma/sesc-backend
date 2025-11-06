@@ -42,14 +42,14 @@ func NewViewAchievementAction(
 }
 
 func (a ViewAchievementAction) AllowsUser(u company.User) bool {
-	if u.HasRole(company.Teacher) {
+	if a.Status == achievement.StatusDraft {
 		return u.ID == a.OwnerID
 	}
 
-	if u.HasRole(company.Dephead) {
-		return a.Status != achievement.StatusDraft &&
-			a.Status != achievement.StatusAccounted &&
-			u.DepartmentID == a.DepartmentID
+	if a.Status == achievement.StatusDepheadReview || 
+	a.Status == achievement.StatusInspectorRequestedChanges ||
+	a.Status == achievement.StatusDepheadRequestedChanges {
+		return u.HasRole(company.Dephead)
 	}
 
 	if u.HasRole(
