@@ -27,6 +27,9 @@ func (a *API) GetUser(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	rec := event.Get(ctx)
 
+	// Ensure user who asked done auth
+	_ = CurrentUser(ctx)
+
 	idStr := r.PathValue("id")
 
 	user, err := a.sesc.User(ctx, idStr)
@@ -56,6 +59,10 @@ func (a *API) GetUsers(w http.ResponseWriter, r *http.Request) {
 
 	ctx := r.Context()
 	rec := event.Get(ctx)
+
+	// Ensure user who asked done auth
+	_ = CurrentUser(ctx)
+
 	users, err := a.sesc.Users(ctx, search)
 	if err != nil {
 		rec.Add(events.Error, err)

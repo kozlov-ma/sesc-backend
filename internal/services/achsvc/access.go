@@ -3,6 +3,7 @@ package achsvc
 import (
 	"github.com/kozlov-ma/sesc-backend/achievement"
 	"github.com/kozlov-ma/sesc-backend/company"
+	"github.com/kozlov-ma/sesc-backend/db/entdb/ent"
 )
 
 // The following access control actions mirror the pattern used in filesvc.
@@ -28,28 +29,26 @@ type ViewAchievementAction struct {
 }
 
 func NewViewAchievementAction(
-	ownerID string,
-	departmentID string,
-	status achievement.Status,
-	reviewerRole company.Role,
+	ach *ent.Achievement,
+	achTemplate *ent.AchievementTemplate,
 ) ViewAchievementAction {
 	return ViewAchievementAction{
-		OwnerID:      ownerID,
-		DepartmentID: departmentID,
-		Status:       status,
-		ReviewerRole: reviewerRole,
+		OwnerID:      ach.OwnerID,
+		DepartmentID: ach.DepartmentID,
+		Status:       achievement.Status(ach.Status),
+		ReviewerRole: achTemplate.ReviewerRole,
 	}
 }
 
 func (a ViewAchievementAction) AllowsUser(u company.User) bool {
-	if a.Status == achievement.StatusDraft {
-		return u.ID == a.OwnerID
+	if a.OwnerID == u.ID {
+		return true
 	}
 
-	if a.Status == achievement.StatusDepheadReview ||
-		a.Status == achievement.StatusInspectorRequestedChanges ||
-		a.Status == achievement.StatusDepheadRequestedChanges {
-		return u.HasRole(company.Dephead)
+	if u.HasRole(company.Dephead) {
+		if a.Status != achievement.StatusDraft && a.DepartmentID == u.DepartmentID {
+			return true
+		}
 	}
 
 	if u.HasRole(
@@ -58,14 +57,12 @@ func (a ViewAchievementAction) AllowsUser(u company.User) bool {
 		company.DevelopmentDeputy,
 		company.AcademicDirector,
 	) {
-		if a.Status == achievement.StatusDraft || a.Status == achievement.StatusDepheadRequestedChanges {
-			return false
+		if a.Status != achievement.StatusDraft &&
+			a.Status != achievement.StatusDepheadRequestedChanges &&
+			a.Status != achievement.StatusDepheadReview &&
+			u.HasRole(a.ReviewerRole) {
+			return true
 		}
-		return u.HasRole(a.ReviewerRole)
-	}
-
-	if u.HasRole(company.ChiefEconomist) {
-		return a.Status == achievement.StatusDone || a.Status == achievement.StatusAccounted
 	}
 
 	return false
@@ -76,8 +73,8 @@ type SubmitAchievementAction struct {
 	AchStatus achievement.Status
 }
 
-func NewSubmitAchievementAction(ownerID string, achStatus achievement.Status) SubmitAchievementAction {
-	return SubmitAchievementAction{OwnerID: ownerID, AchStatus: achStatus}
+func NewSubmitAchievementAction(ach *ent.Achievement) SubmitAchievementAction {
+	return SubmitAchievementAction{OwnerID: ach.OwnerID, AchStatus: achievement.Status(ach.Status)}
 }
 
 func (a SubmitAchievementAction) AllowsUser(u company.User) bool {
@@ -91,14 +88,13 @@ type ReviewAchievementAction struct {
 }
 
 func NewReviewAchievementAction(
-	status achievement.Status,
-	reviewerRole company.Role,
-	departmentID string,
+	ach *ent.Achievement,
+	achTemplate *ent.AchievementTemplate,
 ) ReviewAchievementAction {
 	return ReviewAchievementAction{
-		Status:       status,
-		ReviewerRole: reviewerRole,
-		DepartmentID: departmentID,
+		Status:       achievement.Status(ach.Status),
+		ReviewerRole: achTemplate.ReviewerRole,
+		DepartmentID: ach.DepartmentID,
 	}
 }
 
@@ -116,30 +112,43 @@ func (a ReviewAchievementAction) AllowsUser(u company.User) bool {
 	return false
 }
 
-type ModifyAchievementAction struct {
-	OwnerID       string
-	AchievementID UUID
+type ManageAchievementDocumentsAction struct {
+	OwnerID string
+	Status  achievement.Status
 }
 
-func NewModifyAchievementAction(ownerID string, achievementID UUID) ModifyAchievementAction {
-	return ModifyAchievementAction{OwnerID: ownerID, AchievementID: achievementID}
+func NewManageAchievementDocumentsAction(ach *ent.Achievement) ManageAchievementDocumentsAction {
+	return ManageAchievementDocumentsAction{OwnerID: ach.OwnerID, Status: achievement.Status(ach.Status)}
 }
 
-func (a ModifyAchievementAction) AllowsUser(_ company.User) bool {
-	return true
+func (a ManageAchievementDocumentsAction) AllowsUser(u company.User) bool {
+	return u.ID == a.OwnerID && a.Status == achievement.StatusDraft
 }
 
-type ListUsersWithAchievementsAction struct {
-	AskingUserID string
-	DepartmentID string
+type DeleteAchievementAction struct {
+	OwnerID string
+	Status  achievement.Status
 }
 
-func NewListUsersWithAchievementsAction(askingUserID string, departmentID string) ListUsersWithAchievementsAction {
-	return ListUsersWithAchievementsAction{AskingUserID: askingUserID, DepartmentID: departmentID}
+func NewDeleteAchievementAction(ach *ent.Achievement) DeleteAchievementAction {
+	return DeleteAchievementAction{OwnerID: ach.OwnerID, Status: achievement.Status(ach.Status)}
 }
 
-func (a ListUsersWithAchievementsAction) AllowsUser(u company.User) bool {
-	return u.HasRole(company.Dephead) && u.DepartmentID == a.DepartmentID
+func (a DeleteAchievementAction) AllowsUser(u company.User) bool {
+	return u.ID == a.OwnerID && a.Status == achievement.StatusDraft
+}
+
+type UpdatePointsAction struct {
+	OwnerID string
+	Status  achievement.Status
+}
+
+func NewUpdatePointsAction(ach *ent.Achievement) UpdatePointsAction {
+	return UpdatePointsAction{OwnerID: ach.OwnerID, Status: achievement.Status(ach.Status)}
+}
+
+func (a UpdatePointsAction) AllowsUser(u company.User) bool {
+	return u.ID == a.OwnerID && a.Status == achievement.StatusDepheadRequestedChanges
 }
 
 type GenerateUserPointsReportAction struct{}

@@ -30,12 +30,7 @@ func (s *ACS) GetAchievement(
 	}
 
 	// Check access using ViewAchievementAction
-	action := NewViewAchievementAction(
-		ach.OwnerID,
-		ach.DepartmentID,
-		achievement.Status(ach.Status),
-		ach.Edges.Template.ReviewerRole,
-	)
+	action := NewViewAchievementAction(ach, ach.Edges.Template)
 	if !actingUser.Can(action) {
 		rec.Add(events.Error, sesc.ErrForbidden)
 		rec.Sub("access_control").Set(
@@ -91,7 +86,7 @@ func (s *ACS) DeleteAchievement(
 		return err
 	}
 
-	action := NewModifyAchievementAction(ach.OwnerID, opt.AchievementID)
+	action := NewDeleteAchievementAction(ach)
 	if !actingUser.Can(action) {
 		rec.Add(events.Error, sesc.ErrForbidden)
 		rec.Sub("access_control").Set(
@@ -114,7 +109,16 @@ func (s *ACS) AddDocument(
 ) (*ent.AchievementDocument, error) {
 	rec := event.Get(ctx).Sub("achsvc/add_document_with_access")
 
-	action := NewModifyAchievementAction(opt.OwnerID, opt.AchievementID)
+	ach, err := s.getAchievement(ctx, opt.AchievementID)
+	if err != nil {
+		rec.Add(events.Error, err)
+		rec.Sub("access_control").Set(
+			"allowed", false,
+			"acting_user", actingUser)
+		return nil, err
+	}
+
+	action := NewManageAchievementDocumentsAction(ach)
 	if !actingUser.Can(action) {
 		rec.Add(events.Error, sesc.ErrForbidden)
 		rec.Sub("access_control").Set(
@@ -147,7 +151,7 @@ func (s *ACS) RemoveDocument(
 		return err
 	}
 
-	action := NewModifyAchievementAction(ach.OwnerID, opt.AchievementID)
+	action := NewManageAchievementDocumentsAction(ach)
 	if !actingUser.Can(action) {
 		rec.Add(events.Error, sesc.ErrForbidden)
 		rec.Sub("access_control").Set(
@@ -180,7 +184,7 @@ func (s *ACS) SubmitAchievement(
 		return nil, err
 	}
 
-	action := NewSubmitAchievementAction(opt.OwnerID, achievement.Status(ach.Status))
+	action := NewSubmitAchievementAction(ach)
 	if !actingUser.Can(action) {
 		rec.Add(events.Error, sesc.ErrForbidden)
 		rec.Sub("access_control").Set(
@@ -215,9 +219,8 @@ func (s *ACS) ReviewAchievement(
 
 	// Check access using ReviewAchievementAction
 	action := NewReviewAchievementAction(
-		achievement.Status(ach.Status),
-		ach.Edges.Template.ReviewerRole,
-		ach.DepartmentID,
+		ach,
+		ach.Edges.Template,
 	)
 	if !actingUser.Can(action) {
 		rec.Add(events.Error, sesc.ErrForbidden)
@@ -241,7 +244,16 @@ func (s *ACS) UpdateAchievementPoints(
 ) (*ent.Achievement, error) {
 	rec := event.Get(ctx).Sub("achsvc/update_achievement_points_with_access")
 
-	action := NewModifyAchievementAction(opt.OwnerID, opt.AchievementID)
+	ach, err := s.updateAchievementPoints(ctx, opt)
+
+	if err != nil {
+		rec.Sub("access_control").Set(
+			"allowed", false,
+			"acting_user", actingUser)
+		return nil, err
+	}
+
+	action := NewUpdatePointsAction(ach)
 	if !actingUser.Can(action) {
 		rec.Add(events.Error, sesc.ErrForbidden)
 		rec.Sub("access_control").Set(
@@ -253,47 +265,26 @@ func (s *ACS) UpdateAchievementPoints(
 	rec.Sub("access_control").Set(
 		"allowed", true,
 		"acting_user", actingUser)
-	return s.updateAchievementPoints(ctx, opt)
+	return ach, nil
 }
 
-// GetUserAchievements retrieves achievements for a user with access control.
+// GetUserAchievements retrieves achievements for a user.
 func (s *ACS) GetUserAchievements(
 	ctx context.Context,
 	actingUser company.User,
 	offset, limit int,
 	requireChanges bool,
 ) (ent.Achievements, int, error) {
-	rec := event.Get(ctx).Sub("achsvc/get_user_achievements_with_access")
-
-	rec.Sub("access_control").Set(
-		"allowed", true,
-		"acting_user", actingUser)
-
 	return s.getUserAchievements(ctx, actingUser.ID, actingUser.ID, offset, limit, requireChanges)
 }
 
-// GetUsersWithAchievements retrieves users with achievements with access control.
+// GetUsersWithAchievements retrieves users with achievements.
 func (s *ACS) GetUsersWithAchievements(
 	ctx context.Context,
 	actingUser company.User,
 	offset, limit int,
 	search string,
 ) ([]company.User, int, error) {
-	rec := event.Get(ctx).Sub("achsvc/get_users_with_achievements_with_access")
-
-	// Get user's department for access check
-	action := NewListUsersWithAchievementsAction(actingUser.ID, actingUser.DepartmentID)
-	if !actingUser.Can(action) {
-		rec.Add(events.Error, sesc.ErrForbidden)
-		rec.Sub("access_control").Set(
-			"allowed", false,
-			"acting_user", actingUser)
-		return nil, 0, sesc.ErrForbidden
-	}
-
-	rec.Sub("access_control").Set(
-		"allowed", true,
-		"acting_user", actingUser)
 	return s.getUsersWithAchievements(ctx, actingUser.ID, offset, limit, search)
 }
 
