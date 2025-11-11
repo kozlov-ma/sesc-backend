@@ -15,10 +15,9 @@ import (
 	"github.com/kozlov-ma/sesc-backend/pkg/event/events"
 )
 
-// ACCESSTODO
-// GetUserAchievements retrieves all achievements for the current user with pagination.
+// getUserAchievements retrieves all achievements for the current user with pagination.
 // Results are ordered based on the asking user's role and review responsibilities.
-func (s *ACS) GetUserAchievements(
+func (s *ACS) getUserAchievements(
 	ctx context.Context,
 	userID string,
 	whosAsking string,

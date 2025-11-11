@@ -16,10 +16,10 @@ import (
 	"github.com/kozlov-ma/sesc-backend/pkg/event/events"
 )
 
-// UpdateAchievementPoints allows teachers to update achievement points when changes are requested.
+// updateAchievementPoints allows teachers to update achievement points when changes are requested.
 // Returns achievement.ErrAchievementNotFound if the achievement does not exist.
 // Returns achievement.ErrWrongAchievementStatus if the achievement is not in a status that allows point updates.
-func (s *ACS) UpdateAchievementPoints(
+func (s *ACS) updateAchievementPoints(
 	ctx context.Context,
 	opt achievement.UpdatePointsOptions,
 ) (*ent.Achievement, error) {

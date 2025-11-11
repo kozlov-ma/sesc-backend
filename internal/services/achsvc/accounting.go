@@ -57,8 +57,8 @@ func (s *ACS) MarkAchievementsAsAccounted(ctx context.Context, achievementIDs []
 	return nil
 }
 
-// MarkAllDoneAchievementsAsAccounted marks all achievements with "done" status as "accounted"
-func (s *ACS) MarkAllDoneAchievementsAsAccounted(ctx context.Context) (int, error) {
+// markAllDoneAchievementsAsAccounted marks all achievements with "done" status as "accounted"
+func (s *ACS) markAllDoneAchievementsAsAccounted(ctx context.Context) (int, error) {
 	rec := event.Get(ctx).Sub("sesc/mark_all_done_achievements_as_accounted")
 
 	statsRec := event.Get(ctx).Sub("stats")

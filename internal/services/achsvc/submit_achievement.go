@@ -14,10 +14,10 @@ import (
 	"github.com/kozlov-ma/sesc-backend/pkg/event/events"
 )
 
-// SubmitAchievement submits an achievement for review.
+// submitAchievement submits an achievement for review.
 // Returns achievement.ErrAchievementNotFound if the achievement does not exist.
 // Returns achievement.ErrWrongAchievementStatus if the achievement is not in draft status.
-func (s *ACS) SubmitAchievement(
+func (s *ACS) submitAchievement(
 	ctx context.Context,
 	opt achievement.SubmitOptions,
 ) (*ent.Achievement, error) {
