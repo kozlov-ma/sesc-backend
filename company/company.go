@@ -90,18 +90,6 @@ type Department struct {
 	Description string
 }
 
-// Department kaf_* IDs used for demo data
-const (
-	DepartmentKafBio     = "kaf_bio"
-	DepartmentKafFil     = "kaf_fil"
-	DepartmentKafForeign = "kaf_foreign"
-	DepartmentKafGum     = "kaf_gum"
-	DepartmentKafInf     = "kaf_inf"
-	DepartmentKafMath    = "kaf_math"
-	DepartmentKafPhys    = "kaf_phys"
-	DepartmentKafSport   = "kaf_sport"
-)
-
 type UserExtras struct {
 	AcademicDegree    string
 	AcademicTitle     string
