@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/kozlov-ma/sesc-backend/company"
-	"github.com/kozlov-ma/sesc-backend/company/companyquery"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent"
 	entAchievement "github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievement"
 	"github.com/kozlov-ma/sesc-backend/internal/services/txwrapper"
@@ -19,6 +18,7 @@ import (
 // Results are ordered based on the asking user's role and review responsibilities.
 func (s *ACS) getUserAchievements(
 	ctx context.Context,
+	askingUser company.User,
 	targetUserID string,
 	offset, limit int,
 	requireChanges bool,
@@ -37,26 +37,7 @@ func (s *ACS) getUserAchievements(
 	var totalAchievements int
 	var achievementEntities []*ent.Achievement
 
-	var askingUser company.User
-	err := rec.Operation("query_asking_user", func(rec *event.Record) (err error) {
-		rec.Sub("params").Set(
-			"asking_user_id", targetUserID,
-		)
-
-		askingUser, err = s.company.User(ctx, companyquery.User{ID: targetUserID})
-		if err != nil {
-			return fmt.Errorf("failed to get asking user: %w", err)
-		}
-
-		rec.Set("asking_user", askingUser)
-
-		return nil
-	})
-	if err != nil {
-		return nil, 0, err
-	}
-
-	err = txwrapper.WithTx(ctx, s.client, sql.LevelReadCommitted, rec, func(tx *ent.Tx) error {
+	err := txwrapper.WithTx(ctx, s.client, sql.LevelReadCommitted, rec, func(tx *ent.Tx) error {
 		err := rec.Operation("count_achievements", func(rec *event.Record) error {
 			rec.Sub("params").Set(
 				"asking_user_roles", askingUser.Roles,

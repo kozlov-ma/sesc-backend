@@ -54,8 +54,8 @@ func QueryBoolOrFalse(r *http.Request, name string) bool {
 	return b
 }
 
-// ParsePagination parses offset and limit parameters with defaults
-func ParsePagination(r *http.Request) (offset, limit int, err error) {
+// QueryPagination parses offset and limit parameters with defaults
+func QueryPagination(r *http.Request) (offset, limit int, err error) {
 	offset = 0
 	limit = 10
 
@@ -74,32 +74,6 @@ func ParsePagination(r *http.Request) (offset, limit int, err error) {
 	}
 
 	return offset, limit, nil
-}
-
-// ParseUserQuery parses user query parameter
-func ParseUserQuery(r *http.Request) (userID string, err error) {
-	id := r.URL.Query().Get("id")
-	if err := validateUserID(id); err != nil {
-		return "", err
-	}
-
-	return id, nil
-}
-
-func validateUserID(userID string) error {
-	if userID == "" {
-		return ErrInvalid("user ID cannot be empty")
-	}
-
-	if len(userID) < 3 {
-		return ErrInvalid("user ID too short")
-	}
-
-	if len(userID) > 50 {
-		return ErrInvalid("user ID too long")
-	}
-
-	return nil
 }
 
 func QueryUUID(r *http.Request, name string) (uuid.UUID, error) {
