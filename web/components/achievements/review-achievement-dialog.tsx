@@ -137,7 +137,7 @@ export function ReviewAchievementDialog({
   };
 
   const isCommentRequired = (action: ReviewAction | null) => {
-    return action === "request_changes";
+    return action === "request_changes" || action === "disapprove";
   };
 
   const canSubmit = (action: ReviewAction | null) => {
