@@ -19,8 +19,7 @@ import (
 // Results are ordered based on the asking user's role and review responsibilities.
 func (s *ACS) getUserAchievements(
 	ctx context.Context,
-	userID string,
-	whosAsking string,
+	targetUserID string,
 	offset, limit int,
 	requireChanges bool,
 ) (ent.Achievements, int, error) {
@@ -29,8 +28,7 @@ func (s *ACS) getUserAchievements(
 
 	// Group parameters together
 	rec.Sub("params").Set(
-		"user_id", userID,
-		"whos_asking", whosAsking,
+		"whos_asking", targetUserID,
 		"offset", offset,
 		"limit", limit,
 		"require_changes", requireChanges,
@@ -42,10 +40,10 @@ func (s *ACS) getUserAchievements(
 	var askingUser company.User
 	err := rec.Operation("query_asking_user", func(rec *event.Record) (err error) {
 		rec.Sub("params").Set(
-			"asking_user_id", whosAsking,
+			"asking_user_id", targetUserID,
 		)
 
-		askingUser, err = s.company.User(ctx, companyquery.User{ID: whosAsking})
+		askingUser, err = s.company.User(ctx, companyquery.User{ID: targetUserID})
 		if err != nil {
 			return fmt.Errorf("failed to get asking user: %w", err)
 		}
@@ -62,13 +60,13 @@ func (s *ACS) getUserAchievements(
 		err := rec.Operation("count_achievements", func(rec *event.Record) error {
 			rec.Sub("params").Set(
 				"asking_user_roles", askingUser.Roles,
-				"owner_id", userID,
+				"owner_id", targetUserID,
 			)
 			roleFilter := s.buildRoleBasedFilters(askingUser, requireChanges)
 
 			start := time.Now()
 			count, err := tx.Achievement.Query().
-				Where(entAchievement.OwnerID(userID)).
+				Where(entAchievement.OwnerID(targetUserID)).
 				Where(roleFilter).
 				Order(ent.Desc(entAchievement.FieldStatus)).
 				Count(ctx)
@@ -92,13 +90,13 @@ func (s *ACS) getUserAchievements(
 				"asking_user_roles", askingUser.Roles,
 				"limit", limit,
 				"offset", offset,
-				"owner_id", userID,
+				"owner_id", targetUserID,
 			)
 			roleFilter := s.buildRoleBasedFilters(askingUser, requireChanges)
 
 			start := time.Now()
 			entities, err := tx.Achievement.Query().
-				Where(entAchievement.OwnerID(userID)).
+				Where(entAchievement.OwnerID(targetUserID)).
 				Where(roleFilter).
 				Order(ent.Desc(entAchievement.FieldStatus)).
 				Offset(offset).

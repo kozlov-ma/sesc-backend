@@ -271,11 +271,11 @@ func (s *ACS) UpdateAchievementPoints(
 // GetUserAchievements retrieves achievements for a user.
 func (s *ACS) GetUserAchievements(
 	ctx context.Context,
-	actingUser company.User,
+	targetUserID string,
 	offset, limit int,
 	requireChanges bool,
 ) (ent.Achievements, int, error) {
-	return s.getUserAchievements(ctx, actingUser.ID, actingUser.ID, offset, limit, requireChanges)
+	return s.getUserAchievements(ctx, targetUserID, offset, limit, requireChanges)
 }
 
 // GetUsersWithAchievements retrieves users with achievements.

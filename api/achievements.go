@@ -74,8 +74,12 @@ func (a *API) GetUserAchievements(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	rec := event.Get(ctx)
 
-	// Get viewer from context
-	user := CurrentUser(ctx)
+	target, err := param.ParseUserQuery(r)
+	if err != nil {
+		rec.Add(events.Error, err)
+		a.writeJSON(ctx, w, respond.WithError(ctx, err))
+		return
+	}
 
 	// Parse pagination parameters
 	offset, limit, err := param.ParsePagination(r)
@@ -92,7 +96,7 @@ func (a *API) GetUserAchievements(w http.ResponseWriter, r *http.Request) {
 	// Get achievements for user with pagination
 	achievements, total, err := a.sesc.GetUserAchievements(
 		ctx,
-		user,
+		target,
 		offset,
 		limit,
 		requireChanges,
