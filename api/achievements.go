@@ -571,7 +571,9 @@ func (a *API) SubmitWithNewPoints(w http.ResponseWriter, r *http.Request) {
 	// Submit achievement with updated points
 	opt := achievement.UpdatePointsOptions{
 		AchievementID: ach.ID,
+		OwnerID:       ach.OwnerID,
 		Points:        req.Points,
+		Comment:       req.Comment,
 	}
 	updatedAch, err := a.sesc.UpdateAchievementPoints(ctx, user, opt)
 	if err != nil {
