@@ -35,7 +35,7 @@ func (a *API) GetUsersWithAchievements(w http.ResponseWriter, r *http.Request) {
 	search := param.QueryStringOrZero(r, "search")
 
 	// Parse pagination parameters
-	offset, limit, err := param.ParsePagination(r)
+	offset, limit, err := param.QueryPagination(r)
 	if err != nil {
 		rec.Add(events.Error, err)
 		a.writeJSON(ctx, w, respond.WithError(ctx, err))

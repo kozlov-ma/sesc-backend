@@ -82,7 +82,8 @@ type (
 		) (*ent.Achievement, error)
 		GetUserAchievements(
 			ctx context.Context,
-			actingUser company.User,
+			asking company.User,
+			targetUserID string,
 			offset, limit int,
 			requireChanges bool,
 		) (ent.Achievements, int, error)
