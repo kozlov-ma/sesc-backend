@@ -3,7 +3,7 @@ package sesc
 // FileSearchOptions represents options for searching files.
 type FileSearchOptions struct {
 	Name    string
-	OwnerID *UUID
+	OwnerID *string
 	Common  bool
 	Offset  int
 	Limit   int
@@ -13,7 +13,7 @@ type FileSearchOptions struct {
 type FileCreateOptions struct {
 	FileName string
 	FileSize int
-	OwnerID  *UUID
+	Common   bool
 }
 
 func (f FileCreateOptions) Validate() error {

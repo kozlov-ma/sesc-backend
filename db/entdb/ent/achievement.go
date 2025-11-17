@@ -11,8 +11,6 @@ import (
 	uuid "github.com/gofrs/uuid/v5"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievement"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievementtemplate"
-	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/department"
-	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/user"
 )
 
 // Achievement is the model entity for the Achievement schema.
@@ -21,11 +19,11 @@ type Achievement struct {
 	// ID of the ent.
 	ID uuid.UUID `json:"id,omitempty"`
 	// OwnerID holds the value of the "owner_id" field.
-	OwnerID uuid.UUID `json:"owner_id,omitempty"`
+	OwnerID string `json:"owner_id,omitempty"`
 	// TemplateID holds the value of the "template_id" field.
 	TemplateID uuid.UUID `json:"template_id,omitempty"`
 	// DepartmentID holds the value of the "department_id" field.
-	DepartmentID uuid.UUID `json:"department_id,omitempty"`
+	DepartmentID string `json:"department_id,omitempty"`
 	// Status holds the value of the "status" field.
 	Status string `json:"status,omitempty"`
 	// Points holds the value of the "points" field.
@@ -42,15 +40,11 @@ type AchievementEdges struct {
 	Documents []*AchievementDocument `json:"documents,omitempty"`
 	// Reviews holds the value of the reviews edge.
 	Reviews []*AchievementReview `json:"reviews,omitempty"`
-	// Owner holds the value of the owner edge.
-	Owner *User `json:"owner,omitempty"`
-	// Departments holds the value of the departments edge.
-	Departments *Department `json:"departments,omitempty"`
 	// Template holds the value of the template edge.
 	Template *AchievementTemplate `json:"template,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [5]bool
+	loadedTypes [3]bool
 }
 
 // DocumentsOrErr returns the Documents value or an error if the edge
@@ -71,34 +65,12 @@ func (e AchievementEdges) ReviewsOrErr() ([]*AchievementReview, error) {
 	return nil, &NotLoadedError{edge: "reviews"}
 }
 
-// OwnerOrErr returns the Owner value or an error if the edge
-// was not loaded in eager-loading, or loaded but was not found.
-func (e AchievementEdges) OwnerOrErr() (*User, error) {
-	if e.Owner != nil {
-		return e.Owner, nil
-	} else if e.loadedTypes[2] {
-		return nil, &NotFoundError{label: user.Label}
-	}
-	return nil, &NotLoadedError{edge: "owner"}
-}
-
-// DepartmentsOrErr returns the Departments value or an error if the edge
-// was not loaded in eager-loading, or loaded but was not found.
-func (e AchievementEdges) DepartmentsOrErr() (*Department, error) {
-	if e.Departments != nil {
-		return e.Departments, nil
-	} else if e.loadedTypes[3] {
-		return nil, &NotFoundError{label: department.Label}
-	}
-	return nil, &NotLoadedError{edge: "departments"}
-}
-
 // TemplateOrErr returns the Template value or an error if the edge
 // was not loaded in eager-loading, or loaded but was not found.
 func (e AchievementEdges) TemplateOrErr() (*AchievementTemplate, error) {
 	if e.Template != nil {
 		return e.Template, nil
-	} else if e.loadedTypes[4] {
+	} else if e.loadedTypes[2] {
 		return nil, &NotFoundError{label: achievementtemplate.Label}
 	}
 	return nil, &NotLoadedError{edge: "template"}
@@ -111,9 +83,9 @@ func (*Achievement) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case achievement.FieldPoints:
 			values[i] = new(sql.NullInt64)
-		case achievement.FieldStatus:
+		case achievement.FieldOwnerID, achievement.FieldDepartmentID, achievement.FieldStatus:
 			values[i] = new(sql.NullString)
-		case achievement.FieldID, achievement.FieldOwnerID, achievement.FieldTemplateID, achievement.FieldDepartmentID:
+		case achievement.FieldID, achievement.FieldTemplateID:
 			values[i] = new(uuid.UUID)
 		default:
 			values[i] = new(sql.UnknownType)
@@ -137,10 +109,10 @@ func (a *Achievement) assignValues(columns []string, values []any) error {
 				a.ID = *value
 			}
 		case achievement.FieldOwnerID:
-			if value, ok := values[i].(*uuid.UUID); !ok {
+			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field owner_id", values[i])
-			} else if value != nil {
-				a.OwnerID = *value
+			} else if value.Valid {
+				a.OwnerID = value.String
 			}
 		case achievement.FieldTemplateID:
 			if value, ok := values[i].(*uuid.UUID); !ok {
@@ -149,10 +121,10 @@ func (a *Achievement) assignValues(columns []string, values []any) error {
 				a.TemplateID = *value
 			}
 		case achievement.FieldDepartmentID:
-			if value, ok := values[i].(*uuid.UUID); !ok {
+			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field department_id", values[i])
-			} else if value != nil {
-				a.DepartmentID = *value
+			} else if value.Valid {
+				a.DepartmentID = value.String
 			}
 		case achievement.FieldStatus:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -189,16 +161,6 @@ func (a *Achievement) QueryReviews() *AchievementReviewQuery {
 	return NewAchievementClient(a.config).QueryReviews(a)
 }
 
-// QueryOwner queries the "owner" edge of the Achievement entity.
-func (a *Achievement) QueryOwner() *UserQuery {
-	return NewAchievementClient(a.config).QueryOwner(a)
-}
-
-// QueryDepartments queries the "departments" edge of the Achievement entity.
-func (a *Achievement) QueryDepartments() *DepartmentQuery {
-	return NewAchievementClient(a.config).QueryDepartments(a)
-}
-
 // QueryTemplate queries the "template" edge of the Achievement entity.
 func (a *Achievement) QueryTemplate() *AchievementTemplateQuery {
 	return NewAchievementClient(a.config).QueryTemplate(a)
@@ -228,13 +190,13 @@ func (a *Achievement) String() string {
 	builder.WriteString("Achievement(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", a.ID))
 	builder.WriteString("owner_id=")
-	builder.WriteString(fmt.Sprintf("%v", a.OwnerID))
+	builder.WriteString(a.OwnerID)
 	builder.WriteString(", ")
 	builder.WriteString("template_id=")
 	builder.WriteString(fmt.Sprintf("%v", a.TemplateID))
 	builder.WriteString(", ")
 	builder.WriteString("department_id=")
-	builder.WriteString(fmt.Sprintf("%v", a.DepartmentID))
+	builder.WriteString(a.DepartmentID)
 	builder.WriteString(", ")
 	builder.WriteString("status=")
 	builder.WriteString(a.Status)

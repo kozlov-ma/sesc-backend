@@ -15,11 +15,11 @@ import (
 	"github.com/kozlov-ma/sesc-backend/pkg/event/events"
 )
 
-// RemoveDocument removes a document from an achievement.
+// removeDocument removes a document from an achievement.
 // Returns achievement.ErrAchievementNotFound if the achievement does not exist.
 // Returns achievement.ErrDocumentNotFound if the document does not exist.
 // Returns achievement.ErrWrongAchievementStatus if the achievement is not in draft status.
-func (s *ACS) RemoveDocument(
+func (s *ACS) removeDocument(
 	ctx context.Context,
 	opt achievement.RemoveDocumentOptions,
 ) error {

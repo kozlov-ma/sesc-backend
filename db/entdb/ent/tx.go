@@ -22,14 +22,8 @@ type Tx struct {
 	AchievementReview *AchievementReviewClient
 	// AchievementTemplate is the client for interacting with the AchievementTemplate builders.
 	AchievementTemplate *AchievementTemplateClient
-	// AuthUser is the client for interacting with the AuthUser builders.
-	AuthUser *AuthUserClient
-	// Department is the client for interacting with the Department builders.
-	Department *DepartmentClient
 	// File is the client for interacting with the File builders.
 	File *FileClient
-	// User is the client for interacting with the User builders.
-	User *UserClient
 
 	// lazily loaded.
 	client     *Client
@@ -166,10 +160,7 @@ func (tx *Tx) init() {
 	tx.AchievementGroup = NewAchievementGroupClient(tx.config)
 	tx.AchievementReview = NewAchievementReviewClient(tx.config)
 	tx.AchievementTemplate = NewAchievementTemplateClient(tx.config)
-	tx.AuthUser = NewAuthUserClient(tx.config)
-	tx.Department = NewDepartmentClient(tx.config)
 	tx.File = NewFileClient(tx.config)
-	tx.User = NewUserClient(tx.config)
 }
 
 // txDriver wraps the given dialect.Tx with a nop dialect.Driver implementation.

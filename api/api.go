@@ -18,12 +18,12 @@ import (
 
 type API struct {
 	sesc      SESC
-	iam       IAMService
+	iam       AuthService
 	file      FileService
 	eventSink EventSink
 }
 
-func New(sesc SESC, iam IAMService, file FileService, eventSink EventSink) *API {
+func New(sesc SESC, iam AuthService, file FileService, eventSink EventSink) *API {
 	return &API{sesc: sesc, iam: iam, file: file, eventSink: eventSink}
 }
 
@@ -92,134 +92,109 @@ func (a *API) HealthCheck(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *API) RegisterRoutes(r chi.Router) {
-	r.Use(a.EventMiddleware)
+	r.Use(
+		a.EventMiddleware,
+		corsMiddleware,
+	)
 
-	// Apply global middlewares
-	r.Use(corsMiddleware)
-	r.Use(a.AuthMiddleware)
-
-	// Health check endpoint (no auth required)
 	r.Get("/up", a.HealthCheck)
 
 	// Public routes (no auth required)
 	r.Group(func(r chi.Router) {
-		// Auth endpoints
 		r.Post("/auth/login", a.Login)
-		r.Post("/auth/admin/login", a.LoginAdmin)
 
-		// Public endpoints
 		r.Get("/departments/{id}", a.GetDepartment)
 		r.Get("/departments", a.Departments)
 		r.Get("/roles", a.Roles)
 	})
 
-	r.Get("/files/{id}/download", a.DownloadFile)
-	// Protected routes (auth required)
+	// Routes that require the user that performs this action to be authorized
 	r.Group(func(r chi.Router) {
-		r.Use(a.RequireAuthMiddleware)
+		r.Use(a.CurrentUserMiddleware)
 
-		// Token validation
-		r.Get("/auth/validate", a.ValidateToken)
+		r.Get("/files/{id}/download", a.DownloadFile)
+		r.Group(func(r chi.Router) {
+			// Token validation
+			r.Get("/auth/validate", a.ValidateToken)
 
-		// User routes with current user context
-		r.Route("/users", func(r chi.Router) {
-			r.With(a.CurrentUserMiddleware).Get("/me", a.GetCurrentUser)
-			r.Get("/", a.GetUsers)
-			r.Get("/{id}", a.GetUser)
-		})
+			// User routes with current user context
+			r.Route("/users", func(r chi.Router) {
+				r.Get("/me", a.GetCurrentUser)
+				r.Get("/", a.GetUsers)
+				r.Get("/{id}", a.GetUser)
+			})
 
-		// Achievement groups and templates (read-only for regular users)
-		r.Get("/achievement-groups", a.GetAchievementGroups)
-		r.Get("/achievement-templates", a.GetAchievementTemplates)
+			// Achievement groups and templates
+			r.Get("/achievement-groups", a.GetAchievementGroups)
+			r.Get("/achievement-templates", a.GetAchievementTemplates)
 
-		// Achievement routes
-		r.Route("/achievements", func(r chi.Router) {
-			r.Use(a.CurrentUserMiddleware)
-			// Routes for current user's achievements
-			r.Get("/", a.GetUserAchievements)
-			r.Post("/", a.CreateAchievement)
+			// Achievement routes
+			r.Route("/achievements", func(r chi.Router) {
+				// r.Use(a.CurrentUserMiddleware)
+				// Routes for current user's achievements
+				r.Get("/", a.GetUserAchievements)
+				r.Post("/", a.CreateAchievement)
 
-			// Route for users with achievements (for reviewers)
-			r.Get("/users", a.GetUsersWithAchievements)
+				r.Get("/users", a.GetUsersWithAchievements)
 
-			// Routes for specific achievement
-			r.Route("/{id}", func(r chi.Router) {
-				r.Use(a.AchievementMiddleware)
-				r.Get("/", a.GetAchievement)
-				r.Delete("/", a.DeleteAchievement)
+				// Routes for specific achievement
+				r.Route("/{id}", func(r chi.Router) {
+					r.Use(a.AchievementMiddleware)
+					r.Get("/", a.GetAchievement)
+					r.Delete("/", a.DeleteAchievement)
 
-				// Document management
-				r.Post("/documents", a.AddDocument)
-				r.Delete("/documents/{documentId}", a.RemoveDocument)
+					// Document management
+					r.Post("/documents", a.AddDocument)
+					r.Delete("/documents/{documentId}", a.RemoveDocument)
 
-				// Achievement status management
-				r.Post("/submit", a.SubmitAchievement)
-				r.Post("/review", a.ReviewAchievement)
-				r.Post("/submit-with-new-points", a.SubmitWithNewPoints)
+					// Achievement status management
+					r.Post("/submit", a.SubmitAchievement)
+					r.Post("/review", a.ReviewAchievement)
+					r.Post("/submit-with-new-points", a.SubmitWithNewPoints)
+				})
+			})
+
+			// File routes
+			r.Route("/files", func(r chi.Router) {
+				r.Get("/{id}", a.GetFileByID)
+				r.Get("/", a.SearchFiles)
+				r.Post("/", a.UploadFile)
+				r.Delete("/{id}", a.DeleteFile)
+				r.Delete("/{id}", a.DeleteFile)
 			})
 		})
 
-		// File routes
-		r.Route("/files", func(r chi.Router) {
-			r.Use(a.CurrentUserMiddleware)
-			r.Get("/{id}", a.GetFileByID)
-			r.Get("/", a.SearchFiles)
-			r.Post("/", a.UploadFile)
-			r.With(a.FileEditAccessMiddleware).Delete("/{id}", a.DeleteFile)
+		// Admin-only routes
+		r.Group(func(r chi.Router) {
+			// Achievement groups management (admin only)
+			r.Post("/achievement-groups", a.CreateAchievementGroup)
+			r.Patch("/achievement-groups/{id}", a.PatchAchievementGroup)
+
+			// Achievement templates management (admin only)
+			r.Post("/achievement-templates", a.CreateAchievementTemplate)
+			r.Patch("/achievement-templates/{id}", a.PatchAchievementTemplate)
+
+			// Credential management
+			// TODO r.Get("/auth/credentials/{id}", a.GetCredentials)
 		})
-	})
 
-	// Admin-only routes
-	r.Group(func(r chi.Router) {
-		r.Use(a.RequireAuthMiddleware)
-		r.Use(a.RoleMiddleware("admin"))
+		// Reports routes (economist-only)
+		r.Group(func(r chi.Router) {
+			r.Get("/reports/user-points", a.GenerateUserPointsReport)
+			r.Post("/reports/mark-all-accounted", a.MarkAllDoneAchievementsAsAccounted)
+		})
 
-		// Setting credentials for a user
-		r.Put("/users/{id}/credentials", a.RegisterUser)
+		// Swagger UI
+		r.Get("/swagger/*", httpSwagger.WrapHandler)
 
-		// Department management
-		r.Post("/departments", a.CreateDepartment)
-		r.Put("/departments/{id}", a.UpdateDepartment)
-		r.Delete("/departments/{id}", a.DeleteDepartment)
-
-		// User management
-		r.Post("/users", a.CreateUser)
-		r.Patch("/users/{id}", a.PatchUser)
-
-		// Achievement groups management (admin only)
-		r.Post("/achievement-groups", a.CreateAchievementGroup)
-		r.Patch("/achievement-groups/{id}", a.PatchAchievementGroup)
-
-		// Achievement templates management (admin only)
-		r.Post("/achievement-templates", a.CreateAchievementTemplate)
-		r.Patch("/achievement-templates/{id}", a.PatchAchievementTemplate)
-
-		// Credential management
-		r.Delete("/auth/credentials/{id}", a.DeleteCredentials)
-		r.Get("/auth/credentials/{id}", a.GetCredentials)
-	})
-
-	// Reports routes (economist-only)
-	r.Group(func(r chi.Router) {
-		r.Use(a.RequireAuthMiddleware)
-		r.Use(a.RequireReportManagementPermissionMiddleware)
-
-		r.Get("/reports/user-points", a.GenerateUserPointsReport)
-		r.Post("/reports/mark-all-accounted", a.MarkAllDoneAchievementsAsAccounted)
-	})
-
-	// Swagger UI
-	r.Get("/swagger/*", httpSwagger.WrapHandler)
-
-	// Profiler
-	r.Group(func(r chi.Router) {
-		// TODO admin is not very safe here. Should add a Developer role.
-		r.Use(a.RequireAdminRoleMiddleware)
-
-		r.Get("/debug/pprof/", pprof.Index)
-		r.Get("/debug/pprof/cmdline", pprof.Cmdline)
-		r.Get("/debug/pprof/profile", pprof.Profile)
-		r.Get("/debug/pprof/symbol", pprof.Symbol)
-		r.Get("/debug/pprof/trace", pprof.Trace)
+		// Profiler
+		r.Group(func(r chi.Router) {
+			// TODO not in prod or firewall maybe
+			r.Get("/debug/pprof/", pprof.Index)
+			r.Get("/debug/pprof/cmdline", pprof.Cmdline)
+			r.Get("/debug/pprof/profile", pprof.Profile)
+			r.Get("/debug/pprof/symbol", pprof.Symbol)
+			r.Get("/debug/pprof/trace", pprof.Trace)
+		})
 	})
 }

@@ -18,8 +18,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { getAchievementsOptions } from "@/lib/api/@tanstack/react-query.gen";
-import { RespondAchievement } from "@/lib/api/types.gen";
+import {
+  getAchievementsOptions,
+  getUsersByIdOptions,
+} from "@/lib/api/@tanstack/react-query.gen";
+import { RespondAchievement, RespondUser } from "@/lib/api/types.gen";
 import { useQuery } from "@tanstack/react-query";
 import { Edit } from "lucide-react";
 import { useState } from "react";
@@ -102,13 +105,7 @@ export default function MyAchievementsPage() {
                       <TableCell className="font-medium">
                         {achievement.templateName}
                       </TableCell>
-                      <TableCell>
-                        <Badge
-                          variant={getStatusBadgeVariant(achievement.status)}
-                        >
-                          {getStatusLabel(achievement.status)}
-                        </Badge>
-                      </TableCell>
+                      <StatusCell achievement={achievement} />
                       <TableCell>{achievement.points}</TableCell>
                       <TableCell>{achievement.documents.length}</TableCell>
                       <TableCell>{achievement.reviews.length}</TableCell>
@@ -183,13 +180,7 @@ export default function MyAchievementsPage() {
                       <TableCell className="font-medium">
                         {achievement.templateName}
                       </TableCell>
-                      <TableCell>
-                        <Badge
-                          variant={getStatusBadgeVariant(achievement.status)}
-                        >
-                          {getStatusLabel(achievement.status)}
-                        </Badge>
-                      </TableCell>
+                      <StatusCell achievement={achievement} />
                       <TableCell>{achievement.points}</TableCell>
                       <TableCell>{achievement.documents.length}</TableCell>
                       <TableCell>{achievement.reviews.length}</TableCell>
@@ -214,5 +205,45 @@ export default function MyAchievementsPage() {
         onOpenChange={setIsUpdatePointsDialogOpen}
       />
     </AchievementsPageLayout>
+  );
+}
+
+function StatusCell({ achievement }: { achievement: RespondAchievement }) {
+  const isUnderReview =
+    achievement.status === "dephead_review" ||
+    achievement.status === "inspector_review";
+
+  const isRequestedChanges =
+    achievement.status === "dephead_requested_changes" ||
+    achievement.status === "inspector_requested_changes";
+
+  const lastReview = achievement.reviews[achievement.reviews.length - 1];
+
+  const isReturnedForChanges =
+    lastReview && lastReview.reviewerId === achievement.ownerId;
+
+  const { data: reviewer, isLoading } = useQuery({
+    ...getUsersByIdOptions({
+      path: { id: lastReview?.reviewerId ?? "" },
+    }),
+    enabled: isUnderReview && !!lastReview?.reviewerId && !isReturnedForChanges,
+  });
+
+  let label = getStatusLabel(achievement.status);
+
+  const reviewerUser = reviewer as RespondUser | undefined;
+
+  if (isRequestedChanges || (isUnderReview && isReturnedForChanges)) {
+    label = "Вернули на изменение";
+  } else if (isUnderReview && reviewerUser?.fullName) {
+    label = `На проверке у ${reviewerUser.fullName}`;
+  }
+
+  return (
+    <TableCell>
+      <Badge variant={getStatusBadgeVariant(achievement.status)}>
+        {isLoading ? "Загрузка..." : label}
+      </Badge>
+    </TableCell>
   );
 }

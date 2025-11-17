@@ -14,8 +14,6 @@ import (
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievementdocument"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievementreview"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievementtemplate"
-	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/department"
-	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/user"
 )
 
 // AchievementCreate is the builder for creating a Achievement entity.
@@ -26,8 +24,8 @@ type AchievementCreate struct {
 }
 
 // SetOwnerID sets the "owner_id" field.
-func (ac *AchievementCreate) SetOwnerID(u uuid.UUID) *AchievementCreate {
-	ac.mutation.SetOwnerID(u)
+func (ac *AchievementCreate) SetOwnerID(s string) *AchievementCreate {
+	ac.mutation.SetOwnerID(s)
 	return ac
 }
 
@@ -38,8 +36,8 @@ func (ac *AchievementCreate) SetTemplateID(u uuid.UUID) *AchievementCreate {
 }
 
 // SetDepartmentID sets the "department_id" field.
-func (ac *AchievementCreate) SetDepartmentID(u uuid.UUID) *AchievementCreate {
-	ac.mutation.SetDepartmentID(u)
+func (ac *AchievementCreate) SetDepartmentID(s string) *AchievementCreate {
+	ac.mutation.SetDepartmentID(s)
 	return ac
 }
 
@@ -113,22 +111,6 @@ func (ac *AchievementCreate) AddReviews(a ...*AchievementReview) *AchievementCre
 		ids[i] = a[i].ID
 	}
 	return ac.AddReviewIDs(ids...)
-}
-
-// SetOwner sets the "owner" edge to the User entity.
-func (ac *AchievementCreate) SetOwner(u *User) *AchievementCreate {
-	return ac.SetOwnerID(u.ID)
-}
-
-// SetDepartmentsID sets the "departments" edge to the Department entity by ID.
-func (ac *AchievementCreate) SetDepartmentsID(id uuid.UUID) *AchievementCreate {
-	ac.mutation.SetDepartmentsID(id)
-	return ac
-}
-
-// SetDepartments sets the "departments" edge to the Department entity.
-func (ac *AchievementCreate) SetDepartments(d *Department) *AchievementCreate {
-	return ac.SetDepartmentsID(d.ID)
 }
 
 // SetTemplate sets the "template" edge to the AchievementTemplate entity.
@@ -207,12 +189,6 @@ func (ac *AchievementCreate) check() error {
 	if _, ok := ac.mutation.Points(); !ok {
 		return &ValidationError{Name: "points", err: errors.New(`ent: missing required field "Achievement.points"`)}
 	}
-	if len(ac.mutation.OwnerIDs()) == 0 {
-		return &ValidationError{Name: "owner", err: errors.New(`ent: missing required edge "Achievement.owner"`)}
-	}
-	if len(ac.mutation.DepartmentsIDs()) == 0 {
-		return &ValidationError{Name: "departments", err: errors.New(`ent: missing required edge "Achievement.departments"`)}
-	}
 	if len(ac.mutation.TemplateIDs()) == 0 {
 		return &ValidationError{Name: "template", err: errors.New(`ent: missing required edge "Achievement.template"`)}
 	}
@@ -250,6 +226,14 @@ func (ac *AchievementCreate) createSpec() (*Achievement, *sqlgraph.CreateSpec) {
 	if id, ok := ac.mutation.ID(); ok {
 		_node.ID = id
 		_spec.ID.Value = &id
+	}
+	if value, ok := ac.mutation.OwnerID(); ok {
+		_spec.SetField(achievement.FieldOwnerID, field.TypeString, value)
+		_node.OwnerID = value
+	}
+	if value, ok := ac.mutation.DepartmentID(); ok {
+		_spec.SetField(achievement.FieldDepartmentID, field.TypeString, value)
+		_node.DepartmentID = value
 	}
 	if value, ok := ac.mutation.Status(); ok {
 		_spec.SetField(achievement.FieldStatus, field.TypeString, value)
@@ -289,40 +273,6 @@ func (ac *AchievementCreate) createSpec() (*Achievement, *sqlgraph.CreateSpec) {
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
-		_spec.Edges = append(_spec.Edges, edge)
-	}
-	if nodes := ac.mutation.OwnerIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   achievement.OwnerTable,
-			Columns: []string{achievement.OwnerColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_node.OwnerID = nodes[0]
-		_spec.Edges = append(_spec.Edges, edge)
-	}
-	if nodes := ac.mutation.DepartmentsIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   achievement.DepartmentsTable,
-			Columns: []string{achievement.DepartmentsColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(department.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_node.DepartmentID = nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := ac.mutation.TemplateIDs(); len(nodes) > 0 {

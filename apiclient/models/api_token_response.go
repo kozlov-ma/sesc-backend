@@ -23,6 +23,10 @@ type APITokenResponse struct {
 	// Example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 	// Required: true
 	Token *string `json:"token"`
+
+	// user
+	// Required: true
+	User *RespondUser `json:"user"`
 }
 
 // Validate validates this api token response
@@ -30,6 +34,10 @@ func (m *APITokenResponse) Validate(formats strfmt.Registry) error {
 	var res []error
 
 	if err := m.validateToken(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateUser(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -48,8 +56,54 @@ func (m *APITokenResponse) validateToken(formats strfmt.Registry) error {
 	return nil
 }
 
-// ContextValidate validates this api token response based on context it is used
+func (m *APITokenResponse) validateUser(formats strfmt.Registry) error {
+
+	if err := validate.Required("user", "body", m.User); err != nil {
+		return err
+	}
+
+	if m.User != nil {
+		if err := m.User.Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("user")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("user")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+// ContextValidate validate this api token response based on the context it is used
 func (m *APITokenResponse) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+	var res []error
+
+	if err := m.contextValidateUser(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (m *APITokenResponse) contextValidateUser(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.User != nil {
+
+		if err := m.User.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("user")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("user")
+			}
+			return err
+		}
+	}
+
 	return nil
 }
 

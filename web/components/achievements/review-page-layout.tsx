@@ -1,25 +1,18 @@
 "use client";
 
-import { ReactNode } from "react";
-import { motion } from "framer-motion";
 import { useAuth } from "@/hooks/use-auth";
-import { useQuery } from "@tanstack/react-query";
 import { getUsersMeOptions } from "@/lib/api/@tanstack/react-query.gen";
-
-// Role IDs from sesc/role.go
-const DEPHEAD_ROLE_ID = 2;
-const CONTEST_DEPUTY_ROLE_ID = 3;
-const SCIENTIFIC_DEPUTY_ROLE_ID = 4;
-const DEVELOPMENT_DEPUTY_ROLE_ID = 5;
-const ACADEMIC_DIRECTOR_ROLE_ID = 6;
+import { useQuery } from "@tanstack/react-query";
+import { motion } from "framer-motion";
+import { ReactNode } from "react";
 
 // Array of role IDs that can review achievements
 const REVIEWER_ROLE_IDS = [
-  DEPHEAD_ROLE_ID,
-  CONTEST_DEPUTY_ROLE_ID,
-  SCIENTIFIC_DEPUTY_ROLE_ID,
-  DEVELOPMENT_DEPUTY_ROLE_ID,
-  ACADEMIC_DIRECTOR_ROLE_ID,
+  "dephead",
+  "academic_director",
+  "scientific_deputy",
+  "olympiad_deputy",
+  "development_deputy",
 ];
 
 interface ReviewPageLayoutProps {
@@ -37,7 +30,10 @@ export function ReviewPageLayout({ title, children }: ReviewPageLayoutProps) {
   });
 
   const isReviewer =
-    userData?.role?.id && REVIEWER_ROLE_IDS.includes(userData.role.id);
+    userData?.roles &&
+    REVIEWER_ROLE_IDS.some((role) =>
+      userData.roles.find((r) => r.codeName === role),
+    );
 
   if (!isAuthenticated || isLoading || isUserLoading) {
     return null;

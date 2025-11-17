@@ -19,9 +19,9 @@ func (Achievement) Fields() []ent.Field {
 			Default(func() uuid.UUID { return uuid.Must(uuid.NewV7()) }).
 			Unique().
 			Immutable(),
-		field.UUID("owner_id", uuid.UUID{}),
+		field.String("owner_id"),
 		field.UUID("template_id", uuid.UUID{}),
-		field.UUID("department_id", uuid.UUID{}),
+		field.String("department_id"),
 		field.String("status").
 			Default("draft").
 			NotEmpty(),
@@ -35,16 +35,6 @@ func (Achievement) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("documents", AchievementDocument.Type),
 		edge.To("reviews", AchievementReview.Type),
-		edge.From("owner", User.Type).
-			Ref("achievements").
-			Field("owner_id").
-			Unique().
-			Required(),
-		edge.From("departments", Department.Type).
-			Ref("achievements").
-			Field("department_id").
-			Unique().
-			Required(),
 		edge.From("template", AchievementTemplate.Type).
 			Ref("achievements").
 			Field("template_id").

@@ -2,40 +2,46 @@
 package sescsvc
 
 import (
-	"github.com/gofrs/uuid/v5"
-	"github.com/kozlov-ma/sesc-backend/achievement"
+	"context"
+
+	"github.com/kozlov-ma/sesc-backend/company"
+	"github.com/kozlov-ma/sesc-backend/company/companyquery"
+	"github.com/kozlov-ma/sesc-backend/company/companyservice"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent"
 	"github.com/kozlov-ma/sesc-backend/internal/services/achsvc"
 	"github.com/kozlov-ma/sesc-backend/internal/services/atsvc"
-	"github.com/kozlov-ma/sesc-backend/internal/services/depsvc"
-	"github.com/kozlov-ma/sesc-backend/internal/services/usersvc"
-	"github.com/kozlov-ma/sesc-backend/sesc"
 )
 
 type SESC struct {
 	*achsvc.ACS
 	*atsvc.ATS
-	*depsvc.DES
-	*usersvc.USS
+	company companyservice.S
 }
 
-func New(client *ent.Client) *SESC {
+func New(client *ent.Client, c companyservice.S) *SESC {
 	return &SESC{
-		ACS: achsvc.New(client),
-		ATS: atsvc.New(client),
-		DES: depsvc.New(client),
-		USS: usersvc.New(client),
+		ACS:     achsvc.New(client, c),
+		ATS:     atsvc.New(client),
+		company: c,
 	}
 }
 
-type (
-	UUID                             = uuid.UUID
-	Role                             = sesc.Role
-	UserUpdateOptions                = sesc.UserUpdateOptions
-	AchievementGroupCreateOptions    = achievement.GroupCreateOptions
-	AchievementGroupUpdateOptions    = achievement.GroupUpdateOptions
-	AchievementGroupSearchOptions    = achievement.GroupSearchOptions
-	AchievementTemplateCreateOptions = achievement.TemplateCreateOptions
-	AchievementTemplateUpdateOptions = achievement.TemplateUpdateOptions
-	AchievementTemplateSearchOptions = achievement.TemplateSearchOptions
-)
+func (s *SESC) Departments(ctx context.Context) ([]company.Department, error) {
+	return s.company.Departments(ctx, companyquery.Departments{})
+}
+
+func (s *SESC) DepartmentByID(ctx context.Context, id string) (company.Department, error) {
+	return s.company.Department(ctx, companyquery.Department{ID: id})
+}
+
+func (s *SESC) Users(ctx context.Context, search string) ([]company.User, error) {
+	return s.company.Users(ctx, companyquery.Users{
+		Department: search,
+		FullName:   search,
+		RoleName:   search,
+	})
+}
+
+func (s *SESC) User(ctx context.Context, id string) (company.User, error) {
+	return s.company.User(ctx, companyquery.User{ID: id})
+}

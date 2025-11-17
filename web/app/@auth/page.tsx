@@ -8,15 +8,15 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { AuthTabs } from "@/components/auth/auth-tabs";
+import { LoginForm } from "@/components/auth/login-form";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { useAuth } from "@/hooks/use-auth";
 
 export default function LoginPage() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, loginUserError, resetLoginUserError } = useAuth();
 
   // Если пользователь авторизован, не показываем страницу входа
-  if (isAuthenticated) {
+  if (isAuthenticated && !loginUserError && !resetLoginUserError) {
     return null;
   }
 
@@ -38,11 +38,12 @@ export default function LoginPage() {
               Вход в систему
             </CardTitle>
             <CardDescription className="text-center">
-              Выберите способ входа в систему
+              Введите ваши имя пользователя и пароль, как в остальных сервисах
+              СУНЦ
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <AuthTabs />
+            <LoginForm />
           </CardContent>
         </Card>
       </motion.div>

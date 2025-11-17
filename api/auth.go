@@ -4,9 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/gofrs/uuid/v5"
 	"github.com/kozlov-ma/sesc-backend/api/respond"
-	"github.com/kozlov-ma/sesc-backend/iam"
 	"github.com/kozlov-ma/sesc-backend/pkg/event"
 	"github.com/kozlov-ma/sesc-backend/pkg/event/events"
 )
@@ -17,64 +15,8 @@ type CredentialsRequest struct {
 }
 
 type TokenResponse struct {
-	Token string `json:"token" example:"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." validate:"required"`
-}
-
-type IdentityResponse struct {
-	ID   uuid.UUID `json:"id"   example:"550e8400-e29b-41d4-a716-446655440000" validate:"required"`
-	Role string    `json:"role" example:"user"                                 validate:"required"`
-}
-
-// RegisterUser godoc
-// @Summary Register user credentials
-// @Description Assigns username/password credentials to an existing user
-// @Tags authentication
-// @Accept json
-// @Produce json
-// @Security BearerAuth
-// @Param Authorization header string false "Bearer JWT token"
-// @Param id path string true "User UUID"
-// @Param request body CredentialsRequest true "User credentials"
-// @Success 201 {object} map[string]uuid.UUID "AuthID"
-// @Failure 400 {object} respond.Error "Invalid UUID format"
-// @Failure 400 {object} respond.Error "Invalid request format"
-// @Failure 400 {object} respond.Error "Invalid credentials format"
-// @Failure 401 {object} respond.Error "Unauthorized"
-// @Failure 403 {object} respond.Error "Forbidden - admin role required"
-// @Failure 404 {object} respond.Error "User does not exist"
-// @Failure 409 {object} respond.Error "User already exists"
-// @Failure 500 {object} respond.Error "Internal server error"
-// @Router /users/{id}/credentials [put]
-func (a *API) RegisterUser(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-	rec := event.Get(ctx)
-
-	idStr := r.PathValue("id")
-	userID, err := uuid.FromString(idStr)
-	if err != nil {
-		a.writeJSON(ctx, w, respond.WithError(ctx, err))
-		return
-	}
-
-	var credsReq CredentialsRequest
-	if err := json.NewDecoder(r.Body).Decode(&credsReq); err != nil {
-		a.writeJSON(ctx, w, respond.WithError(ctx, err))
-		return
-	}
-
-	creds := iam.Credentials{
-		Username: credsReq.Username,
-		Password: credsReq.Password,
-	}
-
-	authID, err := a.iam.RegisterCredentials(ctx, userID, creds)
-	if err != nil {
-		rec.Add(events.Error, err)
-		a.writeJSON(ctx, w, respond.WithError(ctx, err))
-		return
-	}
-
-	a.writeJSON(ctx, w, respond.WithStatus(map[string]uuid.UUID{"authId": authID}, http.StatusCreated))
+	Token string        `json:"token" example:"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." validate:"required"`
+	User  *respond.User `json:"user"                                                    validate:"required"`
 }
 
 // Login godoc
@@ -99,124 +41,21 @@ func (a *API) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	creds := iam.Credentials{
-		Username: credsReq.Username,
-		Password: credsReq.Password,
-	}
-
-	token, err := a.iam.Login(ctx, creds)
+	token, err := a.iam.Login(ctx, credsReq.Username, credsReq.Password)
 	if err != nil {
 		rec.Add(events.Error, err)
 		a.writeJSON(ctx, w, respond.WithError(ctx, err))
 		return
 	}
 
-	a.writeJSON(ctx, w, TokenResponse{Token: token})
-}
-
-// LoginAdmin godoc
-// @Summary Admin login
-// @Description Verifies admin token and returns a JWT token with admin privileges
-// @Tags authentication
-// @Accept json
-// @Produce json
-// @Param request body CredentialsRequest true "Admin credentials"
-// @Success 200 {object} TokenResponse
-// @Failure 400 {object} respond.Error "Invalid request format"
-// @Failure 401 {object} respond.Error "Invalid admin token or not recognized"
-// @Failure 500 {object} respond.Error "Internal server error"
-// @Router /auth/admin/login [post]
-func (a *API) LoginAdmin(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-	rec := event.Get(ctx)
-
-	var req CredentialsRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		a.writeJSON(ctx, w, respond.WithError(ctx, err))
-		return
-	}
-
-	token, err := a.iam.LoginAdmin(ctx, iam.Credentials(req))
+	user, err := a.iam.ImWatermelon(ctx, token)
 	if err != nil {
 		rec.Add(events.Error, err)
 		a.writeJSON(ctx, w, respond.WithError(ctx, err))
 		return
 	}
 
-	a.writeJSON(ctx, w, TokenResponse{Token: token})
-}
-
-// DeleteCredentials godoc
-// @Summary Delete user credentials
-// @Description Deletes credentials for a user
-// @Tags authentication
-// @Security BearerAuth
-// @Param Authorization header string false "Bearer JWT token"
-// @Param id path string true "User UUID"
-// @Success 204 "No content"
-// @Failure 400 {object} respond.Error "Invalid UUID format"
-// @Failure 401 {object} respond.Error "Unauthorized"
-// @Failure 403 {object} respond.Error "Forbidden - admin role required"
-// @Failure 404 {object} respond.Error "User credentials not found"
-// @Failure 500 {object} respond.Error "Internal server error"
-// @Router /auth/credentials/{id} [delete]
-func (a *API) DeleteCredentials(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-	rec := event.Get(ctx)
-
-	idStr := r.PathValue("id")
-	userID, err := uuid.FromString(idStr)
-	if err != nil {
-		a.writeJSON(ctx, w, respond.WithError(ctx, err))
-		return
-	}
-
-	err = a.iam.DropCredentials(ctx, userID)
-	if err != nil {
-		rec.Add(events.Error, err)
-		a.writeJSON(ctx, w, respond.WithError(ctx, err))
-		return
-	}
-
-	w.WriteHeader(http.StatusNoContent)
-}
-
-// GetCredentials godoc
-// @Summary Get user credentials
-// @Description Retrieves credentials for a user
-// @Tags authentication
-// @Security BearerAuth
-// @Param Authorization header string false "Bearer JWT token"
-// @Param id path string true "User UUID"
-// @Success 200 {object} CredentialsRequest
-// @Failure 400 {object} respond.Error "Invalid UUID format"
-// @Failure 401 {object} respond.Error "Unauthorized"
-// @Failure 403 {object} respond.Error "Forbidden - admin role required"
-// @Failure 404 {object} respond.Error "User not found or does not exist"
-// @Failure 500 {object} respond.Error "Internal server error"
-// @Router /auth/credentials/{id} [get]
-func (a *API) GetCredentials(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-	rec := event.Get(ctx)
-
-	idStr := r.PathValue("id")
-	userID, err := uuid.FromString(idStr)
-	if err != nil {
-		a.writeJSON(ctx, w, respond.WithError(ctx, err))
-		return
-	}
-
-	creds, err := a.iam.Credentials(ctx, userID)
-	if err != nil {
-		rec.Add(events.Error, err)
-		a.writeJSON(ctx, w, respond.WithError(ctx, err))
-		return
-	}
-
-	a.writeJSON(ctx, w, respond.WithStatus(CredentialsRequest{
-		Username: creds.Username,
-		Password: creds.Password,
-	}, http.StatusOK))
+	a.writeJSON(ctx, w, TokenResponse{Token: token, User: respond.WithUser(user)})
 }
 
 // ValidateToken godoc
@@ -226,21 +65,14 @@ func (a *API) GetCredentials(w http.ResponseWriter, r *http.Request) {
 // @Produce json
 // @Security BearerAuth
 // @Param Authorization header string false "Bearer JWT token"
-// @Success 200 {object} IdentityResponse
+// @Success 200 {object} respond.User
 // @Failure 401 {object} respond.Error "Invalid token"
 // @Failure 500 {object} respond.Error "Internal server error"
 // @Router /auth/validate [get]
 func (a *API) ValidateToken(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	identity, ok := GetIdentityFromContext(ctx)
-	if !ok {
-		a.writeJSON(ctx, w, respond.WithError(ctx, iam.ErrInvalidToken))
-		return
-	}
+	u := CurrentUser(ctx)
 
-	a.writeJSON(ctx, w, IdentityResponse{
-		ID:   identity.AuthID,
-		Role: string(identity.Role),
-	})
+	a.writeJSON(ctx, w, respond.WithUser(u))
 }

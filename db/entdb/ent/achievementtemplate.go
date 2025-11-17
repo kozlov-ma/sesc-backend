@@ -9,9 +9,9 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	uuid "github.com/gofrs/uuid/v5"
+	"github.com/kozlov-ma/sesc-backend/company"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievementgroup"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievementtemplate"
-	"github.com/kozlov-ma/sesc-backend/sesc"
 )
 
 // AchievementTemplate is the model entity for the AchievementTemplate schema.
@@ -30,7 +30,7 @@ type AchievementTemplate struct {
 	// Active holds the value of the "active" field.
 	Active bool `json:"active,omitempty"`
 	// ReviewerRole holds the value of the "reviewer_role" field.
-	ReviewerRole sesc.Role `json:"reviewer_role,omitempty"`
+	ReviewerRole company.Role `json:"reviewer_role,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the AchievementTemplateQuery when eager-loading is set.
 	Edges        AchievementTemplateEdges `json:"edges"`
@@ -75,9 +75,9 @@ func (*AchievementTemplate) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case achievementtemplate.FieldActive:
 			values[i] = new(sql.NullBool)
-		case achievementtemplate.FieldPointsLimit, achievementtemplate.FieldReviewerRole:
+		case achievementtemplate.FieldPointsLimit:
 			values[i] = new(sql.NullInt64)
-		case achievementtemplate.FieldName, achievementtemplate.FieldDescription:
+		case achievementtemplate.FieldName, achievementtemplate.FieldDescription, achievementtemplate.FieldReviewerRole:
 			values[i] = new(sql.NullString)
 		case achievementtemplate.FieldID, achievementtemplate.FieldGroupID:
 			values[i] = new(uuid.UUID)
@@ -133,10 +133,10 @@ func (at *AchievementTemplate) assignValues(columns []string, values []any) erro
 				at.Active = value.Bool
 			}
 		case achievementtemplate.FieldReviewerRole:
-			if value, ok := values[i].(*sql.NullInt64); !ok {
+			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field reviewer_role", values[i])
 			} else if value.Valid {
-				at.ReviewerRole = sesc.Role(value.Int64)
+				at.ReviewerRole = company.Role(value.String)
 			}
 		default:
 			at.selectValues.Set(columns[i], values[i])

@@ -14,7 +14,6 @@ import (
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievement"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievementreview"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/predicate"
-	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/user"
 )
 
 // AchievementReviewUpdate is the builder for updating AchievementReview entities.
@@ -45,15 +44,15 @@ func (aru *AchievementReviewUpdate) SetNillableAchievementID(u *uuid.UUID) *Achi
 }
 
 // SetReviewerID sets the "reviewer_id" field.
-func (aru *AchievementReviewUpdate) SetReviewerID(u uuid.UUID) *AchievementReviewUpdate {
-	aru.mutation.SetReviewerID(u)
+func (aru *AchievementReviewUpdate) SetReviewerID(s string) *AchievementReviewUpdate {
+	aru.mutation.SetReviewerID(s)
 	return aru
 }
 
 // SetNillableReviewerID sets the "reviewer_id" field if the given value is not nil.
-func (aru *AchievementReviewUpdate) SetNillableReviewerID(u *uuid.UUID) *AchievementReviewUpdate {
-	if u != nil {
-		aru.SetReviewerID(*u)
+func (aru *AchievementReviewUpdate) SetNillableReviewerID(s *string) *AchievementReviewUpdate {
+	if s != nil {
+		aru.SetReviewerID(*s)
 	}
 	return aru
 }
@@ -104,11 +103,6 @@ func (aru *AchievementReviewUpdate) SetAchievement(a *Achievement) *AchievementR
 	return aru.SetAchievementID(a.ID)
 }
 
-// SetReviewer sets the "reviewer" edge to the User entity.
-func (aru *AchievementReviewUpdate) SetReviewer(u *User) *AchievementReviewUpdate {
-	return aru.SetReviewerID(u.ID)
-}
-
 // Mutation returns the AchievementReviewMutation object of the builder.
 func (aru *AchievementReviewUpdate) Mutation() *AchievementReviewMutation {
 	return aru.mutation
@@ -117,12 +111,6 @@ func (aru *AchievementReviewUpdate) Mutation() *AchievementReviewMutation {
 // ClearAchievement clears the "achievement" edge to the Achievement entity.
 func (aru *AchievementReviewUpdate) ClearAchievement() *AchievementReviewUpdate {
 	aru.mutation.ClearAchievement()
-	return aru
-}
-
-// ClearReviewer clears the "reviewer" edge to the User entity.
-func (aru *AchievementReviewUpdate) ClearReviewer() *AchievementReviewUpdate {
-	aru.mutation.ClearReviewer()
 	return aru
 }
 
@@ -158,9 +146,6 @@ func (aru *AchievementReviewUpdate) check() error {
 	if aru.mutation.AchievementCleared() && len(aru.mutation.AchievementIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "AchievementReview.achievement"`)
 	}
-	if aru.mutation.ReviewerCleared() && len(aru.mutation.ReviewerIDs()) > 0 {
-		return errors.New(`ent: clearing a required unique edge "AchievementReview.reviewer"`)
-	}
 	return nil
 }
 
@@ -175,6 +160,9 @@ func (aru *AchievementReviewUpdate) sqlSave(ctx context.Context) (n int, err err
 				ps[i](selector)
 			}
 		}
+	}
+	if value, ok := aru.mutation.ReviewerID(); ok {
+		_spec.SetField(achievementreview.FieldReviewerID, field.TypeString, value)
 	}
 	if value, ok := aru.mutation.PointsAssigned(); ok {
 		_spec.SetField(achievementreview.FieldPointsAssigned, field.TypeInt, value)
@@ -217,35 +205,6 @@ func (aru *AchievementReviewUpdate) sqlSave(ctx context.Context) (n int, err err
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
-	if aru.mutation.ReviewerCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   achievementreview.ReviewerTable,
-			Columns: []string{achievementreview.ReviewerColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := aru.mutation.ReviewerIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   achievementreview.ReviewerTable,
-			Columns: []string{achievementreview.ReviewerColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
 	if n, err = sqlgraph.UpdateNodes(ctx, aru.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{achievementreview.Label}
@@ -281,15 +240,15 @@ func (aruo *AchievementReviewUpdateOne) SetNillableAchievementID(u *uuid.UUID) *
 }
 
 // SetReviewerID sets the "reviewer_id" field.
-func (aruo *AchievementReviewUpdateOne) SetReviewerID(u uuid.UUID) *AchievementReviewUpdateOne {
-	aruo.mutation.SetReviewerID(u)
+func (aruo *AchievementReviewUpdateOne) SetReviewerID(s string) *AchievementReviewUpdateOne {
+	aruo.mutation.SetReviewerID(s)
 	return aruo
 }
 
 // SetNillableReviewerID sets the "reviewer_id" field if the given value is not nil.
-func (aruo *AchievementReviewUpdateOne) SetNillableReviewerID(u *uuid.UUID) *AchievementReviewUpdateOne {
-	if u != nil {
-		aruo.SetReviewerID(*u)
+func (aruo *AchievementReviewUpdateOne) SetNillableReviewerID(s *string) *AchievementReviewUpdateOne {
+	if s != nil {
+		aruo.SetReviewerID(*s)
 	}
 	return aruo
 }
@@ -340,11 +299,6 @@ func (aruo *AchievementReviewUpdateOne) SetAchievement(a *Achievement) *Achievem
 	return aruo.SetAchievementID(a.ID)
 }
 
-// SetReviewer sets the "reviewer" edge to the User entity.
-func (aruo *AchievementReviewUpdateOne) SetReviewer(u *User) *AchievementReviewUpdateOne {
-	return aruo.SetReviewerID(u.ID)
-}
-
 // Mutation returns the AchievementReviewMutation object of the builder.
 func (aruo *AchievementReviewUpdateOne) Mutation() *AchievementReviewMutation {
 	return aruo.mutation
@@ -353,12 +307,6 @@ func (aruo *AchievementReviewUpdateOne) Mutation() *AchievementReviewMutation {
 // ClearAchievement clears the "achievement" edge to the Achievement entity.
 func (aruo *AchievementReviewUpdateOne) ClearAchievement() *AchievementReviewUpdateOne {
 	aruo.mutation.ClearAchievement()
-	return aruo
-}
-
-// ClearReviewer clears the "reviewer" edge to the User entity.
-func (aruo *AchievementReviewUpdateOne) ClearReviewer() *AchievementReviewUpdateOne {
-	aruo.mutation.ClearReviewer()
 	return aruo
 }
 
@@ -407,9 +355,6 @@ func (aruo *AchievementReviewUpdateOne) check() error {
 	if aruo.mutation.AchievementCleared() && len(aruo.mutation.AchievementIDs()) > 0 {
 		return errors.New(`ent: clearing a required unique edge "AchievementReview.achievement"`)
 	}
-	if aruo.mutation.ReviewerCleared() && len(aruo.mutation.ReviewerIDs()) > 0 {
-		return errors.New(`ent: clearing a required unique edge "AchievementReview.reviewer"`)
-	}
 	return nil
 }
 
@@ -441,6 +386,9 @@ func (aruo *AchievementReviewUpdateOne) sqlSave(ctx context.Context) (_node *Ach
 				ps[i](selector)
 			}
 		}
+	}
+	if value, ok := aruo.mutation.ReviewerID(); ok {
+		_spec.SetField(achievementreview.FieldReviewerID, field.TypeString, value)
 	}
 	if value, ok := aruo.mutation.PointsAssigned(); ok {
 		_spec.SetField(achievementreview.FieldPointsAssigned, field.TypeInt, value)
@@ -476,35 +424,6 @@ func (aruo *AchievementReviewUpdateOne) sqlSave(ctx context.Context) (_node *Ach
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(achievement.FieldID, field.TypeUUID),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Add = append(_spec.Edges.Add, edge)
-	}
-	if aruo.mutation.ReviewerCleared() {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   achievementreview.ReviewerTable,
-			Columns: []string{achievementreview.ReviewerColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
-			},
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := aruo.mutation.ReviewerIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2O,
-			Inverse: true,
-			Table:   achievementreview.ReviewerTable,
-			Columns: []string{achievementreview.ReviewerColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

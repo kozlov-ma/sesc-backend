@@ -1,13 +1,12 @@
 "use client";
 
-import { ReactNode } from "react";
-import { motion } from "framer-motion";
 import { useAuth } from "@/hooks/use-auth";
-import { useQuery } from "@tanstack/react-query";
 import { getUsersMeOptions } from "@/lib/api/@tanstack/react-query.gen";
+import { useQuery } from "@tanstack/react-query";
+import { motion } from "framer-motion";
+import { ReactNode } from "react";
 
-// Teacher role ID from sesc/role.go
-const TEACHER_ROLE_ID = 1;
+const TEACHER_ROLE_ID = "teacher";
 
 interface AchievementsPageLayoutProps {
   title: string;
@@ -26,7 +25,7 @@ export function AchievementsPageLayout({
     enabled: isAuthenticated,
   });
 
-  const isTeacher = userData?.role?.id === TEACHER_ROLE_ID;
+  const isTeacher = userData?.roles.find((r) => r.codeName === TEACHER_ROLE_ID);
 
   if (!isAuthenticated || isLoading || isUserLoading) {
     return null;

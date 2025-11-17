@@ -6,10 +6,10 @@ import (
 )
 
 type File struct {
-	ID       uuid.UUID  `json:"id"`
-	OwnerID  *uuid.UUID `json:"ownerId,omitzero"`
-	FileName string     `json:"fileName"`
-	FileSize int        `json:"fileSize"`
+	ID       uuid.UUID `json:"id"`
+	OwnerID  *string   `json:"ownerId,omitzero"`
+	FileName string    `json:"fileName"`
+	FileSize int       `json:"fileSize"`
 }
 
 type Files struct {

@@ -1,44 +1,5 @@
 "use client";
 
-import { useState } from "react";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuTrigger,
-  DropdownMenuSeparator,
-} from "@/components/ui/dropdown-menu";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import type {
-  PatchAchievementGroupsByIdError,
-  PatchAchievementTemplatesByIdError,
-  RespondAchievementGroup,
-  RespondAchievementTemplate,
-} from "@/lib/api/types.gen";
-import { ErrorMessage } from "@/components/ui/error-message";
-import {
-  MoreHorizontal,
-  Search,
-  Ban,
-  PlusCircle,
-  ChevronRight,
-  ChevronDown,
-  Loader2,
-  Pencil,
-} from "lucide-react";
-import { toast } from "sonner";
-import { AchievementTemplateFormDialog } from "./achievement-template-form-dialog";
-import { AchievementGroupFormDialog } from "./achievement-group-form-dialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -49,18 +10,56 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { ErrorMessage } from "@/components/ui/error-message";
+import { ExpandableText } from "@/components/ui/expandable-text";
+import { Input } from "@/components/ui/input";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { useErrorHandler } from "@/hooks/use-error-handler";
-import { getErrorMessage } from "@/lib/error-handler";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   getAchievementGroupsOptions,
   getAchievementTemplatesOptions,
   patchAchievementGroupsByIdMutation,
   patchAchievementTemplatesByIdMutation,
 } from "@/lib/api/@tanstack/react-query.gen";
+import type {
+  PatchAchievementGroupsByIdError,
+  PatchAchievementTemplatesByIdError,
+  RespondAchievementGroup,
+  RespondAchievementTemplate,
+} from "@/lib/api/types.gen";
+import { getErrorMessage } from "@/lib/error-handler";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { AxiosError } from "axios";
-import React from "react";
-import { ExpandableText } from "@/components/ui/expandable-text";
+import {
+  Ban,
+  ChevronDown,
+  ChevronRight,
+  Loader2,
+  MoreHorizontal,
+  Pencil,
+  PlusCircle,
+  Search,
+} from "lucide-react";
+import React, { useState } from "react";
+import { toast } from "sonner";
+import { AchievementGroupFormDialog } from "./achievement-group-form-dialog";
+import { AchievementTemplateFormDialog } from "./achievement-template-form-dialog";
 
 const StatusColumnContent = ({ children }: { children: React.ReactNode }) => (
   <div className="flex justify-center w-full">{children}</div>
@@ -308,7 +307,7 @@ export function AchievementTemplatesTable() {
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-6 w-6 flex-shrink-0"
+                            className="h-6 w-6 shrink-0"
                             onClick={() => toggleGroup(group.id)}
                           >
                             {expandedGroups.has(group.id) ? (
@@ -321,13 +320,13 @@ export function AchievementTemplatesTable() {
                             <ExpandableText
                               text={group.name}
                               maxLength={80}
-                              className="text-pretty break-words whitespace-normal"
+                              className="text-pretty wrap-break-word whitespace-normal"
                             />
                             <div className="block sm:hidden text-xs text-muted-foreground mt-1">
                               <ExpandableText
                                 text={group.description}
                                 maxLength={100}
-                                className="text-pretty break-words whitespace-normal"
+                                className="text-pretty wrap-break-word whitespace-normal"
                               />
                             </div>
                           </div>
@@ -337,7 +336,7 @@ export function AchievementTemplatesTable() {
                         <ExpandableText
                           text={group.description}
                           maxLength={150}
-                          className="text-pretty break-words whitespace-normal"
+                          className="text-pretty wrap-break-word whitespace-normal"
                         />
                       </TableCell>
                       <TableCell className="text-center hidden md:table-cell align-top py-3">
@@ -415,26 +414,28 @@ export function AchievementTemplatesTable() {
                                 <ExpandableText
                                   text={template.name}
                                   maxLength={80}
-                                  className="text-pretty break-words whitespace-normal"
+                                  className="text-pretty wrap-break-word whitespace-normal"
                                 />
                                 <div className="block sm:hidden text-xs text-muted-foreground mt-1 space-y-1">
                                   <ExpandableText
                                     text={template.description}
                                     maxLength={100}
-                                    className="text-pretty break-words whitespace-normal"
+                                    className="text-pretty wrap-break-word whitespace-normal"
                                   />
                                   <div className="flex gap-1 text-xs text-pretty">
                                     <span>
-                                      {roleToKind(template.reviewerRole.id) ===
-                                        "olympiad" &&
+                                      {template.reviewerRoleID ===
+                                        "olympiad_deputy" &&
                                         "з.д. по Олимпиадной работе"}
-                                      {roleToKind(template.reviewerRole.id) ===
-                                        "development" && "з.д. по Развитию"}
-                                      {roleToKind(template.reviewerRole.id) ===
-                                        "scientific" &&
+                                      {template.reviewerRoleID ===
+                                        "development_deputy" &&
+                                        "з.д. по Развитию"}
+                                      {template.reviewerRoleID ===
+                                        "scientific_deputy" &&
                                         "з.д. по Научной работе"}
-                                      {roleToKind(template.reviewerRole.id) ===
-                                        "academic" && "Академический директоре"}
+                                      {template.reviewerRoleID ===
+                                        "academic_deputy" &&
+                                        "Академический директоре"}
                                     </span>
                                     <span>•</span>
                                     <span>{template.pointsLimit}б</span>
@@ -446,19 +447,24 @@ export function AchievementTemplatesTable() {
                               <ExpandableText
                                 text={template.description}
                                 maxLength={150}
-                                className="text-pretty break-words whitespace-normal"
+                                className="text-pretty wrap-break-word whitespace-normal"
                               />
                             </TableCell>
                             <TableCell className="text-center hidden md:table-cell align-top py-3">
-                              <div className="text-pretty break-words whitespace-normal">
-                                {roleToKind(template.reviewerRole.id) ===
-                                  "olympiad" && "з.д. по Олимпиадной работе"}
-                                {roleToKind(template.reviewerRole.id) ===
-                                  "development" && "з.д. по Развитию"}
-                                {roleToKind(template.reviewerRole.id) ===
-                                  "scientific" && "з.д. по Научной работе"}
-                                {roleToKind(template.reviewerRole.id) ===
-                                  "academic" && "Академический директоре"}
+                              <div className="text-pretty wrap-break-word whitespace-normal">
+                                <span>
+                                  {template.reviewerRoleID ===
+                                    "olympiad_deputy" &&
+                                    "з.д. по Олимпиадной работе"}
+                                  {template.reviewerRoleID ===
+                                    "development_deputy" && "з.д. по Развитию"}
+                                  {template.reviewerRoleID ===
+                                    "scientific_deputy" &&
+                                    "з.д. по Научной работе"}
+                                  {template.reviewerRoleID ===
+                                    "academic_deputy" &&
+                                    "Академический директоре"}
+                                </span>
                               </div>
                             </TableCell>
                             <TableCell className="hidden lg:table-cell align-top py-3 text-center">

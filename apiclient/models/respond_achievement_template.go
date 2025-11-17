@@ -49,9 +49,9 @@ type RespondAchievementTemplate struct {
 	// Required: true
 	PointsLimit *int64 `json:"pointsLimit"`
 
-	// reviewer role
+	// reviewer role ID
 	// Required: true
-	ReviewerRole *RespondRole `json:"reviewerRole"`
+	ReviewerRoleID *string `json:"reviewerRoleID"`
 }
 
 // Validate validates this respond achievement template
@@ -82,7 +82,7 @@ func (m *RespondAchievementTemplate) Validate(formats strfmt.Registry) error {
 		res = append(res, err)
 	}
 
-	if err := m.validateReviewerRole(formats); err != nil {
+	if err := m.validateReviewerRoleID(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -146,54 +146,17 @@ func (m *RespondAchievementTemplate) validatePointsLimit(formats strfmt.Registry
 	return nil
 }
 
-func (m *RespondAchievementTemplate) validateReviewerRole(formats strfmt.Registry) error {
+func (m *RespondAchievementTemplate) validateReviewerRoleID(formats strfmt.Registry) error {
 
-	if err := validate.Required("reviewerRole", "body", m.ReviewerRole); err != nil {
+	if err := validate.Required("reviewerRoleID", "body", m.ReviewerRoleID); err != nil {
 		return err
 	}
 
-	if m.ReviewerRole != nil {
-		if err := m.ReviewerRole.Validate(formats); err != nil {
-			if ve, ok := err.(*errors.Validation); ok {
-				return ve.ValidateName("reviewerRole")
-			} else if ce, ok := err.(*errors.CompositeError); ok {
-				return ce.ValidateName("reviewerRole")
-			}
-			return err
-		}
-	}
-
 	return nil
 }
 
-// ContextValidate validate this respond achievement template based on the context it is used
+// ContextValidate validates this respond achievement template based on context it is used
 func (m *RespondAchievementTemplate) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
-	var res []error
-
-	if err := m.contextValidateReviewerRole(ctx, formats); err != nil {
-		res = append(res, err)
-	}
-
-	if len(res) > 0 {
-		return errors.CompositeValidationError(res...)
-	}
-	return nil
-}
-
-func (m *RespondAchievementTemplate) contextValidateReviewerRole(ctx context.Context, formats strfmt.Registry) error {
-
-	if m.ReviewerRole != nil {
-
-		if err := m.ReviewerRole.ContextValidate(ctx, formats); err != nil {
-			if ve, ok := err.(*errors.Validation); ok {
-				return ve.ValidateName("reviewerRole")
-			} else if ce, ok := err.(*errors.CompositeError); ok {
-				return ce.ValidateName("reviewerRole")
-			}
-			return err
-		}
-	}
-
 	return nil
 }
 

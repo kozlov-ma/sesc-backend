@@ -42,37 +42,36 @@ const (
 )
 
 type CreateOptions struct {
-	ForUserID  UUID
+	ForUserID  string
 	TemplateID UUID
 }
 
 type AddDocumentOptions struct {
-	OwnerID       UUID
+	OwnerID       string
 	AchievementID UUID
 	Name          string
 	FileID        UUID
 }
 
 type RemoveDocumentOptions struct {
-	OwnerID       UUID
+	OwnerID       string
 	AchievementID UUID
 	DocumentID    UUID
 }
 
 type SubmitOptions struct {
-	OwnerID       UUID
+	OwnerID       string
 	AchievementID UUID
 }
 
 type DeleteOptions struct {
-	OwnerID       UUID
+	OwnerID       string
 	AchievementID UUID
 }
 
 type ReviewOptions struct {
-	AchievementOwnerID UUID
+	AchievementOwnerID string
 	AchievementID      UUID
-	ReviewerID         UUID
 
 	Action  ReviewAction
 	Comment string
@@ -87,7 +86,7 @@ const (
 )
 
 type UpdatePointsOptions struct {
-	OwnerID       UUID
+	OwnerID       string
 	AchievementID UUID
 	Points        int
 	Comment       string

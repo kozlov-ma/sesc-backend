@@ -43,7 +43,7 @@ export function UserAvatar({
   const { data: department, isLoading: isDepartmentLoading } = useQuery({
     ...getDepartmentsByIdOptions({
       path: {
-        id: user?.departmentId,
+        id: user?.departmentId || "",
       },
     }),
     enabled: !!user?.departmentId,
@@ -70,11 +70,10 @@ export function UserAvatar({
 
   const tooltipContent = user ? (
     <div className="flex flex-col space-y-1.5 p-1">
-      <p className="font-medium">
-        {`${user.firstName} ${user.lastName}`}
-        {user.middleName && ` ${user.middleName}`}
+      <p className="font-medium">{`${user.fullName}`}</p>
+      <p className="text-xs text-muted-foreground">
+        {user.roles.map((r) => r.name).join(", ")}
       </p>
-      <p className="text-xs text-muted-foreground">{user.role.name}</p>
       {user.departmentId && (
         <p className="text-xs text-muted-foreground">
           {isDepartmentLoading ? "Загрузка..." : department?.name || "—"}
@@ -129,8 +128,11 @@ export function UserAvatar({
 
   if (!user) return null;
 
-  const fullName = `${user.firstName} ${user.lastName}`;
-  const initials = `${user.firstName.charAt(0)}${user.lastName.charAt(0)}`;
+  const fullName = `${user.fullName}`;
+  const initials = user.fullName
+    .split(" ")
+    .map((s) => s.charAt(0))
+    .join("");
 
   return (
     <TooltipProvider>

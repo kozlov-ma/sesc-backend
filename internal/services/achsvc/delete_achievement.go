@@ -15,10 +15,10 @@ import (
 	"github.com/kozlov-ma/sesc-backend/pkg/event/events"
 )
 
-// DeleteAchievement deletes an achievement.
+// deleteAchievement deletes an achievement.
 // Returns achievement.ErrAchievementNotFound if the achievement does not exist.
 // Returns achievement.ErrWrongAchievementStatus if the achievement is not in draft status.
-func (s *ACS) DeleteAchievement(
+func (s *ACS) deleteAchievement(
 	ctx context.Context,
 	opt achievement.DeleteOptions,
 ) error {

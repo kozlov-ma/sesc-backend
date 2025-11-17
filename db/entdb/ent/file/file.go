@@ -21,19 +21,10 @@ const (
 	FieldName = "name"
 	// FieldSize holds the string denoting the size field in the database.
 	FieldSize = "size"
-	// EdgeOwner holds the string denoting the owner edge name in mutations.
-	EdgeOwner = "owner"
 	// EdgeAchievementDocuments holds the string denoting the achievement_documents edge name in mutations.
 	EdgeAchievementDocuments = "achievement_documents"
 	// Table holds the table name of the file in the database.
 	Table = "files"
-	// OwnerTable is the table that holds the owner relation/edge.
-	OwnerTable = "files"
-	// OwnerInverseTable is the table name for the User entity.
-	// It exists in this package in order to avoid circular dependency with the "user" package.
-	OwnerInverseTable = "users"
-	// OwnerColumn is the table column denoting the owner relation/edge.
-	OwnerColumn = "owner_id"
 	// AchievementDocumentsTable is the table that holds the achievement_documents relation/edge.
 	AchievementDocumentsTable = "achievement_documents"
 	// AchievementDocumentsInverseTable is the table name for the AchievementDocument entity.
@@ -95,13 +86,6 @@ func BySize(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldSize, opts...).ToFunc()
 }
 
-// ByOwnerField orders the results by owner field.
-func ByOwnerField(field string, opts ...sql.OrderTermOption) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newOwnerStep(), sql.OrderByField(field, opts...))
-	}
-}
-
 // ByAchievementDocumentsCount orders the results by achievement_documents count.
 func ByAchievementDocumentsCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -114,13 +98,6 @@ func ByAchievementDocuments(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOpt
 	return func(s *sql.Selector) {
 		sqlgraph.OrderByNeighborTerms(s, newAchievementDocumentsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
-}
-func newOwnerStep() *sqlgraph.Step {
-	return sqlgraph.NewStep(
-		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(OwnerInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.M2O, true, OwnerTable, OwnerColumn),
-	)
 }
 func newAchievementDocumentsStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(

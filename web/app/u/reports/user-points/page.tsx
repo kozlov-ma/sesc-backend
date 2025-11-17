@@ -1,12 +1,6 @@
 "use client";
 
-import { useState } from "react";
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { Download, Calculator, AlertCircle, Loader2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Separator } from "@/components/ui/separator";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -18,12 +12,18 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/hooks/use-auth";
 import {
   getUsersMeOptions,
   postReportsMarkAllAccountedMutation,
 } from "@/lib/api/@tanstack/react-query.gen";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { AlertCircle, Calculator, Download, Loader2 } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
 
 export default function UserPointsReportPage() {
   const { isAuthenticated, token } = useAuth();
@@ -104,7 +104,11 @@ export default function UserPointsReportPage() {
   };
 
   // Early returns after all hooks are called
-  if (isLoadingMe || !isAuthenticated || me?.role.codeName != "chief_economist")
+  if (
+    isLoadingMe ||
+    !isAuthenticated ||
+    !me?.roles.some((r) => r.codeName === "chief_economist")
+  )
     return null;
 
   return (

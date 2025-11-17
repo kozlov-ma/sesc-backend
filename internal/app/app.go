@@ -9,11 +9,12 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/kozlov-ma/sesc-backend/api"
+	"github.com/kozlov-ma/sesc-backend/auth/authservice"
+	"github.com/kozlov-ma/sesc-backend/company/companyservice"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/migrate"
 	"github.com/kozlov-ma/sesc-backend/internal/config"
 	"github.com/kozlov-ma/sesc-backend/internal/filesvc"
-	"github.com/kozlov-ma/sesc-backend/internal/iamsvc"
 	"github.com/kozlov-ma/sesc-backend/internal/s3svc"
 	"github.com/kozlov-ma/sesc-backend/internal/sescsvc"
 	"github.com/kozlov-ma/sesc-backend/internal/slogsink"
@@ -85,15 +86,9 @@ func NewWithDBOptions(ctx context.Context, cfg *config.Config, log *slog.Logger,
 		}
 	}
 
-	adminCredentials, err := cfg.ToIAMAdminCredentials()
-	if err != nil {
-		cleanup()
-		return nil, fmt.Errorf("failed to convert admin credentials: %w", err)
-	}
+	cs := companyservice.NewDemo()
 
-	// Initialize services
-	iamService := iamsvc.New(client, 7*24*time.Hour, adminCredentials, []byte(cfg.JWTSecret))
-	sescService := sescsvc.New(client)
+	sescService := sescsvc.New(client, cs)
 
 	// Initialize S3 storage
 	s3Storage, err := s3svc.NewStorage(
@@ -116,7 +111,8 @@ func NewWithDBOptions(ctx context.Context, cfg *config.Config, log *slog.Logger,
 		cfg.MinIO.BucketName,
 	)
 
-	apiService := api.New(sescService, iamService, fileService, slogsink.New(log))
+	authSvc := authservice.NewCompany(cs, 24*time.Hour, []byte(cfg.JWTSecret))
+	apiService := api.New(sescService, authSvc, fileService, slogsink.New(log))
 
 	router := chi.NewRouter()
 	apiService.RegisterRoutes(router)

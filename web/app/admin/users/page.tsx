@@ -10,10 +10,9 @@ import { getUsersOptions } from "@/lib/api/@tanstack/react-query.gen";
 import type { RespondUser } from "@/lib/api/types.gen";
 
 export default function UsersPage() {
-  const { isAuthenticated, role, isLoading } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
 
-  // Only render if user is admin, otherwise return null
-  if (!isAuthenticated || isLoading || role !== "admin") {
+  if (!isAuthenticated || isLoading) {
     return null;
   }
 
@@ -40,34 +39,6 @@ export default function UsersPage() {
           <CardContent>
             <div className="text-2xl font-bold">
               <UsersCountDisplay />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Активные пользователи
-            </CardTitle>
-            <UserRoundCheck className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              <ActiveUsersCountDisplay />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Заблокированные пользователи
-            </CardTitle>
-            <UserRoundX className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              <SuspendedUsersCountDisplay />
             </div>
           </CardContent>
         </Card>
@@ -101,28 +72,6 @@ function UsersCountDisplay() {
     return <span className="text-muted-foreground">Загрузка...</span>;
 
   return data?.users?.length;
-}
-
-// Component that displays the number of active users
-function ActiveUsersCountDisplay() {
-  const { data, isLoading, error } = useUsersData();
-
-  if (error) return <span className="text-destructive">Ошибка</span>;
-  if (isLoading)
-    return <span className="text-muted-foreground">Загрузка...</span>;
-
-  return data?.users?.filter((user: RespondUser) => !user.suspended).length;
-}
-
-// Component that displays the number of suspended users
-function SuspendedUsersCountDisplay() {
-  const { data, isLoading, error } = useUsersData();
-
-  if (error) return <span className="text-destructive">Ошибка</span>;
-  if (isLoading)
-    return <span className="text-muted-foreground">Загрузка...</span>;
-
-  return data?.users?.filter((user: RespondUser) => user.suspended).length;
 }
 
 // Custom hook to fetch users data

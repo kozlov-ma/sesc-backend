@@ -34,8 +34,8 @@ type ParamPatchAchievementTemplateRequest struct {
 	PointsLimit int64 `json:"pointsLimit,omitempty"`
 
 	// reviewer role
-	// Example: 3
-	ReviewerRole int64 `json:"reviewerRole,omitempty"`
+	// Example: dephead
+	ReviewerRole string `json:"reviewerRole,omitempty"`
 }
 
 // Validate validates this param patch achievement template request

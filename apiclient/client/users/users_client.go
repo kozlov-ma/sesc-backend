@@ -64,10 +64,6 @@ type ClientService interface {
 
 	GetUsersMe(params *GetUsersMeParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetUsersMeOK, error)
 
-	PatchUsersID(params *PatchUsersIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PatchUsersIDOK, error)
-
-	PostUsers(params *PostUsersParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostUsersCreated, error)
-
 	SetTransport(transport runtime.ClientTransport)
 }
 
@@ -232,88 +228,6 @@ func (a *Client) GetUsersMe(params *GetUsersMeParams, authInfo runtime.ClientAut
 	// unexpected success response
 	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
 	msg := fmt.Sprintf("unexpected success response for GetUsersMe: API contract not enforced by server. Client expected to get an error, but got: %T", result)
-	panic(msg)
-}
-
-/*
-PatchUsersID partiallies update user
-
-Applies a partial update to the user identified by {id}. Only non-nil fields in the request are applied.
-*/
-func (a *Client) PatchUsersID(params *PatchUsersIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PatchUsersIDOK, error) {
-	// TODO: Validate the params before sending
-	if params == nil {
-		params = NewPatchUsersIDParams()
-	}
-	op := &runtime.ClientOperation{
-		ID:                 "PatchUsersID",
-		Method:             "PATCH",
-		PathPattern:        "/users/{id}",
-		ProducesMediaTypes: []string{"application/json"},
-		ConsumesMediaTypes: []string{"application/json"},
-		Schemes:            []string{"http"},
-		Params:             params,
-		Reader:             &PatchUsersIDReader{formats: a.formats},
-		AuthInfo:           authInfo,
-		Context:            params.Context,
-		Client:             params.HTTPClient,
-	}
-	for _, opt := range opts {
-		opt(op)
-	}
-
-	result, err := a.transport.Submit(op)
-	if err != nil {
-		return nil, err
-	}
-	success, ok := result.(*PatchUsersIDOK)
-	if ok {
-		return success, nil
-	}
-	// unexpected success response
-	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
-	msg := fmt.Sprintf("unexpected success response for PatchUsersID: API contract not enforced by server. Client expected to get an error, but got: %T", result)
-	panic(msg)
-}
-
-/*
-PostUsers creates new user
-
-Creates a new user with specified role (non-teacher)
-*/
-func (a *Client) PostUsers(params *PostUsersParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostUsersCreated, error) {
-	// TODO: Validate the params before sending
-	if params == nil {
-		params = NewPostUsersParams()
-	}
-	op := &runtime.ClientOperation{
-		ID:                 "PostUsers",
-		Method:             "POST",
-		PathPattern:        "/users",
-		ProducesMediaTypes: []string{"application/json"},
-		ConsumesMediaTypes: []string{"application/json"},
-		Schemes:            []string{"http"},
-		Params:             params,
-		Reader:             &PostUsersReader{formats: a.formats},
-		AuthInfo:           authInfo,
-		Context:            params.Context,
-		Client:             params.HTTPClient,
-	}
-	for _, opt := range opts {
-		opt(op)
-	}
-
-	result, err := a.transport.Submit(op)
-	if err != nil {
-		return nil, err
-	}
-	success, ok := result.(*PostUsersCreated)
-	if ok {
-		return success, nil
-	}
-	// unexpected success response
-	// safeguard: normally, absent a default response, unknown success responses return an error above: so this is a codegen issue
-	msg := fmt.Sprintf("unexpected success response for PostUsers: API contract not enforced by server. Client expected to get an error, but got: %T", result)
 	panic(msg)
 }
 

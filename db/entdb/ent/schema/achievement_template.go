@@ -5,7 +5,7 @@ import (
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"github.com/gofrs/uuid/v5"
-	"github.com/kozlov-ma/sesc-backend/sesc"
+	"github.com/kozlov-ma/sesc-backend/company"
 )
 
 // AchievementTemplate holds the schema definition for the AchievementTemplate entity.
@@ -30,7 +30,7 @@ func (AchievementTemplate) Fields() []ent.Field {
 		field.UUID("group_id", uuid.UUID{}),
 		field.Bool("active").
 			Default(true),
-		field.Int("reviewer_role").GoType(sesc.Role(0)),
+		field.String("reviewer_role").GoType(company.Role("")),
 	}
 }
 

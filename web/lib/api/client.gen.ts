@@ -6,8 +6,8 @@ import {
   createClient,
   createConfig,
 } from "./client";
-import { createClientConfig } from "./lib/api-config.ts";
 import type { ClientOptions as ClientOptions2 } from "./types.gen";
+import { createClientConfig } from "../api-config";
 
 /**
  * The `createClientConfig()` function will be called on client initialization

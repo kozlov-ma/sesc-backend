@@ -1,18 +1,18 @@
 "use client";
 
-import { useAuth } from "@/hooks/use-auth";
-import { motion } from "framer-motion";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Building, BuildingIcon, School } from "lucide-react";
 import { DepartmentsTable } from "@/components/admin-dashboard/departments-table";
-import { useQuery } from "@tanstack/react-query";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useAuth } from "@/hooks/use-auth";
 import { getDepartmentsOptions } from "@/lib/api/@tanstack/react-query.gen";
+import { useQuery } from "@tanstack/react-query";
+import { motion } from "framer-motion";
+import { Building, BuildingIcon, School } from "lucide-react";
 
 export default function DepartmentsPage() {
-  const { isAuthenticated, role, isLoading } = useAuth();
+  const { isAuthenticated, roles, isLoading } = useAuth();
 
   // Only render if user is admin, otherwise return null
-  if (!isAuthenticated || isLoading || role !== "admin") {
+  if (!isAuthenticated || isLoading || !roles.includes("admin")) {
     return null;
   }
 
@@ -36,10 +36,10 @@ export default function DepartmentsPage() {
             </CardTitle>
             <Building className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
+          <CardContent className="flex items-center min-h-[2rem]">
+            <span className="text-2xl font-bold">
               <DepartmentsCountDisplay />
-            </div>
+            </span>
           </CardContent>
         </Card>
 
@@ -48,10 +48,8 @@ export default function DepartmentsPage() {
             <CardTitle className="text-sm font-medium">Информация</CardTitle>
             <School className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent>
-            <div className="text-sm text-muted-foreground">
-              Управление подразделениями
-            </div>
+          <CardContent className="flex items-center min-h-[2rem] text-sm text-muted-foreground">
+            Управление подразделениями
           </CardContent>
         </Card>
 
@@ -60,10 +58,8 @@ export default function DepartmentsPage() {
             <CardTitle className="text-sm font-medium">Возможности</CardTitle>
             <BuildingIcon className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent>
-            <div className="text-sm text-muted-foreground">
-              Добавление, редактирование и удаление подразделений
-            </div>
+          <CardContent className="flex items-center min-h-[2rem] text-sm text-muted-foreground">
+            Добавление, редактирование и удаление подразделений
           </CardContent>
         </Card>
       </motion.div>

@@ -28,8 +28,11 @@ func (a *API) GenerateUserPointsReport(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	rec := event.Get(ctx).Sub("api/generate_user_points_report")
 
+	// Get user from context
+	user := CurrentUser(ctx)
+
 	// Generate the Excel report
-	excelBuffer, err := a.sesc.GenerateUserPointsReport(ctx)
+	excelBuffer, err := a.sesc.GenerateUserPointsReport(ctx, user)
 	if err != nil {
 		rec.Add(events.Error, err)
 		a.writeJSON(ctx, w, respond.WithError(ctx, err))
@@ -71,8 +74,11 @@ func (a *API) MarkAllDoneAchievementsAsAccounted(w http.ResponseWriter, r *http.
 	ctx := r.Context()
 	rec := event.Get(ctx).Sub("api/mark_all_done_achievements_as_accounted")
 
+	// Get user from context
+	user := CurrentUser(ctx)
+
 	// Mark all done achievements as accounted
-	count, err := a.sesc.MarkAllDoneAchievementsAsAccounted(ctx)
+	count, err := a.sesc.MarkAllDoneAchievementsAsAccounted(ctx, user)
 	if err != nil {
 		rec.Add(events.Error, err)
 		a.writeJSON(ctx, w, respond.WithError(ctx, err))

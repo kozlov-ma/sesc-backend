@@ -8,6 +8,8 @@ import (
 
 	"github.com/gofrs/uuid/v5"
 	"github.com/kozlov-ma/sesc-backend/achievement"
+	"github.com/kozlov-ma/sesc-backend/company"
+	"github.com/kozlov-ma/sesc-backend/company/companyquery"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent"
 	entAchievement "github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievement"
 	"github.com/kozlov-ma/sesc-backend/internal/services/txwrapper"
@@ -19,7 +21,7 @@ import (
 // validateReviewRequest validates that the review request is valid
 func (s *ACS) validateReviewRequest(
 	ach *ent.Achievement,
-	reviewer *ent.User,
+	reviewer company.User,
 	action achievement.ReviewAction,
 ) error {
 	currentStatus := achievement.Status(ach.Status)
@@ -28,15 +30,14 @@ func (s *ACS) validateReviewRequest(
 		return achievement.ErrWrongAchievementStatus
 	}
 
-	reviewerRole := reviewer.Role
 	needReviewerRole := ach.Edges.Template.ReviewerRole
 
 	var validReviewer bool
 	switch currentStatus {
 	case achievement.StatusDepheadReview:
-		validReviewer = reviewerRole == sesc.Dephead
+		validReviewer = reviewer.HasRole(company.Dephead)
 	case achievement.StatusInspectorReview:
-		validReviewer = reviewerRole == needReviewerRole
+		validReviewer = reviewer.HasRole(needReviewerRole)
 	}
 
 	if !validReviewer {
@@ -91,11 +92,12 @@ func calculateNewStatusAndPoints(
 	return currentStatus, currentPoints
 }
 
-// ReviewAchievement reviews an achievement with approve, disapprove, or request changes action.
+// reviewAchievement reviews an achievement with approve, disapprove, or request changes action.
 // Returns achievement.ErrAchievementNotFound if the achievement does not exist.
 // Returns achievement.ErrWrongAchievementStatus if the achievement is not in the correct status for review.
-func (s *ACS) ReviewAchievement(
+func (s *ACS) reviewAchievement(
 	ctx context.Context,
+	reviewerID string,
 	opt achievement.ReviewOptions,
 ) (*ent.Achievement, error) {
 	rec := event.Get(ctx).Sub("sesc/review_achievement")
@@ -105,7 +107,7 @@ func (s *ACS) ReviewAchievement(
 	rec.Sub("params").Set(
 		"achievement_id", opt.AchievementID,
 		"achievement_owner_id", opt.AchievementOwnerID,
-		"reviewer_id", opt.ReviewerID,
+		"reviewer_id", reviewerID,
 		"action", string(opt.Action),
 		"comment_length", len(opt.Comment),
 	)
@@ -139,21 +141,12 @@ func (s *ACS) ReviewAchievement(
 			return err
 		}
 
-		var reviewer *ent.User
+		var reviewer company.User
 		err = rec.Operation("get_reviewer", func(_ *event.Record) error {
-			start := time.Now()
-			user, err := tx.User.Get(ctx, opt.ReviewerID)
-			statsRec.Add(events.PostgresQueries, 1)
-			statsRec.Add(events.PostgresTime, time.Since(start))
-
-			if ent.IsNotFound(err) {
-				return sesc.ErrUserNotFound
-			}
+			reviewer, err = s.company.User(ctx, companyquery.User{ID: reviewerID})
 			if err != nil {
-				return fmt.Errorf("failed to get reviewer: %w", err)
+				return fmt.Errorf("failed to get reviewer user: %w", err)
 			}
-
-			reviewer = user
 			return nil
 		})
 		if err != nil {
@@ -162,7 +155,7 @@ func (s *ACS) ReviewAchievement(
 
 		err = rec.Operation("validate_review", func(rec *event.Record) error {
 			rec.Sub("params").Set(
-				"reviewer_role", reviewer.Role.String(),
+				"reviewer_roles", reviewer.Roles,
 				"ach_status", ach.Status,
 			)
 
@@ -185,7 +178,7 @@ func (s *ACS) ReviewAchievement(
 			_, err = tx.AchievementReview.Create().
 				SetID(reviewID).
 				SetAchievementID(opt.AchievementID).
-				SetReviewerID(opt.ReviewerID).
+				SetReviewerID(reviewerID).
 				SetPointsAssigned(pointsForReview).
 				SetComment(opt.Comment).
 				Save(ctx)
@@ -232,7 +225,6 @@ func (s *ACS) ReviewAchievement(
 			updatedAch, err = tx.Achievement.Query().
 				Where(entAchievement.ID(ach.ID)).
 				WithDocuments().
-				WithOwner().
 				WithReviews().
 				WithTemplate().
 				Only(ctx)

@@ -17,10 +17,7 @@ import (
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievementgroup"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievementreview"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievementtemplate"
-	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/authuser"
-	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/department"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/file"
-	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/user"
 )
 
 // ent aliases to avoid import conflicts in user's code.
@@ -86,10 +83,7 @@ func checkColumn(table, column string) error {
 			achievementgroup.Table:    achievementgroup.ValidColumn,
 			achievementreview.Table:   achievementreview.ValidColumn,
 			achievementtemplate.Table: achievementtemplate.ValidColumn,
-			authuser.Table:            authuser.ValidColumn,
-			department.Table:          department.ValidColumn,
 			file.Table:                file.ValidColumn,
-			user.Table:                user.ValidColumn,
 		})
 	})
 	return columnCheck(table, column)

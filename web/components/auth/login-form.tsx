@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input";
 import { useAuth } from "@/hooks/use-auth";
 import { useFormError } from "@/hooks/use-error-handler";
 import { postAuthLoginMutation } from "@/lib/api/@tanstack/react-query.gen";
+import { parseApiError } from "@/lib/error-handler";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { motion } from "framer-motion";
@@ -36,7 +37,7 @@ type UserLoginFormValues = z.infer<typeof userLoginSchema>;
 export function LoginForm() {
   const { push } = useRouter();
   const { setAuth } = useAuth();
-  const { formError, clearFormError, handleFormError } = useFormError();
+  const { formErrorMessage, clearFormError, handleFormError } = useFormError();
 
   const form = useForm<UserLoginFormValues>({
     resolver: zodResolver(userLoginSchema),
@@ -49,7 +50,10 @@ export function LoginForm() {
   const loginMutation = useMutation({
     ...postAuthLoginMutation(),
     onSuccess: (response) => {
-      setAuth(response.token, "user");
+      setAuth(
+        response.token,
+        response.user.roles.map((r) => r.codeName),
+      );
       push("/u/users/me");
     },
     onError: (error) => {
@@ -74,7 +78,7 @@ export function LoginForm() {
       transition={{ duration: 0.3 }}
       className="space-y-6"
     >
-      {formError && <ErrorMessage error={formError} />}
+      {formErrorMessage && <ErrorMessage error={formErrorMessage} />}
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">

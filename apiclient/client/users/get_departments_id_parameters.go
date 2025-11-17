@@ -69,7 +69,7 @@ type GetDepartmentsIDParams struct {
 
 	/* ID.
 
-	   User UUID
+	   Department ID
 	*/
 	ID string
 

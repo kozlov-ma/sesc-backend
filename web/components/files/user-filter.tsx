@@ -1,6 +1,3 @@
-import { useState } from "react";
-import { Check, ChevronsUpDown } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
   Command,
@@ -15,8 +12,11 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { UserAvatar } from "@/components/ui/user-avatar";
-import { useQuery } from "@tanstack/react-query";
 import { getUsersOptions } from "@/lib/api/@tanstack/react-query.gen";
+import { cn } from "@/lib/utils";
+import { useQuery } from "@tanstack/react-query";
+import { Check, ChevronsUpDown } from "lucide-react";
+import { useState } from "react";
 
 interface UserFilterProps {
   value?: string;
@@ -44,7 +44,7 @@ export function UserFilter({ value, onChange }: UserFilterProps) {
           {selectedUser ? (
             <div className="flex items-center gap-2">
               <UserAvatar userId={selectedUser.id} size="sm" />
-              <span>{`${selectedUser.firstName} ${selectedUser.lastName}`}</span>
+              <span>{`${selectedUser.fullName}`}</span>
             </div>
           ) : (
             "Выберите пользователя..."
@@ -56,7 +56,7 @@ export function UserFilter({ value, onChange }: UserFilterProps) {
         <Command>
           <CommandInput placeholder="Поиск пользователя..." />
           <CommandEmpty>Пользователь не найден.</CommandEmpty>
-          <CommandGroup>
+          <CommandGroup className="max-h-[300px] overflow-y-auto">
             <CommandItem
               onSelect={() => {
                 onChange(undefined);
@@ -81,7 +81,7 @@ export function UserFilter({ value, onChange }: UserFilterProps) {
               >
                 <div className="flex items-center gap-2">
                   <UserAvatar userId={user.id} size="sm" />
-                  <span>{`${user.firstName} ${user.lastName}`}</span>
+                  <span>{`${user.fullName}`}</span>
                 </div>
                 <Check
                   className={cn(

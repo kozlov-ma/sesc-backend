@@ -20,7 +20,7 @@ import (
 type APIRolesResponse struct {
 
 	// roles
-	Roles []*APIRole `json:"roles"`
+	Roles []*RespondRole `json:"roles"`
 }
 
 // Validate validates this api roles response

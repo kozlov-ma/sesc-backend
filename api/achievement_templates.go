@@ -9,9 +9,9 @@ import (
 	"github.com/kozlov-ma/sesc-backend/achievement"
 	"github.com/kozlov-ma/sesc-backend/api/param"
 	"github.com/kozlov-ma/sesc-backend/api/respond"
+	"github.com/kozlov-ma/sesc-backend/company"
 	"github.com/kozlov-ma/sesc-backend/pkg/event"
 	"github.com/kozlov-ma/sesc-backend/pkg/event/events"
-	"github.com/kozlov-ma/sesc-backend/sesc"
 )
 
 // GetAchievementGroups godoc
@@ -31,6 +31,9 @@ func (a *API) GetAchievementGroups(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	rec := event.Get(ctx)
 
+	// Get user from context
+	user := CurrentUser(ctx)
+
 	// Parse query parameters
 	showInactive := param.QueryBoolOrFalse(r, "show_inactive")
 	search := r.URL.Query().Get("search")
@@ -42,7 +45,7 @@ func (a *API) GetAchievementGroups(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Call service
-	groups, err := a.sesc.AchievementGroups(ctx, options)
+	groups, err := a.sesc.AchievementGroups(ctx, user, options)
 	if err != nil {
 		rec.Add(events.Error, err)
 		a.writeJSON(ctx, w, respond.WithError(ctx, err))
@@ -73,6 +76,9 @@ func (a *API) CreateAchievementGroup(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	rec := event.Get(ctx)
 
+	// Get user from context
+	user := CurrentUser(ctx)
+
 	var req param.CreateAchievementGroupRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		rec.Add(events.Error, "invalid request body")
@@ -94,7 +100,7 @@ func (a *API) CreateAchievementGroup(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Call service
-	group, err := a.sesc.CreateAchievementGroup(ctx, options)
+	group, err := a.sesc.CreateAchievementGroup(ctx, user, options)
 	if err != nil {
 		rec.Add(events.Error, err)
 		a.writeJSON(ctx, w, respond.WithError(ctx, err))
@@ -123,6 +129,9 @@ func (a *API) GetAchievementTemplates(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	rec := event.Get(ctx)
 
+	// Get user from context
+	user := CurrentUser(ctx)
+
 	// Parse query parameters
 	showInactive := param.QueryBoolOrFalse(r, "show_inactive")
 	search := r.URL.Query().Get("search")
@@ -134,7 +143,7 @@ func (a *API) GetAchievementTemplates(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Call service
-	templates, err := a.sesc.AchievementTemplates(ctx, options)
+	templates, err := a.sesc.AchievementTemplates(ctx, user, options)
 	if err != nil {
 		rec.Add(events.Error, err)
 		a.writeJSON(ctx, w, respond.WithError(ctx, err))
@@ -166,6 +175,9 @@ func (a *API) CreateAchievementTemplate(w http.ResponseWriter, r *http.Request) 
 	ctx := r.Context()
 	rec := event.Get(ctx)
 
+	// Get user from context
+	user := CurrentUser(ctx)
+
 	var req param.CreateAchievementTemplateRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		rec.Add(events.Error, "invalid request body")
@@ -184,23 +196,18 @@ func (a *API) CreateAchievementTemplate(w http.ResponseWriter, r *http.Request) 
 		a.writeJSON(ctx, w, respond.WithError(ctx, achievement.ErrInvalidPointsLimit))
 		return
 	}
-	if err := sesc.Role(req.ReviewerRole).ValidateReviewer(); err != nil {
-		rec.Add(events.Error, "invalid reviewer role value")
-		a.writeJSON(ctx, w, respond.WithError(ctx, err))
-		return
-	}
 
 	// Create options
 	options := achievement.TemplateCreateOptions{
-		Name:         req.Name,
-		Description:  req.Description,
-		PointsLimit:  req.PointsLimit,
-		GroupID:      req.GroupID,
-		ReviewerRole: sesc.Role(req.ReviewerRole),
+		Name:          req.Name,
+		Description:   req.Description,
+		PointsLimit:   req.PointsLimit,
+		GroupID:       req.GroupID,
+		InspectorRole: company.Role(req.ReviewerRole),
 	}
 
 	// Call service
-	template, err := a.sesc.CreateAchievementTemplate(ctx, options)
+	template, err := a.sesc.CreateAchievementTemplate(ctx, user, options)
 	if err != nil {
 		rec.Add(events.Error, err)
 		// Check if it's a group not found error
@@ -238,6 +245,9 @@ func (a *API) PatchAchievementGroup(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	rec := event.Get(ctx)
 
+	// Get user from context
+	user := CurrentUser(ctx)
+
 	idStr := r.PathValue("id")
 	groupID, err := uuid.FromString(idStr)
 	if err != nil {
@@ -261,7 +271,7 @@ func (a *API) PatchAchievementGroup(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Call service
-	group, err := a.sesc.UpdateAchievementGroup(ctx, groupID, options)
+	group, err := a.sesc.UpdateAchievementGroup(ctx, user, groupID, options)
 	if err != nil {
 		rec.Add(events.Error, err)
 		if errors.Is(err, achievement.ErrAchievementGroupNotFound) {
@@ -298,6 +308,9 @@ func (a *API) PatchAchievementTemplate(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	rec := event.Get(ctx)
 
+	// Get user from context
+	user := CurrentUser(ctx)
+
 	idStr := r.PathValue("id")
 	templateID, err := uuid.FromString(idStr)
 	if err != nil {
@@ -313,15 +326,6 @@ func (a *API) PatchAchievementTemplate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Validate kind if provided
-	if req.ReviewerRole != nil {
-		if err := sesc.Role(*req.ReviewerRole).ValidateReviewer(); err != nil {
-			rec.Add(events.Error, "invalid reviewer role value")
-			a.writeJSON(ctx, w, respond.WithError(ctx, err))
-			return
-		}
-	}
-
 	// Validate points limit if provided
 	if req.PointsLimit != nil && *req.PointsLimit <= 0 {
 		rec.Add(events.Error, "pointsLimit must be positive")
@@ -331,15 +335,15 @@ func (a *API) PatchAchievementTemplate(w http.ResponseWriter, r *http.Request) {
 
 	// Create update options
 	options := achievement.TemplateUpdateOptions{
-		Name:         req.Name,
-		Description:  req.Description,
-		PointsLimit:  req.PointsLimit,
-		Active:       req.Active,
-		ReviewerRole: (*sesc.Role)(req.ReviewerRole),
+		Name:          req.Name,
+		Description:   req.Description,
+		PointsLimit:   req.PointsLimit,
+		Active:        req.Active,
+		InspectorRole: (*company.Role)(req.ReviewerRole),
 	}
 
 	// Call service
-	template, err := a.sesc.UpdateAchievementTemplate(ctx, templateID, options)
+	template, err := a.sesc.UpdateAchievementTemplate(ctx, user, templateID, options)
 	if err != nil {
 		rec.Add(events.Error, err)
 		if errors.Is(err, achievement.ErrAchievementTemplateNotFound) {

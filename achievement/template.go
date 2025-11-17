@@ -2,7 +2,7 @@ package achievement
 
 import (
 	"github.com/gofrs/uuid/v5"
-	"github.com/kozlov-ma/sesc-backend/sesc"
+	"github.com/kozlov-ma/sesc-backend/company"
 )
 
 // GroupCreateOptions contains options for creating an achievement group
@@ -20,20 +20,20 @@ type GroupUpdateOptions struct {
 
 // TemplateCreateOptions contains options for creating an achievement template
 type TemplateCreateOptions struct {
-	Name         string
-	Description  string
-	PointsLimit  int
-	GroupID      uuid.UUID
-	ReviewerRole sesc.Role
+	Name          string
+	Description   string
+	PointsLimit   int
+	GroupID       uuid.UUID
+	InspectorRole company.Role
 }
 
 // TemplateUpdateOptions contains options for updating an achievement template
 type TemplateUpdateOptions struct {
-	Name         *string
-	Description  *string
-	PointsLimit  *int
-	Active       *bool
-	ReviewerRole *sesc.Role
+	Name          *string
+	Description   *string
+	PointsLimit   *int
+	Active        *bool
+	InspectorRole *company.Role
 }
 
 // GroupSearchOptions contains options for searching achievement groups

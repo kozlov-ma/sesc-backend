@@ -20,17 +20,17 @@ import (
 type RespondDepartment struct {
 
 	// description
-	// Example: Math department
+	// Example: Мы в сунце очень любим делать string id. Потому что зачем нам uuid?
 	// Required: true
 	Description *string `json:"description"`
 
 	// id
-	// Example: 550e8400-e29b-41d4-a716-446655440000
+	// Example: kaf_bio
 	// Required: true
 	ID *string `json:"id"`
 
 	// name
-	// Example: Mathematics
+	// Example: Кафедра Химии и Биологии
 	// Required: true
 	Name *string `json:"name"`
 }

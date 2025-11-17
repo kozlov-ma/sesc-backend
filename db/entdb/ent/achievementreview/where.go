@@ -60,7 +60,7 @@ func AchievementID(v uuid.UUID) predicate.AchievementReview {
 }
 
 // ReviewerID applies equality check predicate on the "reviewer_id" field. It's identical to ReviewerIDEQ.
-func ReviewerID(v uuid.UUID) predicate.AchievementReview {
+func ReviewerID(v string) predicate.AchievementReview {
 	return predicate.AchievementReview(sql.FieldEQ(FieldReviewerID, v))
 }
 
@@ -95,23 +95,68 @@ func AchievementIDNotIn(vs ...uuid.UUID) predicate.AchievementReview {
 }
 
 // ReviewerIDEQ applies the EQ predicate on the "reviewer_id" field.
-func ReviewerIDEQ(v uuid.UUID) predicate.AchievementReview {
+func ReviewerIDEQ(v string) predicate.AchievementReview {
 	return predicate.AchievementReview(sql.FieldEQ(FieldReviewerID, v))
 }
 
 // ReviewerIDNEQ applies the NEQ predicate on the "reviewer_id" field.
-func ReviewerIDNEQ(v uuid.UUID) predicate.AchievementReview {
+func ReviewerIDNEQ(v string) predicate.AchievementReview {
 	return predicate.AchievementReview(sql.FieldNEQ(FieldReviewerID, v))
 }
 
 // ReviewerIDIn applies the In predicate on the "reviewer_id" field.
-func ReviewerIDIn(vs ...uuid.UUID) predicate.AchievementReview {
+func ReviewerIDIn(vs ...string) predicate.AchievementReview {
 	return predicate.AchievementReview(sql.FieldIn(FieldReviewerID, vs...))
 }
 
 // ReviewerIDNotIn applies the NotIn predicate on the "reviewer_id" field.
-func ReviewerIDNotIn(vs ...uuid.UUID) predicate.AchievementReview {
+func ReviewerIDNotIn(vs ...string) predicate.AchievementReview {
 	return predicate.AchievementReview(sql.FieldNotIn(FieldReviewerID, vs...))
+}
+
+// ReviewerIDGT applies the GT predicate on the "reviewer_id" field.
+func ReviewerIDGT(v string) predicate.AchievementReview {
+	return predicate.AchievementReview(sql.FieldGT(FieldReviewerID, v))
+}
+
+// ReviewerIDGTE applies the GTE predicate on the "reviewer_id" field.
+func ReviewerIDGTE(v string) predicate.AchievementReview {
+	return predicate.AchievementReview(sql.FieldGTE(FieldReviewerID, v))
+}
+
+// ReviewerIDLT applies the LT predicate on the "reviewer_id" field.
+func ReviewerIDLT(v string) predicate.AchievementReview {
+	return predicate.AchievementReview(sql.FieldLT(FieldReviewerID, v))
+}
+
+// ReviewerIDLTE applies the LTE predicate on the "reviewer_id" field.
+func ReviewerIDLTE(v string) predicate.AchievementReview {
+	return predicate.AchievementReview(sql.FieldLTE(FieldReviewerID, v))
+}
+
+// ReviewerIDContains applies the Contains predicate on the "reviewer_id" field.
+func ReviewerIDContains(v string) predicate.AchievementReview {
+	return predicate.AchievementReview(sql.FieldContains(FieldReviewerID, v))
+}
+
+// ReviewerIDHasPrefix applies the HasPrefix predicate on the "reviewer_id" field.
+func ReviewerIDHasPrefix(v string) predicate.AchievementReview {
+	return predicate.AchievementReview(sql.FieldHasPrefix(FieldReviewerID, v))
+}
+
+// ReviewerIDHasSuffix applies the HasSuffix predicate on the "reviewer_id" field.
+func ReviewerIDHasSuffix(v string) predicate.AchievementReview {
+	return predicate.AchievementReview(sql.FieldHasSuffix(FieldReviewerID, v))
+}
+
+// ReviewerIDEqualFold applies the EqualFold predicate on the "reviewer_id" field.
+func ReviewerIDEqualFold(v string) predicate.AchievementReview {
+	return predicate.AchievementReview(sql.FieldEqualFold(FieldReviewerID, v))
+}
+
+// ReviewerIDContainsFold applies the ContainsFold predicate on the "reviewer_id" field.
+func ReviewerIDContainsFold(v string) predicate.AchievementReview {
+	return predicate.AchievementReview(sql.FieldContainsFold(FieldReviewerID, v))
 }
 
 // PointsAssignedEQ applies the EQ predicate on the "points_assigned" field.
@@ -244,29 +289,6 @@ func HasAchievement() predicate.AchievementReview {
 func HasAchievementWith(preds ...predicate.Achievement) predicate.AchievementReview {
 	return predicate.AchievementReview(func(s *sql.Selector) {
 		step := newAchievementStep()
-		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
-			for _, p := range preds {
-				p(s)
-			}
-		})
-	})
-}
-
-// HasReviewer applies the HasEdge predicate on the "reviewer" edge.
-func HasReviewer() predicate.AchievementReview {
-	return predicate.AchievementReview(func(s *sql.Selector) {
-		step := sqlgraph.NewStep(
-			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, true, ReviewerTable, ReviewerColumn),
-		)
-		sqlgraph.HasNeighbors(s, step)
-	})
-}
-
-// HasReviewerWith applies the HasEdge predicate on the "reviewer" edge with a given conditions (other predicates).
-func HasReviewerWith(preds ...predicate.User) predicate.AchievementReview {
-	return predicate.AchievementReview(func(s *sql.Selector) {
-		step := newReviewerStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

@@ -24,11 +24,6 @@ type RespondRole struct {
 	// Required: true
 	CodeName *string `json:"codeName"`
 
-	// id
-	// Example: 1
-	// Required: true
-	ID *int64 `json:"id"`
-
 	// name
 	// Example: Преподаватель
 	// Required: true
@@ -40,10 +35,6 @@ func (m *RespondRole) Validate(formats strfmt.Registry) error {
 	var res []error
 
 	if err := m.validateCodeName(formats); err != nil {
-		res = append(res, err)
-	}
-
-	if err := m.validateID(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -60,15 +51,6 @@ func (m *RespondRole) Validate(formats strfmt.Registry) error {
 func (m *RespondRole) validateCodeName(formats strfmt.Registry) error {
 
 	if err := validate.Required("codeName", "body", m.CodeName); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (m *RespondRole) validateID(formats strfmt.Registry) error {
-
-	if err := validate.Required("id", "body", m.ID); err != nil {
 		return err
 	}
 

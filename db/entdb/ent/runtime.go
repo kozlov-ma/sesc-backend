@@ -3,20 +3,14 @@
 package ent
 
 import (
-	"time"
-
 	uuid "github.com/gofrs/uuid/v5"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievement"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievementdocument"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievementgroup"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievementreview"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievementtemplate"
-	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/authuser"
-	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/department"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/file"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/schema"
-	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/user"
-	"github.com/kozlov-ma/sesc-backend/sesc"
 )
 
 // The init function reads all schema descriptors with runtime code
@@ -129,74 +123,10 @@ func init() {
 	achievementtemplateDescID := achievementtemplateFields[0].Descriptor()
 	// achievementtemplate.DefaultID holds the default value on creation for the id field.
 	achievementtemplate.DefaultID = achievementtemplateDescID.Default.(func() uuid.UUID)
-	authuserFields := schema.AuthUser{}.Fields()
-	_ = authuserFields
-	// authuserDescUsername is the schema descriptor for username field.
-	authuserDescUsername := authuserFields[0].Descriptor()
-	// authuser.UsernameValidator is a validator for the "username" field. It is called by the builders before save.
-	authuser.UsernameValidator = authuserDescUsername.Validators[0].(func(string) error)
-	// authuserDescPassword is the schema descriptor for password field.
-	authuserDescPassword := authuserFields[1].Descriptor()
-	// authuser.PasswordValidator is a validator for the "password" field. It is called by the builders before save.
-	authuser.PasswordValidator = authuserDescPassword.Validators[0].(func(string) error)
-	departmentFields := schema.Department{}.Fields()
-	_ = departmentFields
-	// departmentDescName is the schema descriptor for name field.
-	departmentDescName := departmentFields[1].Descriptor()
-	// department.NameValidator is a validator for the "name" field. It is called by the builders before save.
-	department.NameValidator = departmentDescName.Validators[0].(func(string) error)
-	// departmentDescID is the schema descriptor for id field.
-	departmentDescID := departmentFields[0].Descriptor()
-	// department.DefaultID holds the default value on creation for the id field.
-	department.DefaultID = departmentDescID.Default.(func() uuid.UUID)
 	fileFields := schema.File{}.Fields()
 	_ = fileFields
 	// fileDescID is the schema descriptor for id field.
 	fileDescID := fileFields[0].Descriptor()
 	// file.DefaultID holds the default value on creation for the id field.
 	file.DefaultID = fileDescID.Default.(func() uuid.UUID)
-	userFields := schema.User{}.Fields()
-	_ = userFields
-	// userDescMiddleName is the schema descriptor for middle_name field.
-	userDescMiddleName := userFields[3].Descriptor()
-	// user.DefaultMiddleName holds the default value on creation for the middle_name field.
-	user.DefaultMiddleName = userDescMiddleName.Default.(string)
-	// userDescSuspended is the schema descriptor for suspended field.
-	userDescSuspended := userFields[5].Descriptor()
-	// user.DefaultSuspended holds the default value on creation for the suspended field.
-	user.DefaultSuspended = userDescSuspended.Default.(bool)
-	// userDescJobTitle is the schema descriptor for job_title field.
-	userDescJobTitle := userFields[8].Descriptor()
-	// user.DefaultJobTitle holds the default value on creation for the job_title field.
-	user.DefaultJobTitle = userDescJobTitle.Default.(string)
-	// userDescEmploymentRate is the schema descriptor for employment_rate field.
-	userDescEmploymentRate := userFields[9].Descriptor()
-	// user.DefaultEmploymentRate holds the default value on creation for the employment_rate field.
-	user.DefaultEmploymentRate = userDescEmploymentRate.Default.(float64)
-	// userDescPersonnelCategory is the schema descriptor for personnel_category field.
-	userDescPersonnelCategory := userFields[11].Descriptor()
-	// user.DefaultPersonnelCategory holds the default value on creation for the personnel_category field.
-	user.DefaultPersonnelCategory = sesc.PersonnelCategory(userDescPersonnelCategory.Default.(int))
-	// userDescEmploymentType is the schema descriptor for employment_type field.
-	userDescEmploymentType := userFields[12].Descriptor()
-	// user.DefaultEmploymentType holds the default value on creation for the employment_type field.
-	user.DefaultEmploymentType = sesc.EmploymentType(userDescEmploymentType.Default.(int))
-	// userDescDateOfEmployment is the schema descriptor for date_of_employment field.
-	userDescDateOfEmployment := userFields[16].Descriptor()
-	// user.DefaultDateOfEmployment holds the default value on creation for the date_of_employment field.
-	user.DefaultDateOfEmployment = userDescDateOfEmployment.Default.(func() time.Time)
-	// userDescCreatedAt is the schema descriptor for created_at field.
-	userDescCreatedAt := userFields[18].Descriptor()
-	// user.DefaultCreatedAt holds the default value on creation for the created_at field.
-	user.DefaultCreatedAt = userDescCreatedAt.Default.(func() time.Time)
-	// userDescUpdatedAt is the schema descriptor for updated_at field.
-	userDescUpdatedAt := userFields[19].Descriptor()
-	// user.DefaultUpdatedAt holds the default value on creation for the updated_at field.
-	user.DefaultUpdatedAt = userDescUpdatedAt.Default.(func() time.Time)
-	// user.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
-	user.UpdateDefaultUpdatedAt = userDescUpdatedAt.UpdateDefault.(func() time.Time)
-	// userDescID is the schema descriptor for id field.
-	userDescID := userFields[0].Descriptor()
-	// user.DefaultID holds the default value on creation for the id field.
-	user.DefaultID = userDescID.Default.(func() uuid.UUID)
 }

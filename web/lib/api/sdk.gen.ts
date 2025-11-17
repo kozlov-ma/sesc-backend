@@ -14,12 +14,6 @@ import type {
   DeleteAchievementsByIdDocumentsByDocumentIdResponses,
   DeleteAchievementsByIdErrors,
   DeleteAchievementsByIdResponses,
-  DeleteAuthCredentialsByIdData,
-  DeleteAuthCredentialsByIdErrors,
-  DeleteAuthCredentialsByIdResponses,
-  DeleteDepartmentsByIdData,
-  DeleteDepartmentsByIdErrors,
-  DeleteDepartmentsByIdResponses,
   DeleteFilesByIdData,
   DeleteFilesByIdErrors,
   DeleteFilesByIdResponses,
@@ -38,9 +32,6 @@ import type {
   GetAchievementTemplatesData,
   GetAchievementTemplatesErrors,
   GetAchievementTemplatesResponses,
-  GetAuthCredentialsByIdData,
-  GetAuthCredentialsByIdErrors,
-  GetAuthCredentialsByIdResponses,
   GetAuthValidateData,
   GetAuthValidateErrors,
   GetAuthValidateResponses,
@@ -79,9 +70,6 @@ import type {
   PatchAchievementTemplatesByIdData,
   PatchAchievementTemplatesByIdErrors,
   PatchAchievementTemplatesByIdResponses,
-  PatchUsersByIdData,
-  PatchUsersByIdErrors,
-  PatchUsersByIdResponses,
   PostAchievementGroupsData,
   PostAchievementGroupsErrors,
   PostAchievementGroupsResponses,
@@ -103,30 +91,15 @@ import type {
   PostAchievementTemplatesData,
   PostAchievementTemplatesErrors,
   PostAchievementTemplatesResponses,
-  PostAuthAdminLoginData,
-  PostAuthAdminLoginErrors,
-  PostAuthAdminLoginResponses,
   PostAuthLoginData,
   PostAuthLoginErrors,
   PostAuthLoginResponses,
-  PostDepartmentsData,
-  PostDepartmentsErrors,
-  PostDepartmentsResponses,
   PostFilesData,
   PostFilesErrors,
   PostFilesResponses,
   PostReportsMarkAllAccountedData,
   PostReportsMarkAllAccountedErrors,
   PostReportsMarkAllAccountedResponses,
-  PostUsersData,
-  PostUsersErrors,
-  PostUsersResponses,
-  PutDepartmentsByIdData,
-  PutDepartmentsByIdErrors,
-  PutDepartmentsByIdResponses,
-  PutUsersByIdCredentialsData,
-  PutUsersByIdCredentialsErrors,
-  PutUsersByIdCredentialsResponses,
 } from "./types.gen";
 
 export type Options<
@@ -580,76 +553,6 @@ export const postAchievementsByIdSubmitWithNewPoints = <
 };
 
 /**
- * Admin login
- * Verifies admin token and returns a JWT token with admin privileges
- */
-export const postAuthAdminLogin = <ThrowOnError extends boolean = false>(
-  options: Options<PostAuthAdminLoginData, ThrowOnError>,
-) => {
-  return (options.client ?? client).post<
-    PostAuthAdminLoginResponses,
-    PostAuthAdminLoginErrors,
-    ThrowOnError
-  >({
-    responseType: "json",
-    url: "/auth/admin/login",
-    ...options,
-    headers: {
-      "Content-Type": "application/json",
-      ...options.headers,
-    },
-  });
-};
-
-/**
- * Delete user credentials
- * Deletes credentials for a user
- */
-export const deleteAuthCredentialsById = <ThrowOnError extends boolean = false>(
-  options: Options<DeleteAuthCredentialsByIdData, ThrowOnError>,
-) => {
-  return (options.client ?? client).delete<
-    DeleteAuthCredentialsByIdResponses,
-    DeleteAuthCredentialsByIdErrors,
-    ThrowOnError
-  >({
-    responseType: "json",
-    security: [
-      {
-        name: "Authorization",
-        type: "apiKey",
-      },
-    ],
-    url: "/auth/credentials/{id}",
-    ...options,
-  });
-};
-
-/**
- * Get user credentials
- * Retrieves credentials for a user
- */
-export const getAuthCredentialsById = <ThrowOnError extends boolean = false>(
-  options: Options<GetAuthCredentialsByIdData, ThrowOnError>,
-) => {
-  return (options.client ?? client).get<
-    GetAuthCredentialsByIdResponses,
-    GetAuthCredentialsByIdErrors,
-    ThrowOnError
-  >({
-    responseType: "json",
-    security: [
-      {
-        name: "Authorization",
-        type: "apiKey",
-      },
-    ],
-    url: "/auth/credentials/{id}",
-    ...options,
-  });
-};
-
-/**
  * User login
  * Verifies user credentials and returns a JWT token
  */
@@ -714,58 +617,6 @@ export const getDepartments = <ThrowOnError extends boolean = false>(
 };
 
 /**
- * Create a new department
- * Creates a new department with the given details
- */
-export const postDepartments = <ThrowOnError extends boolean = false>(
-  options: Options<PostDepartmentsData, ThrowOnError>,
-) => {
-  return (options.client ?? client).post<
-    PostDepartmentsResponses,
-    PostDepartmentsErrors,
-    ThrowOnError
-  >({
-    responseType: "json",
-    security: [
-      {
-        name: "Authorization",
-        type: "apiKey",
-      },
-    ],
-    url: "/departments",
-    ...options,
-    headers: {
-      "Content-Type": "application/json",
-      ...options.headers,
-    },
-  });
-};
-
-/**
- * Delete a department
- * Deletes a department by its ID
- */
-export const deleteDepartmentsById = <ThrowOnError extends boolean = false>(
-  options: Options<DeleteDepartmentsByIdData, ThrowOnError>,
-) => {
-  return (options.client ?? client).delete<
-    DeleteDepartmentsByIdResponses,
-    DeleteDepartmentsByIdErrors,
-    ThrowOnError
-  >({
-    responseType: "json",
-    security: [
-      {
-        name: "Authorization",
-        type: "apiKey",
-      },
-    ],
-    url: "/departments/{id}",
-    ...options,
-  });
-};
-
-/**
  * Get department details
  * Retrieves detailed information about a department
  */
@@ -786,34 +637,6 @@ export const getDepartmentsById = <ThrowOnError extends boolean = false>(
     ],
     url: "/departments/{id}",
     ...options,
-  });
-};
-
-/**
- * Update department details
- * Updates an existing department with new details
- */
-export const putDepartmentsById = <ThrowOnError extends boolean = false>(
-  options: Options<PutDepartmentsByIdData, ThrowOnError>,
-) => {
-  return (options.client ?? client).put<
-    PutDepartmentsByIdResponses,
-    PutDepartmentsByIdErrors,
-    ThrowOnError
-  >({
-    responseType: "json",
-    security: [
-      {
-        name: "Authorization",
-        type: "apiKey",
-      },
-    ],
-    url: "/departments/{id}",
-    ...options,
-    headers: {
-      "Content-Type": "application/json",
-      ...options.headers,
-    },
   });
 };
 
@@ -1034,34 +857,6 @@ export const getUsers = <ThrowOnError extends boolean = false>(
 };
 
 /**
- * Create new user
- * Creates a new user with specified role (non-teacher)
- */
-export const postUsers = <ThrowOnError extends boolean = false>(
-  options: Options<PostUsersData, ThrowOnError>,
-) => {
-  return (options.client ?? client).post<
-    PostUsersResponses,
-    PostUsersErrors,
-    ThrowOnError
-  >({
-    responseType: "json",
-    security: [
-      {
-        name: "Authorization",
-        type: "apiKey",
-      },
-    ],
-    url: "/users",
-    ...options,
-    headers: {
-      "Content-Type": "application/json",
-      ...options.headers,
-    },
-  });
-};
-
-/**
  * Get current user information
  * Returns information about the current authenticated user
  */
@@ -1106,61 +901,5 @@ export const getUsersById = <ThrowOnError extends boolean = false>(
     ],
     url: "/users/{id}",
     ...options,
-  });
-};
-
-/**
- * Partially update user
- * Applies a partial update to the user identified by {id}. Only non-nil fields in the request are applied.
- */
-export const patchUsersById = <ThrowOnError extends boolean = false>(
-  options: Options<PatchUsersByIdData, ThrowOnError>,
-) => {
-  return (options.client ?? client).patch<
-    PatchUsersByIdResponses,
-    PatchUsersByIdErrors,
-    ThrowOnError
-  >({
-    responseType: "json",
-    security: [
-      {
-        name: "Authorization",
-        type: "apiKey",
-      },
-    ],
-    url: "/users/{id}",
-    ...options,
-    headers: {
-      "Content-Type": "application/json",
-      ...options.headers,
-    },
-  });
-};
-
-/**
- * Register user credentials
- * Assigns username/password credentials to an existing user
- */
-export const putUsersByIdCredentials = <ThrowOnError extends boolean = false>(
-  options: Options<PutUsersByIdCredentialsData, ThrowOnError>,
-) => {
-  return (options.client ?? client).put<
-    PutUsersByIdCredentialsResponses,
-    PutUsersByIdCredentialsErrors,
-    ThrowOnError
-  >({
-    responseType: "json",
-    security: [
-      {
-        name: "Authorization",
-        type: "apiKey",
-      },
-    ],
-    url: "/users/{id}/credentials",
-    ...options,
-    headers: {
-      "Content-Type": "application/json",
-      ...options.headers,
-    },
   });
 };

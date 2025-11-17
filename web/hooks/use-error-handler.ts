@@ -46,7 +46,7 @@ export function useErrorHandler(options: UseErrorHandlerOptions = {}) {
   );
 
   // Get the error message in a user-friendly format
-  const errorMessage = error ? getErrorMessage(error) : "";
+  const errorMessage = error ? error.message : "";
 
   return {
     error,

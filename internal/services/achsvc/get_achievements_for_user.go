@@ -6,21 +6,20 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/kozlov-ma/sesc-backend/company"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent"
 	entAchievement "github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievement"
-	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/user"
 	"github.com/kozlov-ma/sesc-backend/internal/services/txwrapper"
 	"github.com/kozlov-ma/sesc-backend/pkg/event"
 	"github.com/kozlov-ma/sesc-backend/pkg/event/events"
-	"github.com/kozlov-ma/sesc-backend/sesc"
 )
 
-// GetUserAchievements retrieves all achievements for the current user with pagination.
+// getUserAchievements retrieves all achievements for the current user with pagination.
 // Results are ordered based on the asking user's role and review responsibilities.
-func (s *ACS) GetUserAchievements(
+func (s *ACS) getUserAchievements(
 	ctx context.Context,
-	userID UUID,
-	whosAsking UUID,
+	askingUser company.User,
+	targetUserID string,
 	offset, limit int,
 	requireChanges bool,
 ) (ent.Achievements, int, error) {
@@ -29,8 +28,7 @@ func (s *ACS) GetUserAchievements(
 
 	// Group parameters together
 	rec.Sub("params").Set(
-		"user_id", userID,
-		"whos_asking", whosAsking,
+		"whos_asking", targetUserID,
 		"offset", offset,
 		"limit", limit,
 		"require_changes", requireChanges,
@@ -40,46 +38,16 @@ func (s *ACS) GetUserAchievements(
 	var achievementEntities []*ent.Achievement
 
 	err := txwrapper.WithTx(ctx, s.client, sql.LevelReadCommitted, rec, func(tx *ent.Tx) error {
-		var askingUser *ent.User
-		err := rec.Operation("query_asking_user", func(rec *event.Record) (err error) {
+		err := rec.Operation("count_achievements", func(rec *event.Record) error {
 			rec.Sub("params").Set(
-				"asking_user_id", whosAsking,
-			)
-
-			start := time.Now()
-			askingUser, err = tx.User.Query().
-				Where(user.ID(whosAsking)).
-				WithDepartment().
-				Only(ctx)
-			statsRec.Add(events.PostgresQueries, 1)
-			statsRec.Add(events.PostgresTime, time.Since(start))
-
-			if ent.IsNotFound(err) {
-				return sesc.ErrUserNotFound
-			}
-
-			if err != nil {
-				return fmt.Errorf("failed to get asking user: %w", err)
-			}
-
-			rec.Set("asking_user", askingUser)
-
-			return nil
-		})
-		if err != nil {
-			return err
-		}
-
-		err = rec.Operation("count_achievements", func(rec *event.Record) error {
-			rec.Sub("params").Set(
-				"asking_user_role", askingUser.Role.String(),
-				"owner_id", userID,
+				"asking_user_roles", askingUser.Roles,
+				"owner_id", targetUserID,
 			)
 			roleFilter := s.buildRoleBasedFilters(askingUser, requireChanges)
 
 			start := time.Now()
 			count, err := tx.Achievement.Query().
-				Where(entAchievement.OwnerID(userID)).
+				Where(entAchievement.OwnerID(targetUserID)).
 				Where(roleFilter).
 				Order(ent.Desc(entAchievement.FieldStatus)).
 				Count(ctx)
@@ -100,22 +68,21 @@ func (s *ACS) GetUserAchievements(
 
 		err = rec.Operation("query_achievements", func(rec *event.Record) error {
 			rec.Sub("params").Set(
-				"asking_user_role", askingUser.Role.String(),
+				"asking_user_roles", askingUser.Roles,
 				"limit", limit,
 				"offset", offset,
-				"owner_id", userID,
+				"owner_id", targetUserID,
 			)
 			roleFilter := s.buildRoleBasedFilters(askingUser, requireChanges)
 
 			start := time.Now()
 			entities, err := tx.Achievement.Query().
-				Where(entAchievement.OwnerID(userID)).
+				Where(entAchievement.OwnerID(targetUserID)).
 				Where(roleFilter).
 				Order(ent.Desc(entAchievement.FieldStatus)).
 				Offset(offset).
 				Limit(limit).
 				WithDocuments().
-				WithOwner().
 				WithReviews().
 				WithTemplate().
 				All(ctx)

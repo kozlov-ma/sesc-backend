@@ -12,9 +12,9 @@ import (
 	"github.com/kozlov-ma/sesc-backend/pkg/event/events"
 )
 
-// GetAchievement retrieves an achievement by ID.
+// getAchievement retrieves an achievement by ID.
 // Returns achievement.ErrAchievementNotFound if the achievement does not exist.
-func (s *ACS) GetAchievement(
+func (s *ACS) getAchievement(
 	ctx context.Context,
 	achievementID UUID,
 ) (*ent.Achievement, error) {
@@ -32,15 +32,10 @@ func (s *ACS) GetAchievement(
 		entity, err := s.client.Achievement.Query().
 			Where(entAchievement.ID(achievementID)).
 			WithTemplate().
-			WithOwner(func(q *ent.UserQuery) {
-				q.WithDepartment()
-			}).
 			WithDocuments(func(q *ent.AchievementDocumentQuery) {
 				q.WithFile()
 			}).
-			WithReviews(func(q *ent.AchievementReviewQuery) {
-				q.WithReviewer()
-			}).
+			WithReviews().
 			Only(ctx)
 		statsRec.Add(events.PostgresQueries, 1)
 		statsRec.Add(events.PostgresTime, time.Since(start))
