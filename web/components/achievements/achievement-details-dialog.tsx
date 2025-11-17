@@ -110,7 +110,10 @@ export function AchievementDetailsDialog({
                           </div>
                         </TableCell>
                         <TableCell className="max-w-[200px]">
-                          <FileNameByIdDisplay fileId={document.fileId} />
+                          <FileNameByIdDisplay
+                            fileId={document.fileId}
+                            displayName={document.name}
+                          />
                         </TableCell>
                       </TableRow>
                     ))}

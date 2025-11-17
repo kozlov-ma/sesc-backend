@@ -230,7 +230,10 @@ export function ReviewAchievementDialog({
                         </TableCell>
                         <TableCell className="max-w-[200px]">
                           <div className="truncate">
-                            <FileNameByIdDisplay fileId={document.fileId} />
+                            <FileNameByIdDisplay
+                              fileId={document.fileId}
+                              displayName={document.name}
+                            />
                           </div>
                         </TableCell>
                       </TableRow>
