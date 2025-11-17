@@ -2,10 +2,10 @@
 
 import { Button } from "@/components/ui/button";
 import {
-    Dialog,
-    DialogContent,
-    DialogTitle,
-    DialogTrigger,
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  DialogTrigger,
 } from "@/components/ui/dialog";
 import { RespondFile } from "@/lib/api";
 import { getFilesByIdOptions } from "@/lib/api/@tanstack/react-query.gen";
@@ -85,7 +85,9 @@ export function FileNameDisplay({ file, className }: FileNameDisplayProps) {
         onClick={handleDownload}
         title={file.fileName || "Файл"}
       >
-        <span className="font-medium truncate block">{file.fileName || "Файл"}</span>
+        <span className="font-medium truncate block">
+          {file.fileName || "Файл"}
+        </span>
       </Button>
     );
   }
@@ -95,12 +97,17 @@ export function FileNameDisplay({ file, className }: FileNameDisplayProps) {
       <DialogTrigger asChild>
         <Button
           variant="ghost"
-          className={cn("group hover:bg-transparent p-0 justify-center w-full min-w-0 block", className)}
+          className={cn(
+            "group hover:bg-transparent p-0 justify-center w-full min-w-0 block",
+            className,
+          )}
           title={file.fileName}
         >
           <div className="flex items-center justify-center gap-2 min-w-0 max-w-full">
             <Sparkles className="h-4 w-4 text-muted-foreground shrink-0" />
-            <span className="font-medium truncate min-w-0">{file.fileName}</span>
+            <span className="font-medium truncate min-w-0">
+              {file.fileName}
+            </span>
           </div>
         </Button>
       </DialogTrigger>
