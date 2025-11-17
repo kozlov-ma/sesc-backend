@@ -56,7 +56,7 @@ export function UserFilter({ value, onChange }: UserFilterProps) {
         <Command>
           <CommandInput placeholder="Поиск пользователя..." />
           <CommandEmpty>Пользователь не найден.</CommandEmpty>
-          <CommandGroup>
+          <CommandGroup className="max-h-[300px] overflow-y-auto">
             <CommandItem
               onSelect={() => {
                 onChange(undefined);
