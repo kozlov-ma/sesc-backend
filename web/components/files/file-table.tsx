@@ -39,6 +39,7 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 import { Download, FileText, Search, Trash2, Upload, X } from "lucide-react";
+import Link from "next/link";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -332,7 +333,9 @@ export function FileTable({
                     {showOwner && (
                       <TableCell>
                         {file.ownerId && (
-                          <UserAvatar userId={file.ownerId} size="sm" />
+                          <Link href={`/u/users/${file.ownerId}`}>
+                            <UserAvatar userId={file.ownerId} size="sm" />
+                          </Link>
                         )}
                       </TableCell>
                     )}
