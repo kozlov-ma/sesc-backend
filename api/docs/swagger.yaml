@@ -1381,6 +1381,10 @@ paths:
         name: file
         required: true
         type: file
+      - description: If true, upload as a common file
+        in: query
+        name: common
+        type: boolean
       produces:
       - application/json
       responses:

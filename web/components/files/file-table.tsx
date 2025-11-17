@@ -30,7 +30,6 @@ import {
   getFilesInfiniteOptions,
   postFilesMutation,
 } from "@/lib/api/@tanstack/react-query.gen";
-import { usePathname } from 'next/navigation';
 import type { RespondFile } from "@/lib/api/types.gen";
 import { getErrorMessage } from "@/lib/error-handler";
 import { cn, formatFileSize } from "@/lib/utils";
@@ -40,6 +39,7 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 import { Download, FileText, Search, Trash2, Upload, X } from "lucide-react";
+import Link from "next/link";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -154,7 +154,7 @@ export function FileTable({
     try {
       await uploadFileMutation.mutateAsync({
         body: { file },
-        query: { common: isCommon }
+        query: { common: isCommon },
       });
     } catch {
       // Ошибка уже обработана в onError мутации
@@ -333,7 +333,9 @@ export function FileTable({
                     {showOwner && (
                       <TableCell>
                         {file.ownerId && (
-                          <UserAvatar userId={file.ownerId} size="sm" />
+                          <Link href={`/u/users/${file.ownerId}`}>
+                            <UserAvatar userId={file.ownerId} size="sm" />
+                          </Link>
                         )}
                       </TableCell>
                     )}

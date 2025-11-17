@@ -2,10 +2,10 @@
 
 import { Button } from "@/components/ui/button";
 import {
-    Dialog,
-    DialogContent,
-    DialogTitle,
-    DialogTrigger,
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  DialogTrigger,
 } from "@/components/ui/dialog";
 import { RespondFile } from "@/lib/api";
 import { getFilesByIdOptions } from "@/lib/api/@tanstack/react-query.gen";
@@ -16,16 +16,22 @@ import { Download, Loader2, Sparkles } from "lucide-react";
 interface FileNameDisplayProps {
   file: RespondFile;
   className?: string;
+  displayName?: string;
 }
 
 interface FileByIdProps {
   fileId: string;
   className?: string;
+  displayName?: string;
 }
 
 const IMAGE_EXTENSIONS = [".jpg", ".jpeg", ".png", ".gif", ".webp", ".svg"];
 
-export function FileNameByIdDisplay({ fileId, className }: FileByIdProps) {
+export function FileNameByIdDisplay({
+  fileId,
+  className,
+  displayName,
+}: FileByIdProps) {
   const {
     data: file,
     isLoading,
@@ -55,13 +61,25 @@ export function FileNameByIdDisplay({ fileId, className }: FileByIdProps) {
     );
   }
 
-  return <FileNameDisplay file={file} className={className} />;
+  return (
+    <FileNameDisplay
+      file={file}
+      className={className}
+      displayName={displayName}
+    />
+  );
 }
 
-export function FileNameDisplay({ file, className }: FileNameDisplayProps) {
+export function FileNameDisplay({
+  file,
+  className,
+  displayName,
+}: FileNameDisplayProps) {
   const isImage = IMAGE_EXTENSIONS.some((ext) =>
     file.fileName?.toLowerCase()?.endsWith(ext),
   );
+
+  const nameToDisplay = displayName || file.fileName || "Файл";
 
   const handleDownload = () => {
     const link = document.createElement("a");
@@ -81,11 +99,11 @@ export function FileNameDisplay({ file, className }: FileNameDisplayProps) {
     return (
       <Button
         variant="link"
-        className={cn("p-0 justify-start block w-full min-w-0", className)}
+        className={cn("p-0 justify-center block w-full min-w-0", className)}
         onClick={handleDownload}
-        title={file.fileName || "Файл"}
+        title={nameToDisplay}
       >
-        <span className="font-medium truncate block">{file.fileName || "Файл"}</span>
+        <span className="font-medium truncate block">{nameToDisplay}</span>
       </Button>
     );
   }
@@ -95,12 +113,17 @@ export function FileNameDisplay({ file, className }: FileNameDisplayProps) {
       <DialogTrigger asChild>
         <Button
           variant="ghost"
-          className={cn("group hover:bg-transparent p-0 justify-start w-full min-w-0 block", className)}
-          title={file.fileName}
+          className={cn(
+            "group hover:bg-transparent p-0 justify-center w-full min-w-0 block",
+            className,
+          )}
+          title={nameToDisplay}
         >
-          <div className="flex items-center gap-2 min-w-0 max-w-full">
+          <div className="flex items-center justify-center gap-2 min-w-0 max-w-full">
             <Sparkles className="h-4 w-4 text-muted-foreground shrink-0" />
-            <span className="font-medium truncate min-w-0">{file.fileName}</span>
+            <span className="font-medium truncate min-w-0">
+              {nameToDisplay}
+            </span>
           </div>
         </Button>
       </DialogTrigger>
@@ -120,7 +143,7 @@ export function FileNameDisplay({ file, className }: FileNameDisplayProps) {
           </div>
           <div className="p-4 flex justify-between items-center border-t">
             <DialogTitle className="text-sm text-muted-foreground">
-              {file.fileName}
+              {nameToDisplay}
             </DialogTitle>
             <Button variant="outline" size="sm" onClick={handleDownload}>
               <Download className="mr-2 h-4 w-4" />

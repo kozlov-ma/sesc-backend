@@ -3,7 +3,6 @@
 import { AchievementsPageLayout } from "@/components/achievements/achievements-page-layout";
 import { AddAchievementDialog } from "@/components/achievements/add-achievement-dialog";
 import { AddDocumentDialog } from "@/components/achievements/add-document-dialog";
-import { FileNameByIdDisplay } from "@/components/files/file-name-display";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -263,7 +262,9 @@ export default function DraftAchievementsPage() {
                         className="flex items-center justify-between rounded-md group"
                       >
                         <div className="flex items-center">
-                          <FileNameByIdDisplay fileId={document.fileId} />
+                          <span className="text-sm font-medium">
+                            {document.name}
+                          </span>
                           <Button
                             variant="ghost"
                             size="icon"

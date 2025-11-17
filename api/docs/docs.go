@@ -1490,6 +1490,12 @@ const docTemplate = `{
                         "name": "file",
                         "in": "formData",
                         "required": true
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "If true, upload as a common file",
+                        "name": "common",
+                        "in": "query"
                     }
                 ],
                 "responses": {
