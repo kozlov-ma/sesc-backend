@@ -34,11 +34,7 @@ func (a *API) AchievementMiddleware(next http.Handler) http.Handler {
 		rec := event.Get(ctx)
 		rec.Sub("http").Set("route_requires_achievement", true)
 
-		_, ok := CurrentUser(ctx)
-		if !ok {
-			a.writeJSON(ctx, w, respond.WithError(ctx, sesc.ErrUserNotFound))
-			return
-		}
+		user := CurrentUser(ctx)
 
 		id, err := param.PathUUID(r, "id")
 		if err != nil {
@@ -46,7 +42,7 @@ func (a *API) AchievementMiddleware(next http.Handler) http.Handler {
 			return
 		}
 
-		ach, err := a.sesc.GetAchievement(ctx, id)
+		ach, err := a.sesc.GetAchievement(ctx, user, id)
 		if err != nil {
 			rec.Add(events.Error, err)
 			a.writeJSON(ctx, w, respond.WithError(ctx, err))
@@ -78,20 +74,16 @@ func (a *API) GetUserAchievements(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	rec := event.Get(ctx)
 
-	// Get viewer from context
-	viewer, ok := CurrentUser(ctx)
-	if !ok {
-		a.writeJSON(ctx, w, respond.WithError(ctx, sesc.ErrUserNotFound))
-		return
-	}
+	asking := CurrentUser(ctx)
 
-	userID, err := param.QueryString(r, "id")
+	target, err := param.QueryString(r, "id")
 	if err != nil {
-		userID = viewer.ID
+		rec.Add(events.Error, err)
+		target = asking.ID
 	}
 
 	// Parse pagination parameters
-	offset, limit, err := param.ParsePagination(r)
+	offset, limit, err := param.QueryPagination(r)
 	if err != nil {
 		rec.Add(events.Error, err)
 		a.writeJSON(ctx, w, respond.WithError(ctx, err))
@@ -105,8 +97,8 @@ func (a *API) GetUserAchievements(w http.ResponseWriter, r *http.Request) {
 	// Get achievements for user with pagination
 	achievements, total, err := a.sesc.GetUserAchievements(
 		ctx,
-		userID,
-		viewer.ID,
+		asking,
+		target,
 		offset,
 		limit,
 		requireChanges,
@@ -151,11 +143,7 @@ func (a *API) SubmitAchievementWithNewPoints(w http.ResponseWriter, r *http.Requ
 	}
 
 	// Get current user from context
-	user, ok := CurrentUser(ctx)
-	if !ok {
-		a.writeJSON(ctx, w, respond.WithError(ctx, sesc.ErrUserNotFound))
-		return
-	}
+	user := CurrentUser(ctx)
 
 	// Parse request body
 	var req param.UpdateAchievementPointsRequest
@@ -166,9 +154,8 @@ func (a *API) SubmitAchievementWithNewPoints(w http.ResponseWriter, r *http.Requ
 	}
 
 	// Update achievement points and resubmit
-	updatedAch, err := a.sesc.UpdateAchievementPoints(ctx, achievement.UpdatePointsOptions{
+	updatedAch, err := a.sesc.UpdateAchievementPoints(ctx, user, achievement.UpdatePointsOptions{
 		AchievementID: ach.ID,
-		OwnerID:       user.ID,
 		Points:        req.Points,
 		Comment:       req.Comment,
 	})
@@ -232,11 +219,7 @@ func (a *API) CreateAchievement(w http.ResponseWriter, r *http.Request) {
 	rec := event.Get(ctx)
 
 	// Get user from context
-	user, ok := CurrentUser(ctx)
-	if !ok {
-		a.writeJSON(ctx, w, respond.WithError(ctx, sesc.ErrUserNotFound))
-		return
-	}
+	user := CurrentUser(ctx)
 
 	// Parse request
 	var req param.CreateAchievementRequest
@@ -251,14 +234,14 @@ func (a *API) CreateAchievement(w http.ResponseWriter, r *http.Request) {
 		ForUserID:  user.ID,
 		TemplateID: req.TemplateID,
 	}
-	ach, err := a.sesc.CreateAchievement(ctx, opt)
+	ach, err := a.sesc.CreateAchievement(ctx, user, opt)
 	if err != nil {
 		rec.Add(events.Error, err)
 		a.writeJSON(ctx, w, respond.WithError(ctx, err))
 		return
 	}
 
-	ach, err = a.sesc.GetAchievement(ctx, ach.ID)
+	ach, err = a.sesc.GetAchievement(ctx, user, ach.ID)
 	if err != nil {
 		rec.Add(events.Error, err)
 		a.writeJSON(ctx, w, respond.WithError(ctx, err))
@@ -289,6 +272,7 @@ func (a *API) DeleteAchievement(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	rec := event.Get(ctx)
 
+	user := CurrentUser(ctx)
 	// Get achievement from context (added by AchievementMiddleware)
 	ach, ok := GetAchievementFromContext(ctx)
 	if !ok {
@@ -301,7 +285,7 @@ func (a *API) DeleteAchievement(w http.ResponseWriter, r *http.Request) {
 		OwnerID:       ach.OwnerID,
 		AchievementID: ach.ID,
 	}
-	err := a.sesc.DeleteAchievement(ctx, opt)
+	err := a.sesc.DeleteAchievement(ctx, user, opt)
 	if err != nil {
 		rec.Add(events.Error, err)
 		a.writeJSON(ctx, w, respond.WithError(ctx, err))
@@ -332,6 +316,8 @@ func (a *API) AddDocument(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	rec := event.Get(ctx)
 
+	user := CurrentUser(ctx)
+
 	// Get achievement from context (added by AchievementMiddleware)
 	ach, ok := GetAchievementFromContext(ctx)
 	if !ok {
@@ -354,7 +340,7 @@ func (a *API) AddDocument(w http.ResponseWriter, r *http.Request) {
 		Name:          req.Name,
 		FileID:        req.FileID,
 	}
-	doc, err := a.sesc.AddDocument(ctx, opt)
+	doc, err := a.sesc.AddDocument(ctx, user, opt)
 	if err != nil {
 		rec.Add(events.Error, err)
 		a.writeJSON(ctx, w, respond.WithError(ctx, err))
@@ -391,6 +377,7 @@ func (a *API) RemoveDocument(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	rec := event.Get(ctx)
 
+	user := CurrentUser(ctx)
 	// Get achievement from context (added by AchievementMiddleware)
 	ach, ok := GetAchievementFromContext(ctx)
 	if !ok {
@@ -413,7 +400,7 @@ func (a *API) RemoveDocument(w http.ResponseWriter, r *http.Request) {
 		AchievementID: ach.ID,
 		DocumentID:    docID,
 	}
-	err = a.sesc.RemoveDocument(ctx, opt)
+	err = a.sesc.RemoveDocument(ctx, user, opt)
 	if err != nil {
 		rec.Add(events.Error, err)
 		a.writeJSON(ctx, w, respond.WithError(ctx, err))
@@ -442,9 +429,11 @@ func (a *API) SubmitAchievement(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	rec := event.Get(ctx)
 
+	user := CurrentUser(ctx)
+
 	ach, ok := GetAchievementFromContext(ctx)
 	if !ok {
-		a.writeJSON(ctx, w, respond.WithError(ctx, achievement.ErrAchievementNotFound))
+		a.writeJSON(ctx, w, respond.WithError(ctx, sesc.ErrUserNotFound))
 		return
 	}
 
@@ -453,14 +442,14 @@ func (a *API) SubmitAchievement(w http.ResponseWriter, r *http.Request) {
 		OwnerID:       ach.OwnerID,
 		AchievementID: ach.ID,
 	}
-	updatedAch, err := a.sesc.SubmitAchievement(ctx, opt)
+	updatedAch, err := a.sesc.SubmitAchievement(ctx, user, opt)
 	if err != nil {
 		rec.Add(events.Error, err)
 		a.writeJSON(ctx, w, respond.WithError(ctx, err))
 		return
 	}
 
-	updatedAch, err = a.sesc.GetAchievement(ctx, updatedAch.ID)
+	updatedAch, err = a.sesc.GetAchievement(ctx, user, updatedAch.ID)
 	if err != nil {
 		rec.Add(events.Error, err)
 		a.writeJSON(ctx, w, respond.WithError(ctx, err))
@@ -496,11 +485,7 @@ func (a *API) ReviewAchievement(w http.ResponseWriter, r *http.Request) {
 	rec := event.Get(ctx)
 
 	// Get user from context
-	reviewer, ok := CurrentUser(ctx)
-	if !ok {
-		a.writeJSON(ctx, w, respond.WithError(ctx, sesc.ErrUserNotFound))
-		return
-	}
+	user := CurrentUser(ctx)
 
 	// Get achievement from context (added by AchievementMiddleware)
 	ach, ok := GetAchievementFromContext(ctx)
@@ -521,11 +506,10 @@ func (a *API) ReviewAchievement(w http.ResponseWriter, r *http.Request) {
 	opt := achievement.ReviewOptions{
 		AchievementOwnerID: ach.OwnerID,
 		AchievementID:      ach.ID,
-		ReviewerID:         reviewer.ID,
 		Action:             achievement.ReviewAction(req.Action),
 		Comment:            req.Comment,
 	}
-	updatedAch, err := a.sesc.ReviewAchievement(ctx, opt)
+	updatedAch, err := a.sesc.ReviewAchievement(ctx, user, opt)
 	if err != nil {
 		rec.Add(events.Error, err)
 		a.writeJSON(ctx, w, respond.WithError(ctx, err))
@@ -561,11 +545,7 @@ func (a *API) SubmitWithNewPoints(w http.ResponseWriter, r *http.Request) {
 	rec := event.Get(ctx)
 
 	// Get user from context
-	user, ok := CurrentUser(ctx)
-	if !ok {
-		a.writeJSON(ctx, w, respond.WithError(ctx, sesc.ErrUserNotFound))
-		return
-	}
+	user := CurrentUser(ctx)
 
 	// Get achievement from context (added by AchievementMiddleware)
 	ach, ok := GetAchievementFromContext(ctx)
@@ -590,11 +570,12 @@ func (a *API) SubmitWithNewPoints(w http.ResponseWriter, r *http.Request) {
 
 	// Submit achievement with updated points
 	opt := achievement.UpdatePointsOptions{
-		OwnerID:       user.ID,
 		AchievementID: ach.ID,
+		OwnerID:       ach.OwnerID,
 		Points:        req.Points,
+		Comment:       req.Comment,
 	}
-	updatedAch, err := a.sesc.UpdateAchievementPoints(ctx, opt)
+	updatedAch, err := a.sesc.UpdateAchievementPoints(ctx, user, opt)
 	if err != nil {
 		rec.Add(events.Error, err)
 		a.writeJSON(ctx, w, respond.WithError(ctx, err))

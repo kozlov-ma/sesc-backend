@@ -15,14 +15,8 @@ import (
 	"github.com/kozlov-ma/sesc-backend/pkg/event/events"
 )
 
-// Variable to load achievements with users for testing purposes.
-//
-// Preferrably, should be removed.
-var includeAchievementsForTests = false
-
-// ACCESSTODO
-// GetUsersWithAchievements retrieves users that have achievements with pagination.
-func (s *ACS) GetUsersWithAchievements(
+// getUsersWithAchievements retrieves users that have achievements with pagination.
+func (s *ACS) getUsersWithAchievements(
 	ctx context.Context,
 	whosAsking string,
 	offset, limit int,
@@ -110,150 +104,13 @@ func (s *ACS) GetUsersWithAchievements(
 		return nil
 	})
 
-	uu, err := s.company.UsersWithIDs(ctx, userIDs)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	users, err := s.company.UsersWithIDs(ctx, userIDs)
 	if err != nil {
 		return nil, 0, fmt.Errorf("failed to get users with ids: %w", err)
 	}
-
-	return uu, totalUsers, err
+	return users, totalUsers, nil
 }
-
-// func VuserFilters(search string) []predicate.User {
-// 	return slices.Concat(
-// 		nameFilter(search),
-// 		roleFilter(search),
-// 		departmentFilter(search),
-// 	)
-// }
-
-// func nameFilter(search string) []predicate.User {
-// 	if search == "" {
-// 		return nil
-// 	}
-
-// 	split := strings.Fields(search)
-
-// 	if len(split) > 3 {
-// 		return nil
-// 	}
-
-// 	var pre []predicate.User
-
-// 	switch len(split) {
-// 	case 3:
-// 		n1, n2, n3 := split[0], split[1], split[2]
-// 		pre = append(
-// 			pre,
-// 			user.And(
-// 				user.LastNameContainsFold(n1),
-// 				user.FirstNameContainsFold(n2),
-// 				user.MiddleNameContainsFold(n3),
-// 			),
-// 			user.And(
-// 				user.FirstNameContainsFold(n1),
-// 				user.MiddleNameContainsFold(n2),
-// 				user.LastNameContainsFold(n3),
-// 			),
-// 		)
-// 	case 2:
-// 		n1, n2 := split[0], split[1]
-// 		pre = append(
-// 			pre,
-// 			user.And(
-// 				user.LastNameContainsFold(n1),
-// 				user.FirstNameContainsFold(n2),
-// 			),
-// 			user.And(
-// 				user.FirstNameContainsFold(n1),
-// 				user.LastNameContainsFold(n2),
-// 			),
-// 			user.And(
-// 				user.FirstNameContainsFold(n1),
-// 				user.MiddleNameContainsFold(n2),
-// 			),
-// 		)
-// 	case 1:
-// 		n1 := split[0]
-// 		pre = append(
-// 			pre,
-// 			user.LastNameContainsFold(n1),
-// 			user.FirstNameContainsFold(n1),
-// 		)
-// 	default:
-// 		return nil
-// 	}
-
-// 	return pre
-// }
-
-// func departmentFilter(search string) []predicate.User {
-// 	if search == "" {
-// 		return nil
-// 	}
-
-// 	return []predicate.User{
-// 		user.HasDepartmentWith(department.NameContainsFold(search)),
-// 	}
-// }
-
-// func roleFilter(search string) []predicate.User {
-// 	if search == "" {
-// 		return nil
-// 	}
-
-// 	lowerRoleName := strings.ToLower(search)
-// 	var pre []predicate.User
-
-// 	if containsAnyOf(lowerRoleName, "преп", "tea") {
-// 		pre = append(pre, user.Role(sesc.Teacher))
-// 	}
-
-// 	if containsAnyOf(lowerRoleName, "зав", "dep") {
-// 		pre = append(pre, user.Role(sesc.Dephead))
-// 	}
-
-// 	if containsAnyOf(lowerRoleName, "оли", "oly", "cont") {
-// 		pre = append(pre, user.Role(sesc.OlympiadDeputy))
-// 	}
-
-// 	if containsAnyOf(lowerRoleName, "науч", "наук", "sci") {
-// 		pre = append(pre, user.Role(sesc.ScientificDeputy))
-// 	}
-
-// 	if containsAnyOf(lowerRoleName, "разв", "deve") {
-// 		pre = append(pre, user.Role(sesc.DevelopmentDeputy))
-// 	}
-
-// 	if containsAnyOf(lowerRoleName, "ака", "aca") {
-// 		pre = append(pre, user.Role(sesc.AcademicDirector))
-// 	}
-
-// 	if containsAnyOf(lowerRoleName, "эко", "eco", "вед", "chi") {
-// 		pre = append(pre, user.Role(sesc.ChiefEconomist))
-// 	}
-
-// 	if len(pre) > 0 {
-// 		return pre
-// 	}
-
-// 	if containsAnyOf(lowerRoleName, "дир") {
-// 		pre = append(
-// 			pre,
-// 			user.Role(sesc.AcademicDirector),
-// 			user.Role(sesc.DevelopmentDeputy),
-// 			user.Role(sesc.OlympiadDeputy),
-// 			user.Role(sesc.ScientificDeputy),
-// 		)
-// 	}
-
-// 	return pre
-// }
-
-// func containsAnyOf(s string, variants ...string) bool {
-// 	for _, v := range variants {
-// 		if strings.Contains(s, v) {
-// 			return true
-// 		}
-// 	}
-// 	return false
-// }

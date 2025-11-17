@@ -60,10 +60,10 @@ const formSchema = z
       if (data.isUnlimitedPoints) {
         return true;
       }
-      return data.pointsLimit > 0;
+      return data.pointsLimit >= 1 && data.pointsLimit <= 50;
     },
     {
-      message: "Минимум 1 балл",
+      message: "Количество баллов должно быть от 1 до 50",
       path: ["pointsLimit"],
     },
   );
@@ -221,7 +221,7 @@ export function AchievementTemplateFormDialog({
       <DialogContent className="max-w-[500px]">
         <DialogHeader>
           <DialogTitle>
-            {template ? "Редактировать шаблон" : "Создать шаблон"}
+            {template ? "Редактировать шаблон" : "Добавить шаблон"}
           </DialogTitle>
           <DialogDescription>
             {template
@@ -325,7 +325,7 @@ export function AchievementTemplateFormDialog({
                 updateTemplateMutation.isPending) && (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               )}
-              {template ? "Сохранить" : "Создать"}
+              {template ? "Сохранить" : "Добавить"}
             </Button>
           </div>
         </form>

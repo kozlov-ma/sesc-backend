@@ -13,7 +13,7 @@ type FileSearchOptions struct {
 type FileCreateOptions struct {
 	FileName string
 	FileSize int
-	OwnerID  *string
+	Common   bool
 }
 
 func (f FileCreateOptions) Validate() error {

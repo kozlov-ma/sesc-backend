@@ -10,7 +10,6 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/kozlov-ma/sesc-backend/api"
 	"github.com/kozlov-ma/sesc-backend/auth/authservice"
-	"github.com/kozlov-ma/sesc-backend/company"
 	"github.com/kozlov-ma/sesc-backend/company/companyservice"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent/migrate"
@@ -19,7 +18,6 @@ import (
 	"github.com/kozlov-ma/sesc-backend/internal/s3svc"
 	"github.com/kozlov-ma/sesc-backend/internal/sescsvc"
 	"github.com/kozlov-ma/sesc-backend/internal/slogsink"
-
 	// database driver
 	_ "github.com/lib/pq"
 	// database driver
@@ -88,25 +86,8 @@ func NewWithDBOptions(ctx context.Context, cfg *config.Config, log *slog.Logger,
 		}
 	}
 
-	cs := companyservice.NewLocal([]company.User{
-		{
-			ID:           "kozlovma",
-			FullName:     "Козлов Михаил Александрович",
-			Roles:        []company.Role{company.Admin, company.DevelopmentDeputy, company.Teacher, company.Dephead},
-			DepartmentID: "trust_infra",
-			Extras: company.UserExtras{
-				DateOfEmployment: "28.05.2025",
-				EmploymentRate:   "40 часов",
-				JobTitle:         "Разработчик бэкенда в Яндексе",
-			},
-		},
-	}, map[string]string{"kozlovma": "yandexyandex"}, []company.Department{
-		{
-			ID:          "trust_infra",
-			Name:        "Группа Инфраструктуры Платежного Шлюза",
-			Description: "Создание, выбор и поддержка инструментов инфраструктуры для всех команд платежного шлюза.",
-		},
-	})
+	cs := companyservice.NewDemo()
+
 	sescService := sescsvc.New(client, cs)
 
 	// Initialize S3 storage

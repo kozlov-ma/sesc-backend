@@ -36,15 +36,18 @@ type (
 		// Achievement group operations
 		AchievementGroups(
 			ctx context.Context,
+			actingUser company.User,
 			options achievement.GroupSearchOptions,
 		) (ent.AchievementGroups, error)
-		AchievementGroupByID(ctx context.Context, id uuid.UUID) (*ent.AchievementGroup, error)
+		AchievementGroupByID(ctx context.Context, actingUser company.User, id uuid.UUID) (*ent.AchievementGroup, error)
 		CreateAchievementGroup(
 			ctx context.Context,
+			actingUser company.User,
 			options achievement.GroupCreateOptions,
 		) (*ent.AchievementGroup, error)
 		UpdateAchievementGroup(
 			ctx context.Context,
+			actingUser company.User,
 			id uuid.UUID,
 			options achievement.GroupUpdateOptions,
 		) (*ent.AchievementGroup, error)
@@ -52,82 +55,103 @@ type (
 		// Achievement template operations
 		AchievementTemplates(
 			ctx context.Context,
+			actingUser company.User,
 			options achievement.TemplateSearchOptions,
 		) (ent.AchievementTemplates, error)
-		AchievementTemplateByID(ctx context.Context, id uuid.UUID) (*ent.AchievementTemplate, error)
+		AchievementTemplateByID(
+			ctx context.Context,
+			actingUser company.User,
+			id uuid.UUID,
+		) (*ent.AchievementTemplate, error)
 		CreateAchievementTemplate(
 			ctx context.Context,
+			actingUser company.User,
 			options achievement.TemplateCreateOptions,
 		) (*ent.AchievementTemplate, error)
 		UpdateAchievementTemplate(
 			ctx context.Context,
+			actingUser company.User,
 			id uuid.UUID,
 			options achievement.TemplateUpdateOptions,
 		) (*ent.AchievementTemplate, error)
 
-		GetAchievement(ctx context.Context, id uuid.UUID) (*ent.Achievement, error)
+		GetAchievement(
+			ctx context.Context,
+			actingUser company.User,
+			id uuid.UUID,
+		) (*ent.Achievement, error)
 		GetUserAchievements(
 			ctx context.Context,
-			userID string,
-			whosAsking string,
+			asking company.User,
+			targetUserID string,
 			offset, limit int,
 			requireChanges bool,
 		) (ent.Achievements, int, error)
 		GetUsersWithAchievements(
 			ctx context.Context,
-			whosAsking string,
+			actingUser company.User,
 			offset, limit int,
 			search string,
 		) ([]company.User, int, error)
 
 		CreateAchievement(
 			ctx context.Context,
+			actingUser company.User,
 			opt achievement.CreateOptions,
 		) (*ent.Achievement, error)
-		DeleteAchievement(ctx context.Context, opt achievement.DeleteOptions) error
+		DeleteAchievement(ctx context.Context, actingUser company.User, opt achievement.DeleteOptions) error
 		AddDocument(
 			ctx context.Context,
+			actingUser company.User,
 			opt achievement.AddDocumentOptions,
 		) (*ent.AchievementDocument, error)
-		RemoveDocument(ctx context.Context, opt achievement.RemoveDocumentOptions) error
+		RemoveDocument(ctx context.Context, actingUser company.User, opt achievement.RemoveDocumentOptions) error
 
 		SubmitAchievement(
 			ctx context.Context,
+			actingUser company.User,
 			opt achievement.SubmitOptions,
 		) (*ent.Achievement, error)
 
 		ReviewAchievement(
 			ctx context.Context,
+			actingUser company.User,
 			opt achievement.ReviewOptions,
 		) (*ent.Achievement, error)
 
 		UpdateAchievementPoints(
 			ctx context.Context,
+			actingUser company.User,
 			opt achievement.UpdatePointsOptions,
 		) (*ent.Achievement, error)
 
 		// GenerateUserPointsReport generates an Excel report with user achievement points
-		GenerateUserPointsReport(ctx context.Context) (*bytes.Buffer, error)
+		GenerateUserPointsReport(ctx context.Context, actingUser company.User) (*bytes.Buffer, error)
 
 		// MarkAllDoneAchievementsAsAccounted marks all achievements with "done" status as "accounted"
-		MarkAllDoneAchievementsAsAccounted(ctx context.Context) (int, error)
+		MarkAllDoneAchievementsAsAccounted(ctx context.Context, actingUser company.User) (int, error)
 	}
 
 	// FileService defines the file operations interface required by the API
 	FileService interface {
 		// Search searches for files with the given options
-		Search(ctx context.Context, opts sesc.FileSearchOptions) (ent.Files, int, error)
+		Search(
+			ctx context.Context,
+			user company.User,
+			opts sesc.FileSearchOptions,
+		) (ent.Files, int, error)
 		// Create uploads a new file
 		Create(
 			ctx context.Context,
+			user company.User,
 			reader io.Reader,
 			opts sesc.FileCreateOptions,
 		) (*ent.File, error)
 		// Delete deletes a file
-		Delete(ctx context.Context, id uuid.UUID) error
+		Delete(ctx context.Context, user company.User, id uuid.UUID) error
 		// ByID returns a file by its ID
-		ByID(ctx context.Context, id uuid.UUID) (*ent.File, error)
-		DownloadURL(ctx context.Context, id uuid.UUID) (string, error)
+		ByID(ctx context.Context, user company.User, id uuid.UUID) (*ent.File, error)
+		DownloadURL(ctx context.Context, user company.User, id uuid.UUID) (string, error)
 	}
 
 	// EventSink is used by the API to log events

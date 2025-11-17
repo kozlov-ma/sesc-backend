@@ -14,6 +14,7 @@ import (
 	"github.com/go-openapi/runtime"
 	cr "github.com/go-openapi/runtime/client"
 	"github.com/go-openapi/strfmt"
+	"github.com/go-openapi/swag"
 )
 
 // NewPostFilesParams creates a new PostFilesParams object,
@@ -66,6 +67,12 @@ type PostFilesParams struct {
 	   Bearer JWT token
 	*/
 	Authorization *string
+
+	/* Common.
+
+	   If true, upload as a common file
+	*/
+	Common *bool
 
 	/* File.
 
@@ -137,6 +144,17 @@ func (o *PostFilesParams) SetAuthorization(authorization *string) {
 	o.Authorization = authorization
 }
 
+// WithCommon adds the common to the post files params
+func (o *PostFilesParams) WithCommon(common *bool) *PostFilesParams {
+	o.SetCommon(common)
+	return o
+}
+
+// SetCommon adds the common to the post files params
+func (o *PostFilesParams) SetCommon(common *bool) {
+	o.Common = common
+}
+
 // WithFile adds the file to the post files params
 func (o *PostFilesParams) WithFile(file runtime.NamedReadCloser) *PostFilesParams {
 	o.SetFile(file)
@@ -161,6 +179,23 @@ func (o *PostFilesParams) WriteToRequest(r runtime.ClientRequest, reg strfmt.Reg
 		// header param Authorization
 		if err := r.SetHeaderParam("Authorization", *o.Authorization); err != nil {
 			return err
+		}
+	}
+
+	if o.Common != nil {
+
+		// query param common
+		var qrCommon bool
+
+		if o.Common != nil {
+			qrCommon = *o.Common
+		}
+		qCommon := swag.FormatBool(qrCommon)
+		if qCommon != "" {
+
+			if err := r.SetQueryParam("common", qCommon); err != nil {
+				return err
+			}
 		}
 	}
 	// form file param file

@@ -54,8 +54,8 @@ func QueryBoolOrFalse(r *http.Request, name string) bool {
 	return b
 }
 
-// ParsePagination parses offset and limit parameters with defaults
-func ParsePagination(r *http.Request) (offset, limit int, err error) {
+// QueryPagination parses offset and limit parameters with defaults
+func QueryPagination(r *http.Request) (offset, limit int, err error) {
 	offset = 0
 	limit = 10
 

@@ -92,11 +92,12 @@ func calculateNewStatusAndPoints(
 	return currentStatus, currentPoints
 }
 
-// ReviewAchievement reviews an achievement with approve, disapprove, or request changes action.
+// reviewAchievement reviews an achievement with approve, disapprove, or request changes action.
 // Returns achievement.ErrAchievementNotFound if the achievement does not exist.
 // Returns achievement.ErrWrongAchievementStatus if the achievement is not in the correct status for review.
-func (s *ACS) ReviewAchievement(
+func (s *ACS) reviewAchievement(
 	ctx context.Context,
+	reviewerID string,
 	opt achievement.ReviewOptions,
 ) (*ent.Achievement, error) {
 	rec := event.Get(ctx).Sub("sesc/review_achievement")
@@ -106,7 +107,7 @@ func (s *ACS) ReviewAchievement(
 	rec.Sub("params").Set(
 		"achievement_id", opt.AchievementID,
 		"achievement_owner_id", opt.AchievementOwnerID,
-		"reviewer_id", opt.ReviewerID,
+		"reviewer_id", reviewerID,
 		"action", string(opt.Action),
 		"comment_length", len(opt.Comment),
 	)
@@ -142,7 +143,7 @@ func (s *ACS) ReviewAchievement(
 
 		var reviewer company.User
 		err = rec.Operation("get_reviewer", func(_ *event.Record) error {
-			reviewer, err = s.company.User(ctx, companyquery.User{ID: opt.ReviewerID})
+			reviewer, err = s.company.User(ctx, companyquery.User{ID: reviewerID})
 			if err != nil {
 				return fmt.Errorf("failed to get reviewer user: %w", err)
 			}
@@ -177,7 +178,7 @@ func (s *ACS) ReviewAchievement(
 			_, err = tx.AchievementReview.Create().
 				SetID(reviewID).
 				SetAchievementID(opt.AchievementID).
-				SetReviewerID(opt.ReviewerID).
+				SetReviewerID(reviewerID).
 				SetPointsAssigned(pointsForReview).
 				SetComment(opt.Comment).
 				Save(ctx)

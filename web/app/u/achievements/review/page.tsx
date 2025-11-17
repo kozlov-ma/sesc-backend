@@ -304,7 +304,6 @@ function UserRow({
             <Link href={`/u/users/${user.id}`}>
               <UserAvatar userId={user.id} size="sm" />
             </Link>
-            <span className="ml-2">{user.fullName}</span>
           </div>
         </TableCell>
         <TableCell>

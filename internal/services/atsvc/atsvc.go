@@ -26,9 +26,9 @@ func New(client *ent.Client) *ATS {
 	}
 }
 
-// AchievementGroupByID gets an achievement group by its ID.
+// achievementGroupByID gets an achievement group by its ID.
 // Returns achievement.ErrAchievementGroupNotFound if the group does not exist.
-func (s *ATS) AchievementGroupByID(ctx context.Context, id uuid.UUID) (*ent.AchievementGroup, error) {
+func (s *ATS) achievementGroupByID(ctx context.Context, id uuid.UUID) (*ent.AchievementGroup, error) {
 	rec := event.Get(ctx).Sub("sesc/achievement_group_by_id")
 	rec.Add("group_id", id)
 
@@ -45,8 +45,8 @@ func (s *ATS) AchievementGroupByID(ctx context.Context, id uuid.UUID) (*ent.Achi
 	return group, nil
 }
 
-// CreateAchievementGroup creates a new achievement group with auto-generated ID.
-func (s *ATS) CreateAchievementGroup(
+// createAchievementGroup creates a new achievement group with auto-generated ID.
+func (s *ATS) createAchievementGroup(
 	ctx context.Context,
 	options achievement.GroupCreateOptions,
 ) (*ent.AchievementGroup, error) {
@@ -66,9 +66,9 @@ func (s *ATS) CreateAchievementGroup(
 	return group, nil
 }
 
-// UpdateAchievementGroup updates an existing achievement group.
+// updateAchievementGroup updates an existing achievement group.
 // Returns achievement.ErrAchievementGroupNotFound if the group does not exist.
-func (s *ATS) UpdateAchievementGroup(
+func (s *ATS) updateAchievementGroup(
 	ctx context.Context,
 	id uuid.UUID,
 	options achievement.GroupUpdateOptions,
@@ -102,8 +102,8 @@ func (s *ATS) UpdateAchievementGroup(
 	return group, nil
 }
 
-// AchievementTemplates gets all achievement templates with optional filtering.
-func (s *ATS) AchievementTemplates(
+// achievementTemplates gets all achievement templates with optional filtering.
+func (s *ATS) achievementTemplates(
 	ctx context.Context,
 	options achievement.TemplateSearchOptions,
 ) (ent.AchievementTemplates, error) {
@@ -134,9 +134,9 @@ func (s *ATS) AchievementTemplates(
 	return templates, nil
 }
 
-// AchievementTemplateByID gets an achievement template by its ID.
+// achievementTemplateByID gets an achievement template by its ID.
 // Returns achievement.ErrAchievementTemplateNotFound if the template does not exist.
-func (s *ATS) AchievementTemplateByID(ctx context.Context, id uuid.UUID) (*ent.AchievementTemplate, error) {
+func (s *ATS) achievementTemplateByID(ctx context.Context, id uuid.UUID) (*ent.AchievementTemplate, error) {
 	rec := event.Get(ctx).Sub("sesc/achievement_template_by_id")
 	rec.Add("template_id", id)
 
@@ -153,9 +153,9 @@ func (s *ATS) AchievementTemplateByID(ctx context.Context, id uuid.UUID) (*ent.A
 	return template, nil
 }
 
-// CreateAchievementTemplate creates a new achievement template with auto-generated ID.
+// createAchievementTemplate creates a new achievement template with auto-generated ID.
 // Returns achievement.ErrAchievementGroupNotFound if the specified group does not exist.
-func (s *ATS) CreateAchievementTemplate(
+func (s *ATS) createAchievementTemplate(
 	ctx context.Context,
 	options achievement.TemplateCreateOptions,
 ) (*ent.AchievementTemplate, error) {
@@ -196,10 +196,10 @@ func (s *ATS) CreateAchievementTemplate(
 	return template, nil
 }
 
-// UpdateAchievementTemplate updates an existing achievement template.
+// updateAchievementTemplate updates an existing achievement template.
 // Returns achievement.ErrAchievementTemplateNotFound if the template does not exist.
 // Note: GroupID cannot be changed after creation.
-func (s *ATS) UpdateAchievementTemplate(
+func (s *ATS) updateAchievementTemplate(
 	ctx context.Context,
 	id uuid.UUID,
 	options achievement.TemplateUpdateOptions,

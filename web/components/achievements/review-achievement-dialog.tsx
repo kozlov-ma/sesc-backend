@@ -137,7 +137,7 @@ export function ReviewAchievementDialog({
   };
 
   const isCommentRequired = (action: ReviewAction | null) => {
-    return action === "request_changes";
+    return action === "request_changes" || action === "disapprove";
   };
 
   const canSubmit = (action: ReviewAction | null) => {
@@ -230,7 +230,10 @@ export function ReviewAchievementDialog({
                         </TableCell>
                         <TableCell className="max-w-[200px]">
                           <div className="truncate">
-                            <FileNameByIdDisplay fileId={document.fileId} />
+                            <FileNameByIdDisplay
+                              fileId={document.fileId}
+                              displayName={document.name}
+                            />
                           </div>
                         </TableCell>
                       </TableRow>

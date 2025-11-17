@@ -3,20 +3,20 @@
 import { FileNameByIdDisplay } from "@/components/files/file-name-display";
 import { Badge } from "@/components/ui/badge";
 import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogHeader,
-    DialogTitle,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
 } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
 } from "@/components/ui/table";
 import { UserAvatar } from "@/components/ui/user-avatar";
 import { RespondAchievement } from "@/lib/api";
@@ -38,7 +38,7 @@ export function AchievementDetailsDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl">
+      <DialogContent className="max-w-3xl max-h-[calc(100vh-4rem)] flex flex-col">
         <DialogHeader>
           <DialogTitle>{achievement.templateName}</DialogTitle>
           <DialogDescription>
@@ -46,7 +46,7 @@ export function AchievementDetailsDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="grid gap-6 py-4">
+        <div className="grid gap-6 py-4 overflow-y-auto">
           <div className="grid grid-cols-2 gap-4">
             <div>
               <h3 className="text-sm font-medium text-muted-foreground">
@@ -110,7 +110,10 @@ export function AchievementDetailsDialog({
                           </div>
                         </TableCell>
                         <TableCell className="max-w-[200px]">
-                          <FileNameByIdDisplay fileId={document.fileId} />
+                          <FileNameByIdDisplay
+                            fileId={document.fileId}
+                            displayName={document.name}
+                          />
                         </TableCell>
                       </TableRow>
                     ))}
@@ -151,11 +154,8 @@ export function AchievementDetailsDialog({
                             ? "-"
                             : review.pointsAssigned}
                         </TableCell>
-                        <TableCell className="max-w-[200px]">
-                          <div
-                            className="truncate"
-                            title={review.comment || "-"}
-                          >
+                        <TableCell className="align-top">
+                          <div className="whitespace-pre-wrap break-words">
                             {review.comment || "-"}
                           </div>
                         </TableCell>

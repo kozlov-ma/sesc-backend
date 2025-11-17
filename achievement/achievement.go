@@ -72,7 +72,6 @@ type DeleteOptions struct {
 type ReviewOptions struct {
 	AchievementOwnerID string
 	AchievementID      UUID
-	ReviewerID         string
 
 	Action  ReviewAction
 	Comment string

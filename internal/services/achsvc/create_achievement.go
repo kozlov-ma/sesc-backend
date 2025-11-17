@@ -14,10 +14,9 @@ import (
 	"github.com/kozlov-ma/sesc-backend/pkg/event/events"
 )
 
-// ACCESSTODO
-// CreateAchievement creates a new achievement for a user based on a template.
+// createAchievement creates a new achievement for a user based on a template.
 // Returns achievement.ErrAchievementTemplateNotFound if the template does not exist.
-func (s *ACS) CreateAchievement(
+func (s *ACS) createAchievement(
 	ctx context.Context,
 	opt achievement.CreateOptions,
 ) (*ent.Achievement, error) {

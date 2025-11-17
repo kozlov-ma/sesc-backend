@@ -14,10 +14,10 @@ import (
 	"github.com/kozlov-ma/sesc-backend/sesc"
 )
 
-// AddDocument adds a document to an achievement.
+// addDocument adds a document to an achievement.
 // Returns achievement.ErrAchievementNotFound if the achievement does not exist.
 // Returns achievement.ErrWrongAchievementStatus if the achievement is not in draft status.
-func (s *ACS) AddDocument(
+func (s *ACS) addDocument(
 	ctx context.Context,
 	opt achievement.AddDocumentOptions,
 ) (*ent.AchievementDocument, error) {

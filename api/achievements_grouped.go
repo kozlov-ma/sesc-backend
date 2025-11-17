@@ -7,7 +7,6 @@ import (
 	"github.com/kozlov-ma/sesc-backend/api/respond"
 	"github.com/kozlov-ma/sesc-backend/pkg/event"
 	"github.com/kozlov-ma/sesc-backend/pkg/event/events"
-	"github.com/kozlov-ma/sesc-backend/sesc"
 )
 
 // GetUsersWithAchievements godoc
@@ -31,16 +30,12 @@ func (a *API) GetUsersWithAchievements(w http.ResponseWriter, r *http.Request) {
 	rec := event.Get(ctx).Sub("http/get_users_with_achievements")
 
 	// Get user from context
-	user, ok := CurrentUser(ctx)
-	if !ok {
-		a.writeJSON(ctx, w, respond.WithError(ctx, sesc.ErrUserNotFound))
-		return
-	}
+	user := CurrentUser(ctx)
 
 	search := param.QueryStringOrZero(r, "search")
 
 	// Parse pagination parameters
-	offset, limit, err := param.ParsePagination(r)
+	offset, limit, err := param.QueryPagination(r)
 	if err != nil {
 		rec.Add(events.Error, err)
 		a.writeJSON(ctx, w, respond.WithError(ctx, err))
@@ -48,7 +43,7 @@ func (a *API) GetUsersWithAchievements(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get users with achievements
-	users, totalCount, err := a.sesc.GetUsersWithAchievements(ctx, user.ID, offset, limit, search)
+	users, totalCount, err := a.sesc.GetUsersWithAchievements(ctx, user, offset, limit, search)
 	if err != nil {
 		rec.Add(events.Error, err)
 		a.writeJSON(ctx, w, respond.WithError(ctx, err))

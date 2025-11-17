@@ -1245,7 +1245,12 @@ export type PostFilesData = {
     Authorization?: string;
   };
   path?: never;
-  query?: never;
+  query?: {
+    /**
+     * If true, upload as a common file
+     */
+    common?: boolean;
+  };
   url: "/files";
 };
 
