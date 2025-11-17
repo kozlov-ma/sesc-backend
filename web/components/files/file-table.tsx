@@ -30,7 +30,6 @@ import {
   getFilesInfiniteOptions,
   postFilesMutation,
 } from "@/lib/api/@tanstack/react-query.gen";
-import { usePathname } from 'next/navigation';
 import type { RespondFile } from "@/lib/api/types.gen";
 import { getErrorMessage } from "@/lib/error-handler";
 import { cn, formatFileSize } from "@/lib/utils";
@@ -154,7 +153,7 @@ export function FileTable({
     try {
       await uploadFileMutation.mutateAsync({
         body: { file },
-        query: { common: isCommon }
+        query: { common: isCommon },
       });
     } catch {
       // Ошибка уже обработана в onError мутации

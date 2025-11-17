@@ -81,7 +81,7 @@ export function FileNameDisplay({ file, className }: FileNameDisplayProps) {
     return (
       <Button
         variant="link"
-        className={cn("p-0 justify-start block w-full min-w-0", className)}
+        className={cn("p-0 justify-center block w-full min-w-0", className)}
         onClick={handleDownload}
         title={file.fileName || "Файл"}
       >
@@ -95,10 +95,10 @@ export function FileNameDisplay({ file, className }: FileNameDisplayProps) {
       <DialogTrigger asChild>
         <Button
           variant="ghost"
-          className={cn("group hover:bg-transparent p-0 justify-start w-full min-w-0 block", className)}
+          className={cn("group hover:bg-transparent p-0 justify-center w-full min-w-0 block", className)}
           title={file.fileName}
         >
-          <div className="flex items-center gap-2 min-w-0 max-w-full">
+          <div className="flex items-center justify-center gap-2 min-w-0 max-w-full">
             <Sparkles className="h-4 w-4 text-muted-foreground shrink-0" />
             <span className="font-medium truncate min-w-0">{file.fileName}</span>
           </div>
