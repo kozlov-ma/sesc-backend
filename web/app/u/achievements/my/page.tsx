@@ -213,20 +213,29 @@ function StatusCell({ achievement }: { achievement: RespondAchievement }) {
     achievement.status === "dephead_review" ||
     achievement.status === "inspector_review";
 
+  const isRequestedChanges =
+    achievement.status === "dephead_requested_changes" ||
+    achievement.status === "inspector_requested_changes";
+
   const lastReview = achievement.reviews[achievement.reviews.length - 1];
+
+  const isReturnedForChanges =
+    lastReview && lastReview.reviewerId === achievement.ownerId;
 
   const { data: reviewer, isLoading } = useQuery({
     ...getUsersByIdOptions({
       path: { id: lastReview?.reviewerId ?? "" },
     }),
-    enabled: isUnderReview && !!lastReview?.reviewerId,
+    enabled: isUnderReview && !!lastReview?.reviewerId && !isReturnedForChanges,
   });
 
   let label = getStatusLabel(achievement.status);
 
   const reviewerUser = reviewer as RespondUser | undefined;
 
-  if (isUnderReview && reviewerUser?.fullName) {
+  if (isRequestedChanges || (isUnderReview && isReturnedForChanges)) {
+    label = "Вернули на изменение";
+  } else if (isUnderReview && reviewerUser?.fullName) {
     label = `На проверке у ${reviewerUser.fullName}`;
   }
 

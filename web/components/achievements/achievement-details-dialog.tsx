@@ -38,7 +38,7 @@ export function AchievementDetailsDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl">
+      <DialogContent className="max-w-3xl max-h-[calc(100vh-4rem)] flex flex-col">
         <DialogHeader>
           <DialogTitle>{achievement.templateName}</DialogTitle>
           <DialogDescription>
@@ -46,7 +46,7 @@ export function AchievementDetailsDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="grid gap-6 py-4">
+        <div className="grid gap-6 py-4 overflow-y-auto">
           <div className="grid grid-cols-2 gap-4">
             <div>
               <h3 className="text-sm font-medium text-muted-foreground">
