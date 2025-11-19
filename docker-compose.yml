@@ -1,6 +1,6 @@
 services:
   postgres:
-    image: postgres
+    image: postgres:16-alpine
     container_name: postgres
     restart: unless-stopped
     ports:
@@ -87,7 +87,7 @@ services:
       PHPLDAPADMIN_LDAP_HOSTS: ldap
       PHPLDAPADMIN_HTTPS: "false"
     ports:
-      - "8080:80"
+      - "8081:80"
     restart: unless-stopped
     depends_on:
       - ldap

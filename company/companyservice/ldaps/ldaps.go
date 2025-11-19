@@ -142,8 +142,8 @@ func (ds *DataSource) connect() (*ldap.Conn, error) {
 
 func (ds *DataSource) fetchDepartments(conn *ldap.Conn) (map[string]company.Department, error) {
 	searchRequest := ldap.NewSearchRequest(
-		fmt.Sprintf("OU=employees,%s", ds.cfg.BaseDN),
-		ldap.ScopeSingleLevel,
+		ds.cfg.BaseDN,
+		ldap.ScopeWholeSubtree,
 		ldap.NeverDerefAliases,
 		0, 0, false,
 		"(objectClass=organizationalUnit)",
@@ -182,12 +182,12 @@ func (ds *DataSource) fetchUsers(
 	departments map[string]company.Department,
 ) (map[string]company.User, error) {
 	searchRequest := ldap.NewSearchRequest(
-		fmt.Sprintf("OU=employees,%s", ds.cfg.BaseDN),
+		ds.cfg.BaseDN,
 		ldap.ScopeWholeSubtree,
 		ldap.NeverDerefAliases,
 		0, 0, false,
-		"(&(objectClass=user)(sAMAccountName=*))",
-		[]string{"sAMAccountName", "givenName", "sn", "displayName", "memberOf"},
+		"(&(|(objectClass=user)(objectClass=person)(objectClass=inetOrgPerson))(|(sAMAccountName=*)(uid=*)))",
+		[]string{"sAMAccountName", "uid", "givenName", "sn", "displayName", "cn", "memberOf"},
 		nil,
 	)
 
