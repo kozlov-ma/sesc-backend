@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/signal"
 
+	ldapds "github.com/kozlov-ma/sesc-backend/company/companyservice/ldaps"
 	"github.com/kozlov-ma/sesc-backend/internal/app"
 	"github.com/kozlov-ma/sesc-backend/internal/config"
 )
@@ -29,7 +30,22 @@ func main() {
 		return
 	}
 
-	application, err := app.New(ctx, cfg, log)
+	ldap, err := ldapds.New(ldapds.Config{
+		Address:  "localhost:389",
+		BaseDN:   "dc=lyceum,dc=usu,dc=ru",
+		BindUser: "cn=admin,dc=lyceum,dc=usu,dc=ru",
+		BindPass: "Admin123!Pass",
+	})
+
+	if err != nil {
+		log.ErrorContext(ctx, "failed to set up an ldap data source", "error", err)
+		return
+	}
+
+	application, err := app.NewWithDBOptions(ctx, cfg, log, app.DBOptions{
+		CompanyDS: ldap,
+	})
+
 	if err != nil {
 		log.ErrorContext(ctx, "failed to create application", "error", err)
 		return

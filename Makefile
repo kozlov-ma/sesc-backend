@@ -8,7 +8,7 @@ generate:
 
 # Spin up the development database
 dev-db:
-	docker compose up -d postgres minio
+	docker compose up -d postgres minio phpldapadmin ldap
 
 # Spin up both database and backend
 dev-backend: generate
@@ -51,10 +51,6 @@ integration-tests:
 # Deploy application with Kamal
 deploy:
 	kamal deploy
-
-# Fix MinIO proxy configuration (run after manual MinIO reboot)
-fix-minio:
-	./scripts/fix-minio-proxy.sh
 
 # Show deployment status
 status:

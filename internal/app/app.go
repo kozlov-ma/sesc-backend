@@ -18,6 +18,7 @@ import (
 	"github.com/kozlov-ma/sesc-backend/internal/s3svc"
 	"github.com/kozlov-ma/sesc-backend/internal/sescsvc"
 	"github.com/kozlov-ma/sesc-backend/internal/slogsink"
+
 	// database driver
 	_ "github.com/lib/pq"
 	// database driver
@@ -39,7 +40,8 @@ type DBOptions struct {
 	// If true, skip running migrations
 	SkipMigrations bool
 	// Custom client to use instead of creating a new one
-	Client *ent.Client
+	Client    *ent.Client
+	CompanyDS companyservice.DataSource
 }
 
 // New creates a new application instance from the given config
@@ -87,6 +89,9 @@ func NewWithDBOptions(ctx context.Context, cfg *config.Config, log *slog.Logger,
 	}
 
 	cs := companyservice.NewDemo()
+	if dbOpts.CompanyDS != nil {
+		cs = companyservice.New(dbOpts.CompanyDS)
+	}
 
 	sescService := sescsvc.New(client, cs)
 

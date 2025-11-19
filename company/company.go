@@ -167,3 +167,10 @@ func (u User) Hash() string {
 
 	return strconv.FormatUint(h, 16)
 }
+
+func ExEmployee(id string) User {
+	return User{
+		ID:       id,
+		FullName: "Бывший Сотрудник",
+	}
+}

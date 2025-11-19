@@ -125,14 +125,19 @@ func (l *localDS) Users(ctx context.Context, q companyquery.Users) ([]company.Us
 func (l *localDS) UsersWithIDs(ctx context.Context, ids []string) ([]company.User, error) {
 	l.longSlowdown()
 	var uu []company.User
-	for _, u := range l.users {
+	for _, id := range ids {
 		if err := ctx.Err(); err != nil {
 			return nil, err
 		}
-		if slices.Contains(ids, u.ID) {
-			uu = append(uu, u)
+		if i := slices.IndexFunc(l.users, func(u company.User) bool {
+			return u.ID == id
+		}); i != -1 {
+			uu = append(uu, l.users[i])
+		} else {
+			uu = append(uu, company.ExEmployee(id))
 		}
 	}
+
 	return uu, nil
 }
 

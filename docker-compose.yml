@@ -51,6 +51,8 @@ services:
         condition: service_healthy
       minio:
         condition: service_healthy
+      ldap:
+        condition: service_healthy
     environment:
       SESC_DATABASE_ADDRESS: postgres://pguser:pgpassword@postgres:5432/sesc?sslmode=disable
       SESC_MINIO_ENDPOINT: minio:9000
@@ -59,6 +61,46 @@ services:
       SESC_MINIO_USE_SSL: "false"
       SESC_MINIO_BUCKET_NAME: sesc-files
 
+  ldap:
+    image: osixia/openldap:1.5.0
+    container_name: lyceum-ldap
+    hostname: ldap1
+    environment:
+      LDAP_ORGANISATION: "Lyceum"
+      LDAP_DOMAIN: "lyceum.usu.ru"
+      LDAP_ADMIN_PASSWORD: "Admin123!Pass"
+      LDAP_CONFIG_PASSWORD: "Admin123!Pass"
+      LDAP_RFC2307BIS_SCHEMA: "true"
+    ports:
+      - "389:389"
+    volumes:
+      - ldap-data:/var/lib/ldap
+      - ldap-config:/etc/ldap/slapd.d
+      - ./scripts/bootstrap.ldif:/ldif/bootstrap.ldif:ro
+      - ./scripts/import.sh:/container/environment/01-custom/import.sh:ro
+    restart: unless-stopped
+
+  phpldapadmin:
+    image: osixia/phpldapadmin:latest
+    container_name: phpldapadmin
+    environment:
+      PHPLDAPADMIN_LDAP_HOSTS: ldap
+      PHPLDAPADMIN_HTTPS: "false"
+    ports:
+      - "8080:80"
+    restart: unless-stopped
+    depends_on:
+      - ldap
+
 volumes:
   postgres:
   minio-data:
+  ldap-data:
+  ldap-config:
+
+networks:
+  default:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

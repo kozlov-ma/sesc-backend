@@ -1,0 +1,70 @@
+dn: dc=lyceum,dc=usu,dc=ru
+objectClass: top
+objectClass: dcObject
+objectClass: organization
+o: Lyceum
+dc: lyceum
+
+dn: ou=employees,dc=lyceum,dc=usu,dc=ru
+objectClass: organizationalUnit
+ou: employees
+
+dn: ou=kaf_bio,ou=employees,dc=lyceum,dc=usu,dc=ru
+objectClass: organizationalUnit
+ou: kaf_bio
+
+dn: ou=kaf_fil,ou=employees,dc=lyceum,dc=usu,dc=ru
+objectClass: organizationalUnit
+ou: kaf_fil
+
+dn: ou=kaf_foreign,ou=employees,dc=lyceum,dc=usu,dc=ru
+objectClass: organizationalUnit
+ou: kaf_foreign
+
+dn: ou=kaf_gum,ou=employees,dc=lyceum,dc=usu,dc=ru
+objectClass: organizationalUnit
+ou: kaf_gum
+
+dn: ou=kaf_inf,ou=employees,dc=lyceum,dc=usu,dc=ru
+objectClass: organizationalUnit
+ou: kaf_inf
+
+dn: ou=kaf_math,ou=employees,dc=lyceum,dc=usu,dc=ru
+objectClass: organizationalUnit
+ou: kaf_math
+
+dn: ou=kaf_phys,ou=employees,dc=lyceum,dc=usu,dc=ru
+objectClass: organizationalUnit
+ou: kaf_phys
+
+dn: ou=kaf_sport,ou=employees,dc=lyceum,dc=usu,dc=ru
+objectClass: organizationalUnit
+ou: kaf_sport
+
+dn: ou=otd_comp,ou=employees,dc=lyceum,dc=usu,dc=ru
+objectClass: organizationalUnit
+ou: otd_comp
+
+dn: ou=otd_hoz,ou=employees,dc=lyceum,dc=usu,dc=ru
+objectClass: organizationalUnit
+ou: otd_hoz
+
+dn: ou=otd_oko,ou=employees,dc=lyceum,dc=usu,dc=ru
+objectClass: organizationalUnit
+ou: otd_oko
+
+dn: ou=otd_olymp,ou=employees,dc=lyceum,dc=usu,dc=ru
+objectClass: organizationalUnit
+ou: otd_olymp
+
+dn: ou=otd_uvr,ou=employees,dc=lyceum,dc=usu,dc=ru
+objectClass: organizationalUnit
+ou: otd_uvr
+
+dn: ou=otd_vosp,ou=employees,dc=lyceum,dc=usu,dc=ru
+objectClass: organizationalUnit
+ou: otd_vosp
+
+dn: ou=office,ou=employees,dc=lyceum,dc=usu,dc=ru
+objectClass: organizationalUnit
+ou: office
