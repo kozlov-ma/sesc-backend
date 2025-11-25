@@ -229,7 +229,11 @@ export function AchievementTemplateFormDialog({
               : "Заполните данные для создания нового шаблона достижения"}
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <form
+          onSubmit={form.handleSubmit(onSubmit)}
+          className="space-y-4"
+          id="achievement-template-form"
+        >
           <div className="space-y-2">
             <Label htmlFor="name">Название</Label>
             <Input
@@ -261,10 +265,10 @@ export function AchievementTemplateFormDialog({
           <div className="space-y-2">
             <Label htmlFor="kind">Контролирующее лицо</Label>
             <Select
+              value={form.watch("kind")}
               onValueChange={(value) =>
                 form.setValue("kind", value as FormValues["kind"])
               }
-              defaultValue={form.getValues("kind")}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Выберите контролирующее лицо" />
@@ -316,6 +320,7 @@ export function AchievementTemplateFormDialog({
             </Button>
             <Button
               type="submit"
+              form="achievement-template-form"
               disabled={
                 createTemplateMutation.isPending ||
                 updateTemplateMutation.isPending
