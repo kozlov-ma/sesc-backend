@@ -2,6 +2,7 @@ package companyservice
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 	"sync"
@@ -37,7 +38,7 @@ type EventSink interface {
 	RecordEvent(ctx context.Context, rec *event.Record)
 }
 
-func NewLDAP(ctx context.Context, config LDAPConfig, eventSink EventSink) (*ldapDS, error) {
+func NewLDAP(ctx context.Context, config LDAPConfig, eventSink EventSink) (DataSource, error) {
 	if config.SyncInterval == 0 {
 		config.SyncInterval = 5 * time.Minute
 	}
@@ -283,7 +284,7 @@ func (l *ldapDS) User(ctx context.Context, q companyquery.User) (company.User, e
 	return s.queryUser(ctx, q, verifyPassword)
 }
 
-func (l *ldapDS) verifyPassword(ctx context.Context, userID, password string) error {
+func (l *ldapDS) verifyPassword(_ context.Context, userID, password string) error {
 	conn, err := ldap.DialURL(l.config.URL)
 	if err != nil {
 		return fmt.Errorf("failed to dial LDAP: %w", err)
@@ -310,7 +311,7 @@ func (l *ldapDS) verifyPassword(ctx context.Context, userID, password string) er
 	}
 
 	if len(sr.Entries) == 0 {
-		return fmt.Errorf("user not found")
+		return errors.New("user not found")
 	}
 
 	userDN := sr.Entries[0].DN

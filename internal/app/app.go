@@ -18,9 +18,8 @@ import (
 	"github.com/kozlov-ma/sesc-backend/internal/s3svc"
 	"github.com/kozlov-ma/sesc-backend/internal/sescsvc"
 	"github.com/kozlov-ma/sesc-backend/internal/slogsink"
-
-	_ "github.com/lib/pq"
-	_ "github.com/mattn/go-sqlite3"
+	_ "github.com/lib/pq"           // postgres driver
+	_ "github.com/mattn/go-sqlite3" // sqlite driver
 )
 
 type App struct {

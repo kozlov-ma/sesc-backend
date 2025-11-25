@@ -59,7 +59,11 @@ func (s *storage) usersWithIDs(ctx context.Context, ids []string) ([]company.Use
 	return result, nil
 }
 
-func (s *storage) queryUser(ctx context.Context, q companyquery.User, verifyPassword func(userID, password string) error) (company.User, error) {
+func (s *storage) queryUser(
+	ctx context.Context,
+	q companyquery.User,
+	verifyPassword func(userID, password string) error,
+) (company.User, error) {
 	if u, ok := s.usersByID[q.ID]; ok {
 		if err := ctx.Err(); err != nil {
 			return company.User{}, err
@@ -97,9 +101,10 @@ func (s *storage) queryUsers(ctx context.Context, q companyquery.Users) ([]compa
 
 		var accepted bool
 
-		if !hasExactFilters && !hasSubstringFilters {
+		switch {
+		case !hasExactFilters && !hasSubstringFilters:
 			accepted = true
-		} else if hasExactFilters {
+		case hasExactFilters:
 			accepted = true
 			if q.DepartmentID != "" {
 				accepted = accepted && u.DepartmentID == q.DepartmentID
@@ -107,7 +112,7 @@ func (s *storage) queryUsers(ctx context.Context, q companyquery.Users) ([]compa
 			if q.RoleID != "" {
 				accepted = accepted && u.HasRole(company.Role(q.RoleID))
 			}
-		} else {
+		default:
 			if q.FullName != "" && strings.Contains(strings.ToLower(u.FullName), strings.ToLower(q.FullName)) {
 				accepted = true
 			}

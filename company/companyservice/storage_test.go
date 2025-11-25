@@ -14,7 +14,12 @@ func testUsers() []company.User {
 	return []company.User{
 		{ID: "user1", FullName: "Alice Smith", DepartmentID: "dept1", Roles: []company.Role{company.Teacher}},
 		{ID: "user2", FullName: "Bob Jones", DepartmentID: "dept1", Roles: []company.Role{company.Dephead}},
-		{ID: "user3", FullName: "Charlie Brown", DepartmentID: "dept2", Roles: []company.Role{company.Teacher, company.Admin}},
+		{
+			ID:           "user3",
+			FullName:     "Charlie Brown",
+			DepartmentID: "dept2",
+			Roles:        []company.Role{company.Teacher, company.Admin},
+		},
 		{ID: "user4", FullName: "Diana Prince", DepartmentID: "dept2", Roles: []company.Role{company.ScientificDeputy}},
 	}
 }
@@ -113,7 +118,7 @@ func TestStorage_GetDepartmentByID(t *testing.T) {
 
 func TestStorage_UsersWithIDs(t *testing.T) {
 	s := newStorage(testUsers(), testDepartments())
-	ctx := context.Background()
+	ctx := t.Context()
 
 	t.Run("returns users in order of IDs", func(t *testing.T) {
 		ids := []string{"user3", "user1", "user4", "user2"}
@@ -173,7 +178,7 @@ func TestStorage_UsersWithIDs(t *testing.T) {
 	})
 
 	t.Run("respects context cancellation", func(t *testing.T) {
-		ctx, cancel := context.WithCancel(context.Background())
+		ctx, cancel := context.WithCancel(t.Context())
 		cancel()
 
 		ids := []string{"user1", "user2"}
@@ -199,7 +204,7 @@ func TestStorage_UsersWithIDs(t *testing.T) {
 
 func TestStorage_QueryUser(t *testing.T) {
 	s := newStorage(testUsers(), testDepartments())
-	ctx := context.Background()
+	ctx := t.Context()
 
 	t.Run("returns user by ID without password verification", func(t *testing.T) {
 		user, err := s.queryUser(ctx, companyquery.User{ID: "user1"}, nil)
@@ -230,7 +235,7 @@ func TestStorage_QueryUser(t *testing.T) {
 	})
 
 	t.Run("returns error for incorrect password", func(t *testing.T) {
-		verifyPassword := func(userID, password string) error {
+		verifyPassword := func(_, _ string) error {
 			return company.ErrUserNotFound
 		}
 
@@ -240,7 +245,7 @@ func TestStorage_QueryUser(t *testing.T) {
 	})
 
 	t.Run("respects context cancellation", func(t *testing.T) {
-		ctx, cancel := context.WithCancel(context.Background())
+		ctx, cancel := context.WithCancel(t.Context())
 		cancel()
 
 		_, err := s.queryUser(ctx, companyquery.User{ID: "user1"}, nil)
@@ -251,7 +256,7 @@ func TestStorage_QueryUser(t *testing.T) {
 
 func TestStorage_QueryUsers(t *testing.T) {
 	s := newStorage(testUsers(), testDepartments())
-	ctx := context.Background()
+	ctx := t.Context()
 
 	t.Run("returns all users for empty query", func(t *testing.T) {
 		users, err := s.queryUsers(ctx, companyquery.Users{})
@@ -296,7 +301,7 @@ func TestStorage_QueryUsers(t *testing.T) {
 	})
 
 	t.Run("respects context cancellation", func(t *testing.T) {
-		ctx, cancel := context.WithCancel(context.Background())
+		ctx, cancel := context.WithCancel(t.Context())
 		cancel()
 
 		_, err := s.queryUsers(ctx, companyquery.Users{})
@@ -307,7 +312,7 @@ func TestStorage_QueryUsers(t *testing.T) {
 
 func TestStorage_QueryDepartment(t *testing.T) {
 	s := newStorage(testUsers(), testDepartments())
-	ctx := context.Background()
+	ctx := t.Context()
 
 	t.Run("returns existing department", func(t *testing.T) {
 		dept, err := s.queryDepartment(ctx, companyquery.Department{ID: "dept1"})
@@ -324,7 +329,7 @@ func TestStorage_QueryDepartment(t *testing.T) {
 	})
 
 	t.Run("respects context cancellation", func(t *testing.T) {
-		ctx, cancel := context.WithCancel(context.Background())
+		ctx, cancel := context.WithCancel(t.Context())
 		cancel()
 
 		_, err := s.queryDepartment(ctx, companyquery.Department{ID: "dept1"})
@@ -335,7 +340,7 @@ func TestStorage_QueryDepartment(t *testing.T) {
 
 func TestStorage_QueryDepartments(t *testing.T) {
 	s := newStorage(testUsers(), testDepartments())
-	ctx := context.Background()
+	ctx := t.Context()
 
 	t.Run("returns all departments for empty name", func(t *testing.T) {
 		depts, err := s.queryDepartments(ctx, companyquery.Departments{Name: ""})
@@ -368,7 +373,7 @@ func TestStorage_QueryDepartments(t *testing.T) {
 	})
 
 	t.Run("respects context cancellation", func(t *testing.T) {
-		ctx, cancel := context.WithCancel(context.Background())
+		ctx, cancel := context.WithCancel(t.Context())
 		cancel()
 
 		_, err := s.queryDepartments(ctx, companyquery.Departments{Name: ""})
