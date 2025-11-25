@@ -115,6 +115,13 @@ type Action interface {
 	AllowsUser(u User) bool
 }
 
+func ExEmployee(id string) User {
+	return User{
+		ID:       id,
+		FullName: "Бывший Сотрудник",
+	}
+}
+
 func (u User) HasRole(rr ...Role) bool {
 	for _, r := range rr {
 		if slices.Contains(u.Roles, r) {

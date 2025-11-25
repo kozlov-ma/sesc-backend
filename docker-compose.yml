@@ -38,6 +38,60 @@ services:
       start_period: 30s
       timeout: 10s
 
+  ldap:
+    image: osixia/openldap:1.5.0
+    container_name: sesc-ldap
+    restart: unless-stopped
+    ports:
+      - "389:389"
+      - "636:636"
+    environment:
+      LDAP_ORGANISATION: "SESC Organization"
+      LDAP_DOMAIN: "sesc.local"
+      LDAP_BASE_DN: "dc=sesc,dc=local"
+      LDAP_ADMIN_PASSWORD: "admin"
+      LDAP_CONFIG_PASSWORD: "config"
+      LDAP_READONLY_USER: "false"
+      LDAP_RFC2307BIS_SCHEMA: "false"
+      LDAP_BACKEND: "mdb"
+      LDAP_TLS: "true"
+      LDAP_TLS_CRT_FILENAME: "ldap.crt"
+      LDAP_TLS_KEY_FILENAME: "ldap.key"
+      LDAP_TLS_DH_PARAM_FILENAME: "dhparam.pem"
+      LDAP_TLS_CA_CRT_FILENAME: "ca.crt"
+      LDAP_TLS_ENFORCE: "false"
+      LDAP_TLS_CIPHER_SUITE: "SECURE256:-VERS-SSL3.0"
+      LDAP_TLS_PROTOCOL_MIN: "3.1"
+      LDAP_TLS_VERIFY_CLIENT: "demand"
+      LDAP_REPLICATION: "false"
+      LDAP_REMOVE_CONFIG_AFTER_SETUP: "true"
+      LDAP_SSL_HELPER_PREFIX: "ldap"
+    volumes:
+      - ldap-data:/var/lib/ldap
+      - ldap-config:/etc/ldap/slapd.d
+      - ./ldap/init.ldif:/container/service/slapd/assets/config/bootstrap/ldif/custom/01_init.ldif
+      - ./ldap/users.ldif:/container/service/slapd/assets/config/bootstrap/ldif/custom/02_users.ldif
+    command: --copy-service --loglevel debug
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "ldapsearch",
+          "-x",
+          "-H",
+          "ldap://localhost",
+          "-b",
+          "dc=sesc,dc=local",
+          "-D",
+          "cn=admin,dc=sesc,dc=local",
+          "-w",
+          "admin",
+        ]
+      interval: 10s
+      retries: 5
+      start_period: 30s
+      timeout: 10s
+
   backend:
     build:
       context: .
@@ -51,6 +105,8 @@ services:
         condition: service_healthy
       minio:
         condition: service_healthy
+      ldap:
+        condition: service_healthy
     environment:
       SESC_DATABASE_ADDRESS: postgres://pguser:pgpassword@postgres:5432/sesc?sslmode=disable
       SESC_MINIO_ENDPOINT: minio:9000
@@ -58,7 +114,13 @@ services:
       SESC_MINIO_SECRET_KEY: minioadmin
       SESC_MINIO_USE_SSL: "false"
       SESC_MINIO_BUCKET_NAME: sesc-files
+      SESC_LDAP_URL: ldap://ldap:389
+      SESC_LDAP_BIND_DN: cn=admin,dc=sesc,dc=local
+      SESC_LDAP_BIND_PASSWORD: admin
+      SESC_LDAP_BASE_DN: dc=sesc,dc=local
 
 volumes:
   postgres:
   minio-data:
+  ldap-data:
+  ldap-config:

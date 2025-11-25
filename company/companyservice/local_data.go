@@ -2,8 +2,6 @@ package companyservice
 
 import (
 	"context"
-	"fmt"
-	"slices"
 	"strings"
 	"time"
 
@@ -14,126 +12,52 @@ import (
 var _ DataSource = (*localDS)(nil)
 
 type localDS struct {
-	users                []company.User
+	storage              *storage
 	userPasswords        map[string]string
-	departments          []company.Department
 	slowdownDuration     time.Duration
 	longSlowdownDuration time.Duration
 }
 
-// Department implements DataSource.
+func newLocalDS(users []company.User, userPasswords map[string]string, departments []company.Department) *localDS {
+	return &localDS{
+		storage:              newStorage(users, departments),
+		userPasswords:        userPasswords,
+		slowdownDuration:     200 * time.Millisecond,
+		longSlowdownDuration: 2 * time.Second,
+	}
+}
+
 func (l *localDS) Department(ctx context.Context, q companyquery.Department) (company.Department, error) {
 	l.slowdown()
-	for _, d := range l.departments {
-		if err := ctx.Err(); err != nil {
-			return company.Department{}, err
-		}
-		if d.ID == q.ID {
-			return d, nil
-		}
-	}
-
-	return company.Department{}, company.ErrDepartmentNotFound
+	return l.storage.queryDepartment(ctx, q)
 }
 
-// Departments implements DataSource.
 func (l *localDS) Departments(ctx context.Context, q companyquery.Departments) ([]company.Department, error) {
 	l.longSlowdown()
-	var deps []company.Department
-	for _, d := range l.departments {
-		if err := ctx.Err(); err != nil {
-			return nil, err
-		}
-
-		if strings.Contains(strings.ToLower(d.Name), strings.ToLower(q.Name)) {
-			deps = append(deps, d)
-		}
-	}
-
-	return deps, nil
+	return l.storage.queryDepartments(ctx, q)
 }
 
-// User implements DataSource.
 func (l *localDS) User(ctx context.Context, q companyquery.User) (company.User, error) {
 	l.slowdown()
 
-	for _, u := range l.users {
-		if err := ctx.Err(); err != nil {
-			return company.User{}, err
+	verifyPassword := func(userID, password string) error {
+		if expected, ok := l.userPasswords[userID]; ok && expected == password {
+			return nil
 		}
-		if q.Password == "" && u.ID == q.ID {
-			return u, nil
-		}
-		if u.ID == q.ID && l.userPasswords[u.ID] == q.Password {
-			return u, nil
-		}
+		return company.ErrUserNotFound
 	}
 
-	return company.User{}, company.ErrUserNotFound
+	return l.storage.queryUser(ctx, q, verifyPassword)
 }
 
-// Users implements DataSource.
 func (l *localDS) Users(ctx context.Context, q companyquery.Users) ([]company.User, error) {
-	deps, err := l.Departments(ctx, companyquery.Departments{Name: q.Department})
-	if err != nil {
-		return nil, fmt.Errorf("failed to query departments: %w", err)
-	}
-
-	var depNames []string
-	for _, d := range deps {
-		depNames = append(depNames, strings.ToLower(d.Name))
-	}
-
-	roles := roleNameHeuristic(q.RoleName)
-	var uu []company.User
-	for _, u := range l.users {
-		if err := ctx.Err(); err != nil {
-			return nil, err
-		}
-		var accepted bool
-		if depID := q.DepartmentID; depID != "" {
-			accepted = accepted && u.DepartmentID == depID
-		}
-		if roleID := q.RoleID; roleID != "" {
-			accepted = accepted && u.HasRole(company.Role(roleID))
-		}
-
-		if dep := strings.ToLower(q.Department); dep != "" {
-			var depExists bool
-			for _, dn := range depNames {
-				if strings.Contains(dn, strings.ToLower(dep)) {
-					depExists = true
-				}
-				break
-			}
-
-			accepted = accepted || depExists
-		}
-
-		accepted = accepted || strings.Contains(strings.ToLower(u.FullName), strings.ToLower(q.FullName))
-
-		accepted = accepted || u.HasRole(roles...)
-
-		if accepted {
-			uu = append(uu, u)
-		}
-	}
-
-	return uu, nil
+	l.longSlowdown()
+	return l.storage.queryUsers(ctx, q)
 }
 
 func (l *localDS) UsersWithIDs(ctx context.Context, ids []string) ([]company.User, error) {
 	l.longSlowdown()
-	var uu []company.User
-	for _, u := range l.users {
-		if err := ctx.Err(); err != nil {
-			return nil, err
-		}
-		if slices.Contains(ids, u.ID) {
-			uu = append(uu, u)
-		}
-	}
-	return uu, nil
+	return l.storage.usersWithIDs(ctx, ids)
 }
 
 func (l *localDS) slowdown() {

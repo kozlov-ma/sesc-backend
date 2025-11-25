@@ -1,8 +1,6 @@
 package companyservice
 
 import (
-	"time"
-
 	"github.com/kozlov-ma/sesc-backend/company"
 )
 
@@ -434,14 +432,6 @@ func NewDemo() S {
 	// Ensure the canonical admin has the expected repo password
 	pw["kozlovma"] = "yandexyandex"
 
-	// Use New with a local data source; tweak internal delays for quick demo
-	ds := &localDS{
-		users:                users,
-		userPasswords:        pw,
-		departments:          deps,
-		slowdownDuration:     200 * time.Millisecond,
-		longSlowdownDuration: 2 * time.Second,
-	}
-
-	return New(ds)
+	// Use NewLocal which internally creates an optimized storage
+	return NewLocal(users, pw, deps)
 }

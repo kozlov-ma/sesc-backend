@@ -18,7 +18,6 @@ const (
 	DefaultWriteTimeout      = 10 * time.Second
 )
 
-// DatabaseType represents the type of database to use
 type DatabaseType string
 
 const (
@@ -32,6 +31,7 @@ type Config struct {
 	HTTP             HTTPConfig              `mapstructure:"http"`
 	JWTSecret        string                  `mapstructure:"jwt_secret"`
 	MinIO            MinIOConfig             `mapstructure:"minio"`
+	LDAP             LDAPConfig              `mapstructure:"ldap"`
 }
 
 type DatabaseConfig struct {
@@ -61,6 +61,14 @@ type MinIOConfig struct {
 	BaseURL    string `mapstructure:"base_url"`
 }
 
+type LDAPConfig struct {
+	URL          string        `mapstructure:"url"`
+	BindDN       string        `mapstructure:"bind_dn"`
+	BindPassword string        `mapstructure:"bind_password"`
+	BaseDN       string        `mapstructure:"base_dn"`
+	SyncInterval time.Duration `mapstructure:"sync_interval"`
+}
+
 func LoadConfig() (*Config, error) {
 	v := viper.New()
 
@@ -76,8 +84,6 @@ func LoadConfig() (*Config, error) {
 	v.SetEnvKeyReplacer(replacer)
 	v.AutomaticEnv()
 
-	// Explicit bindings for all sensitive config fields
-	// This ensures env variables take precedence over config.yml
 	_ = v.BindEnv("database.address")
 	_ = v.BindEnv("jwt_secret")
 	_ = v.BindEnv("minio.endpoint")
@@ -90,10 +96,12 @@ func LoadConfig() (*Config, error) {
 	_ = v.BindEnv("http.read_header_timeout")
 	_ = v.BindEnv("http.read_timeout")
 	_ = v.BindEnv("http.write_timeout")
+	_ = v.BindEnv("ldap.url")
+	_ = v.BindEnv("ldap.bind_dn")
+	_ = v.BindEnv("ldap.bind_password")
+	_ = v.BindEnv("ldap.base_dn")
+	_ = v.BindEnv("ldap.sync_interval")
 
-	// Admin credentials can be set via env variables
-	// Format: SESC_ADMIN_CREDENTIALS_0_ID, SESC_ADMIN_CREDENTIALS_0_USERNAME, etc.
-	// Only bind if the env vars are actually set to avoid overriding with empty values
 	if os.Getenv("SESC_ADMIN_CREDENTIALS_0_ID") != "" {
 		_ = v.BindEnv("admin_credentials.0.id")
 	}
@@ -104,14 +112,11 @@ func LoadConfig() (*Config, error) {
 		_ = v.BindEnv("admin_credentials.0.password")
 	}
 
-	// Read config.yml if it exists (for local development only)
-	// If file doesn't exist, we'll use env variables and defaults
 	if err := v.ReadInConfig(); err != nil {
 		var configFileNotFoundError viper.ConfigFileNotFoundError
 		if !errors.As(err, &configFileNotFoundError) {
 			return nil, fmt.Errorf("error reading config file: %w", err)
 		}
-		// Config file not found is OK - we'll use env vars and defaults
 	}
 
 	var config Config
@@ -130,17 +135,21 @@ func setDefaults(v *viper.Viper) {
 
 	v.SetDefault("jwt_secret", "default_secret_change_me_in_production")
 
-	// Default database configuration
 	v.SetDefault("database.type", string(DatabaseTypePostgres))
 	v.SetDefault("database.address", "postgres://postgres:postgres@localhost:5432/sesc?sslmode=disable")
 
-	// Default MinIO configuration
 	v.SetDefault("minio.endpoint", "localhost:9000")
 	v.SetDefault("minio.access_key", "minioadmin")
 	v.SetDefault("minio.secret_key", "minioadmin")
 	v.SetDefault("minio.use_ssl", false)
 	v.SetDefault("minio.bucket_name", "sesc-files")
 	v.SetDefault("minio.base_url", "http://localhost:9000/sesc-files")
+
+	v.SetDefault("ldap.url", "ldap://localhost:389")
+	v.SetDefault("ldap.bind_dn", "cn=admin,dc=sesc,dc=local")
+	v.SetDefault("ldap.bind_password", "admin")
+	v.SetDefault("ldap.base_dn", "dc=sesc,dc=local")
+	v.SetDefault("ldap.sync_interval", 5*time.Minute)
 
 	v.SetDefault("admin_credentials", []AdminCredentialConfig{
 		{
