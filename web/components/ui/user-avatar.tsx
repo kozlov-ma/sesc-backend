@@ -18,6 +18,7 @@ interface UserAvatarProps {
   userId: string | null;
   size?: "sm" | "md" | "lg";
   showName?: boolean;
+  showAvatar?: boolean;
   className?: string;
 }
 
@@ -25,6 +26,7 @@ export function UserAvatar({
   userId,
   size = "md",
   showName = true,
+  showAvatar = true,
   className,
 }: UserAvatarProps) {
   const {
@@ -85,7 +87,9 @@ export function UserAvatar({
   if (isLoading) {
     return (
       <div className={cn("flex items-center", className)}>
-        <Skeleton className={cn("rounded-full", sizeClasses[size].avatar)} />
+        {showAvatar && (
+          <Skeleton className={cn("rounded-full", sizeClasses[size].avatar)} />
+        )}
         {showName && (
           <Skeleton
             className={cn(
@@ -107,11 +111,13 @@ export function UserAvatar({
           className,
         )}
       >
-        <Avatar className={sizeClasses[size].avatar}>
-          <AvatarFallback>
-            <User className="h-4 w-4" />
-          </AvatarFallback>
-        </Avatar>
+        {showAvatar && (
+          <Avatar className={sizeClasses[size].avatar}>
+            <AvatarFallback>
+              <User className="h-4 w-4" />
+            </AvatarFallback>
+          </Avatar>
+        )}
         {showName && (
           <span
             className={cn(
@@ -144,13 +150,15 @@ export function UserAvatar({
               className,
             )}
           >
-            <Avatar className={sizeClasses[size].avatar}>
-              {user.pictureUrl ? (
-                <AvatarImage src={user.pictureUrl} alt={fullName} />
-              ) : (
-                <AvatarFallback>{initials}</AvatarFallback>
-              )}
-            </Avatar>
+            {showAvatar && (
+              <Avatar className={sizeClasses[size].avatar}>
+                {user.pictureUrl ? (
+                  <AvatarImage src={user.pictureUrl} alt={fullName} />
+                ) : (
+                  <AvatarFallback>{initials}</AvatarFallback>
+                )}
+              </Avatar>
+            )}
             {showName && (
               <span
                 className={cn(

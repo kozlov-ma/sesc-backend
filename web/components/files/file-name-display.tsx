@@ -17,12 +17,14 @@ interface FileNameDisplayProps {
   file: RespondFile;
   className?: string;
   displayName?: string;
+  align?: "left" | "center";
 }
 
 interface FileByIdProps {
   fileId: string;
   className?: string;
   displayName?: string;
+  align?: "left" | "center";
 }
 
 const IMAGE_EXTENSIONS = [".jpg", ".jpeg", ".png", ".gif", ".webp", ".svg"];
@@ -31,6 +33,7 @@ export function FileNameByIdDisplay({
   fileId,
   className,
   displayName,
+  align = "center",
 }: FileByIdProps) {
   const {
     data: file,
@@ -66,6 +69,7 @@ export function FileNameByIdDisplay({
       file={file}
       className={className}
       displayName={displayName}
+      align={align}
     />
   );
 }
@@ -74,6 +78,7 @@ export function FileNameDisplay({
   file,
   className,
   displayName,
+  align = "center",
 }: FileNameDisplayProps) {
   const isImage = IMAGE_EXTENSIONS.some((ext) =>
     file.fileName?.toLowerCase()?.endsWith(ext),
@@ -99,11 +104,19 @@ export function FileNameDisplay({
     return (
       <Button
         variant="link"
-        className={cn("p-0 justify-center block w-full min-w-0", className)}
+        className={cn(
+          "min-w-0",
+          align === "left"
+            ? "inline-block justify-start px-2 py-1"
+            : "block w-full justify-center p-0",
+          className,
+        )}
         onClick={handleDownload}
         title={nameToDisplay}
       >
-        <span className="font-medium truncate block">{nameToDisplay}</span>
+        <span className="font-medium truncate block text-left">
+          {nameToDisplay}
+        </span>
       </Button>
     );
   }
@@ -114,14 +127,22 @@ export function FileNameDisplay({
         <Button
           variant="ghost"
           className={cn(
-            "group hover:bg-transparent p-0 justify-center w-full min-w-0 block",
+            "group hover:bg-transparent min-w-0",
+            align === "left"
+              ? "inline-flex justify-start px-2 py-1"
+              : "block w-full justify-center p-0",
             className,
           )}
           title={nameToDisplay}
         >
-          <div className="flex items-center justify-center gap-2 min-w-0 max-w-full">
+          <div
+            className={cn(
+              "flex items-center gap-2 min-w-0",
+              align === "left" ? "justify-start" : "justify-center",
+            )}
+          >
             <Sparkles className="h-4 w-4 text-muted-foreground shrink-0" />
-            <span className="font-medium truncate min-w-0">
+            <span className="font-medium truncate min-w-0 text-left">
               {nameToDisplay}
             </span>
           </div>
