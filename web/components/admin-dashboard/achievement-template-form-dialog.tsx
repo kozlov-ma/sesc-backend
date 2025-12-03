@@ -39,7 +39,7 @@ import * as z from "zod";
 const formSchema = z
   .object({
     name: z.string().min(1, "Название обязательно"),
-    description: z.string(),
+    description: z.string().min(1, "Описание обязательно"),
     pointsLimit: z
       .number()
       .min(0, "Количество баллов не может быть отрицательным"),
@@ -242,7 +242,7 @@ export function AchievementTemplateFormDialog({
               placeholder="Введите название шаблона"
             />
             {form.formState.errors.name && (
-              <p className="text-sm text-red-500">
+              <p className="text-sm text-destructive">
                 {form.formState.errors.name.message}
               </p>
             )}
@@ -256,7 +256,7 @@ export function AchievementTemplateFormDialog({
               placeholder="Введите описание шаблона"
             />
             {form.formState.errors.description && (
-              <p className="text-sm text-red-500">
+              <p className="text-sm text-destructive">
                 {form.formState.errors.description.message}
               </p>
             )}
@@ -289,7 +289,7 @@ export function AchievementTemplateFormDialog({
               </SelectContent>
             </Select>
             {form.formState.errors.kind && (
-              <p className="text-sm text-red-500">
+              <p className="text-sm text-destructive">
                 {form.formState.errors.kind.message}
               </p>
             )}
@@ -304,7 +304,7 @@ export function AchievementTemplateFormDialog({
               placeholder="Введите количество баллов"
             />
             {form.formState.errors.pointsLimit && (
-              <p className="text-sm text-red-500">
+              <p className="text-sm text-destructive">
                 {form.formState.errors.pointsLimit.message}
               </p>
             )}
