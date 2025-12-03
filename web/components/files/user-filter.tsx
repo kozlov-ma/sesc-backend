@@ -44,7 +44,6 @@ export function UserFilter({ value, onChange }: UserFilterProps) {
           {selectedUser ? (
             <div className="flex items-center gap-2">
               <UserAvatar userId={selectedUser.id} size="sm" />
-              <span>{`${selectedUser.fullName}`}</span>
             </div>
           ) : (
             "Выберите пользователя..."
