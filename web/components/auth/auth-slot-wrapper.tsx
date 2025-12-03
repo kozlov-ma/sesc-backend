@@ -6,11 +6,10 @@ export function AuthSlotWrapper({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, isLoading } = useAuth();
 
   // Не рендерим auth слот, если пользователь авторизован
-  // или идет проверка токена (что означает, что токен есть)
+  // или идет проверка токена
   if (isAuthenticated || isLoading) {
     return null;
   }
 
   return <>{children}</>;
 }
-

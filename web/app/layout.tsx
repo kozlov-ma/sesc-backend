@@ -1,9 +1,9 @@
-import type React from "react";
+import { AuthSlotWrapper } from "@/components/auth/auth-slot-wrapper";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import type React from "react";
 import "./globals.css";
 import Providers from "./providers";
-import { AuthSlotWrapper } from "@/components/auth/auth-slot-wrapper";
 
 const inter = Inter({ subsets: ["latin", "cyrillic"] });
 
