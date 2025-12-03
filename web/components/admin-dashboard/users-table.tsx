@@ -106,7 +106,11 @@ export function UsersTable() {
         </TableCell>
         <TableCell>{user.jobTitle || "-"}</TableCell>
         <TableCell>{user.departmentId || "-"}</TableCell>
-        <TableCell>{user.roles.map((r) => r.name).join(", ") || "-"}</TableCell>
+        <TableCell className="whitespace-normal break-words max-w-[200px]">
+          {user.roles.length > 0
+            ? user.roles.map((r) => r.name).join(", ")
+            : "-"}
+        </TableCell>
         <TableCell className="text-center">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -144,6 +148,7 @@ export function UsersTable() {
               <TableHead>Пользователь</TableHead>
               <TableHead>Подразделение</TableHead>
               <TableHead>Должность</TableHead>
+              <TableHead>Группа</TableHead>
               <TableHead>Роли</TableHead>
               <TableHead className="text-center w-[150px]">Действия</TableHead>
             </TableRow>

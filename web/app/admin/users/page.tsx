@@ -1,13 +1,12 @@
 "use client";
 
-import { useAuth } from "@/hooks/use-auth";
-import { motion } from "framer-motion";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { UserRound, UserRoundCheck, UserRoundX } from "lucide-react";
 import { UsersTable } from "@/components/admin-dashboard/users-table";
-import { useQuery } from "@tanstack/react-query";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useAuth } from "@/hooks/use-auth";
 import { getUsersOptions } from "@/lib/api/@tanstack/react-query.gen";
-import type { RespondUser } from "@/lib/api/types.gen";
+import { useQuery } from "@tanstack/react-query";
+import { motion } from "framer-motion";
+import { UserRound } from "lucide-react";
 
 export default function UsersPage() {
   const { isAuthenticated, isLoading } = useAuth();
