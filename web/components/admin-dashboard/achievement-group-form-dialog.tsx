@@ -28,8 +28,8 @@ import { toast } from "sonner";
 import { z } from "zod";
 
 const formSchema = z.object({
-  name: z.string().min(1, "Название обязательно"),
-  description: z.string().min(1, "Описание обязательно"),
+  name: z.string().trim().min(1, "Название обязательно"),
+  description: z.string().trim().min(1, "Описание обязательно"),
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -120,16 +120,20 @@ export function AchievementGroupFormDialog({
 
   const onSubmit = async (data: FormData) => {
     clearError();
+    const trimmedData = {
+      name: data.name.trim(),
+      description: data.description.trim(),
+    };
     if (group) {
       await updateGroupMutation.mutateAsync({
         path: {
           id: group.id,
         },
-        body: data,
+        body: trimmedData,
       });
     } else {
       await createGroupMutation.mutateAsync({
-        body: data,
+        body: trimmedData,
       });
     }
   };
