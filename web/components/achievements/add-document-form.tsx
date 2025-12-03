@@ -209,13 +209,17 @@ export function AddDocumentForm({
                       key={file.id}
                       className={`p-3 cursor-pointer transition-colors gap-0 ${
                         selectedFile?.id === file.id
-                          ? "bg-primary/10"
-                          : "hover:bg-muted"
+                          ? "bg-primary/20 border-primary border-2"
+                          : "hover:bg-muted border"
                       }`}
                       onClick={() => handleFileSelect(file)}
                     >
                       <div
-                        className="text-sm font-medium truncate text-wrap wrap-break-word break-all"
+                        className={`text-sm truncate text-wrap wrap-break-word break-all ${
+                          selectedFile?.id === file.id
+                            ? "font-semibold text-primary"
+                            : "font-medium"
+                        }`}
                         title={file.fileName}
                       >
                         {file.fileName}
@@ -236,13 +240,17 @@ export function AddDocumentForm({
                       key={file.id}
                       className={`p-3 cursor-pointer transition-colors gap-0 ${
                         selectedFile?.id === file.id
-                          ? "bg-primary/10"
-                          : "hover:bg-muted"
+                          ? "bg-primary/20 border-primary border-2"
+                          : "hover:bg-muted border"
                       }`}
                       onClick={() => handleFileSelect(file)}
                     >
                       <div
-                        className="text-sm font-medium truncate text-wrap wrap-break-word break-all"
+                        className={`text-sm truncate text-wrap wrap-break-word break-all ${
+                          selectedFile?.id === file.id
+                            ? "font-semibold text-primary"
+                            : "font-medium"
+                        }`}
                         title={file.fileName}
                       >
                         {file.fileName}
