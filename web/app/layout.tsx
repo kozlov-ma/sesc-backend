@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import Providers from "./providers";
+import { AuthSlotWrapper } from "@/components/auth/auth-slot-wrapper";
 
 const inter = Inter({ subsets: ["latin", "cyrillic"] });
 
@@ -24,7 +25,7 @@ export default function RootLayout({
       <body className={inter.className}>
         <Providers>
           <main>
-            {auth}
+            <AuthSlotWrapper>{auth}</AuthSlotWrapper>
             {user}
             {children}
           </main>
