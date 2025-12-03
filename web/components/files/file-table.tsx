@@ -328,7 +328,7 @@ export function FileTable({
                 {files.map((file) => (
                   <TableRow key={file.id}>
                     <TableCell className="font-medium">
-                      <FileNameDisplay file={file} />
+                      <FileNameDisplay file={file} align="left" />
                     </TableCell>
                     {showOwner && (
                       <TableCell>
