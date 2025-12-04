@@ -112,7 +112,6 @@ export function AchievementDetailsDialog({
                         <TableCell className="max-w-[200px]">
                           <FileNameByIdDisplay
                             fileId={document.fileId}
-                            displayName={document.name}
                             align="left"
                           />
                         </TableCell>
