@@ -176,7 +176,7 @@ export default function ReviewAchievementsPage() {
                 <TableRow>
                   <TableHead className="w-[300px]">Пользователь</TableHead>
                   <TableHead>Действия</TableHead>
-                  <TableHead className="text-right">Статус</TableHead>
+                  <TableHead className="text-center">Статус</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
