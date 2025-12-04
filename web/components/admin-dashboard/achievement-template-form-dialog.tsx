@@ -38,8 +38,8 @@ import * as z from "zod";
 
 const formSchema = z
   .object({
-    name: z.string().min(1, "Название обязательно"),
-    description: z.string().min(1, "Описание обязательно"),
+    name: z.string().trim().min(1, "Название обязательно"),
+    description: z.string().trim().min(1, "Описание обязательно"),
     pointsLimit: z
       .number()
       .min(0, "Количество баллов не может быть отрицательным"),
@@ -109,6 +109,7 @@ export function AchievementTemplateFormDialog({
       name: "",
       description: "",
       pointsLimit: 0,
+      isUnlimitedPoints: false,
       kind: "development_deputy",
     },
   });
@@ -123,6 +124,7 @@ export function AchievementTemplateFormDialog({
           name: template.name,
           description: template.description,
           pointsLimit: template.pointsLimit,
+          isUnlimitedPoints: template.pointsLimit === 0,
           kind: roleToKind(template.reviewerRoleID),
         });
       } else {
@@ -142,6 +144,7 @@ export function AchievementTemplateFormDialog({
     ...postAchievementTemplatesMutation(),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: templatesOpt.queryKey });
+      onOpenChange(false);
       onSuccess?.();
       toast.success("Шаблон создан", {
         description: "Шаблон достижения успешно создан.",
@@ -161,6 +164,7 @@ export function AchievementTemplateFormDialog({
     ...patchAchievementTemplatesByIdMutation(),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: templatesOpt.queryKey });
+      onOpenChange(false);
       onSuccess?.();
       toast.success("Шаблон обновлен", {
         description: "Шаблон достижения успешно обновлен.",
@@ -177,14 +181,18 @@ export function AchievementTemplateFormDialog({
 
   const onSubmit = async (data: FormValues) => {
     try {
+      const trimmedData = {
+        name: data.name.trim(),
+        description: data.description.trim(),
+      };
       if (template) {
         await updateTemplateMutation.mutateAsync({
           path: {
             id: template.id,
           },
           body: {
-            name: data.name,
-            description: data.description,
+            name: trimmedData.name,
+            description: trimmedData.description,
             pointsLimit: data.isUnlimitedPoints ? 0 : data.pointsLimit,
             reviewerRole: data.kind,
           },
@@ -195,8 +203,8 @@ export function AchievementTemplateFormDialog({
         }
         await createTemplateMutation.mutateAsync({
           body: {
-            name: data.name,
-            description: data.description,
+            name: trimmedData.name,
+            description: trimmedData.description,
             pointsLimit: data.isUnlimitedPoints ? 0 : data.pointsLimit,
             groupId,
             reviewerRole: data.kind,
