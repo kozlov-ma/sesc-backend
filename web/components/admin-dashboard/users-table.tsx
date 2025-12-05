@@ -104,8 +104,6 @@ export function UsersTable() {
         <TableCell>
           <DepartmentCell departmentId={user.departmentId} />
         </TableCell>
-        <TableCell>{user.jobTitle || "-"}</TableCell>
-        <TableCell>{user.departmentId || "-"}</TableCell>
         <TableCell className="whitespace-normal break-words max-w-[200px]">
           {user.roles.length > 0
             ? user.roles.map((r) => r.name).join(", ")
@@ -147,8 +145,6 @@ export function UsersTable() {
             <TableRow>
               <TableHead>Пользователь</TableHead>
               <TableHead>Подразделение</TableHead>
-              <TableHead>Должность</TableHead>
-              <TableHead>Группа</TableHead>
               <TableHead>Роли</TableHead>
               <TableHead className="text-center w-[150px]">Действия</TableHead>
             </TableRow>
@@ -158,7 +154,7 @@ export function UsersTable() {
               allUsers.map(renderUserRow)
             ) : (
               <TableRow>
-                <TableCell colSpan={7} className="h-24 text-center">
+                <TableCell colSpan={4} className="h-24 text-center">
                   {debouncedSearchTerm
                     ? "Пользователи не найдены"
                     : "Нет пользователей"}

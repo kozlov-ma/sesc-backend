@@ -36,37 +36,24 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import * as z from "zod";
 
-const formSchema = z
-  .object({
-    name: z.string().trim().min(1, "Название обязательно"),
-    description: z.string().trim().min(1, "Описание обязательно"),
-    pointsLimit: z
-      .number()
-      .min(0, "Количество баллов не может быть отрицательным"),
-    isUnlimitedPoints: z.boolean(),
-    kind: z
-      .enum([
-        "olympiad_deputy",
-        "development_deputy",
-        "scientific_deputy",
-        "academic_director",
-      ])
-      .refine((val) => val !== undefined, {
-        message: "Выберите контролирующее лицо",
-      }),
-  })
-  .refine(
-    (data) => {
-      if (data.isUnlimitedPoints) {
-        return true;
-      }
-      return data.pointsLimit >= 1 && data.pointsLimit <= 50;
-    },
-    {
-      message: "Количество баллов должно быть от 1 до 50",
-      path: ["pointsLimit"],
-    },
-  );
+const formSchema = z.object({
+  name: z.string().trim().min(1, "Название обязательно"),
+  description: z.string().trim().min(1, "Описание обязательно"),
+  pointsLimit: z
+    .number()
+    .min(1, "Количество баллов должно быть не менее 1")
+    .max(50, "Количество баллов должно быть не более 50"),
+  kind: z
+    .enum([
+      "olympiad_deputy",
+      "development_deputy",
+      "scientific_deputy",
+      "academic_director",
+    ])
+    .refine((val) => val !== undefined, {
+      message: "Выберите контролирующее лицо",
+    }),
+});
 
 type FormValues = z.infer<typeof formSchema>;
 
@@ -108,8 +95,7 @@ export function AchievementTemplateFormDialog({
     defaultValues: {
       name: "",
       description: "",
-      pointsLimit: 0,
-      isUnlimitedPoints: false,
+      pointsLimit: 1,
       kind: "development_deputy",
     },
   });
@@ -123,16 +109,14 @@ export function AchievementTemplateFormDialog({
         form.reset({
           name: template.name,
           description: template.description,
-          pointsLimit: template.pointsLimit,
-          isUnlimitedPoints: template.pointsLimit === 0,
+          pointsLimit: template.pointsLimit > 0 ? template.pointsLimit : 1,
           kind: roleToKind(template.reviewerRoleID),
         });
       } else {
         form.reset({
           name: "",
           description: "",
-          pointsLimit: 0,
-          isUnlimitedPoints: false,
+          pointsLimit: 1,
           kind: "development_deputy",
         });
       }
@@ -193,7 +177,7 @@ export function AchievementTemplateFormDialog({
           body: {
             name: trimmedData.name,
             description: trimmedData.description,
-            pointsLimit: data.isUnlimitedPoints ? 0 : data.pointsLimit,
+            pointsLimit: data.pointsLimit,
             reviewerRole: data.kind,
           },
         });
@@ -205,7 +189,7 @@ export function AchievementTemplateFormDialog({
           body: {
             name: trimmedData.name,
             description: trimmedData.description,
-            pointsLimit: data.isUnlimitedPoints ? 0 : data.pointsLimit,
+            pointsLimit: data.pointsLimit,
             groupId,
             reviewerRole: data.kind,
           },
