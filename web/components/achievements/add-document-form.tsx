@@ -215,7 +215,7 @@ export function AddDocumentForm({
                       onClick={() => handleFileSelect(file)}
                     >
                       <div
-                        className={`text-sm truncate text-wrap wrap-break-word break-all ${
+                        className={`text-sm truncate text-wrap break-words break-all ${
                           selectedFile?.id === file.id
                             ? "font-semibold text-primary"
                             : "font-medium"
@@ -246,7 +246,7 @@ export function AddDocumentForm({
                       onClick={() => handleFileSelect(file)}
                     >
                       <div
-                        className={`text-sm truncate text-wrap wrap-break-word break-all ${
+                        className={`text-sm truncate text-wrap break-words break-all ${
                           selectedFile?.id === file.id
                             ? "font-semibold text-primary"
                             : "font-medium"

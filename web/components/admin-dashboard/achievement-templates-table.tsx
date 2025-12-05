@@ -320,13 +320,13 @@ export function AchievementTemplatesTable() {
                             <ExpandableText
                               text={group.name}
                               maxLength={80}
-                              className="text-pretty wrap-break-word whitespace-normal"
+                              className="text-pretty break-words whitespace-normal"
                             />
                             <div className="block sm:hidden text-xs text-muted-foreground mt-1">
                               <ExpandableText
                                 text={group.description}
                                 maxLength={100}
-                                className="text-pretty wrap-break-word whitespace-normal"
+                                className="text-pretty break-words whitespace-normal"
                               />
                             </div>
                           </div>
@@ -336,7 +336,7 @@ export function AchievementTemplatesTable() {
                         <ExpandableText
                           text={group.description}
                           maxLength={150}
-                          className="text-pretty wrap-break-word whitespace-normal"
+                          className="text-pretty break-words whitespace-normal"
                         />
                       </TableCell>
                       <TableCell className="text-center hidden md:table-cell align-top py-3">
@@ -414,13 +414,13 @@ export function AchievementTemplatesTable() {
                                 <ExpandableText
                                   text={template.name}
                                   maxLength={80}
-                                  className="text-pretty wrap-break-word whitespace-normal"
+                                  className="text-pretty break-words whitespace-normal"
                                 />
                                 <div className="block sm:hidden text-xs text-muted-foreground mt-1 space-y-1">
                                   <ExpandableText
                                     text={template.description}
                                     maxLength={100}
-                                    className="text-pretty wrap-break-word whitespace-normal"
+                                    className="text-pretty break-words whitespace-normal"
                                   />
                                   <div className="flex gap-1 text-xs text-pretty">
                                     <span>
@@ -447,11 +447,11 @@ export function AchievementTemplatesTable() {
                               <ExpandableText
                                 text={template.description}
                                 maxLength={150}
-                                className="text-pretty wrap-break-word whitespace-normal"
+                                className="text-pretty break-words whitespace-normal"
                               />
                             </TableCell>
                             <TableCell className="text-center hidden md:table-cell align-top py-3">
-                              <div className="text-pretty wrap-break-word whitespace-normal">
+                              <div className="text-pretty break-words whitespace-normal">
                                 <span>
                                   {template.reviewerRoleID ===
                                     "olympiad_deputy" &&
