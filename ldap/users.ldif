@@ -1,24 +1,6 @@
 # Demo Users for LDAP
 # Based on company/companyservice/demo.go
 
-# Admin user: kozlovma
-dn: cn=Козлов Михаил Александрович,ou=kaf_inf,ou=Catalogues,dc=sesc,dc=local
-objectClass: inetOrgPerson
-objectClass: organizationalPerson
-objectClass: person
-objectClass: top
-cn: Козлов Михаил Александрович
-uid: kozlovma
-displayName: Козлов Михаил Александрович
-sn: Козлов
-givenName: Михаил Александрович
-userPassword: yandexyandex
-memberOf: cn=stim_admin,ou=Groups,dc=sesc,dc=local
-memberOf: cn=stim_development_deputy,ou=Groups,dc=sesc,dc=local
-memberOf: cn=stim_teacher,ou=Groups,dc=sesc,dc=local
-memberOf: cn=stim_dephead,ou=Groups,dc=sesc,dc=local
-memberOf: cn=kaf_inf,ou=kaf_inf,ou=Catalogues,dc=sesc,dc=local
-
 # kaf_bio users
 dn: cn=Алексей Морозов,ou=kaf_bio,ou=Catalogues,dc=sesc,dc=local
 objectClass: inetOrgPerson
@@ -73,20 +55,6 @@ displayName: Максим Соколов
 sn: Соколов
 givenName: Максим
 userPassword: bio_teacher_04-pass
-memberOf: cn=stim_teacher,ou=Groups,dc=sesc,dc=local
-memberOf: cn=kaf_bio,ou=kaf_bio,ou=Catalogues,dc=sesc,dc=local
-
-dn: cn=Наталья Васильева,ou=kaf_bio,ou=Catalogues,dc=sesc,dc=local
-objectClass: inetOrgPerson
-objectClass: organizationalPerson
-objectClass: person
-objectClass: top
-cn: Наталья Васильева
-uid: bio_teacher_05
-displayName: Наталья Васильева
-sn: Васильева
-givenName: Наталья
-userPassword: bio_teacher_05-pass
 memberOf: cn=stim_teacher,ou=Groups,dc=sesc,dc=local
 memberOf: cn=kaf_bio,ou=kaf_bio,ou=Catalogues,dc=sesc,dc=local
 
@@ -161,20 +129,6 @@ userPassword: fil_teacher_04-pass
 memberOf: cn=stim_teacher,ou=Groups,dc=sesc,dc=local
 memberOf: cn=kaf_fil,ou=kaf_fil,ou=Catalogues,dc=sesc,dc=local
 
-dn: cn=Виктория Киселева,ou=kaf_fil,ou=Catalogues,dc=sesc,dc=local
-objectClass: inetOrgPerson
-objectClass: organizationalPerson
-objectClass: person
-objectClass: top
-cn: Виктория Киселева
-uid: fil_teacher_05
-displayName: Виктория Киселева
-sn: Киселева
-givenName: Виктория
-userPassword: fil_teacher_05-pass
-memberOf: cn=stim_teacher,ou=Groups,dc=sesc,dc=local
-memberOf: cn=kaf_fil,ou=kaf_fil,ou=Catalogues,dc=sesc,dc=local
-
 dn: cn=Людмила Фролова,ou=kaf_fil,ou=Catalogues,dc=sesc,dc=local
 objectClass: inetOrgPerson
 objectClass: organizationalPerson
@@ -243,20 +197,6 @@ displayName: Павел Егоров
 sn: Егоров
 givenName: Павел
 userPassword: for_teacher_04-pass
-memberOf: cn=stim_teacher,ou=Groups,dc=sesc,dc=local
-memberOf: cn=kaf_foreign,ou=kaf_foreign,ou=Catalogues,dc=sesc,dc=local
-
-dn: cn=Светлана Никитина,ou=kaf_foreign,ou=Catalogues,dc=sesc,dc=local
-objectClass: inetOrgPerson
-objectClass: organizationalPerson
-objectClass: person
-objectClass: top
-cn: Светлана Никитина
-uid: for_teacher_05
-displayName: Светлана Никитина
-sn: Никитина
-givenName: Светлана
-userPassword: for_teacher_05-pass
 memberOf: cn=stim_teacher,ou=Groups,dc=sesc,dc=local
 memberOf: cn=kaf_foreign,ou=kaf_foreign,ou=Catalogues,dc=sesc,dc=local
 
@@ -331,20 +271,6 @@ userPassword: gum_teacher_04-pass
 memberOf: cn=stim_teacher,ou=Groups,dc=sesc,dc=local
 memberOf: cn=kaf_gum,ou=kaf_gum,ou=Catalogues,dc=sesc,dc=local
 
-dn: cn=Антонина Крылова,ou=kaf_gum,ou=Catalogues,dc=sesc,dc=local
-objectClass: inetOrgPerson
-objectClass: organizationalPerson
-objectClass: person
-objectClass: top
-cn: Антонина Крылова
-uid: gum_teacher_05
-displayName: Антонина Крылова
-sn: Крылова
-givenName: Антонина
-userPassword: gum_teacher_05-pass
-memberOf: cn=stim_teacher,ou=Groups,dc=sesc,dc=local
-memberOf: cn=kaf_gum,ou=kaf_gum,ou=Catalogues,dc=sesc,dc=local
-
 dn: cn=Валерий Захаров,ou=kaf_gum,ou=Catalogues,dc=sesc,dc=local
 objectClass: inetOrgPerson
 objectClass: organizationalPerson
@@ -413,20 +339,6 @@ displayName: Елена Федорова
 sn: Федорова
 givenName: Елена
 userPassword: inf_teacher_04-pass
-memberOf: cn=stim_teacher,ou=Groups,dc=sesc,dc=local
-memberOf: cn=kaf_inf,ou=kaf_inf,ou=Catalogues,dc=sesc,dc=local
-
-dn: cn=Илья Попов,ou=kaf_inf,ou=Catalogues,dc=sesc,dc=local
-objectClass: inetOrgPerson
-objectClass: organizationalPerson
-objectClass: person
-objectClass: top
-cn: Илья Попов
-uid: inf_teacher_05
-displayName: Илья Попов
-sn: Попов
-givenName: Илья
-userPassword: inf_teacher_05-pass
 memberOf: cn=stim_teacher,ou=Groups,dc=sesc,dc=local
 memberOf: cn=kaf_inf,ou=kaf_inf,ou=Catalogues,dc=sesc,dc=local
 
@@ -501,34 +413,6 @@ userPassword: math_teacher_04-pass
 memberOf: cn=stim_teacher,ou=Groups,dc=sesc,dc=local
 memberOf: cn=kaf_math,ou=kaf_math,ou=Catalogues,dc=sesc,dc=local
 
-dn: cn=Оксана Воронова,ou=kaf_math,ou=Catalogues,dc=sesc,dc=local
-objectClass: inetOrgPerson
-objectClass: organizationalPerson
-objectClass: person
-objectClass: top
-cn: Оксана Воронова
-uid: math_teacher_05
-displayName: Оксана Воронова
-sn: Воронова
-givenName: Оксана
-userPassword: math_teacher_05-pass
-memberOf: cn=stim_teacher,ou=Groups,dc=sesc,dc=local
-memberOf: cn=kaf_math,ou=kaf_math,ou=Catalogues,dc=sesc,dc=local
-
-dn: cn=Станислав Руднев,ou=kaf_math,ou=Catalogues,dc=sesc,dc=local
-objectClass: inetOrgPerson
-objectClass: organizationalPerson
-objectClass: person
-objectClass: top
-cn: Станислав Руднев
-uid: math_dephead
-displayName: Станислав Руднев
-sn: Руднев
-givenName: Станислав
-userPassword: math_dephead-pass
-memberOf: cn=stim_dephead,ou=Groups,dc=sesc,dc=local
-memberOf: cn=kaf_math,ou=kaf_math,ou=Catalogues,dc=sesc,dc=local
-
 # kaf_phys users
 dn: cn=Роман Дмитриев,ou=kaf_phys,ou=Catalogues,dc=sesc,dc=local
 objectClass: inetOrgPerson
@@ -586,36 +470,9 @@ userPassword: phys_teacher_04-pass
 memberOf: cn=stim_teacher,ou=Groups,dc=sesc,dc=local
 memberOf: cn=kaf_phys,ou=kaf_phys,ou=Catalogues,dc=sesc,dc=local
 
-dn: cn=Михаил Сидоренко,ou=kaf_phys,ou=Catalogues,dc=sesc,dc=local
-objectClass: inetOrgPerson
-objectClass: organizationalPerson
-objectClass: person
-objectClass: top
-cn: Михаил Сидоренко
-uid: phys_teacher_05
-displayName: Михаил Сидоренко
-sn: Сидоренко
-givenName: Михаил
-userPassword: phys_teacher_05-pass
-memberOf: cn=stim_teacher,ou=Groups,dc=sesc,dc=local
-memberOf: cn=kaf_phys,ou=kaf_phys,ou=Catalogues,dc=sesc,dc=local
-
-dn: cn=Игорь Власов,ou=kaf_phys,ou=Catalogues,dc=sesc,dc=local
-objectClass: inetOrgPerson
-objectClass: organizationalPerson
-objectClass: person
-objectClass: top
-cn: Игорь Власов
-uid: phys_dephead
-displayName: Игорь Власов
-sn: Власов
-givenName: Игорь
-userPassword: phys_dephead-pass
-memberOf: cn=stim_dephead,ou=Groups,dc=sesc,dc=local
-memberOf: cn=kaf_phys,ou=kaf_phys,ou=Catalogues,dc=sesc,dc=local
-
 # Global users (no department)
-dn: cn=Александр Новиков,ou=Users,dc=sesc,dc=local
+# this one is with dep
+dn: cn=Александр Новиков,ou=kaf_phys,ou=Catalogues,dc=sesc,dc=local
 objectClass: inetOrgPerson
 objectClass: organizationalPerson
 objectClass: person
@@ -626,7 +483,9 @@ displayName: Александр Новиков
 sn: Новиков
 givenName: Александр
 userPassword: global_scientific-pass
+memberOf: cn=stim_dephead,ou=Groups,dc=sesc,dc=local
 memberOf: cn=stim_scientific_deputy,ou=Groups,dc=sesc,dc=local
+memberOf: cn=kaf_phys,ou=kaf_phys,ou=Catalogues,dc=sesc,dc=local
 
 dn: cn=Евгения Кузнецова,ou=Users,dc=sesc,dc=local
 objectClass: inetOrgPerson
@@ -694,19 +553,21 @@ userPassword: global_admin-pass
 memberOf: cn=stim_admin,ou=Groups,dc=sesc,dc=local
 
 # Multi-role users
-dn: cn=Валерия Клименко,ou=Users,dc=sesc,dc=local
+# this one is with dep
+dn: cn=Валерия Клименко,ou=kaf_math,ou=Catalogues,dc=sesc,dc=local
 objectClass: inetOrgPerson
 objectClass: organizationalPerson
 objectClass: person
 objectClass: top
 cn: Валерия Клименко
-uid: multi_1
+uid: math_dephead
 displayName: Валерия Клименко
 sn: Клименко
 givenName: Валерия
-userPassword: multi_1-pass
+userPassword: math_dephead-pass
 memberOf: cn=stim_teacher,ou=Groups,dc=sesc,dc=local
 memberOf: cn=stim_dephead,ou=Groups,dc=sesc,dc=local
+memberOf: cn=kaf_math,ou=kaf_math,ou=Catalogues,dc=sesc,dc=local
 
 dn: cn=Родион Бирюков,ou=kaf_inf,ou=Catalogues,dc=sesc,dc=local
 objectClass: inetOrgPerson
@@ -722,46 +583,3 @@ userPassword: multi_2-pass
 memberOf: cn=stim_teacher,ou=Groups,dc=sesc,dc=local
 memberOf: cn=stim_development_deputy,ou=Groups,dc=sesc,dc=local
 memberOf: cn=kaf_inf,ou=kaf_inf,ou=Catalogues,dc=sesc,dc=local
-
-dn: cn=Александра Громова,ou=Users,dc=sesc,dc=local
-objectClass: inetOrgPerson
-objectClass: organizationalPerson
-objectClass: person
-objectClass: top
-cn: Александра Громова
-uid: multi_3
-displayName: Александра Громова
-sn: Громова
-givenName: Александра
-userPassword: multi_3-pass
-memberOf: cn=stim_scientific_deputy,ou=Groups,dc=sesc,dc=local
-memberOf: cn=stim_academic_director,ou=Groups,dc=sesc,dc=local
-
-dn: cn=Павел Трошин,ou=kaf_math,ou=Catalogues,dc=sesc,dc=local
-objectClass: inetOrgPerson
-objectClass: organizationalPerson
-objectClass: person
-objectClass: top
-cn: Павел Трошин
-uid: multi_4
-displayName: Павел Трошин
-sn: Трошин
-givenName: Павел
-userPassword: multi_4-pass
-memberOf: cn=stim_teacher,ou=Groups,dc=sesc,dc=local
-memberOf: cn=stim_admin,ou=Groups,dc=sesc,dc=local
-memberOf: cn=kaf_math,ou=kaf_math,ou=Catalogues,dc=sesc,dc=local
-
-dn: cn=Евгений Захаров,ou=Users,dc=sesc,dc=local
-objectClass: inetOrgPerson
-objectClass: organizationalPerson
-objectClass: person
-objectClass: top
-cn: Евгений Захаров
-uid: multi_5
-displayName: Евгений Захаров
-sn: Захаров
-givenName: Евгений
-userPassword: multi_5-pass
-memberOf: cn=stim_chief_economist,ou=Groups,dc=sesc,dc=local
-memberOf: cn=stim_development_deputy,ou=Groups,dc=sesc,dc=local
