@@ -3,7 +3,6 @@ package config
 import (
 	"errors"
 	"fmt"
-	"os"
 	"strings"
 	"time"
 
@@ -102,16 +101,6 @@ func LoadConfig() (*Config, error) {
 	_ = v.BindEnv("ldap.base_dn")
 	_ = v.BindEnv("ldap.sync_interval")
 
-	if os.Getenv("SESC_ADMIN_CREDENTIALS_0_ID") != "" {
-		_ = v.BindEnv("admin_credentials.0.id")
-	}
-	if os.Getenv("SESC_ADMIN_CREDENTIALS_0_USERNAME") != "" {
-		_ = v.BindEnv("admin_credentials.0.username")
-	}
-	if os.Getenv("SESC_ADMIN_CREDENTIALS_0_PASSWORD") != "" {
-		_ = v.BindEnv("admin_credentials.0.password")
-	}
-
 	if err := v.ReadInConfig(); err != nil {
 		var configFileNotFoundError viper.ConfigFileNotFoundError
 		if !errors.As(err, &configFileNotFoundError) {
@@ -138,14 +127,14 @@ func setDefaults(v *viper.Viper) {
 	v.SetDefault("database.type", string(DatabaseTypePostgres))
 	v.SetDefault("database.address", "postgres://postgres:postgres@localhost:5432/sesc?sslmode=disable")
 
-	v.SetDefault("minio.endpoint", "localhost:9000")
+	v.SetDefault("minio.endpoint", "minio:9000")
 	v.SetDefault("minio.access_key", "minioadmin")
 	v.SetDefault("minio.secret_key", "minioadmin")
 	v.SetDefault("minio.use_ssl", false)
 	v.SetDefault("minio.bucket_name", "sesc-files")
-	v.SetDefault("minio.base_url", "http://localhost:9000/sesc-files")
+	v.SetDefault("minio.base_url", "http://minio:9000/sesc-files")
 
-	v.SetDefault("ldap.url", "ldap://localhost:389")
+	v.SetDefault("ldap.url", "ldap://sesc-ldap:389")
 	v.SetDefault("ldap.bind_dn", "cn=admin,dc=sesc,dc=local")
 	v.SetDefault("ldap.bind_password", "admin")
 	v.SetDefault("ldap.base_dn", "dc=sesc,dc=local")
