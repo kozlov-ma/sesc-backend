@@ -10,7 +10,7 @@
 database:
   type: "postgres"
   # Local dev database (use env var SESC_DATABASE_ADDRESS for custom)
-  address: "postgres://pguser:pgpassword@localhost:5432/sesc?sslmode=disable"
+  address: "postgres://postgres:postgres@localhost:5432/sesc?sslmode=disable"
 
 http:
   server_address: ":8080"
@@ -23,12 +23,12 @@ jwt_secret: "local-dev-secret-change-in-production"
 
 # For production, use env variables:
 # SESC_ADMIN_CREDENTIALS_0_ID
-# SESC_ADMIN_CREDENTIALS_0_USERNAME  
+# SESC_ADMIN_CREDENTIALS_0_USERNAME
 # SESC_ADMIN_CREDENTIALS_0_PASSWORD
 admin_credentials:
   - id: "f1157f63-65dc-4c3d-bcb2-4d6d55d2e3fd"
     username: "admin"
-    password: "admin"  # Local dev only, change in production via env vars
+    password: "admin" # Local dev only, change in production via env vars
 
 # For production, use env variables:
 # SESC_MINIO_ENDPOINT, SESC_MINIO_ACCESS_KEY, SESC_MINIO_SECRET_KEY, etc.
@@ -38,4 +38,4 @@ minio:
   secret_key: "minioadmin"
   use_ssl: false
   bucket_name: "sesc-files"
-  base_url: "http://localhost:9000/sesc-files"
+  base_url: "http://minio:9000/sesc-files"
