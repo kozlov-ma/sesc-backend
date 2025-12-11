@@ -92,7 +92,7 @@ export default function MyAchievementsPage() {
                     <TableHead>Баллы</TableHead>
                     <TableHead>Документы</TableHead>
                     <TableHead>Отзывы</TableHead>
-                    <TableHead className="text-right">Действия</TableHead>
+                    <TableHead className="text-left">Действия</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>

@@ -10,15 +10,18 @@ import type { ApiTokenResponse } from "@/lib/api/types.gen";
 import { useAuthStore } from "@/store/auth-store";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
+import { useEffect, useRef } from "react";
 
 export function useAuth() {
   const { push } = useRouter();
   const { token, roles, setAuth, clearAuth } = useAuthStore();
   const queryClient = useQueryClient();
+  const hasClearedAuthRef = useRef(false);
 
   const loginUserMutation = useMutation({
     ...postAuthLoginMutation(),
     onSuccess: (response: ApiTokenResponse) => {
+      hasClearedAuthRef.current = false;
       setAuth(
         response.token,
         response.user.roles.map((r) => r.codeName),
@@ -33,11 +36,24 @@ export function useAuth() {
       },
     }),
     enabled: !!token,
+    retry: false,
   });
 
-  if (validateTokenQuery.isError) {
-    clearAuth();
-  }
+  // Обрабатываем ошибку валидации токена в useEffect, чтобы избежать side effects в теле функции
+  useEffect(() => {
+    if (validateTokenQuery.isError && token && !hasClearedAuthRef.current) {
+      hasClearedAuthRef.current = true;
+      // Сбрасываем кэш запроса валидации перед очисткой токена
+      queryClient.removeQueries({
+        queryKey: getAuthValidateOptions({ headers: {} }).queryKey,
+      });
+      clearAuth();
+    }
+    // Сбрасываем флаг, если токен изменился
+    if (!token) {
+      hasClearedAuthRef.current = false;
+    }
+  }, [validateTokenQuery.isError, token, clearAuth, queryClient]);
 
   const logout = () => {
     clearAuth();
@@ -58,11 +74,24 @@ export function useAuth() {
     return false;
   };
 
+  const isAuthenticated =
+    !!token &&
+    token.length > 0 &&
+    !validateTokenQuery.isError &&
+    (validateTokenQuery.isSuccess ||
+      (validateTokenQuery.isLoading &&
+        validateTokenQuery.fetchStatus !== "idle"));
+
+  const isLoading =
+    !!token &&
+    validateTokenQuery.isLoading &&
+    validateTokenQuery.fetchStatus !== "idle";
+
   return {
     token,
     roles,
-    isAuthenticated: !!(token?.length && token?.length > 0),
-    isLoading: validateTokenQuery.isLoading,
+    isAuthenticated,
+    isLoading,
     loginUserError: loginUserMutation.error,
     validateError: validateTokenQuery.error,
     loginUser: (credentials: ApiCredentialsRequest) =>

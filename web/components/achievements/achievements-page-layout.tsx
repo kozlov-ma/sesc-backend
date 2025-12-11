@@ -43,7 +43,7 @@ export function AchievementsPageLayout({
   }
 
   return (
-    <div className="min-h-screen flex flex-col p-6 bg-background">
+    <div className="flex flex-col bg-background">
       <header className="w-full mb-4">
         <h1 className="text-2xl font-bold mb-6">{title}</h1>
       </header>

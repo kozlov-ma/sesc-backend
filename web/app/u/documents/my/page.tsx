@@ -14,7 +14,7 @@ export default function MyDocumentsPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col p-6 bg-background">
+    <div className="flex flex-col bg-background">
       <header className="w-full mb-8">
         <h1 className="text-2xl font-bold">Мои Документы</h1>
       </header>

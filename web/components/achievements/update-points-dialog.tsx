@@ -79,7 +79,9 @@ export function UpdatePointsDialog({
       const errorMessage =
         axiosError.response?.data?.message ??
         "Ошибка при обновлении достижения";
-      toast.error(errorMessage);
+      const capitalizedMessage =
+        errorMessage.charAt(0).toUpperCase() + errorMessage.slice(1);
+      toast.error(capitalizedMessage);
     },
   });
 

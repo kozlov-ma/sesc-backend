@@ -195,7 +195,11 @@ export function ReviewAchievementDialog({
               </h3>
               <div className="mt-1">
                 <Link href={`/u/users/${achievement.ownerId}`}>
-                  <UserAvatar userId={achievement.ownerId} size="sm" />
+                  <UserAvatar
+                    userId={achievement.ownerId}
+                    size="sm"
+                    showAvatar={false}
+                  />
                 </Link>
               </div>
             </div>
@@ -217,7 +221,7 @@ export function ReviewAchievementDialog({
                   <TableHeader>
                     <TableRow>
                       <TableHead>Название</TableHead>
-                      <TableHead>Файл</TableHead>
+                      <TableHead className="text-left">Файл</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -229,12 +233,10 @@ export function ReviewAchievementDialog({
                           </div>
                         </TableCell>
                         <TableCell className="max-w-[200px]">
-                          <div className="truncate">
-                            <FileNameByIdDisplay
-                              fileId={document.fileId}
-                              displayName={document.name}
-                            />
-                          </div>
+                          <FileNameByIdDisplay
+                            fileId={document.fileId}
+                            align="left"
+                          />
                         </TableCell>
                       </TableRow>
                     ))}

@@ -39,20 +39,19 @@ export function UserFilter({ value, onChange }: UserFilterProps) {
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className="w-[300px] justify-between"
+          className="min-w-[300px] max-w-full justify-between"
         >
           {selectedUser ? (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 min-w-0 flex-1">
               <UserAvatar userId={selectedUser.id} size="sm" />
-              <span>{`${selectedUser.fullName}`}</span>
             </div>
           ) : (
-            "Выберите пользователя..."
+            <span className="truncate">Выберите пользователя...</span>
           )}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[300px] p-0">
+      <PopoverContent className="w-[var(--radix-popover-trigger-width)] min-w-[300px] max-w-[600px] p-0">
         <Command>
           <CommandInput placeholder="Поиск пользователя..." />
           <CommandEmpty>Пользователь не найден.</CommandEmpty>
@@ -79,9 +78,8 @@ export function UserFilter({ value, onChange }: UserFilterProps) {
                   setOpen(false);
                 }}
               >
-                <div className="flex items-center gap-2">
+                <div className="flex min-w-[300px] items-center gap-2 min-w-0 flex-1">
                   <UserAvatar userId={user.id} size="sm" />
-                  <span>{`${user.fullName}`}</span>
                 </div>
                 <Check
                   className={cn(
