@@ -8,7 +8,7 @@ generate:
 
 # Spin up the development database
 dev-db:
-	docker compose up -d postgres minio
+	docker compose up -d postgres minio ldap
 
 # Spin up both database and backend
 dev-backend: generate

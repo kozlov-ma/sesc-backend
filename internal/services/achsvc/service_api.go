@@ -242,30 +242,7 @@ func (s *ACS) UpdateAchievementPoints(
 	actingUser company.User,
 	opt achievement.UpdatePointsOptions,
 ) (*ent.Achievement, error) {
-	rec := event.Get(ctx).Sub("achsvc/update_achievement_points_with_access")
-
-	ach, err := s.updateAchievementPoints(ctx, opt)
-
-	if err != nil {
-		rec.Sub("access_control").Set(
-			"allowed", false,
-			"acting_user", actingUser)
-		return nil, err
-	}
-
-	action := NewUpdatePointsAction(ach)
-	if !actingUser.Can(action) {
-		rec.Add(events.Error, sesc.ErrForbidden)
-		rec.Sub("access_control").Set(
-			"allowed", false,
-			"acting_user", actingUser)
-		return nil, sesc.ErrForbidden
-	}
-
-	rec.Sub("access_control").Set(
-		"allowed", true,
-		"acting_user", actingUser)
-	return ach, nil
+	return s.updateAchievementPoints(ctx, opt, actingUser)
 }
 
 // GetUserAchievements retrieves achievements for a user.

@@ -1,6 +1,7 @@
-import type React from "react";
+import { AuthSlotWrapper } from "@/components/auth/auth-slot-wrapper";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import type React from "react";
 import "./globals.css";
 import Providers from "./providers";
 
@@ -24,7 +25,7 @@ export default function RootLayout({
       <body className={inter.className}>
         <Providers>
           <main>
-            {auth}
+            <AuthSlotWrapper>{auth}</AuthSlotWrapper>
             {user}
             {children}
           </main>

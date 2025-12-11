@@ -9,11 +9,13 @@ import (
 
 	"github.com/gofrs/uuid/v5"
 	"github.com/kozlov-ma/sesc-backend/achievement"
+	"github.com/kozlov-ma/sesc-backend/company"
 	"github.com/kozlov-ma/sesc-backend/db/entdb/ent"
 	entAchievement "github.com/kozlov-ma/sesc-backend/db/entdb/ent/achievement"
 	"github.com/kozlov-ma/sesc-backend/internal/services/txwrapper"
 	"github.com/kozlov-ma/sesc-backend/pkg/event"
 	"github.com/kozlov-ma/sesc-backend/pkg/event/events"
+	"github.com/kozlov-ma/sesc-backend/sesc"
 )
 
 // updateAchievementPoints allows teachers to update achievement points when changes are requested.
@@ -22,6 +24,7 @@ import (
 func (s *ACS) updateAchievementPoints(
 	ctx context.Context,
 	opt achievement.UpdatePointsOptions,
+	actingUser company.User,
 ) (*ent.Achievement, error) {
 	rec := event.Get(ctx).Sub("sesc/update_achievement_points")
 	statsRec := event.Root(ctx).Sub("stats")
@@ -71,6 +74,15 @@ func (s *ACS) updateAchievementPoints(
 			if currentStatus != achievement.StatusDepheadRequestedChanges &&
 				currentStatus != achievement.StatusInspectorRequestedChanges {
 				return achievement.ErrWrongAchievementStatus
+			}
+
+			action := NewUpdatePointsAction(ach)
+			if !actingUser.Can(action) {
+				rec.Add(events.Error, sesc.ErrForbidden)
+				rec.Sub("access_control").Set(
+					"allowed", false,
+					"acting_user", actingUser)
+				return sesc.ErrForbidden
 			}
 
 			if opt.Points < 0 {

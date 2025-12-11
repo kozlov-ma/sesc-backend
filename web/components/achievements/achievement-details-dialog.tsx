@@ -98,7 +98,7 @@ export function AchievementDetailsDialog({
                   <TableHeader>
                     <TableRow>
                       <TableHead>Название</TableHead>
-                      <TableHead>Файл</TableHead>
+                      <TableHead className="text-left">Файл</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -112,7 +112,7 @@ export function AchievementDetailsDialog({
                         <TableCell className="max-w-[200px]">
                           <FileNameByIdDisplay
                             fileId={document.fileId}
-                            displayName={document.name}
+                            align="left"
                           />
                         </TableCell>
                       </TableRow>

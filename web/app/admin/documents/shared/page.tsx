@@ -1,9 +1,9 @@
 "use client";
 
-import { useAuth } from "@/hooks/use-auth";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { FileText } from "lucide-react";
 import { FileTable } from "@/components/files/file-table";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useAuth } from "@/hooks/use-auth";
+import { FileText } from "lucide-react";
 
 export default function SharedDocumentsPage() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -14,7 +14,7 @@ export default function SharedDocumentsPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col p-6 bg-background">
+    <div className="flex flex-col bg-background">
       <header className="w-full mb-8">
         <h1 className="text-2xl font-bold">Общие Документы</h1>
       </header>
@@ -31,6 +31,7 @@ export default function SharedDocumentsPage() {
             showOwner={true}
             emptyMessage="Общих файлов пока нет"
             initialFilters={{ common: true }}
+            isCommon={true}
             allowDeleteCommon={true}
           />
         </CardContent>

@@ -36,37 +36,24 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import * as z from "zod";
 
-const formSchema = z
-  .object({
-    name: z.string().min(1, "Название обязательно"),
-    description: z.string(),
-    pointsLimit: z
-      .number()
-      .min(0, "Количество баллов не может быть отрицательным"),
-    isUnlimitedPoints: z.boolean(),
-    kind: z
-      .enum([
-        "olympiad_deputy",
-        "development_deputy",
-        "scientific_deputy",
-        "academic_director",
-      ])
-      .refine((val) => val !== undefined, {
-        message: "Выберите контролирующее лицо",
-      }),
-  })
-  .refine(
-    (data) => {
-      if (data.isUnlimitedPoints) {
-        return true;
-      }
-      return data.pointsLimit >= 1 && data.pointsLimit <= 50;
-    },
-    {
-      message: "Количество баллов должно быть от 1 до 50",
-      path: ["pointsLimit"],
-    },
-  );
+const formSchema = z.object({
+  name: z.string().trim().min(1, "Название обязательно"),
+  description: z.string().trim().min(1, "Описание обязательно"),
+  pointsLimit: z
+    .number()
+    .min(1, "Количество баллов должно быть не менее 1")
+    .max(50, "Количество баллов должно быть не более 50"),
+  kind: z
+    .enum([
+      "olympiad_deputy",
+      "development_deputy",
+      "scientific_deputy",
+      "academic_director",
+    ])
+    .refine((val) => val !== undefined, {
+      message: "Выберите контролирующее лицо",
+    }),
+});
 
 type FormValues = z.infer<typeof formSchema>;
 
@@ -108,7 +95,7 @@ export function AchievementTemplateFormDialog({
     defaultValues: {
       name: "",
       description: "",
-      pointsLimit: 0,
+      pointsLimit: 1,
       kind: "development_deputy",
     },
   });
@@ -122,15 +109,14 @@ export function AchievementTemplateFormDialog({
         form.reset({
           name: template.name,
           description: template.description,
-          pointsLimit: template.pointsLimit,
+          pointsLimit: template.pointsLimit > 0 ? template.pointsLimit : 1,
           kind: roleToKind(template.reviewerRoleID),
         });
       } else {
         form.reset({
           name: "",
           description: "",
-          pointsLimit: 0,
-          isUnlimitedPoints: false,
+          pointsLimit: 1,
           kind: "development_deputy",
         });
       }
@@ -142,6 +128,7 @@ export function AchievementTemplateFormDialog({
     ...postAchievementTemplatesMutation(),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: templatesOpt.queryKey });
+      onOpenChange(false);
       onSuccess?.();
       toast.success("Шаблон создан", {
         description: "Шаблон достижения успешно создан.",
@@ -161,6 +148,7 @@ export function AchievementTemplateFormDialog({
     ...patchAchievementTemplatesByIdMutation(),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: templatesOpt.queryKey });
+      onOpenChange(false);
       onSuccess?.();
       toast.success("Шаблон обновлен", {
         description: "Шаблон достижения успешно обновлен.",
@@ -177,15 +165,19 @@ export function AchievementTemplateFormDialog({
 
   const onSubmit = async (data: FormValues) => {
     try {
+      const trimmedData = {
+        name: data.name.trim(),
+        description: data.description.trim(),
+      };
       if (template) {
         await updateTemplateMutation.mutateAsync({
           path: {
             id: template.id,
           },
           body: {
-            name: data.name,
-            description: data.description,
-            pointsLimit: data.isUnlimitedPoints ? 0 : data.pointsLimit,
+            name: trimmedData.name,
+            description: trimmedData.description,
+            pointsLimit: data.pointsLimit,
             reviewerRole: data.kind,
           },
         });
@@ -195,9 +187,9 @@ export function AchievementTemplateFormDialog({
         }
         await createTemplateMutation.mutateAsync({
           body: {
-            name: data.name,
-            description: data.description,
-            pointsLimit: data.isUnlimitedPoints ? 0 : data.pointsLimit,
+            name: trimmedData.name,
+            description: trimmedData.description,
+            pointsLimit: data.pointsLimit,
             groupId,
             reviewerRole: data.kind,
           },
@@ -229,7 +221,11 @@ export function AchievementTemplateFormDialog({
               : "Заполните данные для создания нового шаблона достижения"}
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <form
+          onSubmit={form.handleSubmit(onSubmit)}
+          className="space-y-4"
+          id="achievement-template-form"
+        >
           <div className="space-y-2">
             <Label htmlFor="name">Название</Label>
             <Input
@@ -238,7 +234,7 @@ export function AchievementTemplateFormDialog({
               placeholder="Введите название шаблона"
             />
             {form.formState.errors.name && (
-              <p className="text-sm text-red-500">
+              <p className="text-sm text-destructive">
                 {form.formState.errors.name.message}
               </p>
             )}
@@ -252,7 +248,7 @@ export function AchievementTemplateFormDialog({
               placeholder="Введите описание шаблона"
             />
             {form.formState.errors.description && (
-              <p className="text-sm text-red-500">
+              <p className="text-sm text-destructive">
                 {form.formState.errors.description.message}
               </p>
             )}
@@ -261,10 +257,10 @@ export function AchievementTemplateFormDialog({
           <div className="space-y-2">
             <Label htmlFor="kind">Контролирующее лицо</Label>
             <Select
+              value={form.watch("kind")}
               onValueChange={(value) =>
                 form.setValue("kind", value as FormValues["kind"])
               }
-              defaultValue={form.getValues("kind")}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Выберите контролирующее лицо" />
@@ -285,7 +281,7 @@ export function AchievementTemplateFormDialog({
               </SelectContent>
             </Select>
             {form.formState.errors.kind && (
-              <p className="text-sm text-red-500">
+              <p className="text-sm text-destructive">
                 {form.formState.errors.kind.message}
               </p>
             )}
@@ -300,7 +296,7 @@ export function AchievementTemplateFormDialog({
               placeholder="Введите количество баллов"
             />
             {form.formState.errors.pointsLimit && (
-              <p className="text-sm text-red-500">
+              <p className="text-sm text-destructive">
                 {form.formState.errors.pointsLimit.message}
               </p>
             )}
@@ -316,6 +312,7 @@ export function AchievementTemplateFormDialog({
             </Button>
             <Button
               type="submit"
+              form="achievement-template-form"
               disabled={
                 createTemplateMutation.isPending ||
                 updateTemplateMutation.isPending

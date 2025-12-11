@@ -1,0 +1,207 @@
+# Organizational Units
+dn: ou=Groups,dc=sesc,dc=local
+objectClass: organizationalUnit
+ou: Groups
+
+dn: ou=Users,dc=sesc,dc=local
+objectClass: organizationalUnit
+ou: Users
+
+dn: ou=Catalogues,dc=sesc,dc=local
+objectClass: organizationalUnit
+ou: Catalogues
+
+# Role-based Security Groups (with stim_ prefix)
+dn: cn=stim_teacher,ou=Groups,dc=sesc,dc=local
+objectClass: groupOfNames
+cn: stim_teacher
+description: Teacher role security group
+member: cn=admin,dc=sesc,dc=local
+
+dn: cn=stim_dephead,ou=Groups,dc=sesc,dc=local
+objectClass: groupOfNames
+cn: stim_dephead
+description: Department head role security group
+member: cn=admin,dc=sesc,dc=local
+
+dn: cn=stim_scientific_deputy,ou=Groups,dc=sesc,dc=local
+objectClass: groupOfNames
+cn: stim_scientific_deputy
+description: Scientific deputy role security group
+member: cn=admin,dc=sesc,dc=local
+
+dn: cn=stim_development_deputy,ou=Groups,dc=sesc,dc=local
+objectClass: groupOfNames
+cn: stim_development_deputy
+description: Development deputy role security group
+member: cn=admin,dc=sesc,dc=local
+
+dn: cn=stim_olympiad_deputy,ou=Groups,dc=sesc,dc=local
+objectClass: groupOfNames
+cn: stim_olympiad_deputy
+description: Olympiad deputy role security group
+member: cn=admin,dc=sesc,dc=local
+
+dn: cn=stim_academic_director,ou=Groups,dc=sesc,dc=local
+objectClass: groupOfNames
+cn: stim_academic_director
+description: Academic director role security group
+member: cn=admin,dc=sesc,dc=local
+
+dn: cn=stim_chief_economist,ou=Groups,dc=sesc,dc=local
+objectClass: groupOfNames
+cn: stim_chief_economist
+description: Chief economist role security group
+member: cn=admin,dc=sesc,dc=local
+
+dn: cn=stim_admin,ou=Groups,dc=sesc,dc=local
+objectClass: groupOfNames
+cn: stim_admin
+description: Admin role security group
+member: cn=admin,dc=sesc,dc=local
+
+# Catalogues with their security groups
+
+# kaf_bio
+dn: ou=kaf_bio,ou=Catalogues,dc=sesc,dc=local
+objectClass: organizationalUnit
+ou: kaf_bio
+description: Biology Department
+
+dn: cn=kaf_bio,ou=kaf_bio,ou=Catalogues,dc=sesc,dc=local
+objectClass: groupOfNames
+cn: kaf_bio
+description: Biology Department security group
+member: cn=admin,dc=sesc,dc=local
+
+# kaf_fil
+dn: ou=kaf_fil,ou=Catalogues,dc=sesc,dc=local
+objectClass: organizationalUnit
+ou: kaf_fil
+description: Philology Department
+
+dn: cn=kaf_fil,ou=kaf_fil,ou=Catalogues,dc=sesc,dc=local
+objectClass: groupOfNames
+cn: kaf_fil
+description: Philology Department security group
+member: cn=admin,dc=sesc,dc=local
+
+# kaf_foreign
+dn: ou=kaf_foreign,ou=Catalogues,dc=sesc,dc=local
+objectClass: organizationalUnit
+ou: kaf_foreign
+description: Foreign Languages Department
+
+dn: cn=kaf_foreign,ou=kaf_foreign,ou=Catalogues,dc=sesc,dc=local
+objectClass: groupOfNames
+cn: kaf_foreign
+description: Foreign Languages Department security group
+member: cn=admin,dc=sesc,dc=local
+
+# kaf_gum
+dn: ou=kaf_gum,ou=Catalogues,dc=sesc,dc=local
+objectClass: organizationalUnit
+ou: kaf_gum
+description: Humanities Department
+
+dn: cn=kaf_gum,ou=kaf_gum,ou=Catalogues,dc=sesc,dc=local
+objectClass: groupOfNames
+cn: kaf_gum
+description: Humanities Department security group
+member: cn=admin,dc=sesc,dc=local
+
+# kaf_inf
+dn: ou=kaf_inf,ou=Catalogues,dc=sesc,dc=local
+objectClass: organizationalUnit
+ou: kaf_inf
+description: Informatics Department
+
+dn: cn=kaf_inf,ou=kaf_inf,ou=Catalogues,dc=sesc,dc=local
+objectClass: groupOfNames
+cn: kaf_inf
+description: Informatics Department security group
+member: cn=admin,dc=sesc,dc=local
+
+# kaf_math
+dn: ou=kaf_math,ou=Catalogues,dc=sesc,dc=local
+objectClass: organizationalUnit
+ou: kaf_math
+description: Mathematics Department
+
+dn: cn=kaf_math,ou=kaf_math,ou=Catalogues,dc=sesc,dc=local
+objectClass: groupOfNames
+cn: kaf_math
+description: Mathematics Department security group
+member: cn=admin,dc=sesc,dc=local
+
+# kaf_phys
+dn: ou=kaf_phys,ou=Catalogues,dc=sesc,dc=local
+objectClass: organizationalUnit
+ou: kaf_phys
+description: Physics Department
+
+dn: cn=kaf_phys,ou=kaf_phys,ou=Catalogues,dc=sesc,dc=local
+objectClass: groupOfNames
+cn: kaf_phys
+description: Physics Department security group
+member: cn=admin,dc=sesc,dc=local
+
+# otd_comp
+dn: ou=otd_comp,ou=Catalogues,dc=sesc,dc=local
+objectClass: organizationalUnit
+ou: otd_comp
+description: Computer Science Division
+
+dn: cn=otd_comp,ou=otd_comp,ou=Catalogues,dc=sesc,dc=local
+objectClass: groupOfNames
+cn: otd_comp
+description: Computer Science Division security group
+member: cn=admin,dc=sesc,dc=local
+
+# otd_hoz
+dn: ou=otd_hoz,ou=Catalogues,dc=sesc,dc=local
+objectClass: organizationalUnit
+ou: otd_hoz
+description: Management Division
+
+dn: cn=otd_hoz,ou=otd_hoz,ou=Catalogues,dc=sesc,dc=local
+objectClass: groupOfNames
+cn: otd_hoz
+description: Management Division security group
+member: cn=admin,dc=sesc,dc=local
+
+# otd_olymp
+dn: ou=otd_olymp,ou=Catalogues,dc=sesc,dc=local
+objectClass: organizationalUnit
+ou: otd_olymp
+description: Olympiad Division
+
+dn: cn=otd_olymp,ou=otd_olymp,ou=Catalogues,dc=sesc,dc=local
+objectClass: groupOfNames
+cn: otd_olymp
+description: Olympiad Division security group
+member: cn=admin,dc=sesc,dc=local
+
+# otd_uvr
+dn: ou=otd_uvr,ou=Catalogues,dc=sesc,dc=local
+objectClass: organizationalUnit
+ou: otd_uvr
+description: Educational Work Division
+
+dn: cn=otd_uvr,ou=otd_uvr,ou=Catalogues,dc=sesc,dc=local
+objectClass: groupOfNames
+cn: otd_uvr
+description: Educational Work Division security group
+member: cn=admin,dc=sesc,dc=local
+
+# otd_vosp
+dn: ou=otd_vosp,ou=Catalogues,dc=sesc,dc=local
+objectClass: organizationalUnit
+ou: otd_vosp
+description: Upbringing Division
+
+dn: cn=otd_vosp,ou=otd_vosp,ou=Catalogues,dc=sesc,dc=local
+objectClass: groupOfNames
+cn: otd_vosp
+description: Upbringing Division security group
+member: cn=admin,dc=sesc,dc=local

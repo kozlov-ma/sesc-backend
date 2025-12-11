@@ -18,10 +18,8 @@ import (
 	"github.com/kozlov-ma/sesc-backend/internal/s3svc"
 	"github.com/kozlov-ma/sesc-backend/internal/sescsvc"
 	"github.com/kozlov-ma/sesc-backend/internal/slogsink"
-	// database driver
-	_ "github.com/lib/pq"
-	// database driver
-	_ "github.com/mattn/go-sqlite3"
+	_ "github.com/lib/pq"           // postgres driver
+	_ "github.com/mattn/go-sqlite3" // sqlite driver
 )
 
 type App struct {
@@ -34,31 +32,23 @@ type App struct {
 	Cleanup     func()
 }
 
-// DBOptions contains options for database initialization
 type DBOptions struct {
-	// If true, skip running migrations
 	SkipMigrations bool
-	// Custom client to use instead of creating a new one
-	Client *ent.Client
+	Client         *ent.Client
 }
 
-// New creates a new application instance from the given config
 func New(ctx context.Context, cfg *config.Config, log *slog.Logger) (*App, error) {
 	return NewWithDBOptions(ctx, cfg, log, DBOptions{})
 }
 
-// NewWithDBOptions creates a new application instance with custom database options
 func NewWithDBOptions(ctx context.Context, cfg *config.Config, log *slog.Logger, dbOpts DBOptions) (*App, error) {
 	var client *ent.Client
 	var err error
 	var cleanup func()
 
-	// Use provided client or create a new one
 	if dbOpts.Client != nil {
 		client = dbOpts.Client
-		cleanup = func() {
-			// Don't close the client if it was provided externally
-		}
+		cleanup = func() {}
 	} else {
 		dbType := string(cfg.Database.Type)
 		if dbType == "" {
@@ -70,7 +60,6 @@ func NewWithDBOptions(ctx context.Context, cfg *config.Config, log *slog.Logger,
 			return nil, fmt.Errorf("failed to set up database: %w", err)
 		}
 
-		// Setup auto cleanup function
 		cleanup = func() {
 			if err := client.Close(); err != nil {
 				log.ErrorContext(ctx, "couldn't close db", "error", err)
@@ -78,7 +67,6 @@ func NewWithDBOptions(ctx context.Context, cfg *config.Config, log *slog.Logger,
 		}
 	}
 
-	// Run migrations if not skipped
 	if !dbOpts.SkipMigrations {
 		if err := client.Schema.Create(ctx, migrate.WithDropIndex(true), migrate.WithDropColumn(true)); err != nil {
 			cleanup()
@@ -86,11 +74,24 @@ func NewWithDBOptions(ctx context.Context, cfg *config.Config, log *slog.Logger,
 		}
 	}
 
-	cs := companyservice.NewDemo()
+	ldapConfig := companyservice.LDAPConfig{
+		URL:          cfg.LDAP.URL,
+		BindDN:       cfg.LDAP.BindDN,
+		BindPassword: cfg.LDAP.BindPassword,
+		BaseDN:       cfg.LDAP.BaseDN,
+		SyncInterval: cfg.LDAP.SyncInterval,
+	}
+
+	eventSink := slogsink.New(log)
+
+	cs, err := companyservice.NewLDAPService(ctx, ldapConfig, eventSink)
+	if err != nil {
+		cleanup()
+		return nil, fmt.Errorf("failed to create LDAP company service: %w", err)
+	}
 
 	sescService := sescsvc.New(client, cs)
 
-	// Initialize S3 storage
 	s3Storage, err := s3svc.NewStorage(
 		cfg.MinIO.Endpoint,
 		cfg.MinIO.AccessKey,
@@ -104,7 +105,6 @@ func NewWithDBOptions(ctx context.Context, cfg *config.Config, log *slog.Logger,
 		return nil, fmt.Errorf("failed to create S3 storage: %w", err)
 	}
 
-	// Initialize file service
 	fileService := filesvc.New(
 		client,
 		s3Storage,
@@ -138,7 +138,6 @@ func NewWithDBOptions(ctx context.Context, cfg *config.Config, log *slog.Logger,
 
 const shutdownTimeout = 15 * time.Second
 
-// Start starts the HTTP server
 func (a *App) Start(ctx context.Context) error {
 	go func() {
 		<-ctx.Done()
@@ -156,7 +155,6 @@ func (a *App) Start(ctx context.Context) error {
 	return nil
 }
 
-// Close cleans up resources used by the app
 func (a *App) Close() {
 	if a.Cleanup != nil {
 		a.Cleanup()

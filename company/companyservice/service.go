@@ -2,7 +2,6 @@ package companyservice
 
 import (
 	"context"
-	"time"
 
 	"github.com/kozlov-ma/sesc-backend/company"
 	"github.com/kozlov-ma/sesc-backend/company/companyquery"
@@ -25,11 +24,14 @@ func New(ds DataSource) S {
 }
 
 func NewLocal(users []company.User, userPasswords map[string]string, departments []company.Department) S {
-	return New(&localDS{
-		users:                users,
-		userPasswords:        userPasswords,
-		departments:          departments,
-		slowdownDuration:     200 * time.Millisecond,
-		longSlowdownDuration: 2 * time.Second,
-	})
+	return New(newLocalDS(users, userPasswords, departments))
+}
+
+// NewLDAPService creates a new company service backed by LDAP
+func NewLDAPService(ctx context.Context, config LDAPConfig, eventSink EventSink) (S, error) {
+	ds, err := NewLDAP(ctx, config, eventSink)
+	if err != nil {
+		return S{}, err
+	}
+	return New(ds), nil
 }

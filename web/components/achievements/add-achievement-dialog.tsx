@@ -121,7 +121,7 @@ export function AddAchievementDialog({
                           >
                             <div className="flex items-start justify-between w-full gap-2">
                               <div className="flex-1 min-w-0 pr-2 text-left">
-                                <div className="font-medium leading-tight wrap-break-word whitespace-normal text-left">
+                                <div className="font-medium leading-tight break-words whitespace-normal text-left">
                                   {group.name}
                                 </div>
                               </div>
@@ -173,7 +173,7 @@ export function AddAchievementDialog({
                               <Trophy className="h-5 w-5 shrink-0 mt-0.5" />
                               <div className="space-y-1 text-left overflow-hidden text-pretty min-w-0">
                                 <div
-                                  className="font-medium leading-tight wrap-break-word truncate-with-ellipsis"
+                                  className="font-medium leading-tight break-words truncate-with-ellipsis"
                                   title={template.name}
                                 >
                                   {template.name}

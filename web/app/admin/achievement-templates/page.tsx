@@ -14,7 +14,7 @@ export default function AchievementTemplatesPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col p-6 bg-background">
+    <div className="flex flex-col bg-background">
       <header className="w-full flex justify-between items-center mb-8">
         <h1 className="text-2xl font-bold">Шаблоны Достижений</h1>
         <div className="flex items-center gap-2"></div>
