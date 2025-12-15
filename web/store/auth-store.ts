@@ -11,6 +11,9 @@ interface AuthState {
 
 const safeLocalStorage = {
   getItem: (name: string): string | null => {
+    if (typeof window === "undefined") {
+      return null;
+    }
     try {
       return localStorage.getItem(name);
     } catch (error) {
@@ -19,6 +22,9 @@ const safeLocalStorage = {
     }
   },
   setItem: (name: string, value: string): void => {
+    if (typeof window === "undefined") {
+      return;
+    }
     try {
       localStorage.setItem(name, value);
     } catch (error) {
@@ -26,6 +32,9 @@ const safeLocalStorage = {
     }
   },
   removeItem: (name: string): void => {
+    if (typeof window === "undefined") {
+      return;
+    }
     try {
       localStorage.removeItem(name);
     } catch (error) {
@@ -41,7 +50,14 @@ export const useAuthStore = create<AuthState>()(
       roles: [],
 
       setAuth: (token, roles) => set({ token, roles }),
-      clearAuth: () => set({ token: null, roles: [] }),
+      clearAuth: () => {
+        try {
+          safeLocalStorage.removeItem("auth-storage");
+        } catch (e) {
+          console.error("Failed to clear auth storage:", e);
+        }
+        set({ token: null, roles: [] });
+      },
     }),
     {
       name: "auth-storage",
@@ -52,7 +68,7 @@ export const useAuthStore = create<AuthState>()(
           console.error("Failed to rehydrate auth state:", error);
           // Очищаем поврежденные данные
           try {
-            localStorage.removeItem("auth-storage");
+            safeLocalStorage.removeItem("auth-storage");
           } catch (e) {
             console.error("Failed to clear corrupted auth storage:", e);
           }

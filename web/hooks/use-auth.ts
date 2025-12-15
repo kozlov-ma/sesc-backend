@@ -37,6 +37,8 @@ export function useAuth() {
     }),
     enabled: !!token,
     retry: false,
+    staleTime: 0,
+    gcTime: 0,
   });
 
   // Обрабатываем ошибку валидации токена в useEffect, чтобы избежать side effects в теле функции
@@ -78,14 +80,15 @@ export function useAuth() {
     !!token &&
     token.length > 0 &&
     !validateTokenQuery.isError &&
-    (validateTokenQuery.isSuccess ||
-      (validateTokenQuery.isLoading &&
-        validateTokenQuery.fetchStatus !== "idle"));
+    validateTokenQuery.isSuccess;
 
   const isLoading =
     !!token &&
-    validateTokenQuery.isLoading &&
-    validateTokenQuery.fetchStatus !== "idle";
+    token.length > 0 &&
+    (validateTokenQuery.isLoading ||
+      (validateTokenQuery.fetchStatus === "idle" &&
+        !validateTokenQuery.isSuccess &&
+        !validateTokenQuery.isError));
 
   return {
     token,
