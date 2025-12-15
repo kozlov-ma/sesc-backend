@@ -184,24 +184,11 @@ export function FileTable({
   const handleDownload = (file: RespondFile) => {
     if (!file.id || !token) return;
 
-    // Create a temporary form to download the file with authorization
-    const form = document.createElement("form");
-    form.method = "GET";
-    form.action = `${process.env.NEXT_PUBLIC_API_URL}/files/${file.id}/download`;
-    form.target = "_blank";
-    form.style.display = "none";
-
-    // Add authorization header as a hidden input (though this won't work for headers)
-    // Better approach: use a temporary iframe with custom headers
-    const iframe = document.createElement("iframe");
-    iframe.style.display = "none";
-    document.body.appendChild(iframe);
-
-    // Create a blob URL with the authorization
     const downloadUrl = `${process.env.NEXT_PUBLIC_API_URL}/files/${file.id}/download`;
 
-    // Use fetch to get the file with proper headers
     fetch(downloadUrl, {
+      method: "GET",
+      credentials: "include",
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -210,7 +197,6 @@ export function FileTable({
         if (response.status === 307 || response.status === 302) {
           const redirectUrl = response.headers.get("location");
           if (redirectUrl) {
-            // Create a link and click it
             const link = document.createElement("a");
             link.href = redirectUrl;
             link.download = file.fileName || "download";
@@ -240,9 +226,10 @@ export function FileTable({
       })
       .catch((error) => {
         console.error("Error downloading file:", error);
-      })
-      .finally(() => {
-        document.body.removeChild(iframe);
+        toast.error("Ошибка скачивания файла", {
+          description:
+            "Не удалось скачать файл. Проверьте подключение и попробуйте снова.",
+        });
       });
   };
 

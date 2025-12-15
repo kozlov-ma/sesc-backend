@@ -11,6 +11,36 @@ interface AuthState {
   setHasHydrated: (state: boolean) => void;
 }
 
+const COOKIE_NAME = "auth-token";
+const COOKIE_MAX_AGE = 60 * 60 * 24 * 7;
+
+const setCookie = (name: string, value: string, maxAge: number) => {
+  if (typeof document === "undefined") {
+    return;
+  }
+  document.cookie = `${name}=${value}; path=/; max-age=${maxAge}; SameSite=Lax`;
+};
+
+const getCookie = (name: string): string | null => {
+  if (typeof document === "undefined") {
+    return null;
+  }
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) {
+    return parts.pop()?.split(";").shift() || null;
+  }
+  return null;
+};
+
+const removeCookie = (name: string) => {
+  if (typeof document === "undefined") {
+    return;
+  }
+  document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+  document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=${window.location.hostname};`;
+};
+
 const safeLocalStorage = {
   getItem: (name: string): string | null => {
     if (typeof window === "undefined") {
@@ -52,17 +82,21 @@ export const useAuthStore = create<AuthState>()(
       roles: [],
       _hasHydrated: false,
 
-      setAuth: (token, roles) => set({ token, roles }),
+      setAuth: (token, roles) => {
+        set({ token, roles });
+        if (token && typeof document !== "undefined") {
+          setCookie(COOKIE_NAME, token, COOKIE_MAX_AGE);
+        }
+      },
       clearAuth: () => {
         try {
           safeLocalStorage.removeItem("auth-storage");
+          removeCookie(COOKIE_NAME);
           // Также очищаем все возможные cookies связанные с аутентификацией
           if (typeof document !== "undefined") {
-            // Очищаем cookies
-            const cookiesToClear = ["auth-token", "token", "access_token", "refresh_token"];
+            const cookiesToClear = ["token", "access_token", "refresh_token"];
             cookiesToClear.forEach((cookieName) => {
-              document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
-              document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=${window.location.hostname};`;
+              removeCookie(cookieName);
             });
           }
         } catch (e) {
@@ -90,6 +124,32 @@ export const useAuthStore = create<AuthState>()(
             console.error("Failed to clear corrupted auth storage:", e);
           }
         }
+
+        if (typeof document !== "undefined") {
+          const cookieToken = getCookie(COOKIE_NAME);
+          if (cookieToken && state && !state.token) {
+            state.token = cookieToken;
+            try {
+              const currentState = useAuthStore.getState();
+              safeLocalStorage.setItem(
+                "auth-storage",
+                JSON.stringify({
+                  state: {
+                    token: cookieToken,
+                    roles: currentState.roles,
+                    _hasHydrated: false,
+                  },
+                  version: 0,
+                }),
+              );
+            } catch (e) {
+              console.error("Failed to sync token from cookie:", e);
+            }
+          } else if (state?.token && cookieToken !== state.token) {
+            setCookie(COOKIE_NAME, state.token, COOKIE_MAX_AGE);
+          }
+        }
+
         // Помечаем, что гидратация завершена (даже если была ошибка или данных нет)
         // Это важно, чтобы приложение не зависло в состоянии загрузки
         if (state) {
