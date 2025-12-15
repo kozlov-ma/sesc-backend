@@ -4,9 +4,11 @@ import { createJSONStorage, persist } from "zustand/middleware";
 interface AuthState {
   token: string | null;
   roles: string[];
+  _hasHydrated: boolean;
 
   setAuth: (token: string, roles: string[]) => void;
   clearAuth: () => void;
+  setHasHydrated: (state: boolean) => void;
 }
 
 const safeLocalStorage = {
@@ -48,15 +50,30 @@ export const useAuthStore = create<AuthState>()(
     (set) => ({
       token: null,
       roles: [],
+      _hasHydrated: false,
 
       setAuth: (token, roles) => set({ token, roles }),
       clearAuth: () => {
         try {
           safeLocalStorage.removeItem("auth-storage");
+          // Также очищаем все возможные cookies связанные с аутентификацией
+          if (typeof document !== "undefined") {
+            // Очищаем cookies
+            const cookiesToClear = ["auth-token", "token", "access_token", "refresh_token"];
+            cookiesToClear.forEach((cookieName) => {
+              document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+              document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=${window.location.hostname};`;
+            });
+          }
         } catch (e) {
           console.error("Failed to clear auth storage:", e);
         }
         set({ token: null, roles: [] });
+      },
+      setHasHydrated: (state) => {
+        set({
+          _hasHydrated: state,
+        });
       },
     }),
     {
@@ -73,7 +90,18 @@ export const useAuthStore = create<AuthState>()(
             console.error("Failed to clear corrupted auth storage:", e);
           }
         }
+        // Помечаем, что гидратация завершена (даже если была ошибка или данных нет)
+        // Это важно, чтобы приложение не зависло в состоянии загрузки
+        if (state) {
+          state.setHasHydrated(true);
+        } else {
+          // Если state undefined, устанавливаем флаг через store напрямую
+          // Это может произойти, если гидратация завершилась с ошибкой
+          useAuthStore.getState().setHasHydrated(true);
+        }
       },
+      // Пропускаем гидратацию на сервере
+      skipHydration: true,
     },
   ),
 );

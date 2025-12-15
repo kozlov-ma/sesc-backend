@@ -1,10 +1,15 @@
 "use client";
 
-import { useEffect } from "react";
 import { useAuth } from "@/hooks/use-auth";
+import { useAuthStore } from "@/store/auth-store";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 export default function HomePage() {
-  const { token, validateToken } = useAuth();
+  const { token, validateToken, isAuthenticated, isLoading } = useAuth();
+  const { _hasHydrated } = useAuthStore();
+  const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
     if (token) {
@@ -16,5 +21,21 @@ export default function HomePage() {
     }
   }, [token, validateToken]);
 
-  return null; // Эта страница только для маршрутизации
+  useEffect(() => {
+    if (
+      typeof window !== "undefined" &&
+      _hasHydrated &&
+      !isLoading &&
+      isAuthenticated &&
+      pathname === "/"
+    ) {
+      router.push("/u/users/me");
+    }
+  }, [_hasHydrated, isLoading, isAuthenticated, router, pathname]);
+
+  if (!_hasHydrated || isLoading) {
+    return null;
+  }
+
+  return null;
 }

@@ -9,12 +9,13 @@ import {
 import type { ApiTokenResponse } from "@/lib/api/types.gen";
 import { useAuthStore } from "@/store/auth-store";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef } from "react";
 
 export function useAuth() {
   const { push } = useRouter();
-  const { token, roles, setAuth, clearAuth } = useAuthStore();
+  const pathname = usePathname();
+  const { token, roles, setAuth, clearAuth, _hasHydrated } = useAuthStore();
   const queryClient = useQueryClient();
   const hasClearedAuthRef = useRef(false);
 
@@ -35,7 +36,7 @@ export function useAuth() {
         Authorization: `Bearer ${token}`,
       },
     }),
-    enabled: !!token,
+    enabled: !!token && _hasHydrated,
     retry: false,
     staleTime: 0,
     gcTime: 0,
@@ -43,19 +44,37 @@ export function useAuth() {
 
   // Обрабатываем ошибку валидации токена в useEffect, чтобы избежать side effects в теле функции
   useEffect(() => {
-    if (validateTokenQuery.isError && token && !hasClearedAuthRef.current) {
+    if (
+      validateTokenQuery.isError &&
+      token &&
+      !hasClearedAuthRef.current &&
+      _hasHydrated
+    ) {
       hasClearedAuthRef.current = true;
       // Сбрасываем кэш запроса валидации перед очисткой токена
       queryClient.removeQueries({
         queryKey: getAuthValidateOptions({ headers: {} }).queryKey,
       });
       clearAuth();
+      // Редиректим на главную страницу для повторной авторизации
+      // только если мы не на главной странице уже
+      if (typeof window !== "undefined" && pathname !== "/") {
+        push("/");
+      }
     }
     // Сбрасываем флаг, если токен изменился
     if (!token) {
       hasClearedAuthRef.current = false;
     }
-  }, [validateTokenQuery.isError, token, clearAuth, queryClient]);
+  }, [
+    validateTokenQuery.isError,
+    token,
+    clearAuth,
+    queryClient,
+    push,
+    pathname,
+    _hasHydrated,
+  ]);
 
   const logout = () => {
     clearAuth();
@@ -77,18 +96,20 @@ export function useAuth() {
   };
 
   const isAuthenticated =
+    _hasHydrated &&
     !!token &&
     token.length > 0 &&
     !validateTokenQuery.isError &&
     validateTokenQuery.isSuccess;
 
   const isLoading =
-    !!token &&
-    token.length > 0 &&
-    (validateTokenQuery.isLoading ||
-      (validateTokenQuery.fetchStatus === "idle" &&
-        !validateTokenQuery.isSuccess &&
-        !validateTokenQuery.isError));
+    !_hasHydrated ||
+    (!!token &&
+      token.length > 0 &&
+      (validateTokenQuery.isLoading ||
+        (validateTokenQuery.fetchStatus === "idle" &&
+          !validateTokenQuery.isSuccess &&
+          !validateTokenQuery.isError)));
 
   return {
     token,
