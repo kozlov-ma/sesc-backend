@@ -6,7 +6,11 @@ export const createClientConfig: CreateClientConfig = (config) => ({
   baseURL: process.env.NEXT_PUBLIC_API_URL,
   withCredentials: true,
   auth: () => {
-    const token = useAuthStore.getState().token;
-    return token ? `Bearer ${token}` : "";
+    try {
+      const token = useAuthStore.getState().token;
+      return token ? `Bearer ${token}` : "";
+    } catch (error) {
+      return "";
+    }
   },
 });

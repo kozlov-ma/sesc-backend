@@ -34,43 +34,64 @@ const getCookie = (name: string): string | null => {
 };
 
 const removeCookie = (name: string) => {
-  if (typeof document === "undefined") {
+  if (typeof document === "undefined" || typeof window === "undefined") {
     return;
   }
-  document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
-  document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=${window.location.hostname};`;
+  try {
+    document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+    if (window.location?.hostname) {
+      document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=${window.location.hostname};`;
+    }
+  } catch (error) {
+    console.error("Failed to remove cookie:", error);
+  }
 };
 
 const safeLocalStorage = {
   getItem: (name: string): string | null => {
-    if (typeof window === "undefined") {
+    if (typeof window === "undefined" || typeof localStorage === "undefined") {
       return null;
     }
     try {
+      if (typeof localStorage.getItem !== "function") {
+        return null;
+      }
       return localStorage.getItem(name);
     } catch (error) {
-      console.error("Failed to read from localStorage:", error);
+      if (typeof window !== "undefined") {
+        console.error("Failed to read from localStorage:", error);
+      }
       return null;
     }
   },
   setItem: (name: string, value: string): void => {
-    if (typeof window === "undefined") {
+    if (typeof window === "undefined" || typeof localStorage === "undefined") {
       return;
     }
     try {
+      if (typeof localStorage.setItem !== "function") {
+        return;
+      }
       localStorage.setItem(name, value);
     } catch (error) {
-      console.error("Failed to write to localStorage:", error);
+      if (typeof window !== "undefined") {
+        console.error("Failed to write to localStorage:", error);
+      }
     }
   },
   removeItem: (name: string): void => {
-    if (typeof window === "undefined") {
+    if (typeof window === "undefined" || typeof localStorage === "undefined") {
       return;
     }
     try {
+      if (typeof localStorage.removeItem !== "function") {
+        return;
+      }
       localStorage.removeItem(name);
     } catch (error) {
-      console.error("Failed to remove from localStorage:", error);
+      if (typeof window !== "undefined") {
+        console.error("Failed to remove from localStorage:", error);
+      }
     }
   },
 };
@@ -115,6 +136,10 @@ export const useAuthStore = create<AuthState>()(
       storage: createJSONStorage(() => safeLocalStorage),
       // Обрабатываем ошибки при десериализации данных
       onRehydrateStorage: () => (state, error) => {
+        if (typeof window === "undefined") {
+          return;
+        }
+
         if (error) {
           console.error("Failed to rehydrate auth state:", error);
           // Очищаем поврежденные данные
