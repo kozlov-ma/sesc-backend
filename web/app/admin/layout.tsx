@@ -105,16 +105,27 @@ export default function DashboardLayout({
   }
 
   if (roles.some((r) => r !== "admin")) {
+    const hasTeacherRole = roles.some((r) => r === "teacher");
+
+    const documentRoutes = [
+      {
+        name: "Общие документы",
+        url: "/u/documents/shared",
+        icon: FolderOpen,
+      },
+    ];
+
+    if (hasTeacherRole) {
+      documentRoutes.unshift({
+        name: "Мои документы",
+        url: "/u/documents/my",
+        icon: FolderPlus,
+      });
+    }
+
     groups.push({
       name: "Документы",
-      routes: [
-        { name: "Мои документы", url: "/u/documents/my", icon: FolderPlus },
-        {
-          name: "Общие документы",
-          url: "/u/documents/shared",
-          icon: FolderOpen,
-        },
-      ],
+      routes: documentRoutes,
     });
   }
 
