@@ -37,16 +37,27 @@ export const DEFAULT_ERROR_MESSAGES = {
 export function parseApiError(error: unknown): ApiError {
   if (error instanceof AxiosError) {
     // Handle Axios errors
-    // If the server returned a structured error
-    const apiError = error.response?.data as ApiError | undefined;
+    // Backend returns: { code, message, statusCode }
+    // We accept both formats: with ruMessage or without (using message as ruMessage)
+    const responseData = error.response?.data as
+      | {
+          code?: string;
+          message?: string;
+          ruMessage?: string;
+          details?: string;
+          statusCode?: number;
+        }
+      | undefined;
 
-    if (apiError?.code && apiError?.message && apiError?.ruMessage) {
+    // Check if we have a valid API error structure with at least a message
+    if (responseData && (responseData.message || responseData.ruMessage)) {
+      const message = responseData.message || responseData.ruMessage || "";
       return {
-        code: apiError.code,
-        message: apiError.message,
-        ruMessage: apiError.ruMessage,
-        details: apiError.details,
-        statusCode: error.response?.status,
+        code: responseData.code || "UNKNOWN_ERROR",
+        message: message,
+        ruMessage: responseData.ruMessage || message, // Use message as ruMessage if ruMessage is missing
+        details: responseData.details,
+        statusCode: responseData.statusCode || error.response?.status,
       };
     }
 

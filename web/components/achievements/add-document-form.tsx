@@ -12,6 +12,7 @@ import {
 } from "@/lib/api/@tanstack/react-query.gen";
 import { postAchievementsByIdDocuments } from "@/lib/api/sdk.gen";
 import type { RespondFile } from "@/lib/api/types.gen";
+import { getErrorMessage } from "@/lib/error-handler";
 import {
   useInfiniteQuery,
   useMutation,
@@ -36,7 +37,7 @@ export function AddDocumentForm({
   const [selectedFile, setSelectedFile] = useState<RespondFile | null>(null);
   const [documentName, setDocumentName] = useState("");
   const queryClient = useQueryClient();
-  const { clearError } = useErrorHandler();
+  const { handleError, clearError } = useErrorHandler();
 
   const filesOpt = getFilesInfiniteOptions({
     query: {
@@ -83,8 +84,12 @@ export function AddDocumentForm({
         setDocumentName(data.fileName || "");
       }
     },
-    onError: () => {
-      toast.error("Не удалось загрузить файл");
+    onError: (error) => {
+      handleError(error);
+      const errorMessage = getErrorMessage(error);
+      toast.error("Ошибка загрузки файла", {
+        description: errorMessage,
+      });
     },
   });
 
@@ -112,10 +117,11 @@ export function AddDocumentForm({
       onSuccess?.();
     },
     onError: (error) => {
-      toast.error("Ошибка", {
-        description: "Не удалось добавить документ",
+      handleError(error);
+      const errorMessage = getErrorMessage(error);
+      toast.error("Ошибка добавления документа", {
+        description: errorMessage,
       });
-      console.error("Error adding document:", error);
     },
   });
 
