@@ -120,31 +120,3 @@
     }
 }
 
-@layer utilities {
-    /* Simple utilities for better text handling */
-    .break-anywhere {
-        overflow-wrap: anywhere;
-        word-break: break-word;
-    }
-    
-    /* Force table cells to respect width constraints */
-    .table-cell-constrained {
-        max-width: 0;
-        overflow: hidden;
-        position: relative;
-    }
-    
-    .table-cell-constrained > * {
-        max-width: 100%;
-        overflow-wrap: break-word;
-        word-break: break-word;
-    }
-
-    .expandable-text-container {
-        max-width: 100%;
-        overflow: hidden;
-        word-wrap: break-word;
-        word-break: break-word;
-        hyphens: auto;
-    }
-}

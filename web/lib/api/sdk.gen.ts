@@ -121,47 +121,38 @@ export type Options<
 
 /**
  * Get all achievement groups
+ *
  * Retrieves all achievement groups with filtering options
  */
 export const getAchievementGroups = <ThrowOnError extends boolean = false>(
   options?: Options<GetAchievementGroupsData, ThrowOnError>,
-) => {
-  return (options?.client ?? client).get<
+) =>
+  (options?.client ?? client).get<
     GetAchievementGroupsResponses,
     GetAchievementGroupsErrors,
     ThrowOnError
   >({
     responseType: "json",
-    security: [
-      {
-        name: "Authorization",
-        type: "apiKey",
-      },
-    ],
+    security: [{ name: "Authorization", type: "apiKey" }],
     url: "/achievement-groups",
     ...options,
   });
-};
 
 /**
  * Create new achievement group
+ *
  * Creates a new achievement group
  */
 export const postAchievementGroups = <ThrowOnError extends boolean = false>(
   options: Options<PostAchievementGroupsData, ThrowOnError>,
-) => {
-  return (options.client ?? client).post<
+) =>
+  (options.client ?? client).post<
     PostAchievementGroupsResponses,
     PostAchievementGroupsErrors,
     ThrowOnError
   >({
     responseType: "json",
-    security: [
-      {
-        name: "Authorization",
-        type: "apiKey",
-      },
-    ],
+    security: [{ name: "Authorization", type: "apiKey" }],
     url: "/achievement-groups",
     ...options,
     headers: {
@@ -169,29 +160,24 @@ export const postAchievementGroups = <ThrowOnError extends boolean = false>(
       ...options.headers,
     },
   });
-};
 
 /**
  * Update achievement group
+ *
  * Updates an achievement group
  */
 export const patchAchievementGroupsById = <
   ThrowOnError extends boolean = false,
 >(
   options: Options<PatchAchievementGroupsByIdData, ThrowOnError>,
-) => {
-  return (options.client ?? client).patch<
+) =>
+  (options.client ?? client).patch<
     PatchAchievementGroupsByIdResponses,
     PatchAchievementGroupsByIdErrors,
     ThrowOnError
   >({
     responseType: "json",
-    security: [
-      {
-        name: "Authorization",
-        type: "apiKey",
-      },
-    ],
+    security: [{ name: "Authorization", type: "apiKey" }],
     url: "/achievement-groups/{id}",
     ...options,
     headers: {
@@ -199,51 +185,41 @@ export const patchAchievementGroupsById = <
       ...options.headers,
     },
   });
-};
 
 /**
  * Get all achievement templates
+ *
  * Retrieves all achievement templates
  */
 export const getAchievementTemplates = <ThrowOnError extends boolean = false>(
   options?: Options<GetAchievementTemplatesData, ThrowOnError>,
-) => {
-  return (options?.client ?? client).get<
+) =>
+  (options?.client ?? client).get<
     GetAchievementTemplatesResponses,
     GetAchievementTemplatesErrors,
     ThrowOnError
   >({
     responseType: "json",
-    security: [
-      {
-        name: "Authorization",
-        type: "apiKey",
-      },
-    ],
+    security: [{ name: "Authorization", type: "apiKey" }],
     url: "/achievement-templates",
     ...options,
   });
-};
 
 /**
  * Create new achievement template
+ *
  * Creates a new achievement template
  */
 export const postAchievementTemplates = <ThrowOnError extends boolean = false>(
   options: Options<PostAchievementTemplatesData, ThrowOnError>,
-) => {
-  return (options.client ?? client).post<
+) =>
+  (options.client ?? client).post<
     PostAchievementTemplatesResponses,
     PostAchievementTemplatesErrors,
     ThrowOnError
   >({
     responseType: "json",
-    security: [
-      {
-        name: "Authorization",
-        type: "apiKey",
-      },
-    ],
+    security: [{ name: "Authorization", type: "apiKey" }],
     url: "/achievement-templates",
     ...options,
     headers: {
@@ -251,29 +227,24 @@ export const postAchievementTemplates = <ThrowOnError extends boolean = false>(
       ...options.headers,
     },
   });
-};
 
 /**
  * Update achievement template
+ *
  * Updates an achievement template
  */
 export const patchAchievementTemplatesById = <
   ThrowOnError extends boolean = false,
 >(
   options: Options<PatchAchievementTemplatesByIdData, ThrowOnError>,
-) => {
-  return (options.client ?? client).patch<
+) =>
+  (options.client ?? client).patch<
     PatchAchievementTemplatesByIdResponses,
     PatchAchievementTemplatesByIdErrors,
     ThrowOnError
   >({
     responseType: "json",
-    security: [
-      {
-        name: "Authorization",
-        type: "apiKey",
-      },
-    ],
+    security: [{ name: "Authorization", type: "apiKey" }],
     url: "/achievement-templates/{id}",
     ...options,
     headers: {
@@ -281,51 +252,41 @@ export const patchAchievementTemplatesById = <
       ...options.headers,
     },
   });
-};
 
 /**
  * Get all achievements for the current user
+ *
  * Retrieves all achievements for the current user with pagination
  */
 export const getAchievements = <ThrowOnError extends boolean = false>(
   options?: Options<GetAchievementsData, ThrowOnError>,
-) => {
-  return (options?.client ?? client).get<
+) =>
+  (options?.client ?? client).get<
     GetAchievementsResponses,
     GetAchievementsErrors,
     ThrowOnError
   >({
     responseType: "json",
-    security: [
-      {
-        name: "Authorization",
-        type: "apiKey",
-      },
-    ],
+    security: [{ name: "Authorization", type: "apiKey" }],
     url: "/achievements",
     ...options,
   });
-};
 
 /**
  * Create a new achievement
+ *
  * Creates a new achievement for the current user
  */
 export const postAchievements = <ThrowOnError extends boolean = false>(
   options: Options<PostAchievementsData, ThrowOnError>,
-) => {
-  return (options.client ?? client).post<
+) =>
+  (options.client ?? client).post<
     PostAchievementsResponses,
     PostAchievementsErrors,
     ThrowOnError
   >({
     responseType: "json",
-    security: [
-      {
-        name: "Authorization",
-        type: "apiKey",
-      },
-    ],
+    security: [{ name: "Authorization", type: "apiKey" }],
     url: "/achievements",
     ...options,
     headers: {
@@ -333,101 +294,81 @@ export const postAchievements = <ThrowOnError extends boolean = false>(
       ...options.headers,
     },
   });
-};
 
 /**
  * Get users with achievements
+ *
  * Retrieves users with achievements based on role permissions
  */
 export const getAchievementsUsers = <ThrowOnError extends boolean = false>(
   options?: Options<GetAchievementsUsersData, ThrowOnError>,
-) => {
-  return (options?.client ?? client).get<
+) =>
+  (options?.client ?? client).get<
     GetAchievementsUsersResponses,
     GetAchievementsUsersErrors,
     ThrowOnError
   >({
     responseType: "json",
-    security: [
-      {
-        name: "Authorization",
-        type: "apiKey",
-      },
-    ],
+    security: [{ name: "Authorization", type: "apiKey" }],
     url: "/achievements/users",
     ...options,
   });
-};
 
 /**
  * Delete an achievement
+ *
  * Deletes an achievement
  */
 export const deleteAchievementsById = <ThrowOnError extends boolean = false>(
   options: Options<DeleteAchievementsByIdData, ThrowOnError>,
-) => {
-  return (options.client ?? client).delete<
+) =>
+  (options.client ?? client).delete<
     DeleteAchievementsByIdResponses,
     DeleteAchievementsByIdErrors,
     ThrowOnError
   >({
     responseType: "json",
-    security: [
-      {
-        name: "Authorization",
-        type: "apiKey",
-      },
-    ],
+    security: [{ name: "Authorization", type: "apiKey" }],
     url: "/achievements/{id}",
     ...options,
   });
-};
 
 /**
  * Get a specific achievement
+ *
  * Retrieves a specific achievement by ID
  */
 export const getAchievementsById = <ThrowOnError extends boolean = false>(
   options: Options<GetAchievementsByIdData, ThrowOnError>,
-) => {
-  return (options.client ?? client).get<
+) =>
+  (options.client ?? client).get<
     GetAchievementsByIdResponses,
     GetAchievementsByIdErrors,
     ThrowOnError
   >({
     responseType: "json",
-    security: [
-      {
-        name: "Authorization",
-        type: "apiKey",
-      },
-    ],
+    security: [{ name: "Authorization", type: "apiKey" }],
     url: "/achievements/{id}",
     ...options,
   });
-};
 
 /**
  * Add a document to an achievement
+ *
  * Adds a document to an achievement
  */
 export const postAchievementsByIdDocuments = <
   ThrowOnError extends boolean = false,
 >(
   options: Options<PostAchievementsByIdDocumentsData, ThrowOnError>,
-) => {
-  return (options.client ?? client).post<
+) =>
+  (options.client ?? client).post<
     PostAchievementsByIdDocumentsResponses,
     PostAchievementsByIdDocumentsErrors,
     ThrowOnError
   >({
     responseType: "json",
-    security: [
-      {
-        name: "Authorization",
-        type: "apiKey",
-      },
-    ],
+    security: [{ name: "Authorization", type: "apiKey" }],
     url: "/achievements/{id}/documents",
     ...options,
     headers: {
@@ -435,10 +376,10 @@ export const postAchievementsByIdDocuments = <
       ...options.headers,
     },
   });
-};
 
 /**
  * Remove a document from an achievement
+ *
  * Removes a document from an achievement
  */
 export const deleteAchievementsByIdDocumentsByDocumentId = <
@@ -448,45 +389,35 @@ export const deleteAchievementsByIdDocumentsByDocumentId = <
     DeleteAchievementsByIdDocumentsByDocumentIdData,
     ThrowOnError
   >,
-) => {
-  return (options.client ?? client).delete<
+) =>
+  (options.client ?? client).delete<
     DeleteAchievementsByIdDocumentsByDocumentIdResponses,
     DeleteAchievementsByIdDocumentsByDocumentIdErrors,
     ThrowOnError
   >({
     responseType: "json",
-    security: [
-      {
-        name: "Authorization",
-        type: "apiKey",
-      },
-    ],
+    security: [{ name: "Authorization", type: "apiKey" }],
     url: "/achievements/{id}/documents/{documentId}",
     ...options,
   });
-};
 
 /**
  * Review an achievement
+ *
  * Reviews an achievement with approve, disapprove, or request changes action
  */
 export const postAchievementsByIdReview = <
   ThrowOnError extends boolean = false,
 >(
   options: Options<PostAchievementsByIdReviewData, ThrowOnError>,
-) => {
-  return (options.client ?? client).post<
+) =>
+  (options.client ?? client).post<
     PostAchievementsByIdReviewResponses,
     PostAchievementsByIdReviewErrors,
     ThrowOnError
   >({
     responseType: "json",
-    security: [
-      {
-        name: "Authorization",
-        type: "apiKey",
-      },
-    ],
+    security: [{ name: "Authorization", type: "apiKey" }],
     url: "/achievements/{id}/review",
     ...options,
     headers: {
@@ -494,55 +425,45 @@ export const postAchievementsByIdReview = <
       ...options.headers,
     },
   });
-};
 
 /**
  * Submit an achievement for review
+ *
  * Submits an achievement for review
  */
 export const postAchievementsByIdSubmit = <
   ThrowOnError extends boolean = false,
 >(
   options: Options<PostAchievementsByIdSubmitData, ThrowOnError>,
-) => {
-  return (options.client ?? client).post<
+) =>
+  (options.client ?? client).post<
     PostAchievementsByIdSubmitResponses,
     PostAchievementsByIdSubmitErrors,
     ThrowOnError
   >({
     responseType: "json",
-    security: [
-      {
-        name: "Authorization",
-        type: "apiKey",
-      },
-    ],
+    security: [{ name: "Authorization", type: "apiKey" }],
     url: "/achievements/{id}/submit",
     ...options,
   });
-};
 
 /**
  * Submit achievement with updated points
+ *
  * Allows teachers to submit achievement with updated points when changes are requested by reviewers
  */
 export const postAchievementsByIdSubmitWithNewPoints = <
   ThrowOnError extends boolean = false,
 >(
   options: Options<PostAchievementsByIdSubmitWithNewPointsData, ThrowOnError>,
-) => {
-  return (options.client ?? client).post<
+) =>
+  (options.client ?? client).post<
     PostAchievementsByIdSubmitWithNewPointsResponses,
     PostAchievementsByIdSubmitWithNewPointsErrors,
     ThrowOnError
   >({
     responseType: "json",
-    security: [
-      {
-        name: "Authorization",
-        type: "apiKey",
-      },
-    ],
+    security: [{ name: "Authorization", type: "apiKey" }],
     url: "/achievements/{id}/submit-with-new-points",
     ...options,
     headers: {
@@ -550,16 +471,16 @@ export const postAchievementsByIdSubmitWithNewPoints = <
       ...options.headers,
     },
   });
-};
 
 /**
  * User login
+ *
  * Verifies user credentials and returns a JWT token
  */
 export const postAuthLogin = <ThrowOnError extends boolean = false>(
   options: Options<PostAuthLoginData, ThrowOnError>,
-) => {
-  return (options.client ?? client).post<
+) =>
+  (options.client ?? client).post<
     PostAuthLoginResponses,
     PostAuthLoginErrors,
     ThrowOnError
@@ -572,40 +493,35 @@ export const postAuthLogin = <ThrowOnError extends boolean = false>(
       ...options.headers,
     },
   });
-};
 
 /**
  * Validate JWT token
+ *
  * Validates a JWT token and returns the identity information
  */
 export const getAuthValidate = <ThrowOnError extends boolean = false>(
   options?: Options<GetAuthValidateData, ThrowOnError>,
-) => {
-  return (options?.client ?? client).get<
+) =>
+  (options?.client ?? client).get<
     GetAuthValidateResponses,
     GetAuthValidateErrors,
     ThrowOnError
   >({
     responseType: "json",
-    security: [
-      {
-        name: "Authorization",
-        type: "apiKey",
-      },
-    ],
+    security: [{ name: "Authorization", type: "apiKey" }],
     url: "/auth/validate",
     ...options,
   });
-};
 
 /**
  * List all departments
+ *
  * Retrieves list of all registered departments
  */
 export const getDepartments = <ThrowOnError extends boolean = false>(
   options?: Options<GetDepartmentsData, ThrowOnError>,
-) => {
-  return (options?.client ?? client).get<
+) =>
+  (options?.client ?? client).get<
     GetDepartmentsResponses,
     GetDepartmentsErrors,
     ThrowOnError
@@ -614,76 +530,61 @@ export const getDepartments = <ThrowOnError extends boolean = false>(
     url: "/departments",
     ...options,
   });
-};
 
 /**
  * Get department details
+ *
  * Retrieves detailed information about a department
  */
 export const getDepartmentsById = <ThrowOnError extends boolean = false>(
   options: Options<GetDepartmentsByIdData, ThrowOnError>,
-) => {
-  return (options.client ?? client).get<
+) =>
+  (options.client ?? client).get<
     GetDepartmentsByIdResponses,
     GetDepartmentsByIdErrors,
     ThrowOnError
   >({
     responseType: "json",
-    security: [
-      {
-        name: "Authorization",
-        type: "apiKey",
-      },
-    ],
+    security: [{ name: "Authorization", type: "apiKey" }],
     url: "/departments/{id}",
     ...options,
   });
-};
 
 /**
  * Search files
+ *
  * Returns a list of files based on search criteria
  */
 export const getFiles = <ThrowOnError extends boolean = false>(
   options?: Options<GetFilesData, ThrowOnError>,
-) => {
-  return (options?.client ?? client).get<
+) =>
+  (options?.client ?? client).get<
     GetFilesResponses,
     GetFilesErrors,
     ThrowOnError
   >({
     responseType: "json",
-    security: [
-      {
-        name: "Authorization",
-        type: "apiKey",
-      },
-    ],
+    security: [{ name: "Authorization", type: "apiKey" }],
     url: "/files",
     ...options,
   });
-};
 
 /**
  * Upload a file
+ *
  * Uploads a new file. Admin users create common files, regular users create files owned by themselves.
  */
 export const postFiles = <ThrowOnError extends boolean = false>(
   options: Options<PostFilesData, ThrowOnError>,
-) => {
-  return (options.client ?? client).post<
+) =>
+  (options.client ?? client).post<
     PostFilesResponses,
     PostFilesErrors,
     ThrowOnError
   >({
     ...formDataBodySerializer,
     responseType: "json",
-    security: [
-      {
-        name: "Authorization",
-        type: "apiKey",
-      },
-    ],
+    security: [{ name: "Authorization", type: "apiKey" }],
     url: "/files",
     ...options,
     headers: {
@@ -691,137 +592,112 @@ export const postFiles = <ThrowOnError extends boolean = false>(
       ...options.headers,
     },
   });
-};
 
 /**
  * Delete file
+ *
  * Deletes a file by ID
  */
 export const deleteFilesById = <ThrowOnError extends boolean = false>(
   options: Options<DeleteFilesByIdData, ThrowOnError>,
-) => {
-  return (options.client ?? client).delete<
+) =>
+  (options.client ?? client).delete<
     DeleteFilesByIdResponses,
     DeleteFilesByIdErrors,
     ThrowOnError
   >({
     responseType: "json",
-    security: [
-      {
-        name: "Authorization",
-        type: "apiKey",
-      },
-    ],
+    security: [{ name: "Authorization", type: "apiKey" }],
     url: "/files/{id}",
     ...options,
   });
-};
 
 /**
  * Get file by ID
+ *
  * Returns a file by ID with download URL
  */
 export const getFilesById = <ThrowOnError extends boolean = false>(
   options: Options<GetFilesByIdData, ThrowOnError>,
-) => {
-  return (options.client ?? client).get<
+) =>
+  (options.client ?? client).get<
     GetFilesByIdResponses,
     GetFilesByIdErrors,
     ThrowOnError
   >({
     responseType: "json",
-    security: [
-      {
-        name: "Authorization",
-        type: "apiKey",
-      },
-    ],
+    security: [{ name: "Authorization", type: "apiKey" }],
     url: "/files/{id}",
     ...options,
   });
-};
 
 /**
  * Download file
+ *
  * Redirects to a pre-signed URL for downloading the file
  */
 export const getFilesByIdDownload = <ThrowOnError extends boolean = false>(
   options: Options<GetFilesByIdDownloadData, ThrowOnError>,
-) => {
-  return (options.client ?? client).get<
+) =>
+  (options.client ?? client).get<
     unknown,
     GetFilesByIdDownloadErrors,
     ThrowOnError
   >({
-    security: [
-      {
-        name: "Authorization",
-        type: "apiKey",
-      },
-    ],
+    security: [{ name: "Authorization", type: "apiKey" }],
     url: "/files/{id}/download",
     ...options,
   });
-};
 
 /**
  * Mark all done achievements as accounted
+ *
  * Marks all achievements with "done" status as "accounted" in the system
  */
 export const postReportsMarkAllAccounted = <
   ThrowOnError extends boolean = false,
 >(
   options?: Options<PostReportsMarkAllAccountedData, ThrowOnError>,
-) => {
-  return (options?.client ?? client).post<
+) =>
+  (options?.client ?? client).post<
     PostReportsMarkAllAccountedResponses,
     PostReportsMarkAllAccountedErrors,
     ThrowOnError
   >({
     responseType: "json",
-    security: [
-      {
-        name: "Authorization",
-        type: "apiKey",
-      },
-    ],
+    security: [{ name: "Authorization", type: "apiKey" }],
     url: "/reports/mark-all-accounted",
     ...options,
   });
-};
 
 /**
  * Generate user points report
+ *
  * Generates an Excel report containing all users with their achievement points summary
  */
 export const getReportsUserPoints = <ThrowOnError extends boolean = false>(
   options?: Options<GetReportsUserPointsData, ThrowOnError>,
-) => {
-  return (options?.client ?? client).get<
+) =>
+  (options?.client ?? client).get<
     GetReportsUserPointsResponses,
     GetReportsUserPointsErrors,
     ThrowOnError
   >({
     responseType: "blob",
-    security: [
-      {
-        name: "Authorization",
-        type: "apiKey",
-      },
-    ],
+    security: [{ name: "Authorization", type: "apiKey" }],
     url: "/reports/user-points",
     ...options,
   });
-};
 
 /**
  * List all roles
+ *
  * Retrieves all system roles with their permissions
  */
 export const getRoles = <ThrowOnError extends boolean = false>(
   options?: Options<GetRolesData, ThrowOnError>,
-) => {
-  return (options?.client ?? client).get<
+) =>
+  (options?.client ?? client).get<
     GetRolesResponses,
     GetRolesErrors,
     ThrowOnError
@@ -830,76 +706,60 @@ export const getRoles = <ThrowOnError extends boolean = false>(
     url: "/roles",
     ...options,
   });
-};
 
 /**
  * Get all users registered in the system
+ *
  * Retrieves detailed information about all users
  */
 export const getUsers = <ThrowOnError extends boolean = false>(
   options?: Options<GetUsersData, ThrowOnError>,
-) => {
-  return (options?.client ?? client).get<
+) =>
+  (options?.client ?? client).get<
     GetUsersResponses,
     GetUsersErrors,
     ThrowOnError
   >({
     responseType: "json",
-    security: [
-      {
-        name: "Authorization",
-        type: "apiKey",
-      },
-    ],
+    security: [{ name: "Authorization", type: "apiKey" }],
     url: "/users",
     ...options,
   });
-};
 
 /**
  * Get current user information
+ *
  * Returns information about the current authenticated user
  */
 export const getUsersMe = <ThrowOnError extends boolean = false>(
   options?: Options<GetUsersMeData, ThrowOnError>,
-) => {
-  return (options?.client ?? client).get<
+) =>
+  (options?.client ?? client).get<
     GetUsersMeResponses,
     GetUsersMeErrors,
     ThrowOnError
   >({
     responseType: "json",
-    security: [
-      {
-        name: "Authorization",
-        type: "apiKey",
-      },
-    ],
+    security: [{ name: "Authorization", type: "apiKey" }],
     url: "/users/me",
     ...options,
   });
-};
 
 /**
  * Get user details
+ *
  * Retrieves detailed information about a user
  */
 export const getUsersById = <ThrowOnError extends boolean = false>(
   options: Options<GetUsersByIdData, ThrowOnError>,
-) => {
-  return (options.client ?? client).get<
+) =>
+  (options.client ?? client).get<
     GetUsersByIdResponses,
     GetUsersByIdErrors,
     ThrowOnError
   >({
     responseType: "json",
-    security: [
-      {
-        name: "Authorization",
-        type: "apiKey",
-      },
-    ],
+    security: [{ name: "Authorization", type: "apiKey" }],
     url: "/users/{id}",
     ...options,
   });
-};

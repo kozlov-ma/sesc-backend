@@ -7,123 +7,136 @@ import {
   postAuthLoginMutation,
 } from "@/lib/api/@tanstack/react-query.gen";
 import type { ApiTokenResponse } from "@/lib/api/types.gen";
-import { useAuthStore } from "@/store/auth-store";
+import {
+  clearAuthData,
+  getAuthData,
+  getToken,
+  setAuthData,
+} from "@/lib/auth-storage";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
 
+/**
+ * Подписка на изменения localStorage для синхронизации между вкладками
+ */
+function subscribeToStorage(callback: () => void) {
+  window.addEventListener("storage", callback);
+  return () => window.removeEventListener("storage", callback);
+}
+
+function getSnapshot() {
+  return getToken();
+}
+
+function getServerSnapshot() {
+  return null;
+}
+
+/**
+ * Хук для работы с авторизацией
+ * Упрощённая версия без Zustand — просто localStorage + React Query
+ */
 export function useAuth() {
   const { push } = useRouter();
   const pathname = usePathname();
-  const { token, roles, setAuth, clearAuth, _hasHydrated } = useAuthStore();
   const queryClient = useQueryClient();
-  const hasClearedAuthRef = useRef(false);
 
-  const loginUserMutation = useMutation({
+  // Флаг гидрации — на сервере и до гидрации localStorage недоступен
+  const [isHydrated, setIsHydrated] = useState(false);
+  useEffect(() => {
+    setIsHydrated(true);
+  }, []);
+
+  // Синхронизация токена с localStorage (включая между вкладками)
+  const token = useSyncExternalStore(
+    subscribeToStorage,
+    getSnapshot,
+    getServerSnapshot,
+  );
+
+  const authData = typeof window !== "undefined" ? getAuthData() : null;
+  const roles = authData?.roles ?? [];
+
+  // Мутация для логина
+  const loginMutation = useMutation({
     ...postAuthLoginMutation(),
     onSuccess: (response: ApiTokenResponse) => {
-      hasClearedAuthRef.current = false;
-      setAuth(
+      setAuthData(
         response.token,
         response.user.roles.map((r) => r.codeName),
       );
+      // Триггерим обновление компонентов
+      window.dispatchEvent(new Event("storage"));
     },
   });
 
-  const validateTokenQuery = useQuery({
+  // Валидация токена
+  const validateQuery = useQuery({
     ...getAuthValidateOptions({
       headers: {
         Authorization: `Bearer ${token}`,
       },
     }),
-    enabled: !!token && _hasHydrated,
+    enabled: !!token,
     retry: false,
-    staleTime: 0,
-    gcTime: 0,
+    staleTime: 5 * 60 * 1000, // 5 минут — не рефетчить постоянно
+    gcTime: 10 * 60 * 1000, // 10 минут — держать в кэше
   });
 
-  // Обрабатываем ошибку валидации токена в useEffect, чтобы избежать side effects в теле функции
+  // При ошибке валидации — разлогиниваем
   useEffect(() => {
-    if (
-      validateTokenQuery.isError &&
-      token &&
-      !hasClearedAuthRef.current &&
-      _hasHydrated
-    ) {
-      hasClearedAuthRef.current = true;
-      // Сбрасываем кэш запроса валидации перед очисткой токена
+    if (validateQuery.isError && token) {
+      clearAuthData();
+      window.dispatchEvent(new Event("storage"));
       queryClient.removeQueries({
         queryKey: getAuthValidateOptions({ headers: {} }).queryKey,
       });
-      clearAuth();
-      // Редиректим на главную страницу для повторной авторизации
-      // только если мы не на главной странице уже
-      if (typeof window !== "undefined" && pathname !== "/") {
+      if (pathname !== "/") {
         push("/");
       }
     }
-    // Сбрасываем флаг, если токен изменился
-    if (!token) {
-      hasClearedAuthRef.current = false;
-    }
-  }, [
-    validateTokenQuery.isError,
-    token,
-    clearAuth,
-    queryClient,
-    push,
-    pathname,
-    _hasHydrated,
-  ]);
+  }, [validateQuery.isError, token, queryClient, push, pathname]);
 
-  const logout = () => {
-    clearAuth();
-    push("/");
+  const setAuth = useCallback((newToken: string, newRoles: string[]) => {
+    setAuthData(newToken, newRoles);
+    window.dispatchEvent(new Event("storage"));
+  }, []);
+
+  const logout = useCallback(() => {
+    clearAuthData();
+    window.dispatchEvent(new Event("storage"));
     queryClient.invalidateQueries({ queryKey: getUsersMeOptions().queryKey });
-  };
+    push("/");
+  }, [queryClient, push]);
 
-  const checkAuth = async () => {
-    if (token) {
-      try {
-        await validateTokenQuery.refetch();
-        return true;
-      } catch (error) {
-        clearAuth();
-        return false;
-      }
-    }
-    return false;
-  };
-
-  const isAuthenticated =
-    _hasHydrated &&
-    !!token &&
-    token.length > 0 &&
-    !validateTokenQuery.isError &&
-    validateTokenQuery.isSuccess;
-
+  // isLoading: true пока не закончилась гидрация или идёт первичная валидация
   const isLoading =
-    !_hasHydrated ||
+    !isHydrated ||
     (!!token &&
-      token.length > 0 &&
-      (validateTokenQuery.isLoading ||
-        (validateTokenQuery.fetchStatus === "idle" &&
-          !validateTokenQuery.isSuccess &&
-          !validateTokenQuery.isError)));
+      !validateQuery.isSuccess &&
+      !validateQuery.isError &&
+      validateQuery.isLoading);
+
+  // isAuthenticated: только после гидрации, если есть токен и нет ошибки
+  const isAuthenticated =
+    isHydrated &&
+    !!token &&
+    !validateQuery.isError &&
+    (validateQuery.isSuccess || validateQuery.isFetching);
 
   return {
     token,
     roles,
     isAuthenticated,
     isLoading,
-    loginUserError: loginUserMutation.error,
-    validateError: validateTokenQuery.error,
+    loginUserError: loginMutation.error,
+    validateError: validateQuery.error,
     loginUser: (credentials: ApiCredentialsRequest) =>
-      loginUserMutation.mutate({ body: credentials }),
+      loginMutation.mutate({ body: credentials }),
     logout,
-    validateToken: validateTokenQuery.refetch,
-    resetLoginUserError: loginUserMutation.reset,
-    checkAuth,
+    validateToken: validateQuery.refetch,
+    resetLoginUserError: loginMutation.reset,
     setAuth,
   };
 }

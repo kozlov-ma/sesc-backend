@@ -1,4 +1,4 @@
-import { useAuthStore } from "@/store/auth-store";
+import { getToken } from "@/lib/auth-storage";
 import type { CreateClientConfig } from "./api/client.gen";
 
 export const createClientConfig: CreateClientConfig = (config) => ({
@@ -6,11 +6,7 @@ export const createClientConfig: CreateClientConfig = (config) => ({
   baseURL: process.env.NEXT_PUBLIC_API_URL,
   withCredentials: true,
   auth: () => {
-    try {
-      const token = useAuthStore.getState().token;
-      return token ? `Bearer ${token}` : "";
-    } catch (error) {
-      return "";
-    }
+    const token = getToken();
+    return token ? `Bearer ${token}` : "";
   },
 });

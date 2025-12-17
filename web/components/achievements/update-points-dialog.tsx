@@ -24,7 +24,7 @@ import {
   getStatusLabel,
 } from "@/lib/utils/achievements";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import React, { useState } from "react";
+import { useState, useEffect, type FormEvent } from "react";
 import { toast } from "sonner";
 
 interface UpdatePointsDialogProps {
@@ -91,7 +91,7 @@ export function UpdatePointsDialog({
     setErrors({});
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
 
     if (!achievement) return;
@@ -119,7 +119,7 @@ export function UpdatePointsDialog({
   };
 
   // Set initial points when achievement changes
-  React.useEffect(() => {
+  useEffect(() => {
     if (achievement && open) {
       setPoints(achievement.points.toString());
       setComment("");

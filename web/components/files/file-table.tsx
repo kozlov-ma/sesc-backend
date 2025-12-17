@@ -31,7 +31,7 @@ import {
   postFilesMutation,
 } from "@/lib/api/@tanstack/react-query.gen";
 import type { RespondFile } from "@/lib/api/types.gen";
-import { getErrorMessage } from "@/lib/error-handler";
+import { showApiErrorToast } from "@/lib/error-handler";
 import { cn, formatFileSize } from "@/lib/utils";
 import {
   useInfiniteQuery,
@@ -105,10 +105,7 @@ export function FileTable({
     },
     onError: (error) => {
       handleError(error);
-      const errorMessage = getErrorMessage(error);
-      toast.error("Ошибка загрузки файла", {
-        description: errorMessage,
-      });
+      showApiErrorToast(toast, error);
     },
   });
 
@@ -123,10 +120,7 @@ export function FileTable({
     },
     onError: (error) => {
       handleError(error);
-      const errorMessage = getErrorMessage(error);
-      toast.error("Ошибка удаления файла", {
-        description: errorMessage,
-      });
+      showApiErrorToast(toast, error);
     },
   });
 

@@ -10,25 +10,17 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { useFormError } from "@/hooks/use-error-handler";
 import { RespondDepartment } from "@/lib/api";
 import { getDepartmentsOptions } from "@/lib/api/@tanstack/react-query.gen";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { Search } from "lucide-react";
 import { useState } from "react";
 
 export function DepartmentsTable() {
   const [searchQuery, setSearchQuery] = useState("");
-  const queryClient = useQueryClient();
-  const { formError, handleFormError, clearFormError } = useFormError();
 
   const departmentsOpt = getDepartmentsOptions();
   const { data, error, isLoading, isError } = useQuery(departmentsOpt);
-
-  // Handle query errors
-  if (isError && error) {
-    handleFormError(error);
-  }
 
   // Filter departments based on search term
   const filteredDepartments = data?.departments.filter(
@@ -51,7 +43,7 @@ export function DepartmentsTable() {
 
   return (
     <div className="space-y-4">
-      {(isError || formError) && <ErrorMessage error={error || formError} />}
+      {isError && <ErrorMessage error={error} />}
 
       <div className="flex justify-between">
         <div className="relative w-full md:w-72">

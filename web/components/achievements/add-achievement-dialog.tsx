@@ -173,7 +173,7 @@ export function AddAchievementDialog({
                               <Trophy className="h-5 w-5 shrink-0 mt-0.5" />
                               <div className="space-y-1 text-left overflow-hidden text-pretty min-w-0">
                                 <div
-                                  className="font-medium leading-tight break-words truncate-with-ellipsis"
+                                  className="font-medium leading-tight break-words truncate"
                                   title={template.name}
                                 >
                                   {template.name}

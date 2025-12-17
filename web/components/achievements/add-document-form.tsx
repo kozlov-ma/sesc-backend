@@ -12,7 +12,7 @@ import {
 } from "@/lib/api/@tanstack/react-query.gen";
 import { postAchievementsByIdDocuments } from "@/lib/api/sdk.gen";
 import type { RespondFile } from "@/lib/api/types.gen";
-import { getErrorMessage } from "@/lib/error-handler";
+import { showApiErrorToast } from "@/lib/error-handler";
 import {
   useInfiniteQuery,
   useMutation,
@@ -86,10 +86,7 @@ export function AddDocumentForm({
     },
     onError: (error) => {
       handleError(error);
-      const errorMessage = getErrorMessage(error);
-      toast.error("Ошибка загрузки файла", {
-        description: errorMessage,
-      });
+      showApiErrorToast(toast, error);
     },
   });
 
@@ -118,10 +115,7 @@ export function AddDocumentForm({
     },
     onError: (error) => {
       handleError(error);
-      const errorMessage = getErrorMessage(error);
-      toast.error("Ошибка добавления документа", {
-        description: errorMessage,
-      });
+      showApiErrorToast(toast, error);
     },
   });
 

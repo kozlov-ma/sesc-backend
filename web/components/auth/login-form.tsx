@@ -1,75 +1,131 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { ErrorMessage } from "@/components/ui/error-message";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { useAuth } from "@/hooks/use-auth";
-import { useFormError } from "@/hooks/use-error-handler";
-import { postAuthLoginMutation } from "@/lib/api/@tanstack/react-query.gen";
+import { postAuthLogin } from "@/lib/api/sdk.gen";
 import { parseApiError } from "@/lib/error-handler";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
+import { useActionState, useEffect, useRef } from "react";
+import { useFormStatus } from "react-dom";
 
-// Схема валидации для формы входа пользователя
-const userLoginSchema = z.object({
-  username: z.string().min(1, {
-    message: "Имя пользователя обязательно",
-  }),
-  password: z.string().min(1, {
-    message: "Пароль обязателен",
-  }),
-});
+interface FormState {
+  error: string | null;
+  fieldErrors: {
+    username?: string;
+    password?: string;
+  };
+  // Сохраняем значения для восстановления после валидации
+  values: {
+    username: string;
+  };
+}
 
-type UserLoginFormValues = z.infer<typeof userLoginSchema>;
+const initialState: FormState = {
+  error: null,
+  fieldErrors: {},
+  values: { username: "" },
+};
+
+function SubmitButton() {
+  const { pending } = useFormStatus();
+
+  return (
+    <Button type="submit" className="w-full" disabled={pending}>
+      {pending ? "Вход..." : "Войти"}
+    </Button>
+  );
+}
 
 export function LoginForm() {
   const { push } = useRouter();
   const { setAuth } = useAuth();
-  const { formErrorMessage, clearFormError, handleFormError } = useFormError();
+  const formRef = useRef<HTMLFormElement>(null);
 
-  const form = useForm<UserLoginFormValues>({
-    resolver: zodResolver(userLoginSchema),
-    defaultValues: {
-      username: "",
-      password: "",
-    },
-  });
+  async function loginAction(
+    _prevState: FormState,
+    formData: FormData,
+  ): Promise<FormState> {
+    const username = (formData.get("username") as string) ?? "";
+    const password = formData.get("password") as string;
 
-  const loginMutation = useMutation({
-    ...postAuthLoginMutation(),
-    onSuccess: (response) => {
+    // Сохраняем username (пароль не сохраняем из соображений безопасности)
+    const values = { username };
+
+    // Клиентская валидация
+    const fieldErrors: FormState["fieldErrors"] = {};
+
+    if (!username?.trim()) {
+      fieldErrors.username = "Имя пользователя обязательно";
+    }
+    if (!password) {
+      fieldErrors.password = "Пароль обязателен";
+    }
+
+    if (Object.keys(fieldErrors).length > 0) {
+      return { error: null, fieldErrors, values };
+    }
+
+    // Отправка на сервер
+    try {
+      const { data, error } = await postAuthLogin({
+        body: { username: username.trim(), password },
+      });
+
+      if (error || !data) {
+        const apiError = parseApiError(error);
+        // Бэкенд возвращает 404 или 401 для неверных credentials
+        const isAuthError =
+          apiError.statusCode === 401 ||
+          apiError.statusCode === 404 ||
+          apiError.code === "UNAUTHORIZED" ||
+          apiError.code === "NOT_FOUND";
+
+        return {
+          error: isAuthError ? null : apiError.message,
+          fieldErrors: isAuthError
+            ? {
+                password:
+                  apiError.message || "Неверное имя пользователя или пароль",
+              }
+            : {},
+          values,
+        };
+      }
+
       setAuth(
-        response.token,
-        response.user.roles.map((r) => r.codeName),
+        data.token,
+        data.user.roles.map((r) => r.codeName),
       );
-      push("/u/users/me");
-    },
-    onError: (error) => {
-      handleFormError(error);
-    },
-  });
 
-  const onSubmit = async (data: UserLoginFormValues) => {
-    clearFormError();
-    await loginMutation.mutateAsync({
-      body: {
-        username: data.username,
-        password: data.password,
-      },
-    });
-  };
+      push("/u/users/me");
+      return initialState;
+    } catch (err) {
+      const apiError = parseApiError(err);
+      return {
+        error: apiError.message,
+        fieldErrors: {},
+        values,
+      };
+    }
+  }
+
+  const [state, formAction] = useActionState(loginAction, initialState);
+
+  // Восстанавливаем username после валидации
+  useEffect(() => {
+    if (formRef.current && state.values) {
+      const usernameInput = formRef.current.elements.namedItem(
+        "username",
+      ) as HTMLInputElement;
+
+      if (usernameInput && usernameInput.value !== state.values.username) {
+        usernameInput.value = state.values.username;
+      }
+    }
+  }, [state]);
 
   return (
     <motion.div
@@ -78,54 +134,61 @@ export function LoginForm() {
       transition={{ duration: 0.3 }}
       className="space-y-6"
     >
-      {formErrorMessage && <ErrorMessage error={formErrorMessage} />}
+      {state.error && !state.fieldErrors.password && (
+        <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
+          {state.error}
+        </div>
+      )}
 
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-          <FormField
-            control={form.control}
+      <form ref={formRef} action={formAction} className="space-y-4">
+        <div className="space-y-2">
+          <Label htmlFor="username">Имя пользователя</Label>
+          <Input
+            id="username"
             name="username"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Имя пользователя</FormLabel>
-                <FormControl>
-                  <Input
-                    placeholder="Ваше имя пользователя"
-                    {...field}
-                    disabled={loginMutation.isPending}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
+            defaultValue={state.values.username}
+            placeholder="Ваше имя пользователя"
+            aria-invalid={!!state.fieldErrors.username}
+            aria-describedby={
+              state.fieldErrors.username ? "username-error" : undefined
+            }
           />
-          <FormField
-            control={form.control}
+          {state.fieldErrors.username && (
+            <p
+              id="username-error"
+              role="alert"
+              className="text-sm text-destructive"
+            >
+              {state.fieldErrors.username}
+            </p>
+          )}
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="password">Пароль</Label>
+          <Input
+            id="password"
             name="password"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Пароль</FormLabel>
-                <FormControl>
-                  <Input
-                    type="password"
-                    placeholder="Ваш пароль"
-                    {...field}
-                    disabled={loginMutation.isPending}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
+            type="password"
+            placeholder="Ваш пароль"
+            aria-invalid={!!state.fieldErrors.password}
+            aria-describedby={
+              state.fieldErrors.password ? "password-error" : undefined
+            }
           />
-          <Button
-            type="submit"
-            className="w-full"
-            disabled={loginMutation.isPending}
-          >
-            {loginMutation.isPending ? "Вход..." : "Войти"}
-          </Button>
-        </form>
-      </Form>
+          {state.fieldErrors.password && (
+            <p
+              id="password-error"
+              role="alert"
+              className="text-sm text-destructive"
+            >
+              {state.fieldErrors.password}
+            </p>
+          )}
+        </div>
+
+        <SubmitButton />
+      </form>
     </motion.div>
   );
 }
