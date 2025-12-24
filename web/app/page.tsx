@@ -1,20 +1,21 @@
 "use client";
 
-import { useEffect } from "react";
 import { useAuth } from "@/hooks/use-auth";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 export default function HomePage() {
-  const { token, validateToken } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
+  const router = useRouter();
 
+  // Редирект авторизованных пользователей на их профиль
   useEffect(() => {
-    if (token) {
-      validateToken().catch((error) => {
-        const errorMessage =
-          error?.response?.data?.ruMessage || "Недействительный токен";
-        console.error(errorMessage);
-      });
+    if (!isLoading && isAuthenticated) {
+      router.push("/u/users/me");
     }
-  }, [token, validateToken]);
+  }, [isLoading, isAuthenticated, router]);
 
-  return null; // Эта страница только для маршрутизации
+  // Показываем пустую страницу пока идёт проверка
+  // Неавторизованные увидят @auth слот с формой логина
+  return null;
 }

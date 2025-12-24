@@ -21,7 +21,8 @@ import {
 import { useAuth } from "@/hooks/use-auth";
 import { getUsersMeOptions } from "@/lib/api/@tanstack/react-query.gen";
 import { useQuery } from "@tanstack/react-query";
-import React from "react";
+import { useRouter } from "next/navigation";
+import React, { useEffect, useMemo } from "react";
 
 export default function DashboardLayout({
   children,
@@ -29,13 +30,27 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const { isAuthenticated, isLoading, roles } = useAuth();
+  const router = useRouter();
 
   const { data: user } = useQuery({
     ...getUsersMeOptions(),
     enabled: isAuthenticated,
   });
 
-  if (!isAuthenticated || isLoading) {
+  const rolesKey = useMemo(() => JSON.stringify([...roles].sort()), [roles]);
+  const isAdmin = useMemo(() => roles.includes("admin"), [rolesKey]);
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && !isLoading) {
+      if (!isAuthenticated) {
+        router.push("/");
+      } else if (!isAdmin) {
+        router.push("/u/users/me");
+      }
+    }
+  }, [isAuthenticated, isLoading, isAdmin, router]);
+
+  if (!isAuthenticated || isLoading || !isAdmin) {
     return null;
   }
 
@@ -90,16 +105,27 @@ export default function DashboardLayout({
   }
 
   if (roles.some((r) => r !== "admin")) {
+    const hasTeacherRole = roles.some((r) => r === "teacher");
+
+    const documentRoutes = [
+      {
+        name: "Общие документы",
+        url: "/u/documents/shared",
+        icon: FolderOpen,
+      },
+    ];
+
+    if (hasTeacherRole) {
+      documentRoutes.unshift({
+        name: "Мои документы",
+        url: "/u/documents/my",
+        icon: FolderPlus,
+      });
+    }
+
     groups.push({
       name: "Документы",
-      routes: [
-        { name: "Мои документы", url: "/u/documents/my", icon: FolderPlus },
-        {
-          name: "Общие документы",
-          url: "/u/documents/shared",
-          icon: FolderOpen,
-        },
-      ],
+      routes: documentRoutes,
     });
   }
 

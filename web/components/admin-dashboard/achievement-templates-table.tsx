@@ -56,12 +56,12 @@ import {
   PlusCircle,
   Search,
 } from "lucide-react";
-import React, { useState } from "react";
+import { Fragment, useState, type ReactNode } from "react";
 import { toast } from "sonner";
 import { AchievementGroupFormDialog } from "./achievement-group-form-dialog";
 import { AchievementTemplateFormDialog } from "./achievement-template-form-dialog";
 
-const StatusColumnContent = ({ children }: { children: React.ReactNode }) => (
+const StatusColumnContent = ({ children }: { children: ReactNode }) => (
   <div className="flex justify-center w-full">{children}</div>
 );
 
@@ -300,7 +300,7 @@ export function AchievementTemplatesTable() {
             <TableBody>
               {filteredGroups && filteredGroups.length > 0 ? (
                 filteredGroups.map((group) => (
-                  <React.Fragment key={group.id}>
+                  <Fragment key={group.id}>
                     <TableRow className="bg-muted/50">
                       <TableCell className="font-medium align-top py-3">
                         <div className="flex items-center gap-2">
@@ -545,7 +545,7 @@ export function AchievementTemplatesTable() {
                         </TableCell>
                       </TableRow>
                     )}
-                  </React.Fragment>
+                  </Fragment>
                 ))
               ) : (
                 <TableRow>
