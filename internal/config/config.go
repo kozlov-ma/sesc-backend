@@ -24,13 +24,21 @@ const (
 	DatabaseTypeSQLite   DatabaseType = "sqlite3"
 )
 
+type CompanyDataSource string
+
+const (
+	CompanyDataSourceLDAP CompanyDataSource = "ldap"
+	CompanyDataSourceDemo CompanyDataSource = "demo"
+)
+
 type Config struct {
-	Database         DatabaseConfig          `mapstructure:"database"`
-	AdminCredentials []AdminCredentialConfig `mapstructure:"admin_credentials"`
-	HTTP             HTTPConfig              `mapstructure:"http"`
-	JWTSecret        string                  `mapstructure:"jwt_secret"`
-	MinIO            MinIOConfig             `mapstructure:"minio"`
-	LDAP             LDAPConfig              `mapstructure:"ldap"`
+	Database          DatabaseConfig          `mapstructure:"database"`
+	AdminCredentials  []AdminCredentialConfig `mapstructure:"admin_credentials"`
+	HTTP              HTTPConfig              `mapstructure:"http"`
+	JWTSecret         string                  `mapstructure:"jwt_secret"`
+	MinIO             MinIOConfig             `mapstructure:"minio"`
+	LDAP              LDAPConfig              `mapstructure:"ldap"`
+	CompanyDataSource CompanyDataSource       `mapstructure:"company_data_source"`
 }
 
 type DatabaseConfig struct {
