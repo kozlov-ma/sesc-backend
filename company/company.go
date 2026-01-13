@@ -119,6 +119,7 @@ func ExEmployee(id string) User {
 	return User{
 		ID:       id,
 		FullName: "Бывший Сотрудник",
+		Roles:    []Role{},
 	}
 }
 
