@@ -108,6 +108,7 @@ func LoadConfig() (*Config, error) {
 	_ = v.BindEnv("ldap.bind_password")
 	_ = v.BindEnv("ldap.base_dn")
 	_ = v.BindEnv("ldap.sync_interval")
+	_ = v.BindEnv("company_data_source")
 
 	if err := v.ReadInConfig(); err != nil {
 		var configFileNotFoundError viper.ConfigFileNotFoundError
@@ -147,6 +148,8 @@ func setDefaults(v *viper.Viper) {
 	v.SetDefault("ldap.bind_password", "admin")
 	v.SetDefault("ldap.base_dn", "dc=sesc,dc=local")
 	v.SetDefault("ldap.sync_interval", 5*time.Minute)
+
+	v.SetDefault("company_data_source", string(CompanyDataSourceDemo))
 
 	v.SetDefault("admin_credentials", []AdminCredentialConfig{
 		{

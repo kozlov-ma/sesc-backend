@@ -7,6 +7,7 @@
 #   export SESC_MINIO_ACCESS_KEY="your-key"
 #   etc.
 
+# Company data source: "demo" or "ldap"
 company_data_source: "ldap"
 
 database:

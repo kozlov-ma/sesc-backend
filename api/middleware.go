@@ -44,21 +44,27 @@ func (a *API) CurrentUserMiddleware(next http.Handler) http.Handler {
 		rec.Sub("user").Set("authorized", false)
 
 		authHeader := r.Header.Get("Authorization")
-		if authHeader == "" {
-			a.writeJSON(ctx, w, respond.WithError(ctx, company.ErrNeedAuthorization))
-			return
+		var token string
+
+		if authHeader != "" {
+			if !strings.HasPrefix(authHeader, "Bearer ") {
+				a.writeJSON(
+					ctx,
+					w,
+					respond.WithError(ctx, fmt.Errorf("%w: wrong Authorization header format", auth.ErrInvalidToken)),
+				)
+				return
+			}
+			token = authHeader[7:]
+		} else {
+			cookie, err := r.Cookie("auth_token")
+			if err != nil || cookie.Value == "" {
+				a.writeJSON(ctx, w, respond.WithError(ctx, company.ErrNeedAuthorization))
+				return
+			}
+			token = cookie.Value
 		}
 
-		if !strings.HasPrefix(authHeader, "Bearer ") {
-			a.writeJSON(
-				ctx,
-				w,
-				respond.WithError(ctx, fmt.Errorf("%w: wrong Authorization header format", auth.ErrInvalidToken)),
-			)
-			return
-		}
-
-		token := authHeader[7:]
 		u, err := a.iam.ImWatermelon(ctx, token)
 		if err != nil {
 			rec.Add(events.Error, err)
