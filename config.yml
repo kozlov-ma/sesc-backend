@@ -7,6 +7,9 @@
 #   export SESC_MINIO_ACCESS_KEY="your-key"
 #   etc.
 
+# Company data source: "demo" or "ldap"
+company_data_source: "ldap"
+
 database:
   type: "postgres"
   # Local dev database (use env var SESC_DATABASE_ADDRESS for custom)

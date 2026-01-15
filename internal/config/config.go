@@ -24,13 +24,21 @@ const (
 	DatabaseTypeSQLite   DatabaseType = "sqlite3"
 )
 
+type CompanyDataSource string
+
+const (
+	CompanyDataSourceLDAP CompanyDataSource = "ldap"
+	CompanyDataSourceDemo CompanyDataSource = "demo"
+)
+
 type Config struct {
-	Database         DatabaseConfig          `mapstructure:"database"`
-	AdminCredentials []AdminCredentialConfig `mapstructure:"admin_credentials"`
-	HTTP             HTTPConfig              `mapstructure:"http"`
-	JWTSecret        string                  `mapstructure:"jwt_secret"`
-	MinIO            MinIOConfig             `mapstructure:"minio"`
-	LDAP             LDAPConfig              `mapstructure:"ldap"`
+	Database          DatabaseConfig          `mapstructure:"database"`
+	AdminCredentials  []AdminCredentialConfig `mapstructure:"admin_credentials"`
+	HTTP              HTTPConfig              `mapstructure:"http"`
+	JWTSecret         string                  `mapstructure:"jwt_secret"`
+	MinIO             MinIOConfig             `mapstructure:"minio"`
+	LDAP              LDAPConfig              `mapstructure:"ldap"`
+	CompanyDataSource CompanyDataSource       `mapstructure:"company_data_source"`
 }
 
 type DatabaseConfig struct {
@@ -100,6 +108,7 @@ func LoadConfig() (*Config, error) {
 	_ = v.BindEnv("ldap.bind_password")
 	_ = v.BindEnv("ldap.base_dn")
 	_ = v.BindEnv("ldap.sync_interval")
+	_ = v.BindEnv("company_data_source")
 
 	if err := v.ReadInConfig(); err != nil {
 		var configFileNotFoundError viper.ConfigFileNotFoundError
@@ -139,6 +148,8 @@ func setDefaults(v *viper.Viper) {
 	v.SetDefault("ldap.bind_password", "admin")
 	v.SetDefault("ldap.base_dn", "dc=sesc,dc=local")
 	v.SetDefault("ldap.sync_interval", 5*time.Minute)
+
+	v.SetDefault("company_data_source", string(CompanyDataSourceLDAP))
 
 	v.SetDefault("admin_credentials", []AdminCredentialConfig{
 		{

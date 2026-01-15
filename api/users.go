@@ -1,10 +1,12 @@
 package api
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/kozlov-ma/sesc-backend/api/param"
 	"github.com/kozlov-ma/sesc-backend/api/respond"
+	"github.com/kozlov-ma/sesc-backend/company"
 	"github.com/kozlov-ma/sesc-backend/pkg/event"
 	"github.com/kozlov-ma/sesc-backend/pkg/event/events"
 )
@@ -34,6 +36,10 @@ func (a *API) GetUser(w http.ResponseWriter, r *http.Request) {
 
 	user, err := a.sesc.User(ctx, idStr)
 	if err != nil {
+		if errors.Is(err, company.ErrUserNotFound) {
+			a.writeJSON(ctx, w, respond.WithUser(company.ExEmployee(idStr)))
+			return
+		}
 		rec.Add(events.Error, err)
 		a.writeJSON(ctx, w, respond.WithError(ctx, err))
 		return

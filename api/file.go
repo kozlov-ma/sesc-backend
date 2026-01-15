@@ -230,14 +230,16 @@ func (a *API) DeleteFile(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
-// DownloadFile redirects to a pre-signed URL for file download
+// DownloadFile returns a pre-signed URL for file download
 // @Summary Download file
-// @Description Redirects to a pre-signed URL for downloading the file
+// @Description Returns a pre-signed URL for downloading the file
 // @Tags files
 // @Accept json
 // @Produce json
 // @Param Authorization header string false "Bearer JWT token"
 // @Param id path string true "File ID"
+// @Param redirect query bool false "If true, redirect to the URL instead of returning JSON"
+// @Success 200 {object} map[string]string "Returns {url: string} with pre-signed download URL"
 // @Success 307
 // @Failure 400 {object} respond.Error
 // @Failure 401 {object} respond.Error "Unauthorized"
@@ -270,6 +272,11 @@ func (a *API) DownloadFile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Redirect to pre-signed URL
-	http.Redirect(w, r, downloadURL, http.StatusTemporaryRedirect)
+	// Check if redirect is requested (for direct links like <a href> or <img src>)
+	if r.URL.Query().Get("redirect") == "true" {
+		http.Redirect(w, r, downloadURL, http.StatusTemporaryRedirect)
+		return
+	}
+
+	a.writeJSON(ctx, w, map[string]string{"url": downloadURL})
 }

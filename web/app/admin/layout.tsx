@@ -105,9 +105,7 @@ export default function DashboardLayout({
   }
 
   if (roles.some((r) => r !== "admin")) {
-    const hasTeacherRole = roles.some((r) => r === "teacher");
-
-    const documentRoutes = [
+    const documentRoutes: { name: string; url: string; icon: any }[] = [
       {
         name: "Общие документы",
         url: "/u/documents/shared",
@@ -115,7 +113,7 @@ export default function DashboardLayout({
       },
     ];
 
-    if (hasTeacherRole) {
+    if (roles.some((r) => r === "teacher")) {
       documentRoutes.unshift({
         name: "Мои документы",
         url: "/u/documents/my",

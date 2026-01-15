@@ -74,20 +74,30 @@ func NewWithDBOptions(ctx context.Context, cfg *config.Config, log *slog.Logger,
 		}
 	}
 
-	ldapConfig := companyservice.LDAPConfig{
-		URL:          cfg.LDAP.URL,
-		BindDN:       cfg.LDAP.BindDN,
-		BindPassword: cfg.LDAP.BindPassword,
-		BaseDN:       cfg.LDAP.BaseDN,
-		SyncInterval: cfg.LDAP.SyncInterval,
-	}
-
 	eventSink := slogsink.New(log)
 
-	cs, err := companyservice.NewLDAPService(ctx, ldapConfig, eventSink)
-	if err != nil {
-		cleanup()
-		return nil, fmt.Errorf("failed to create LDAP company service: %w", err)
+	var cs companyservice.S
+	switch cfg.CompanyDataSource {
+	case config.CompanyDataSourceLDAP:
+		ldapConfig := companyservice.LDAPConfig{
+			URL:          cfg.LDAP.URL,
+			BindDN:       cfg.LDAP.BindDN,
+			BindPassword: cfg.LDAP.BindPassword,
+			BaseDN:       cfg.LDAP.BaseDN,
+			SyncInterval: cfg.LDAP.SyncInterval,
+		}
+		cs, err = companyservice.NewLDAPService(ctx, ldapConfig, eventSink)
+		if err != nil {
+			cleanup()
+			return nil, fmt.Errorf("failed to create LDAP company service: %w", err)
+		}
+		log.InfoContext(ctx, "using LDAP company data source")
+	case config.CompanyDataSourceDemo:
+		cs = companyservice.NewDemo()
+		log.InfoContext(ctx, "using demo company data source")
+	default:
+		cs = companyservice.NewDemo()
+		log.InfoContext(ctx, "unknown company_data_source, defaulting to demo")
 	}
 
 	sescService := sescsvc.New(client, cs)
