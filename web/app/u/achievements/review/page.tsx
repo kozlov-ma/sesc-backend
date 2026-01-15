@@ -176,7 +176,7 @@ export default function ReviewAchievementsPage() {
                 <TableRow>
                   <TableHead className="w-[300px]">Пользователь</TableHead>
                   <TableHead>Действия</TableHead>
-                  <TableHead className="text-center">Статус</TableHead>
+                  <TableHead className="text-right pr-24">Статус</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -322,7 +322,7 @@ function UserRow({
             </div>
           )}
         </TableCell>
-        <TableCell className="text-right">
+        <TableCell className="text-right pr-4">
           {reviewableCount > 0 ? (
             <Badge variant="default" className="ml-auto">
               Требует проверки
@@ -374,7 +374,7 @@ function UserRow({
                     </div>
                   </div>
                 </TableCell>
-                <TableCell className="text-right">
+                <TableCell className="text-right pr-4">
                   {canReview ? (
                     <Button
                       variant="default"
