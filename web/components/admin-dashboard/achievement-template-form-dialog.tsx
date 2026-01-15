@@ -22,40 +22,47 @@ import {
   patchAchievementTemplatesByIdMutation,
   postAchievementTemplatesMutation,
 } from "@/lib/api/@tanstack/react-query.gen";
-import type {
-  PatchAchievementTemplatesByIdError,
-  PostAchievementTemplatesError,
-  RespondAchievementTemplate,
-} from "@/lib/api/types.gen";
-import { zodResolver } from "@hookform/resolvers/zod";
+import type { RespondAchievementTemplate } from "@/lib/api/types.gen";
+import { parseApiError, showApiErrorToast } from "@/lib/error-handler";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { AxiosError } from "axios";
 import { Loader2 } from "lucide-react";
-import { useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useActionState, useEffect, useRef, useState } from "react";
+import { useFormStatus } from "react-dom";
 import { toast } from "sonner";
-import * as z from "zod";
 
-const formSchema = z.object({
-  name: z.string().trim().min(1, "Название обязательно"),
-  description: z.string().trim().min(1, "Описание обязательно"),
-  pointsLimit: z
-    .number()
-    .min(1, "Количество баллов должно быть не менее 1")
-    .max(50, "Количество баллов должно быть не более 50"),
-  kind: z
-    .enum([
-      "olympiad_deputy",
-      "development_deputy",
-      "scientific_deputy",
-      "academic_director",
-    ])
-    .refine((val) => val !== undefined, {
-      message: "Выберите контролирующее лицо",
-    }),
-});
+type ReviewerKind =
+  | "olympiad_deputy"
+  | "development_deputy"
+  | "scientific_deputy"
+  | "academic_director";
 
-type FormValues = z.infer<typeof formSchema>;
+interface FormState {
+  error: string | null;
+  fieldErrors: {
+    name?: string;
+    description?: string;
+    pointsLimit?: string;
+    kind?: string;
+  };
+  // Сохраняем значения полей для восстановления после валидации
+  values: {
+    name: string;
+    description: string;
+    pointsLimit: string;
+  };
+  success: boolean;
+}
+
+function SubmitButton({ isEditing }: { isEditing: boolean }) {
+  const { pending } = useFormStatus();
+
+  return (
+    <Button type="submit" disabled={pending}>
+      {pending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+      {isEditing ? "Сохранить" : "Добавить"}
+    </Button>
+  );
+}
 
 interface AchievementTemplateFormDialogProps {
   open: boolean;
@@ -65,20 +72,14 @@ interface AchievementTemplateFormDialogProps {
   onSuccess?: () => void;
 }
 
-function roleToKind(
-  role: string,
-):
-  | "scientific_deputy"
-  | "development_deputy"
-  | "olympiad_deputy"
-  | "academic_director" {
+function roleToKind(role: string): ReviewerKind {
   if (
-    role != "scientific_deputy" &&
-    role != "development_deputy" &&
-    role != "olympiad_deputy" &&
-    role != "academic_director"
+    role !== "scientific_deputy" &&
+    role !== "development_deputy" &&
+    role !== "olympiad_deputy" &&
+    role !== "academic_director"
   ) {
-    throw new Error("Invalid role " + role);
+    return "development_deputy";
   }
   return role;
 }
@@ -90,38 +91,29 @@ export function AchievementTemplateFormDialog({
   groupId,
   onSuccess,
 }: AchievementTemplateFormDialogProps) {
-  const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      name: "",
-      description: "",
-      pointsLimit: 1,
-      kind: "development_deputy",
-    },
-  });
-
   const queryClient = useQueryClient();
   const templatesOpt = getAchievementTemplatesOptions();
+  const formRef = useRef<HTMLFormElement>(null);
 
-  useEffect(() => {
-    if (open) {
-      if (template) {
-        form.reset({
-          name: template.name,
-          description: template.description,
-          pointsLimit: template.pointsLimit > 0 ? template.pointsLimit : 1,
-          kind: roleToKind(template.reviewerRoleID),
-        });
-      } else {
-        form.reset({
-          name: "",
-          description: "",
-          pointsLimit: 1,
-          kind: "development_deputy",
-        });
-      }
-    }
-  }, [open, template, form]);
+  // Select нельзя напрямую использовать с FormData, поэтому храним в state
+  const [kind, setKind] = useState<ReviewerKind>("development_deputy");
+
+  const getInitialValues = () => ({
+    name: template?.name ?? "",
+    description: template?.description ?? "",
+    pointsLimit: String(
+      template?.pointsLimit && template.pointsLimit > 0
+        ? template.pointsLimit
+        : 1,
+    ),
+  });
+
+  const initialState: FormState = {
+    error: null,
+    fieldErrors: {},
+    values: getInitialValues(),
+    success: false,
+  };
 
   // Create template mutation
   const createTemplateMutation = useMutation({
@@ -134,12 +126,8 @@ export function AchievementTemplateFormDialog({
         description: "Шаблон достижения успешно создан.",
       });
     },
-    onError: (err: AxiosError<PostAchievementTemplatesError>) => {
-      toast.error("Ошибка", {
-        description:
-          err.response?.data?.message ||
-          "Произошла ошибка при создании шаблона",
-      });
+    onError: (error) => {
+      showApiErrorToast(toast, error);
     },
   });
 
@@ -154,59 +142,144 @@ export function AchievementTemplateFormDialog({
         description: "Шаблон достижения успешно обновлен.",
       });
     },
-    onError: (err: AxiosError<PatchAchievementTemplatesByIdError>) => {
-      toast.error("Ошибка", {
-        description:
-          err.response?.data?.message ||
-          "Произошла ошибка при обновлении шаблона",
-      });
+    onError: (error) => {
+      showApiErrorToast(toast, error);
     },
   });
 
-  const onSubmit = async (data: FormValues) => {
+  async function formAction(
+    _prevState: FormState,
+    formData: FormData,
+  ): Promise<FormState> {
+    const name = (formData.get("name") as string) ?? "";
+    const description = (formData.get("description") as string) ?? "";
+    const pointsLimitStr = (formData.get("pointsLimit") as string) ?? "1";
+    const trimmedName = name.trim();
+    const trimmedDescription = description.trim();
+    const pointsLimit = parseInt(pointsLimitStr, 10);
+
+    // Сохраняем текущие значения
+    const values = { name, description, pointsLimit: pointsLimitStr };
+
+    // Валидация
+    const fieldErrors: FormState["fieldErrors"] = {};
+
+    if (!trimmedName) {
+      fieldErrors.name = "Название обязательно";
+    }
+    if (!trimmedDescription) {
+      fieldErrors.description = "Описание обязательно";
+    }
+    if (isNaN(pointsLimit) || pointsLimit < 1) {
+      fieldErrors.pointsLimit = "Количество баллов должно быть не менее 1";
+    } else if (pointsLimit > 50) {
+      fieldErrors.pointsLimit = "Количество баллов должно быть не более 50";
+    }
+    if (!kind) {
+      fieldErrors.kind = "Выберите контролирующее лицо";
+    }
+
+    if (Object.keys(fieldErrors).length > 0) {
+      return { error: null, fieldErrors, values, success: false };
+    }
+
     try {
-      const trimmedData = {
-        name: data.name.trim(),
-        description: data.description.trim(),
-      };
       if (template) {
         await updateTemplateMutation.mutateAsync({
-          path: {
-            id: template.id,
-          },
+          path: { id: template.id },
           body: {
-            name: trimmedData.name,
-            description: trimmedData.description,
-            pointsLimit: data.pointsLimit,
-            reviewerRole: data.kind,
+            name: trimmedName,
+            description: trimmedDescription,
+            pointsLimit,
+            reviewerRole: kind,
           },
         });
       } else {
         if (!groupId) {
-          throw new Error("Group ID is required");
+          return {
+            error: "ID группы обязателен",
+            fieldErrors: {},
+            values,
+            success: false,
+          };
         }
         await createTemplateMutation.mutateAsync({
           body: {
-            name: trimmedData.name,
-            description: trimmedData.description,
-            pointsLimit: data.pointsLimit,
+            name: trimmedName,
+            description: trimmedDescription,
+            pointsLimit,
             groupId,
-            reviewerRole: data.kind,
+            reviewerRole: kind,
           },
         });
       }
-    } catch (error) {
-      console.error("Error submitting form:", error);
-      if (!(error instanceof AxiosError)) {
-        toast.error("Ошибка", {
-          description:
-            error instanceof Error
-              ? error.message
-              : "Произошла ошибка при сохранении шаблона",
-        });
+      return { error: null, fieldErrors: {}, values, success: true };
+    } catch (err) {
+      const apiError = parseApiError(err);
+      return {
+        error: apiError.message,
+        fieldErrors: {},
+        values,
+        success: false,
+      };
+    }
+  }
+
+  const [state, action] = useActionState(formAction, initialState);
+
+  // Сброс формы при открытии диалога
+  useEffect(() => {
+    if (open) {
+      if (template) {
+        setKind(roleToKind(template.reviewerRoleID));
+        if (formRef.current) {
+          const nameInput = formRef.current.elements.namedItem(
+            "name",
+          ) as HTMLInputElement;
+          const descInput = formRef.current.elements.namedItem(
+            "description",
+          ) as HTMLInputElement;
+          const pointsInput = formRef.current.elements.namedItem(
+            "pointsLimit",
+          ) as HTMLInputElement;
+          if (nameInput) nameInput.value = template.name;
+          if (descInput) descInput.value = template.description;
+          if (pointsInput)
+            pointsInput.value = String(
+              template.pointsLimit > 0 ? template.pointsLimit : 1,
+            );
+        }
+      } else {
+        setKind("development_deputy");
+        formRef.current?.reset();
       }
     }
-  };
+  }, [open, template]);
+
+  // Восстанавливаем значения полей после валидации
+  useEffect(() => {
+    if (formRef.current && state.values) {
+      const nameInput = formRef.current.elements.namedItem(
+        "name",
+      ) as HTMLInputElement;
+      const descInput = formRef.current.elements.namedItem(
+        "description",
+      ) as HTMLInputElement;
+      const pointsInput = formRef.current.elements.namedItem(
+        "pointsLimit",
+      ) as HTMLInputElement;
+
+      if (nameInput && nameInput.value !== state.values.name) {
+        nameInput.value = state.values.name;
+      }
+      if (descInput && descInput.value !== state.values.description) {
+        descInput.value = state.values.description;
+      }
+      if (pointsInput && pointsInput.value !== state.values.pointsLimit) {
+        pointsInput.value = state.values.pointsLimit;
+      }
+    }
+  }, [state]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -221,48 +294,55 @@ export function AchievementTemplateFormDialog({
               : "Заполните данные для создания нового шаблона достижения"}
           </DialogDescription>
         </DialogHeader>
-        <form
-          onSubmit={form.handleSubmit(onSubmit)}
-          className="space-y-4"
-          id="achievement-template-form"
-        >
+
+        {state.error && (
+          <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
+            {state.error}
+          </div>
+        )}
+
+        <form ref={formRef} action={action} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="name">Название</Label>
+            <Label htmlFor="template-name">Название</Label>
             <Input
-              id="name"
-              {...form.register("name")}
+              id="template-name"
+              name="name"
+              defaultValue={state.values.name}
               placeholder="Введите название шаблона"
+              aria-invalid={!!state.fieldErrors.name}
+              aria-describedby={state.fieldErrors.name ? "template-name-error" : undefined}
             />
-            {form.formState.errors.name && (
-              <p className="text-sm text-destructive">
-                {form.formState.errors.name.message}
+            {state.fieldErrors.name && (
+              <p id="template-name-error" role="alert" className="text-sm text-destructive">
+                {state.fieldErrors.name}
               </p>
             )}
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="description">Описание</Label>
+            <Label htmlFor="template-description">Описание</Label>
             <Input
-              id="description"
-              {...form.register("description")}
+              id="template-description"
+              name="description"
+              defaultValue={state.values.description}
               placeholder="Введите описание шаблона"
+              aria-invalid={!!state.fieldErrors.description}
+              aria-describedby={state.fieldErrors.description ? "template-description-error" : undefined}
             />
-            {form.formState.errors.description && (
-              <p className="text-sm text-destructive">
-                {form.formState.errors.description.message}
+            {state.fieldErrors.description && (
+              <p id="template-description-error" role="alert" className="text-sm text-destructive">
+                {state.fieldErrors.description}
               </p>
             )}
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="kind">Контролирующее лицо</Label>
+            <Label htmlFor="template-kind">Контролирующее лицо</Label>
             <Select
-              value={form.watch("kind")}
-              onValueChange={(value) =>
-                form.setValue("kind", value as FormValues["kind"])
-              }
+              value={kind}
+              onValueChange={(v) => setKind(v as ReviewerKind)}
             >
-              <SelectTrigger>
+              <SelectTrigger id="template-kind" aria-describedby={state.fieldErrors.kind ? "template-kind-error" : undefined}>
                 <SelectValue placeholder="Выберите контролирующее лицо" />
               </SelectTrigger>
               <SelectContent>
@@ -280,24 +360,27 @@ export function AchievementTemplateFormDialog({
                 </SelectItem>
               </SelectContent>
             </Select>
-            {form.formState.errors.kind && (
-              <p className="text-sm text-destructive">
-                {form.formState.errors.kind.message}
+            {state.fieldErrors.kind && (
+              <p id="template-kind-error" role="alert" className="text-sm text-destructive">
+                {state.fieldErrors.kind}
               </p>
             )}
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="pointsLimit">Количество баллов</Label>
+            <Label htmlFor="template-points">Количество баллов</Label>
             <Input
-              id="pointsLimit"
+              id="template-points"
+              name="pointsLimit"
               type="number"
-              {...form.register("pointsLimit", { valueAsNumber: true })}
+              defaultValue={state.values.pointsLimit}
               placeholder="Введите количество баллов"
+              aria-invalid={!!state.fieldErrors.pointsLimit}
+              aria-describedby={state.fieldErrors.pointsLimit ? "template-points-error" : undefined}
             />
-            {form.formState.errors.pointsLimit && (
-              <p className="text-sm text-destructive">
-                {form.formState.errors.pointsLimit.message}
+            {state.fieldErrors.pointsLimit && (
+              <p id="template-points-error" role="alert" className="text-sm text-destructive">
+                {state.fieldErrors.pointsLimit}
               </p>
             )}
           </div>
@@ -310,20 +393,7 @@ export function AchievementTemplateFormDialog({
             >
               Отмена
             </Button>
-            <Button
-              type="submit"
-              form="achievement-template-form"
-              disabled={
-                createTemplateMutation.isPending ||
-                updateTemplateMutation.isPending
-              }
-            >
-              {(createTemplateMutation.isPending ||
-                updateTemplateMutation.isPending) && (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              )}
-              {template ? "Сохранить" : "Добавить"}
-            </Button>
+            <SubmitButton isEditing={!!template} />
           </div>
         </form>
       </DialogContent>

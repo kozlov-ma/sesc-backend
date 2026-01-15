@@ -51,7 +51,11 @@ import type {
   DeleteFilesByIdData,
   DeleteFilesByIdError,
   GetAchievementGroupsData,
+  GetAchievementGroupsError,
+  GetAchievementGroupsResponse,
   GetAchievementsByIdData,
+  GetAchievementsByIdError,
+  GetAchievementsByIdResponse,
   GetAchievementsData,
   GetAchievementsError,
   GetAchievementsResponse,
@@ -59,19 +63,39 @@ import type {
   GetAchievementsUsersError,
   GetAchievementsUsersResponse,
   GetAchievementTemplatesData,
+  GetAchievementTemplatesError,
+  GetAchievementTemplatesResponse,
   GetAuthValidateData,
+  GetAuthValidateError,
+  GetAuthValidateResponse,
   GetDepartmentsByIdData,
+  GetDepartmentsByIdError,
+  GetDepartmentsByIdResponse,
   GetDepartmentsData,
+  GetDepartmentsError,
+  GetDepartmentsResponse,
   GetFilesByIdData,
   GetFilesByIdDownloadData,
+  GetFilesByIdDownloadError,
+  GetFilesByIdError,
+  GetFilesByIdResponse,
   GetFilesData,
   GetFilesError,
   GetFilesResponse,
   GetReportsUserPointsData,
+  GetReportsUserPointsError,
   GetRolesData,
+  GetRolesError,
+  GetRolesResponse,
   GetUsersByIdData,
+  GetUsersByIdError,
+  GetUsersByIdResponse,
   GetUsersData,
+  GetUsersError,
   GetUsersMeData,
+  GetUsersMeError,
+  GetUsersMeResponse,
+  GetUsersResponse,
   PatchAchievementGroupsByIdData,
   PatchAchievementGroupsByIdError,
   PatchAchievementGroupsByIdResponse,
@@ -156,12 +180,18 @@ export const getAchievementGroupsQueryKey = (
 
 /**
  * Get all achievement groups
+ *
  * Retrieves all achievement groups with filtering options
  */
 export const getAchievementGroupsOptions = (
   options?: Options<GetAchievementGroupsData>,
-) => {
-  return queryOptions({
+) =>
+  queryOptions<
+    GetAchievementGroupsResponse,
+    AxiosError<GetAchievementGroupsError>,
+    GetAchievementGroupsResponse,
+    ReturnType<typeof getAchievementGroupsQueryKey>
+  >({
     queryFn: async ({ queryKey, signal }) => {
       const { data } = await getAchievementGroups({
         ...options,
@@ -173,10 +203,10 @@ export const getAchievementGroupsOptions = (
     },
     queryKey: getAchievementGroupsQueryKey(options),
   });
-};
 
 /**
  * Create new achievement group
+ *
  * Creates a new achievement group
  */
 export const postAchievementGroupsMutation = (
@@ -205,6 +235,7 @@ export const postAchievementGroupsMutation = (
 
 /**
  * Update achievement group
+ *
  * Updates an achievement group
  */
 export const patchAchievementGroupsByIdMutation = (
@@ -237,12 +268,18 @@ export const getAchievementTemplatesQueryKey = (
 
 /**
  * Get all achievement templates
+ *
  * Retrieves all achievement templates
  */
 export const getAchievementTemplatesOptions = (
   options?: Options<GetAchievementTemplatesData>,
-) => {
-  return queryOptions({
+) =>
+  queryOptions<
+    GetAchievementTemplatesResponse,
+    AxiosError<GetAchievementTemplatesError>,
+    GetAchievementTemplatesResponse,
+    ReturnType<typeof getAchievementTemplatesQueryKey>
+  >({
     queryFn: async ({ queryKey, signal }) => {
       const { data } = await getAchievementTemplates({
         ...options,
@@ -254,10 +291,10 @@ export const getAchievementTemplatesOptions = (
     },
     queryKey: getAchievementTemplatesQueryKey(options),
   });
-};
 
 /**
  * Create new achievement template
+ *
  * Creates a new achievement template
  */
 export const postAchievementTemplatesMutation = (
@@ -286,6 +323,7 @@ export const postAchievementTemplatesMutation = (
 
 /**
  * Update achievement template
+ *
  * Updates an achievement template
  */
 export const patchAchievementTemplatesByIdMutation = (
@@ -318,12 +356,18 @@ export const getAchievementsQueryKey = (
 
 /**
  * Get all achievements for the current user
+ *
  * Retrieves all achievements for the current user with pagination
  */
 export const getAchievementsOptions = (
   options?: Options<GetAchievementsData>,
-) => {
-  return queryOptions({
+) =>
+  queryOptions<
+    GetAchievementsResponse,
+    AxiosError<GetAchievementsError>,
+    GetAchievementsResponse,
+    ReturnType<typeof getAchievementsQueryKey>
+  >({
     queryFn: async ({ queryKey, signal }) => {
       const { data } = await getAchievements({
         ...options,
@@ -335,7 +379,6 @@ export const getAchievementsOptions = (
     },
     queryKey: getAchievementsQueryKey(options),
   });
-};
 
 const createInfiniteParams = <
   K extends Pick<QueryKey<Options>[0], "body" | "headers" | "path" | "query">,
@@ -343,9 +386,7 @@ const createInfiniteParams = <
   queryKey: QueryKey<Options>,
   page: K,
 ) => {
-  const params = {
-    ...queryKey[0],
-  };
+  const params = { ...queryKey[0] };
   if (page.body) {
     params.body = {
       ...(queryKey[0].body as any),
@@ -380,12 +421,13 @@ export const getAchievementsInfiniteQueryKey = (
 
 /**
  * Get all achievements for the current user
+ *
  * Retrieves all achievements for the current user with pagination
  */
 export const getAchievementsInfiniteOptions = (
   options?: Options<GetAchievementsData>,
-) => {
-  return infiniteQueryOptions<
+) =>
+  infiniteQueryOptions<
     GetAchievementsResponse,
     AxiosError<GetAchievementsError>,
     InfiniteData<GetAchievementsResponse>,
@@ -423,10 +465,10 @@ export const getAchievementsInfiniteOptions = (
       queryKey: getAchievementsInfiniteQueryKey(options),
     },
   );
-};
 
 /**
  * Create a new achievement
+ *
  * Creates a new achievement for the current user
  */
 export const postAchievementsMutation = (
@@ -459,12 +501,18 @@ export const getAchievementsUsersQueryKey = (
 
 /**
  * Get users with achievements
+ *
  * Retrieves users with achievements based on role permissions
  */
 export const getAchievementsUsersOptions = (
   options?: Options<GetAchievementsUsersData>,
-) => {
-  return queryOptions({
+) =>
+  queryOptions<
+    GetAchievementsUsersResponse,
+    AxiosError<GetAchievementsUsersError>,
+    GetAchievementsUsersResponse,
+    ReturnType<typeof getAchievementsUsersQueryKey>
+  >({
     queryFn: async ({ queryKey, signal }) => {
       const { data } = await getAchievementsUsers({
         ...options,
@@ -476,7 +524,6 @@ export const getAchievementsUsersOptions = (
     },
     queryKey: getAchievementsUsersQueryKey(options),
   });
-};
 
 export const getAchievementsUsersInfiniteQueryKey = (
   options?: Options<GetAchievementsUsersData>,
@@ -485,12 +532,13 @@ export const getAchievementsUsersInfiniteQueryKey = (
 
 /**
  * Get users with achievements
+ *
  * Retrieves users with achievements based on role permissions
  */
 export const getAchievementsUsersInfiniteOptions = (
   options?: Options<GetAchievementsUsersData>,
-) => {
-  return infiniteQueryOptions<
+) =>
+  infiniteQueryOptions<
     GetAchievementsUsersResponse,
     AxiosError<GetAchievementsUsersError>,
     InfiniteData<GetAchievementsUsersResponse>,
@@ -528,10 +576,10 @@ export const getAchievementsUsersInfiniteOptions = (
       queryKey: getAchievementsUsersInfiniteQueryKey(options),
     },
   );
-};
 
 /**
  * Delete an achievement
+ *
  * Deletes an achievement
  */
 export const deleteAchievementsByIdMutation = (
@@ -564,12 +612,18 @@ export const getAchievementsByIdQueryKey = (
 
 /**
  * Get a specific achievement
+ *
  * Retrieves a specific achievement by ID
  */
 export const getAchievementsByIdOptions = (
   options: Options<GetAchievementsByIdData>,
-) => {
-  return queryOptions({
+) =>
+  queryOptions<
+    GetAchievementsByIdResponse,
+    AxiosError<GetAchievementsByIdError>,
+    GetAchievementsByIdResponse,
+    ReturnType<typeof getAchievementsByIdQueryKey>
+  >({
     queryFn: async ({ queryKey, signal }) => {
       const { data } = await getAchievementsById({
         ...options,
@@ -581,10 +635,10 @@ export const getAchievementsByIdOptions = (
     },
     queryKey: getAchievementsByIdQueryKey(options),
   });
-};
 
 /**
  * Add a document to an achievement
+ *
  * Adds a document to an achievement
  */
 export const postAchievementsByIdDocumentsMutation = (
@@ -613,6 +667,7 @@ export const postAchievementsByIdDocumentsMutation = (
 
 /**
  * Remove a document from an achievement
+ *
  * Removes a document from an achievement
  */
 export const deleteAchievementsByIdDocumentsByDocumentIdMutation = (
@@ -641,6 +696,7 @@ export const deleteAchievementsByIdDocumentsByDocumentIdMutation = (
 
 /**
  * Review an achievement
+ *
  * Reviews an achievement with approve, disapprove, or request changes action
  */
 export const postAchievementsByIdReviewMutation = (
@@ -669,6 +725,7 @@ export const postAchievementsByIdReviewMutation = (
 
 /**
  * Submit an achievement for review
+ *
  * Submits an achievement for review
  */
 export const postAchievementsByIdSubmitMutation = (
@@ -697,6 +754,7 @@ export const postAchievementsByIdSubmitMutation = (
 
 /**
  * Submit achievement with updated points
+ *
  * Allows teachers to submit achievement with updated points when changes are requested by reviewers
  */
 export const postAchievementsByIdSubmitWithNewPointsMutation = (
@@ -725,6 +783,7 @@ export const postAchievementsByIdSubmitWithNewPointsMutation = (
 
 /**
  * User login
+ *
  * Verifies user credentials and returns a JWT token
  */
 export const postAuthLoginMutation = (
@@ -757,12 +816,18 @@ export const getAuthValidateQueryKey = (
 
 /**
  * Validate JWT token
+ *
  * Validates a JWT token and returns the identity information
  */
 export const getAuthValidateOptions = (
   options?: Options<GetAuthValidateData>,
-) => {
-  return queryOptions({
+) =>
+  queryOptions<
+    GetAuthValidateResponse,
+    AxiosError<GetAuthValidateError>,
+    GetAuthValidateResponse,
+    ReturnType<typeof getAuthValidateQueryKey>
+  >({
     queryFn: async ({ queryKey, signal }) => {
       const { data } = await getAuthValidate({
         ...options,
@@ -774,19 +839,22 @@ export const getAuthValidateOptions = (
     },
     queryKey: getAuthValidateQueryKey(options),
   });
-};
 
 export const getDepartmentsQueryKey = (options?: Options<GetDepartmentsData>) =>
   createQueryKey("getDepartments", options);
 
 /**
  * List all departments
+ *
  * Retrieves list of all registered departments
  */
-export const getDepartmentsOptions = (
-  options?: Options<GetDepartmentsData>,
-) => {
-  return queryOptions({
+export const getDepartmentsOptions = (options?: Options<GetDepartmentsData>) =>
+  queryOptions<
+    GetDepartmentsResponse,
+    AxiosError<GetDepartmentsError>,
+    GetDepartmentsResponse,
+    ReturnType<typeof getDepartmentsQueryKey>
+  >({
     queryFn: async ({ queryKey, signal }) => {
       const { data } = await getDepartments({
         ...options,
@@ -798,7 +866,6 @@ export const getDepartmentsOptions = (
     },
     queryKey: getDepartmentsQueryKey(options),
   });
-};
 
 export const getDepartmentsByIdQueryKey = (
   options: Options<GetDepartmentsByIdData>,
@@ -806,12 +873,18 @@ export const getDepartmentsByIdQueryKey = (
 
 /**
  * Get department details
+ *
  * Retrieves detailed information about a department
  */
 export const getDepartmentsByIdOptions = (
   options: Options<GetDepartmentsByIdData>,
-) => {
-  return queryOptions({
+) =>
+  queryOptions<
+    GetDepartmentsByIdResponse,
+    AxiosError<GetDepartmentsByIdError>,
+    GetDepartmentsByIdResponse,
+    ReturnType<typeof getDepartmentsByIdQueryKey>
+  >({
     queryFn: async ({ queryKey, signal }) => {
       const { data } = await getDepartmentsById({
         ...options,
@@ -823,17 +896,22 @@ export const getDepartmentsByIdOptions = (
     },
     queryKey: getDepartmentsByIdQueryKey(options),
   });
-};
 
 export const getFilesQueryKey = (options?: Options<GetFilesData>) =>
   createQueryKey("getFiles", options);
 
 /**
  * Search files
+ *
  * Returns a list of files based on search criteria
  */
-export const getFilesOptions = (options?: Options<GetFilesData>) => {
-  return queryOptions({
+export const getFilesOptions = (options?: Options<GetFilesData>) =>
+  queryOptions<
+    GetFilesResponse,
+    AxiosError<GetFilesError>,
+    GetFilesResponse,
+    ReturnType<typeof getFilesQueryKey>
+  >({
     queryFn: async ({ queryKey, signal }) => {
       const { data } = await getFiles({
         ...options,
@@ -845,7 +923,6 @@ export const getFilesOptions = (options?: Options<GetFilesData>) => {
     },
     queryKey: getFilesQueryKey(options),
   });
-};
 
 export const getFilesInfiniteQueryKey = (
   options?: Options<GetFilesData>,
@@ -853,10 +930,11 @@ export const getFilesInfiniteQueryKey = (
 
 /**
  * Search files
+ *
  * Returns a list of files based on search criteria
  */
-export const getFilesInfiniteOptions = (options?: Options<GetFilesData>) => {
-  return infiniteQueryOptions<
+export const getFilesInfiniteOptions = (options?: Options<GetFilesData>) =>
+  infiniteQueryOptions<
     GetFilesResponse,
     AxiosError<GetFilesError>,
     InfiniteData<GetFilesResponse>,
@@ -894,10 +972,10 @@ export const getFilesInfiniteOptions = (options?: Options<GetFilesData>) => {
       queryKey: getFilesInfiniteQueryKey(options),
     },
   );
-};
 
 /**
  * Upload a file
+ *
  * Uploads a new file. Admin users create common files, regular users create files owned by themselves.
  */
 export const postFilesMutation = (
@@ -926,6 +1004,7 @@ export const postFilesMutation = (
 
 /**
  * Delete file
+ *
  * Deletes a file by ID
  */
 export const deleteFilesByIdMutation = (
@@ -957,10 +1036,16 @@ export const getFilesByIdQueryKey = (options: Options<GetFilesByIdData>) =>
 
 /**
  * Get file by ID
+ *
  * Returns a file by ID with download URL
  */
-export const getFilesByIdOptions = (options: Options<GetFilesByIdData>) => {
-  return queryOptions({
+export const getFilesByIdOptions = (options: Options<GetFilesByIdData>) =>
+  queryOptions<
+    GetFilesByIdResponse,
+    AxiosError<GetFilesByIdError>,
+    GetFilesByIdResponse,
+    ReturnType<typeof getFilesByIdQueryKey>
+  >({
     queryFn: async ({ queryKey, signal }) => {
       const { data } = await getFilesById({
         ...options,
@@ -972,7 +1057,6 @@ export const getFilesByIdOptions = (options: Options<GetFilesByIdData>) => {
     },
     queryKey: getFilesByIdQueryKey(options),
   });
-};
 
 export const getFilesByIdDownloadQueryKey = (
   options: Options<GetFilesByIdDownloadData>,
@@ -980,12 +1064,18 @@ export const getFilesByIdDownloadQueryKey = (
 
 /**
  * Download file
+ *
  * Redirects to a pre-signed URL for downloading the file
  */
 export const getFilesByIdDownloadOptions = (
   options: Options<GetFilesByIdDownloadData>,
-) => {
-  return queryOptions({
+) =>
+  queryOptions<
+    unknown,
+    AxiosError<GetFilesByIdDownloadError>,
+    unknown,
+    ReturnType<typeof getFilesByIdDownloadQueryKey>
+  >({
     queryFn: async ({ queryKey, signal }) => {
       const { data } = await getFilesByIdDownload({
         ...options,
@@ -997,10 +1087,10 @@ export const getFilesByIdDownloadOptions = (
     },
     queryKey: getFilesByIdDownloadQueryKey(options),
   });
-};
 
 /**
  * Mark all done achievements as accounted
+ *
  * Marks all achievements with "done" status as "accounted" in the system
  */
 export const postReportsMarkAllAccountedMutation = (
@@ -1033,12 +1123,18 @@ export const getReportsUserPointsQueryKey = (
 
 /**
  * Generate user points report
+ *
  * Generates an Excel report containing all users with their achievement points summary
  */
 export const getReportsUserPointsOptions = (
   options?: Options<GetReportsUserPointsData>,
-) => {
-  return queryOptions({
+) =>
+  queryOptions<
+    unknown,
+    AxiosError<GetReportsUserPointsError>,
+    unknown,
+    ReturnType<typeof getReportsUserPointsQueryKey>
+  >({
     queryFn: async ({ queryKey, signal }) => {
       const { data } = await getReportsUserPoints({
         ...options,
@@ -1050,17 +1146,22 @@ export const getReportsUserPointsOptions = (
     },
     queryKey: getReportsUserPointsQueryKey(options),
   });
-};
 
 export const getRolesQueryKey = (options?: Options<GetRolesData>) =>
   createQueryKey("getRoles", options);
 
 /**
  * List all roles
+ *
  * Retrieves all system roles with their permissions
  */
-export const getRolesOptions = (options?: Options<GetRolesData>) => {
-  return queryOptions({
+export const getRolesOptions = (options?: Options<GetRolesData>) =>
+  queryOptions<
+    GetRolesResponse,
+    AxiosError<GetRolesError>,
+    GetRolesResponse,
+    ReturnType<typeof getRolesQueryKey>
+  >({
     queryFn: async ({ queryKey, signal }) => {
       const { data } = await getRoles({
         ...options,
@@ -1072,17 +1173,22 @@ export const getRolesOptions = (options?: Options<GetRolesData>) => {
     },
     queryKey: getRolesQueryKey(options),
   });
-};
 
 export const getUsersQueryKey = (options?: Options<GetUsersData>) =>
   createQueryKey("getUsers", options);
 
 /**
  * Get all users registered in the system
+ *
  * Retrieves detailed information about all users
  */
-export const getUsersOptions = (options?: Options<GetUsersData>) => {
-  return queryOptions({
+export const getUsersOptions = (options?: Options<GetUsersData>) =>
+  queryOptions<
+    GetUsersResponse,
+    AxiosError<GetUsersError>,
+    GetUsersResponse,
+    ReturnType<typeof getUsersQueryKey>
+  >({
     queryFn: async ({ queryKey, signal }) => {
       const { data } = await getUsers({
         ...options,
@@ -1094,17 +1200,22 @@ export const getUsersOptions = (options?: Options<GetUsersData>) => {
     },
     queryKey: getUsersQueryKey(options),
   });
-};
 
 export const getUsersMeQueryKey = (options?: Options<GetUsersMeData>) =>
   createQueryKey("getUsersMe", options);
 
 /**
  * Get current user information
+ *
  * Returns information about the current authenticated user
  */
-export const getUsersMeOptions = (options?: Options<GetUsersMeData>) => {
-  return queryOptions({
+export const getUsersMeOptions = (options?: Options<GetUsersMeData>) =>
+  queryOptions<
+    GetUsersMeResponse,
+    AxiosError<GetUsersMeError>,
+    GetUsersMeResponse,
+    ReturnType<typeof getUsersMeQueryKey>
+  >({
     queryFn: async ({ queryKey, signal }) => {
       const { data } = await getUsersMe({
         ...options,
@@ -1116,17 +1227,22 @@ export const getUsersMeOptions = (options?: Options<GetUsersMeData>) => {
     },
     queryKey: getUsersMeQueryKey(options),
   });
-};
 
 export const getUsersByIdQueryKey = (options: Options<GetUsersByIdData>) =>
   createQueryKey("getUsersById", options);
 
 /**
  * Get user details
+ *
  * Retrieves detailed information about a user
  */
-export const getUsersByIdOptions = (options: Options<GetUsersByIdData>) => {
-  return queryOptions({
+export const getUsersByIdOptions = (options: Options<GetUsersByIdData>) =>
+  queryOptions<
+    GetUsersByIdResponse,
+    AxiosError<GetUsersByIdError>,
+    GetUsersByIdResponse,
+    ReturnType<typeof getUsersByIdQueryKey>
+  >({
     queryFn: async ({ queryKey, signal }) => {
       const { data } = await getUsersById({
         ...options,
@@ -1138,4 +1254,3 @@ export const getUsersByIdOptions = (options: Options<GetUsersByIdData>) => {
     },
     queryKey: getUsersByIdQueryKey(options),
   });
-};

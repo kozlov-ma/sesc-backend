@@ -72,7 +72,6 @@ require (
 	github.com/go-asn1-ber/asn1-ber v1.5.8-0.20250403174932-29230038a667 // indirect
 	github.com/go-critic/go-critic v0.13.0 // indirect
 	github.com/go-ini/ini v1.67.0 // indirect
-	github.com/go-ldap/ldap/v3 v3.4.12 // indirect
 	github.com/go-logr/logr v1.4.2 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-openapi/analysis v0.23.0 // indirect
@@ -251,6 +250,7 @@ require (
 	golang.org/x/exp/typeparams v0.0.0-20250210185358-939b2ce775ac // indirect
 	golang.org/x/mod v0.25.0 // indirect
 	golang.org/x/net v0.41.0 // indirect
+	golang.org/x/sync v0.15.0 // indirect
 	golang.org/x/sys v0.33.0 // indirect
 	golang.org/x/text v0.26.0 // indirect
 	golang.org/x/tools v0.34.0 // indirect
@@ -265,9 +265,9 @@ require (
 
 require (
 	entgo.io/ent v0.14.4
-	github.com/brianvoe/gofakeit/v7 v7.2.1
 	github.com/felixge/httpsnoop v1.0.4
 	github.com/go-chi/chi/v5 v5.2.1
+	github.com/go-ldap/ldap/v3 v3.4.12
 	github.com/go-openapi/errors v0.22.0
 	github.com/go-openapi/runtime v0.28.0
 	github.com/go-openapi/strfmt v0.23.0
@@ -285,8 +285,6 @@ require (
 	github.com/xuri/excelize/v2 v2.9.1
 	go.uber.org/mock v0.5.2
 	golang.org/x/exp v0.0.0-20250606033433-dcc06ee1d476
-	golang.org/x/sync v0.15.0
-	resty.dev/v3 v3.0.0-beta.3
 )
 
 tool (

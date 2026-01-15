@@ -191,7 +191,7 @@ func (l *ldapDS) fetchDepartments(conn *ldap.Conn) ([]company.Department, error)
 
 func (l *ldapDS) fetchUsers(conn *ldap.Conn) ([]company.User, error) {
 	searchRequest := ldap.NewSearchRequest(
-		fmt.Sprintf("ou=Catalogues,%s", l.config.BaseDN),
+		l.config.BaseDN,
 		ldap.ScopeWholeSubtree,
 		ldap.NeverDerefAliases,
 		0, 0, false,

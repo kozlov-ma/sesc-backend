@@ -148,7 +148,9 @@ func NewUpdatePointsAction(ach *ent.Achievement) UpdatePointsAction {
 }
 
 func (a UpdatePointsAction) AllowsUser(u company.User) bool {
-	return u.ID == a.OwnerID && a.Status == achievement.StatusDepheadRequestedChanges
+	return u.ID == a.OwnerID &&
+		(a.Status == achievement.StatusDepheadRequestedChanges ||
+			a.Status == achievement.StatusInspectorRequestedChanges)
 }
 
 type GenerateUserPointsReportAction struct{}

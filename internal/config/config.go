@@ -3,7 +3,6 @@ package config
 import (
 	"errors"
 	"fmt"
-	"os"
 	"strings"
 	"time"
 
@@ -25,13 +24,21 @@ const (
 	DatabaseTypeSQLite   DatabaseType = "sqlite3"
 )
 
+type CompanyDataSource string
+
+const (
+	CompanyDataSourceLDAP CompanyDataSource = "ldap"
+	CompanyDataSourceDemo CompanyDataSource = "demo"
+)
+
 type Config struct {
-	Database         DatabaseConfig          `mapstructure:"database"`
-	AdminCredentials []AdminCredentialConfig `mapstructure:"admin_credentials"`
-	HTTP             HTTPConfig              `mapstructure:"http"`
-	JWTSecret        string                  `mapstructure:"jwt_secret"`
-	MinIO            MinIOConfig             `mapstructure:"minio"`
-	LDAP             LDAPConfig              `mapstructure:"ldap"`
+	Database          DatabaseConfig          `mapstructure:"database"`
+	AdminCredentials  []AdminCredentialConfig `mapstructure:"admin_credentials"`
+	HTTP              HTTPConfig              `mapstructure:"http"`
+	JWTSecret         string                  `mapstructure:"jwt_secret"`
+	MinIO             MinIOConfig             `mapstructure:"minio"`
+	LDAP              LDAPConfig              `mapstructure:"ldap"`
+	CompanyDataSource CompanyDataSource       `mapstructure:"company_data_source"`
 }
 
 type DatabaseConfig struct {
@@ -101,16 +108,7 @@ func LoadConfig() (*Config, error) {
 	_ = v.BindEnv("ldap.bind_password")
 	_ = v.BindEnv("ldap.base_dn")
 	_ = v.BindEnv("ldap.sync_interval")
-
-	if os.Getenv("SESC_ADMIN_CREDENTIALS_0_ID") != "" {
-		_ = v.BindEnv("admin_credentials.0.id")
-	}
-	if os.Getenv("SESC_ADMIN_CREDENTIALS_0_USERNAME") != "" {
-		_ = v.BindEnv("admin_credentials.0.username")
-	}
-	if os.Getenv("SESC_ADMIN_CREDENTIALS_0_PASSWORD") != "" {
-		_ = v.BindEnv("admin_credentials.0.password")
-	}
+	_ = v.BindEnv("company_data_source")
 
 	if err := v.ReadInConfig(); err != nil {
 		var configFileNotFoundError viper.ConfigFileNotFoundError
@@ -143,13 +141,15 @@ func setDefaults(v *viper.Viper) {
 	v.SetDefault("minio.secret_key", "minioadmin")
 	v.SetDefault("minio.use_ssl", false)
 	v.SetDefault("minio.bucket_name", "sesc-files")
-	v.SetDefault("minio.base_url", "http://localhost:9000/sesc-files")
+	v.SetDefault("minio.base_url", "http://minio:9000/sesc-files")
 
 	v.SetDefault("ldap.url", "ldap://localhost:389")
 	v.SetDefault("ldap.bind_dn", "cn=admin,dc=sesc,dc=local")
 	v.SetDefault("ldap.bind_password", "admin")
 	v.SetDefault("ldap.base_dn", "dc=sesc,dc=local")
 	v.SetDefault("ldap.sync_interval", 5*time.Minute)
+
+	v.SetDefault("company_data_source", string(CompanyDataSourceLDAP))
 
 	v.SetDefault("admin_credentials", []AdminCredentialConfig{
 		{

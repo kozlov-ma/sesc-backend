@@ -90,13 +90,13 @@ export function AddAchievementDialog({
         <div className="flex-1 overflow-hidden p-6">
           <div className="flex gap-6 h-full">
             {/* Groups */}
-            <Card className="w-[350px] overflow-hidden">
+            <Card className="w-[350px] overflow-hidden flex flex-col">
               <CardHeader>
                 <CardTitle className="text-lg">Типы достижений</CardTitle>
                 <CardDescription>Выберите тип достижения</CardDescription>
               </CardHeader>
-              <CardContent className="-mt-3">
-                <ScrollArea className="h-[70vh] pb-4">
+              <CardContent className="-mt-3 flex-1 overflow-hidden">
+                <ScrollArea className="h-full pb-4">
                   <div className="space-y-2">
                     {isLoadingGroups
                       ? Array.from({ length: 5 }).map((_, i) => (
@@ -141,7 +141,7 @@ export function AddAchievementDialog({
             </Card>
 
             {/* Templates */}
-            <Card className="flex-1 overflow-hidden">
+            <Card className="flex-1 overflow-hidden flex flex-col">
               <CardHeader>
                 <CardTitle className="text-lg">Достижения</CardTitle>
                 <CardDescription>
@@ -150,8 +150,8 @@ export function AddAchievementDialog({
                     : "Сначала выберите группу достижений"}
                 </CardDescription>
               </CardHeader>
-              <CardContent className="-mt-3">
-                <ScrollArea className="h-[50vh]">
+              <CardContent className="-mt-3 flex-1 overflow-hidden">
+                <ScrollArea className="h-full">
                   <div className="space-y-4 mb-4">
                     {isLoadingTemplates ? (
                       Array.from({ length: 5 }).map((_, i) => (
@@ -173,7 +173,7 @@ export function AddAchievementDialog({
                               <Trophy className="h-5 w-5 shrink-0 mt-0.5" />
                               <div className="space-y-1 text-left overflow-hidden text-pretty min-w-0">
                                 <div
-                                  className="font-medium leading-tight break-words truncate-with-ellipsis"
+                                  className="font-medium leading-tight break-words truncate"
                                   title={template.name}
                                 >
                                   {template.name}

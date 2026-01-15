@@ -1,0 +1,233 @@
+services:
+  traefik:
+    image: traefik:2.11
+    container_name: traefik
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - traefik-letsencrypt:/letsencrypt
+    command:
+      - "--log.level=INFO"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+
+      # EntryPoints
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+
+      # Healthcheck ping
+      - "--ping=true"
+      - "--ping.entrypoint=web"
+
+      # Let's Encrypt
+      - "--certificatesresolvers.le.acme.email=${TRAEFIK_EMAIL}"
+      - "--certificatesresolvers.le.acme.storage=/letsencrypt/acme.json"
+      - "--certificatesresolvers.le.acme.httpchallenge=true"
+      - "--certificatesresolvers.le.acme.httpchallenge.entrypoint=web"
+
+    labels:
+      # Middleware для редиректа HTTP -> HTTPS
+      - "traefik.http.middlewares.redirect-https.redirectscheme.scheme=https"
+      - "traefik.http.middlewares.redirect-https.redirectscheme.permanent=true"
+      - "traefik.http.middlewares.redirect-https.redirectscheme.port=443"
+
+    networks:
+      - sesc-network
+
+  postgres:
+    image: postgres:14
+    container_name: postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - postgres:/var/lib/postgresql/data
+    networks:
+      - sesc-network
+    healthcheck:
+      test:
+        ["CMD-SHELL", 'pg_isready -U "${POSTGRES_USER}" -d "${POSTGRES_DB}"']
+      interval: 10s
+      retries: 5
+      start_period: 30s
+      timeout: 10s
+
+  minio:
+    image: minio/minio:latest
+    container_name: minio
+    restart: unless-stopped
+    environment:
+      MINIO_ROOT_USER: ${SESC_MINIO_ACCESS_KEY}
+      MINIO_ROOT_PASSWORD: ${SESC_MINIO_SECRET_KEY}
+      MINIO_SERVER_URL: "https://aess3.${DOMAIN}"
+      MINIO_BROWSER_REDIRECT_URL: "https://aess3-console.${DOMAIN}"
+    volumes:
+      - minio-data:/data
+    command: server /data --console-address ":9001"
+    networks:
+      - sesc-network
+
+    labels:
+      - "traefik.enable=true"
+
+      # -------------------------
+      # MinIO API
+      # -------------------------
+
+      # HTTP router (ACME only)
+      - "traefik.http.routers.minio-api-http.rule=Host(`aess3.${DOMAIN}`)"
+      - "traefik.http.routers.minio-api-http.entrypoints=web"
+      - "traefik.http.routers.minio-api-http.middlewares=acme-noredirect"
+      - "traefik.http.routers.minio-api-http.service=minio-api"
+
+      # HTTPS router (actual traffic)
+      - "traefik.http.routers.minio-api.rule=Host(`aess3.${DOMAIN}`)"
+      - "traefik.http.routers.minio-api.entrypoints=websecure"
+      - "traefik.http.routers.minio-api.tls=true"
+      - "traefik.http.routers.minio-api.tls.certresolver=le"
+      - "traefik.http.routers.minio-api.service=minio-api"
+      - "traefik.http.services.minio-api.loadbalancer.server.port=9000"
+
+      # -------------------------
+      # MinIO Console
+      # -------------------------
+
+      # HTTP router (ACME only)
+      - "traefik.http.routers.minio-console-http.rule=Host(`aess3-console.${DOMAIN}`)"
+      - "traefik.http.routers.minio-console-http.entrypoints=web"
+      - "traefik.http.routers.minio-console-http.middlewares=acme-noredirect"
+      - "traefik.http.routers.minio-console-http.service=minio-console"
+
+      # HTTPS router (actual traffic)
+      - "traefik.http.routers.minio-console.rule=Host(`s3-console.${DOMAIN}`)"
+      - "traefik.http.routers.minio-console.entrypoints=websecure"
+      - "traefik.http.routers.minio-console.tls=true"
+      - "traefik.http.routers.minio-console.tls.certresolver=le"
+      - "traefik.http.routers.minio-console.service=minio-console"
+      - "traefik.http.services.minio-console.loadbalancer.server.port=9001"
+
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 10s
+      retries: 5
+      start_period: 30s
+      timeout: 10s
+
+  ldap:
+    image: osixia/openldap:1.5.0
+    container_name: sesc-ldap
+    restart: unless-stopped
+    environment:
+      LDAP_ORGANISATION: "SESC Organization"
+      LDAP_DOMAIN: "sesc.local"
+      LDAP_BASE_DN: "dc=sesc,dc=local"
+      LDAP_ADMIN_PASSWORD: ${SESC_LDAP_BIND_PASSWORD}
+      LDAP_CONFIG_PASSWORD: "config"
+      LDAP_READONLY_USER: "false"
+      LDAP_RFC2307BIS_SCHEMA: "false"
+      LDAP_BACKEND: "mdb"
+      LDAP_TLS: "false"
+      LDAP_TLS_ENFORCE: "false"
+      LDAP_REMOVE_CONFIG_AFTER_SETUP: "true"
+    volumes:
+      - ldap-data:/var/lib/ldap
+      - ldap-config:/etc/ldap/slapd.d
+      - ./ldap/init.ldif:/container/service/slapd/assets/config/bootstrap/ldif/custom/01_init.ldif
+      - ./ldap/users.ldif:/container/service/slapd/assets/config/bootstrap/ldif/custom/02_users.ldif
+    command: --copy-service --loglevel debug
+    networks:
+      - sesc-network
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          'ldapsearch -x -H ldap://localhost:389 -b "dc=sesc,dc=local" -D "cn=admin,dc=sesc,dc=local" -w "${SESC_LDAP_BIND_PASSWORD}" >/dev/null 2>&1',
+        ]
+      interval: 10s
+      retries: 5
+      start_period: 40s
+      timeout: 10s
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: sesc-backend
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+      ldap:
+        condition: service_healthy
+    environment:
+      SESC_DATABASE_ADDRESS: "postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?sslmode=disable"
+      SESC_JWT_SECRET: ${SESC_JWT_SECRET}
+      SESC_MINIO_ENDPOINT: "minio:9000"
+      SESC_MINIO_BASE_URL: "https://aess3.${DOMAIN}/sesc-files/"
+      SESC_MINIO_ACCESS_KEY: ${SESC_MINIO_ACCESS_KEY}
+      SESC_MINIO_SECRET_KEY: ${SESC_MINIO_SECRET_KEY}
+      SESC_LDAP_BIND_PASSWORD: ${SESC_LDAP_BIND_PASSWORD}
+      SESC_LDAP_URL: "ldap://sesc-ldap:389"
+    networks:
+      - sesc-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.backend.rule=Host(`api.${DOMAIN}`)"
+      - "traefik.http.routers.backend.entrypoints=web,websecure"
+      - "traefik.http.routers.backend.tls=true"
+      - "traefik.http.routers.backend.tls.certresolver=le"
+      - "traefik.http.services.backend.loadbalancer.server.port=8080"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/up > /dev/null 2>&1"]
+      interval: 10s
+      retries: 5
+      start_period: 60s
+      timeout: 10s
+
+  frontend:
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: "https://api.${DOMAIN}"
+    container_name: sesc-frontend
+    restart: unless-stopped
+    environment:
+      NEXT_PUBLIC_API_URL: "https://api.${DOMAIN}"
+    networks:
+      - sesc-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.frontend.rule=Host(`${DOMAIN}`)"
+      - "traefik.http.routers.frontend.entrypoints=web,websecure"
+      - "traefik.http.routers.frontend.tls=true"
+      - "traefik.http.routers.frontend.tls.certresolver=le"
+      - "traefik.http.services.frontend.loadbalancer.server.port=3000"
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "busybox wget -qO- http://127.0.0.1:3000/api/health > /dev/null 2>&1",
+        ]
+      interval: 10s
+      retries: 5
+      start_period: 90s
+      timeout: 10s
+
+volumes:
+  postgres:
+  minio-data:
+  ldap-data:
+  ldap-config:
+  traefik-letsencrypt:
+
+networks:
+  sesc-network:
+    driver: bridge

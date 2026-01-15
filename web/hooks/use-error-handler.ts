@@ -1,28 +1,26 @@
 import { useErrorContext } from "@/context/error-context";
-import { ApiError, getErrorMessage, parseApiError } from "@/lib/error-handler";
+import { API_ERROR_CODES, ApiError, parseApiError } from "@/lib/error-handler";
 import { useCallback, useState } from "react";
 
-interface UseErrorHandlerOptions {
-  clearOnUnmount?: boolean;
-}
-
-export function useErrorHandler(options: UseErrorHandlerOptions = {}) {
-  const { clearOnUnmount = true } = options;
+/**
+ * Хук для обработки ошибок API
+ * Для форм с React 19 используйте useActionState напрямую
+ */
+export function useErrorHandler() {
   const [error, setErrorState] = useState<ApiError | null>(null);
   const globalErrorContext = useErrorContext();
 
-  // Handle error, both locally and globally
   const handleError = useCallback(
     (err: unknown) => {
       if (!err) {
         setErrorState(null);
-        return;
+        return null;
       }
 
       const parsedError = parseApiError(err);
       setErrorState(parsedError);
 
-      // Also set the global error if it's a critical error
+      // Глобальная ошибка для критических ошибок (500+)
       if (parsedError.statusCode && parsedError.statusCode >= 500) {
         globalErrorContext.setError(parsedError);
       }
@@ -32,12 +30,10 @@ export function useErrorHandler(options: UseErrorHandlerOptions = {}) {
     [globalErrorContext],
   );
 
-  // Clear the error
   const clearError = useCallback(() => {
     setErrorState(null);
   }, []);
 
-  // Check if the error has a specific code
   const hasError = useCallback(
     (code: string) => {
       return error?.code === code;
@@ -45,40 +41,17 @@ export function useErrorHandler(options: UseErrorHandlerOptions = {}) {
     [error],
   );
 
-  // Get the error message in a user-friendly format
-  const errorMessage = error ? error.message : "";
-
   return {
     error,
     handleError,
     clearError,
     hasError,
-    errorMessage,
+    errorMessage: error?.message ?? "",
+    errorTitle: error?.title ?? "Ошибка",
+    errorSeverity: error?.severity ?? "error",
     isError: !!error,
   };
 }
 
-// Hook for specific form errors
-export function useFormError() {
-  const { error, handleError, clearError, errorMessage, isError } =
-    useErrorHandler();
-
-  // Handle form submission error
-  const handleSubmitError = useCallback(
-    (err: unknown) => {
-      handleError(err);
-      // Return false to indicate the submission failed
-      return false;
-    },
-    [handleError],
-  );
-
-  return {
-    formError: error,
-    handleFormError: handleError,
-    clearFormError: clearError,
-    formErrorMessage: errorMessage,
-    isFormError: isError,
-    handleSubmitError,
-  };
-}
+// Re-export for convenience
+export { API_ERROR_CODES };

@@ -1,7 +1,7 @@
 "use client";
 
-import React, { createContext, useContext, useState, ReactNode } from 'react';
-import { ApiError, parseApiError } from '@/lib/error-handler';
+import React, { createContext, useContext, useState, ReactNode } from "react";
+import { ApiError, parseApiError } from "@/lib/error-handler";
 
 interface ErrorContextType {
   error: ApiError | null;
@@ -14,7 +14,7 @@ const ErrorContext = createContext<ErrorContextType | undefined>(undefined);
 export const useErrorContext = () => {
   const context = useContext(ErrorContext);
   if (context === undefined) {
-    throw new Error('useErrorContext must be used within an ErrorProvider');
+    throw new Error("useErrorContext must be used within an ErrorProvider");
   }
   return context;
 };
@@ -43,4 +43,4 @@ export function ErrorProvider({ children }: ErrorProviderProps) {
       {children}
     </ErrorContext.Provider>
   );
-} 
+}

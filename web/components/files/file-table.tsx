@@ -31,7 +31,7 @@ import {
   postFilesMutation,
 } from "@/lib/api/@tanstack/react-query.gen";
 import type { RespondFile } from "@/lib/api/types.gen";
-import { getErrorMessage } from "@/lib/error-handler";
+import { showApiErrorToast } from "@/lib/error-handler";
 import { cn, formatFileSize } from "@/lib/utils";
 import {
   useInfiniteQuery,
@@ -105,10 +105,7 @@ export function FileTable({
     },
     onError: (error) => {
       handleError(error);
-      const errorMessage = getErrorMessage(error);
-      toast.error("Ошибка загрузки файла", {
-        description: errorMessage,
-      });
+      showApiErrorToast(toast, error);
     },
   });
 
@@ -123,10 +120,7 @@ export function FileTable({
     },
     onError: (error) => {
       handleError(error);
-      const errorMessage = getErrorMessage(error);
-      toast.error("Ошибка удаления файла", {
-        description: errorMessage,
-      });
+      showApiErrorToast(toast, error);
     },
   });
 
@@ -184,65 +178,36 @@ export function FileTable({
   const handleDownload = (file: RespondFile) => {
     if (!file.id || !token) return;
 
-    // Create a temporary form to download the file with authorization
-    const form = document.createElement("form");
-    form.method = "GET";
-    form.action = `${process.env.NEXT_PUBLIC_API_URL}/files/${file.id}/download`;
-    form.target = "_blank";
-    form.style.display = "none";
-
-    // Add authorization header as a hidden input (though this won't work for headers)
-    // Better approach: use a temporary iframe with custom headers
-    const iframe = document.createElement("iframe");
-    iframe.style.display = "none";
-    document.body.appendChild(iframe);
-
-    // Create a blob URL with the authorization
     const downloadUrl = `${process.env.NEXT_PUBLIC_API_URL}/files/${file.id}/download`;
 
-    // Use fetch to get the file with proper headers
+    // Запрос к API с авторизацией для получения pre-signed URL
     fetch(downloadUrl, {
+      method: "GET",
       headers: {
         Authorization: `Bearer ${token}`,
       },
     })
       .then((response) => {
-        if (response.status === 307 || response.status === 302) {
-          const redirectUrl = response.headers.get("location");
-          if (redirectUrl) {
-            // Create a link and click it
-            const link = document.createElement("a");
-            link.href = redirectUrl;
-            link.download = file.fileName || "download";
-            link.style.display = "none";
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-          }
-        } else if (response.ok) {
-          return response.blob();
-        } else {
+        if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
+        return response.json();
       })
-      .then((blob) => {
-        if (blob) {
-          const url = URL.createObjectURL(blob);
-          const link = document.createElement("a");
-          link.href = url;
-          link.download = file.fileName || "download";
-          link.style.display = "none";
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-          URL.revokeObjectURL(url);
-        }
+      .then((data: { url: string }) => {
+        const link = document.createElement("a");
+        link.href = data.url;
+        link.download = file.fileName || "download";
+        link.style.display = "none";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
       })
       .catch((error) => {
         console.error("Error downloading file:", error);
-      })
-      .finally(() => {
-        document.body.removeChild(iframe);
+        toast.error("Ошибка скачивания файла", {
+          description:
+            "Не удалось скачать файл. Проверьте подключение и попробуйте снова.",
+        });
       });
   };
 
