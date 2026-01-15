@@ -85,7 +85,7 @@ export function FileNameDisplay({
   );
 
   const nameToDisplay = displayName || file.fileName || "Файл";
-  const downloadUrl = `${process.env.NEXT_PUBLIC_API_URL}/files/${file.id}/download`;
+  const downloadUrl = `${process.env.NEXT_PUBLIC_API_URL}/files/${file.id}/download?redirect=true`;
 
   if (!isImage || !file.fileName) {
     return (

@@ -180,43 +180,27 @@ export function FileTable({
 
     const downloadUrl = `${process.env.NEXT_PUBLIC_API_URL}/files/${file.id}/download`;
 
+    // Запрос к API с авторизацией для получения pre-signed URL
     fetch(downloadUrl, {
       method: "GET",
-      credentials: "include",
       headers: {
         Authorization: `Bearer ${token}`,
       },
     })
       .then((response) => {
-        if (response.status === 307 || response.status === 302) {
-          const redirectUrl = response.headers.get("location");
-          if (redirectUrl) {
-            const link = document.createElement("a");
-            link.href = redirectUrl;
-            link.download = file.fileName || "download";
-            link.style.display = "none";
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-          }
-        } else if (response.ok) {
-          return response.blob();
-        } else {
+        if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
+        return response.json();
       })
-      .then((blob) => {
-        if (blob) {
-          const url = URL.createObjectURL(blob);
-          const link = document.createElement("a");
-          link.href = url;
-          link.download = file.fileName || "download";
-          link.style.display = "none";
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-          URL.revokeObjectURL(url);
-        }
+      .then((data: { url: string }) => {
+        const link = document.createElement("a");
+        link.href = data.url;
+        link.download = file.fileName || "download";
+        link.style.display = "none";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
       })
       .catch((error) => {
         console.error("Error downloading file:", error);
