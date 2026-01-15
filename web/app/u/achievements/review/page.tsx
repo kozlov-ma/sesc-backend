@@ -126,21 +126,33 @@ export default function ReviewAchievementsPage() {
     (achievement: ApiAchievement) => {
       if (!currentUser) return false;
 
-      if (
-        currentUser.roles.find((r) => r.codeName === "dephead") &&
-        achievement.status === "dephead_review"
-      ) {
-        return true;
+      // For dephead_review: user must be dephead AND in the same department
+      if (achievement.status === "dephead_review") {
+        const isDephead = currentUser.roles.find(
+          (r) => r.codeName === "dephead",
+        );
+        if (
+          isDephead &&
+          currentUser.departmentId &&
+          currentUser.departmentId === achievement.departmentId
+        ) {
+          return true;
+        }
+        return false;
       }
 
-      if (
-        (currentUser.roles.find((r) => r.codeName === "academic_director") ||
+      // For inspector_review: user must have the specific reviewer role
+      // Note: We don't have reviewerRole in the achievement response,
+      // so we can't check the exact role. However, we can at least check
+      // that the user has one of the inspector roles.
+      // The backend will enforce the exact role check.
+      if (achievement.status === "inspector_review") {
+        const hasInspectorRole =
+          currentUser.roles.find((r) => r.codeName === "academic_director") ||
           currentUser.roles.find((r) => r.codeName === "development_deputy") ||
           currentUser.roles.find((r) => r.codeName === "scientific_deputy") ||
-          currentUser.roles.find((r) => r.codeName === "olympiad_deputy")) &&
-        achievement.status === "inspector_review"
-      ) {
-        return true;
+          currentUser.roles.find((r) => r.codeName === "olympiad_deputy");
+        return !!hasInspectorRole;
       }
 
       return false;
@@ -176,7 +188,7 @@ export default function ReviewAchievementsPage() {
                 <TableRow>
                   <TableHead className="w-[300px]">Пользователь</TableHead>
                   <TableHead>Действия</TableHead>
-                  <TableHead className="text-center">Статус</TableHead>
+                  <TableHead className="text-right pr-24">Статус</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -322,7 +334,7 @@ function UserRow({
             </div>
           )}
         </TableCell>
-        <TableCell className="text-right">
+        <TableCell className="text-right pr-4">
           {reviewableCount > 0 ? (
             <Badge variant="default" className="ml-auto">
               Требует проверки
@@ -374,7 +386,7 @@ function UserRow({
                     </div>
                   </div>
                 </TableCell>
-                <TableCell className="text-right">
+                <TableCell className="text-right pr-4">
                   {canReview ? (
                     <Button
                       variant="default"

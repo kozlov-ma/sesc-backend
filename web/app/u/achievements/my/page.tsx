@@ -19,12 +19,12 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
-  getAchievementsOptions,
+  getAchievementsInfiniteOptions,
   getUsersByIdOptions,
 } from "@/lib/api/@tanstack/react-query.gen";
 import { RespondAchievement, RespondUser } from "@/lib/api/types.gen";
-import { useQuery } from "@tanstack/react-query";
-import { Edit } from "lucide-react";
+import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
+import { Edit, Loader2 } from "lucide-react";
 import { useState } from "react";
 
 export default function MyAchievementsPage() {
@@ -34,11 +34,24 @@ export default function MyAchievementsPage() {
   const [isUpdatePointsDialogOpen, setIsUpdatePointsDialogOpen] =
     useState(false);
 
-  // Fetch achievements requiring changes
-  const { data: requireChangesData } = useQuery({
-    ...getAchievementsOptions({
-      query: { requiring_changes: true },
+  const pageSize = 20;
+
+  const {
+    data: requireChangesData,
+    fetchNextPage: fetchNextRequireChangesPage,
+    hasNextPage: hasNextRequireChangesPage,
+    isFetchingNextPage: isFetchingNextRequireChangesPage,
+  } = useInfiniteQuery({
+    ...getAchievementsInfiniteOptions({
+      query: {
+        requiring_changes: true,
+        limit: pageSize,
+      },
     }),
+    getNextPageParam: (lastPage, pages) =>
+      lastPage?.achievements.length === pageSize
+        ? (pages?.length || 0) * pageSize
+        : undefined,
   });
 
   // Fetch all user achievements
@@ -46,21 +59,35 @@ export default function MyAchievementsPage() {
     data: achievementsData,
     error: achievementsError,
     isLoading: isAchievementsLoading,
-  } = useQuery({
-    ...getAchievementsOptions(),
+    fetchNextPage: fetchNextSubmittedPage,
+    hasNextPage: hasNextSubmittedPage,
+    isFetchingNextPage: isFetchingNextSubmittedPage,
+  } = useInfiniteQuery({
+    ...getAchievementsInfiniteOptions({
+      query: {
+        limit: pageSize,
+      },
+    }),
+    getNextPageParam: (lastPage, pages) =>
+      lastPage?.achievements.length === pageSize
+        ? (pages?.length || 0) * pageSize
+        : undefined,
   });
 
-  // Filter achievements requiring changes
-  const achievementsRequiringChanges = requireChangesData?.achievements || [];
+  // Flatten and filter achievements requiring changes
+  const allRequireChanges =
+    requireChangesData?.pages.flatMap((page) => page.achievements) || [];
+  const achievementsRequiringChanges = allRequireChanges;
 
-  // Filter submitted achievements (not drafts and not requiring changes)
-  const submittedAchievements =
-    achievementsData?.achievements.filter(
-      (achievement) =>
-        achievement.status !== "draft" &&
-        achievement.status !== "dephead_requested_changes" &&
-        achievement.status !== "inspector_requested_changes",
-    ) || [];
+  // Flatten all achievements from all pages and filter submitted achievements
+  const allAchievements =
+    achievementsData?.pages.flatMap((page) => page.achievements) || [];
+  const submittedAchievements = allAchievements.filter(
+    (achievement) =>
+      achievement.status !== "draft" &&
+      achievement.status !== "dephead_requested_changes" &&
+      achievement.status !== "inspector_requested_changes",
+  );
 
   const handleViewAchievement = (achievement: RespondAchievement) => {
     setSelectedAchievement(achievement);
@@ -92,7 +119,7 @@ export default function MyAchievementsPage() {
                     <TableHead>Баллы</TableHead>
                     <TableHead>Документы</TableHead>
                     <TableHead>Отзывы</TableHead>
-                    <TableHead className="text-left">Действия</TableHead>
+                    <TableHead className="text-right pr-16">Действия</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -127,6 +154,31 @@ export default function MyAchievementsPage() {
                 </TableBody>
               </Table>
             </div>
+            {hasNextRequireChangesPage && (
+              <div className="flex justify-center mt-4">
+                <Button
+                  variant="outline"
+                  onClick={() => fetchNextRequireChangesPage()}
+                  disabled={isFetchingNextRequireChangesPage}
+                >
+                  {isFetchingNextRequireChangesPage ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Загрузка...
+                    </>
+                  ) : (
+                    "Загрузить ещё достижений"
+                  )}
+                </Button>
+              </div>
+            )}
+            {achievementsRequiringChanges.length > 0 &&
+              !hasNextRequireChangesPage &&
+              achievementsRequiringChanges.length >= pageSize && (
+                <div className="text-center text-muted-foreground py-4">
+                  Все достижения загружены
+                </div>
+              )}
           </CardContent>
         </Card>
       )}
@@ -159,36 +211,63 @@ export default function MyAchievementsPage() {
               </p>
             </div>
           ) : (
-            <div className="rounded-md border">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Шаблон</TableHead>
-                    <TableHead>Статус</TableHead>
-                    <TableHead>Баллы</TableHead>
-                    <TableHead>Документы</TableHead>
-                    <TableHead>Отзывы</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {submittedAchievements.map((achievement) => (
-                    <TableRow
-                      key={achievement.id}
-                      className="cursor-pointer hover:bg-muted/50"
-                      onClick={() => handleViewAchievement(achievement)}
-                    >
-                      <TableCell className="font-medium">
-                        {achievement.templateName}
-                      </TableCell>
-                      <StatusCell achievement={achievement} />
-                      <TableCell>{achievement.points}</TableCell>
-                      <TableCell>{achievement.documents.length}</TableCell>
-                      <TableCell>{achievement.reviews.length}</TableCell>
+            <>
+              <div className="rounded-md border">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Шаблон</TableHead>
+                      <TableHead>Статус</TableHead>
+                      <TableHead>Баллы</TableHead>
+                      <TableHead>Документы</TableHead>
+                      <TableHead>Отзывы</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
+                  </TableHeader>
+                  <TableBody>
+                    {submittedAchievements.map((achievement) => (
+                      <TableRow
+                        key={achievement.id}
+                        className="cursor-pointer hover:bg-muted/50"
+                        onClick={() => handleViewAchievement(achievement)}
+                      >
+                        <TableCell className="font-medium">
+                          {achievement.templateName}
+                        </TableCell>
+                        <StatusCell achievement={achievement} />
+                        <TableCell>{achievement.points}</TableCell>
+                        <TableCell>{achievement.documents.length}</TableCell>
+                        <TableCell>{achievement.reviews.length}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+              {hasNextSubmittedPage && (
+                <div className="flex justify-center mt-4">
+                  <Button
+                    variant="outline"
+                    onClick={() => fetchNextSubmittedPage()}
+                    disabled={isFetchingNextSubmittedPage}
+                  >
+                    {isFetchingNextSubmittedPage ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Загрузка...
+                      </>
+                    ) : (
+                      "Загрузить ещё достижений"
+                    )}
+                  </Button>
+                </div>
+              )}
+              {submittedAchievements.length > 0 &&
+                !hasNextSubmittedPage &&
+                submittedAchievements.length >= pageSize && (
+                  <div className="text-center text-muted-foreground py-4">
+                    Все достижения загружены
+                  </div>
+                )}
+            </>
           )}
         </CardContent>
       </Card>
@@ -230,20 +309,20 @@ function StatusCell({ achievement }: { achievement: RespondAchievement }) {
   });
 
   let label = getStatusLabel(achievement.status);
+  let variant = getStatusBadgeVariant(achievement.status);
 
   const reviewerUser = reviewer as RespondUser | undefined;
 
   if (isRequestedChanges || (isUnderReview && isReturnedForChanges)) {
     label = "Вернули на изменение";
+    variant = "destructive";
   } else if (isUnderReview && reviewerUser?.fullName) {
     label = `На проверке у ${reviewerUser.fullName}`;
   }
 
   return (
     <TableCell>
-      <Badge variant={getStatusBadgeVariant(achievement.status)}>
-        {isLoading ? "Загрузка..." : label}
-      </Badge>
+      <Badge variant={variant}>{isLoading ? "Загрузка..." : label}</Badge>
     </TableCell>
   );
 }
