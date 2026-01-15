@@ -85,20 +85,7 @@ export function FileNameDisplay({
   );
 
   const nameToDisplay = displayName || file.fileName || "Файл";
-
-  const handleDownload = () => {
-    const link = document.createElement("a");
-    link.href =
-      process.env.NEXT_PUBLIC_API_URL + "/files/" + file.id + "/download";
-    link.download = file.fileName || "download";
-    link.target = "_blank";
-    link.rel = "noopener noreferrer";
-
-    // Append to body, click, and remove
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
+  const downloadUrl = `${process.env.NEXT_PUBLIC_API_URL}/files/${file.id}/download`;
 
   if (!isImage || !file.fileName) {
     return (
@@ -111,12 +98,14 @@ export function FileNameDisplay({
             : "block w-full justify-center p-0",
           className,
         )}
-        onClick={handleDownload}
+        asChild
         title={nameToDisplay}
       >
-        <span className="font-medium truncate block text-left">
-          {nameToDisplay}
-        </span>
+        <a href={downloadUrl} download={file.fileName || "download"}>
+          <span className="font-medium truncate block text-left">
+            {nameToDisplay}
+          </span>
+        </a>
       </Button>
     );
   }
@@ -152,12 +141,7 @@ export function FileNameDisplay({
         <div className="flex flex-col">
           <div className="flex-1 flex items-center justify-center bg-muted">
             <img
-              src={
-                process.env.NEXT_PUBLIC_API_URL +
-                "/files/" +
-                file.id +
-                "/download"
-              }
+              src={downloadUrl}
               alt={file.fileName}
               className="max-h-full max-w-full object-contain"
             />
@@ -166,9 +150,11 @@ export function FileNameDisplay({
             <DialogTitle className="text-sm text-muted-foreground">
               {nameToDisplay}
             </DialogTitle>
-            <Button variant="outline" size="sm" onClick={handleDownload}>
-              <Download className="mr-2 h-4 w-4" />
-              Скачать
+            <Button variant="outline" size="sm" asChild>
+              <a href={downloadUrl} download={file.fileName || "download"}>
+                <Download className="mr-2 h-4 w-4" />
+                Скачать
+              </a>
             </Button>
           </div>
         </div>

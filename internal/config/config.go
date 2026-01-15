@@ -149,7 +149,7 @@ func setDefaults(v *viper.Viper) {
 	v.SetDefault("ldap.base_dn", "dc=sesc,dc=local")
 	v.SetDefault("ldap.sync_interval", 5*time.Minute)
 
-	v.SetDefault("company_data_source", string(CompanyDataSourceDemo))
+	v.SetDefault("company_data_source", string(CompanyDataSourceLDAP))
 
 	v.SetDefault("admin_credentials", []AdminCredentialConfig{
 		{
