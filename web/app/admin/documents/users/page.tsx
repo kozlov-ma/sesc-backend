@@ -43,6 +43,7 @@ export default function UsersDocumentsPage() {
               common: false,
               ownerId: selectedUserId,
             }}
+            allowUpload={false}
           />
         </CardContent>
       </Card>
