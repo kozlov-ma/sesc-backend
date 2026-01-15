@@ -309,20 +309,20 @@ function StatusCell({ achievement }: { achievement: RespondAchievement }) {
   });
 
   let label = getStatusLabel(achievement.status);
+  let variant = getStatusBadgeVariant(achievement.status);
 
   const reviewerUser = reviewer as RespondUser | undefined;
 
   if (isRequestedChanges || (isUnderReview && isReturnedForChanges)) {
     label = "Вернули на изменение";
+    variant = "destructive";
   } else if (isUnderReview && reviewerUser?.fullName) {
     label = `На проверке у ${reviewerUser.fullName}`;
   }
 
   return (
     <TableCell>
-      <Badge variant={getStatusBadgeVariant(achievement.status)}>
-        {isLoading ? "Загрузка..." : label}
-      </Badge>
+      <Badge variant={variant}>{isLoading ? "Загрузка..." : label}</Badge>
     </TableCell>
   );
 }
